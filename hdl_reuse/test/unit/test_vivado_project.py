@@ -28,7 +28,7 @@ class TestBasicProject(unittest.TestCase):
         self.file_d = create_file(join(self.modules_folder, "zebra", "test", "d.vhd"))
 
         self.modules = get_modules([self.modules_folder])
-        self.proj = VivadoProject(name="name", modules=self.modules, part=self.part, vivado_path="")
+        self.proj = VivadoProject(name="name", modules=self.modules, part=self.part)
 
     def tearDown(self):
         delete(self.modules_folder)
@@ -43,7 +43,15 @@ class TestBasicProject(unittest.TestCase):
         tcl = self.proj._create_tcl(self.project_folder)
         assert "zebra" not in tcl
 
-    def test_should_raise_exeception_if_project_path_already_exists(self):
+    def test_create_should_raise_exeception_if_project_path_already_exists(self):
         create_directory(self.project_folder)
         with pytest.raises(ValueError):
             self.proj.create(self.project_folder)
+
+    def test_build_should_raise_exeception_if_project_does_not_exists(self):
+        with pytest.raises(ValueError):
+            self.proj.build(self.project_folder)
+
+    def test_build_with_impl_run_should_raise_exeception_if_no_output_path_is_given(self):
+        with pytest.raises(ValueError):
+            self.proj.build(self.project_folder)

@@ -13,7 +13,7 @@ class VivadoProject:
             name,
             modules,
             part,
-            vivado_path,
+            vivado_path="vivado",  # Whatever Vivado version/location is in PATH will be used
             constraints=None,
     ):
         self.name = name
@@ -64,5 +64,68 @@ class VivadoProject:
         create_vivado_project_tcl = self.create_tcl(project_path)
         run_vivado_tcl(self.vivado_path, create_vivado_project_tcl)
 
-    def build(self, output_path):
-        pass
+    @staticmethod
+    def _launch_and_wait_on_run_tcl(run):
+        tcl = "launch_runs %s\n" % (run)
+        tcl += "wait_on_run %s\n" % run
+        return tcl
+
+    def _launch_and_check_run_tcl(self, run):
+        tcl = self._launch_and_wait_on_run_tcl(run)
+        tcl += "if {[get_property PROGRESS [get_runs %s]] != \"100%%\"} {\n" % run
+        tcl += "  puts \"ERROR: Run %s failed\"\n" % run
+        tcl += "  exit 1\n"
+        tcl += "}\n"
+        return tcl
+
+    def _synthesis_tcl(self, run):
+        return self._launch_and_check_run_tcl(run)
+
+    def _impl_tcl(self, run):
+        tcl = self._launch_and_check_run_tcl(run)
+        tcl += "\n"
+        tcl += "open_run %s\n" % run
+        tcl += "if {[expr {[get_property SLACK [get_timing_paths -delay_type min_max]] < 0}]} {\n"
+        tcl += "  puts \"ERROR: Timing not OK after %s run\"\n" % run
+        tcl += "  exit 1\n"
+        tcl += "}\n"
+        return tcl
+
+    def _bitstream_tcl(self, output_path):
+        bit_file = join(output_path, self.name)  # Vivado will append the appropriate file ending
+        tcl = "write_bitstream %s\n" % bit_file
+        return tcl
+
+    def _build_tcl(self, project, synth_only, num_threads, output_path):
+        synth_run = "synth_1"
+        impl_run = "impl_1"
+        num_threads = 8 if num_threads > 8 else num_threads  # Max value in Vivado 2017.4. set_param will give an error if higher number.
+
+        tcl = "open_project %s\n" % project
+        tcl += "set_param general.maxThreads %i\n" % num_threads
+        tcl += "\n"
+        tcl += self._synthesis_tcl(synth_run)
+        tcl += "\n"
+        if not synth_only:
+            tcl += self._impl_tcl(impl_run)
+            tcl += "\n"
+            tcl += self._bitstream_tcl(output_path)
+        return tcl
+
+    def build_tcl(self, project_path, synth_only, num_threads, output_path):
+        project = join(project_path, self.name + ".xpr")
+        if not exists(project):
+            raise ValueError("Project file does not exist in the specified location: " + project)
+
+        build_vivado_project_tcl = join(project_path, "build_vivado_project.tcl")
+        with open(build_vivado_project_tcl, "w") as file_handle:
+            file_handle.write(self._build_tcl(project, synth_only, num_threads, output_path))
+
+        return build_vivado_project_tcl
+
+    def build(self, project_path, output_path=None, synth_only=False, num_threads=12):
+        if output_path is None and not synth_only:
+            raise ValueError("Must specify output_path when doing an implementation run")
+
+        build_vivado_project_tcl = self.build_tcl(project_path, synth_only, num_threads, output_path)
+        run_vivado_tcl(self.vivado_path, build_vivado_project_tcl)
