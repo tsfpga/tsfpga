@@ -1,5 +1,6 @@
 from os.path import abspath
 import pytest
+import subprocess
 
 from hdl_reuse.system_utils import find_git_files, run_command
 
@@ -25,6 +26,12 @@ def test_this_file_is_not_listed_by_find_git_files_with_bad_argument():
 def test_run_command_called_with_nonexisting_binary_should_raise_exception():
     cmd = ["/apa/hest/zebra.exe", "foobar"]
     with pytest.raises(FileNotFoundError):
+        run_command(cmd)
+
+
+def test_run_command_with_non_zero_return_code_should_raise_exception():
+    cmd = ["ls", "/apa/hest/zebra"]
+    with pytest.raises(subprocess.CalledProcessError):
         run_command(cmd)
 
 
