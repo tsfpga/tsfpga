@@ -5,7 +5,7 @@ import sys
 import unittest
 
 from hdl_reuse.system_utils import find_git_files
-from hdl_reuse.test.test_utils import create_file, delete
+from hdl_reuse.test import create_file, delete
 
 
 THIS_DIR = dirname(__file__)

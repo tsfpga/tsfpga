@@ -4,7 +4,7 @@ import sys
 import unittest
 
 from hdl_reuse.module import BaseModule, get_modules
-from hdl_reuse.test.test_utils import create_file, create_directory, delete
+from hdl_reuse.test import create_file, create_directory, delete
 
 
 THIS_DIR = dirname(__file__)

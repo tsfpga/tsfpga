@@ -1,10 +1,11 @@
-from os.path import dirname, join
+from os.path import dirname, join, exists
 import pytest
 from subprocess import CalledProcessError
 import unittest
 
+from hdl_reuse import HDL_REUSE_MODULES
 from hdl_reuse.module import get_modules
-from hdl_reuse.test.test_utils import create_file, delete
+from hdl_reuse.test import create_file, delete, file_contains_string
 from hdl_reuse.vivado_project import VivadoProject
 
 
@@ -18,9 +19,12 @@ class TestBasicProject(unittest.TestCase):
     project_folder = join(THIS_DIR, "vivado")
 
     top_file = join(modules_folder, "apa", "test_proj_top.vhd")
-    top = """
+    top_template = """
 library ieee;
 use ieee.std_logic_1164.all;
+
+library resync;
+
 
 entity test_proj_top is
   port (
@@ -32,26 +36,37 @@ entity test_proj_top is
 end entity;
 
 architecture a of test_proj_top is
-  signal input_p1, input_p2 : std_logic;
+  signal input_p1 : std_logic;
 begin
-
-  assign_output : process
-  begin
-    wait until rising_edge(clk_1);
-    output <= input_p2;
-   end process;
 
   pipe_input : process
   begin
-    wait until rising_edge(clk_2);
-    input_p2 <= input_p1;
+    wait until rising_edge(clk_1);
     input_p1 <= input;
   end process;
+
+  {assign_output}
 
 end architecture;
 """
 
-    constraint_file = join(modules_folder, "apa", "test_proj.tcl")
+    resync = """
+  assign_output : entity resync.resync
+  port map (
+    data_in => input_p1,
+
+    clk_out => clk_2,
+    data_out => output
+  );"""
+
+    unhandled_clock_crossing = """
+  assign_output : process
+  begin
+    wait until rising_edge(clk_2);
+    output <= input_p1;
+  end process;"""
+
+    constraint_file = join(modules_folder, "apa", "test_proj_pinning.tcl")
     constraints = """
 set_property package_pin Y5 [get_ports clk_1]
 set_property package_pin W6 [get_ports clk_2]
@@ -69,34 +84,43 @@ create_clock -period 5 -name clk_2 [get_ports clk_2]
 """
 
     def setUp(self):
+        self.top = self.top_template.format(assign_output=self.resync)  # Default top level
+
         create_file(self.top_file, self.top)
         create_file(self.constraint_file, self.constraints)
 
-        self.modules = get_modules([self.modules_folder])
+        self.modules = get_modules([self.modules_folder, HDL_REUSE_MODULES])
+        self.proj = VivadoProject(name="test_proj", modules=self.modules, part=self.part, constraints=[self.constraint_file])
+        self.proj.create(self.project_folder)
+
+        self.log_file = join(self.project_folder, "vivado.log")
 
     def tearDown(self):
         delete(self.modules_folder)
         delete(self.project_folder)
 
     def test_create_project(self):
-        proj = VivadoProject(name="test_create_proj", modules=self.modules, part=self.part, constraints=[self.constraint_file])
-        proj.create(self.project_folder)
+        pass
 
     def test_synth_project(self):
-        proj = VivadoProject(name="test_synth_project", modules=self.modules, part=self.part, constraints=[self.constraint_file])
-        proj.create(self.project_folder)
-        proj.build(self.project_folder, synth_only=True)
+        self.proj.build(self.project_folder, synth_only=True)
 
-    def test_synth_should_raise_exception_if_source_code_does_not_compile(self):
+    def test_synth_should_fail_if_source_code_does_not_compile(self):
         with open(self.top_file, "a") as file_handle:
             file_handle.write("garbage\napa\nhest")
 
-        proj = VivadoProject(name="test_build_project", modules=self.modules, part=self.part, constraints=[self.constraint_file])
-        proj.create(self.project_folder)
         with pytest.raises(CalledProcessError):
-            proj.build(self.project_folder, synth_only=True)
+            self.proj.build(self.project_folder, synth_only=True)
+        assert file_contains_string(self.log_file, "\nERROR: Run synth_1 failed.")
+
+    def test_synth_with_unhandled_clock_crossing_should_fail(self):
+        top = self.top_template.format(assign_output=self.unhandled_clock_crossing)
+        create_file(self.top_file, top)
+
+        with pytest.raises(CalledProcessError):
+            self.proj.build(self.project_folder, synth_only=True)
+        assert file_contains_string(self.log_file, "\nERROR: Timing not OK after synth_1 run. Probably due to an unhandled clock crossings.")
 
     def test_build_project(self):
-        proj = VivadoProject(name="test_build_project", modules=self.modules, part=self.part, constraints=[self.constraint_file])
-        proj.create(self.project_folder)
-        proj.build(self.project_folder, self.project_folder)
+        self.proj.build(self.project_folder, self.project_folder)
+        assert exists(join(self.project_folder, self.proj.name + ".bit"))
