@@ -1,11 +1,9 @@
-from os import makedirs
-from os.path import dirname, join, exists
+from os.path import dirname, join
 import pytest
-from shutil import rmtree
 import unittest
 
 from hdl_reuse.module import get_modules
-from hdl_reuse.test.test_utils import create_file
+from hdl_reuse.test.test_utils import create_file, create_directory, delete
 from hdl_reuse.vivado_project import VivadoProject
 
 
@@ -27,16 +25,14 @@ class TestBasicProject(unittest.TestCase):
         self.file_c = create_file(join(self.modules_folder, "apa", "test", "c.vhd"))
 
         # A library with only test files
-        makedirs(join(self.modules_folder, "zebra", "test"))
         self.file_d = create_file(join(self.modules_folder, "zebra", "test", "d.vhd"))
 
         self.modules = get_modules([self.modules_folder])
         self.proj = VivadoProject(name="name", modules=self.modules, part=self.part, vivado_path="")
 
     def tearDown(self):
-        rmtree(self.modules_folder)
-        if exists(self.project_folder):
-            rmtree(self.project_folder)
+        delete(self.modules_folder)
+        delete(self.project_folder)
 
     def test_only_synthesis_files_added_to_create_project_tcl(self):
         tcl = self.proj._create_tcl(self.project_folder)
@@ -48,6 +44,6 @@ class TestBasicProject(unittest.TestCase):
         assert "zebra" not in tcl
 
     def test_should_raise_exeception_if_project_path_already_exists(self):
-        makedirs(self.project_folder)
+        create_directory(self.project_folder)
         with pytest.raises(ValueError):
             self.proj.create(self.project_folder)

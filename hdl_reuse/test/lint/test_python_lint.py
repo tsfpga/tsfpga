@@ -1,11 +1,11 @@
-import os
-from os.path import join, dirname, exists
+from os.path import join, dirname
 import pytest
 import subprocess
 import sys
 import unittest
 
 from hdl_reuse.system_utils import find_git_files
+from hdl_reuse.test.test_utils import create_file, delete
 
 
 THIS_DIR = dirname(__file__)
@@ -45,12 +45,10 @@ cc  = 3
 """
 
     def setUp(self):
-        with open(self.file, "w") as file_handler:
-            file_handler.write(self.ugly_code)
+        create_file(self.file, self.ugly_code)
 
     def tearDown(self):
-        if exists(self.file):
-            os.remove(self.file)
+        delete(self.file)
 
     def test_pylint_should_raise_exception_if_there_are_ugly_files(self):
         with pytest.raises(subprocess.CalledProcessError):

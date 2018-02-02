@@ -1,11 +1,10 @@
-from os import makedirs
 from os.path import dirname, join
 from shutil import rmtree
 import sys
 import unittest
 
 from hdl_reuse.module import BaseModule, get_modules
-from hdl_reuse.test.test_utils import create_file
+from hdl_reuse.test.test_utils import create_file, create_directory, delete
 
 
 THIS_DIR = dirname(__file__)
@@ -34,11 +33,9 @@ def test_file_list_filtering():
     module_name = "zebra"
     path = join(THIS_DIR, module_name)
 
-    makedirs(path)
-    makedirs(join(path, "folder_should_not_be_included"))
-
-    good_file = create_file(join(path, "source_code.vhd"))
+    create_directory(join(path, "folder_should_not_be_included"))
     create_file(join(path, "should_not_be_included.apa"))
+    good_file = create_file(join(path, "source_code.vhd"))
 
     my_module = BaseModule(path)
 
@@ -57,13 +54,12 @@ class TestGetModules(unittest.TestCase):
     _modules_folders = [_modules_folder]
 
     def setUp(self):
-        makedirs(self._modules_folder)
-        makedirs(join(self._modules_folder, "a"))
-        makedirs(join(self._modules_folder, "b"))
-        makedirs(join(self._modules_folder, "c"))
+        create_directory(join(self._modules_folder, "a"))
+        create_directory(join(self._modules_folder, "b"))
+        create_directory(join(self._modules_folder, "c"))
 
     def tearDown(self):
-        rmtree(self._modules_folder)
+        delete(self._modules_folder)
 
     def test_name_filtering(self):
         modules = get_modules(self._modules_folders, ["a", "b"])
@@ -72,8 +68,7 @@ class TestGetModules(unittest.TestCase):
             assert module.name != "c"
 
     def test_stray_file_can_exist_in_modules_folder_without_error(self):
-        with open(join(self._modules_folder, "text_file.txt"), "w") as file_handle:
-            file_handle.write("Dummy file")
+        create_file(join(self._modules_folder, "text_file.txt"))
         modules = get_modules(self._modules_folders)
         assert len(modules) == 3
 
@@ -86,10 +81,8 @@ class Module(BaseModule):
     def whatever(self):
         pass
 """
-        with open(join(self._modules_folder, "a", "module_a.py"), "w") as file_handle:
-            file_handle.write(module_file_content)
-        with open(join(self._modules_folder, "b", "module_b.py"), "w") as file_handle:
-            file_handle.write(module_file_content)
+        create_file(join(self._modules_folder, "a", "module_a.py"), module_file_content)
+        create_file(join(self._modules_folder, "b", "module_b.py"), module_file_content)
 
         modules = get_modules(self._modules_folders)
 
