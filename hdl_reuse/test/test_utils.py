@@ -1,5 +1,5 @@
-from os import makedirs
-from os.path import dirname, exists
+from os import makedirs, remove
+from os.path import dirname, exists, isdir
 from shutil import rmtree
 
 
@@ -14,17 +14,19 @@ def create_file(file, contents=None):
     return file
 
 
-def delete_directory(directory):
-    if exists(directory):
-        rmtree(directory)
+def delete(path):
+    if exists(path):
+        if isdir(path):
+            rmtree(path)
+        else:
+            remove(path)
 
 
 def create_directory(directory, allow_overwrite=True):
-    if exists(directory):
-        if allow_overwrite:
-            rmtree(directory)
-        else:
-            return directory
+    if allow_overwrite:
+        delete(directory)
+    elif exists(directory):
+        return directory
 
     makedirs(directory)
     return directory

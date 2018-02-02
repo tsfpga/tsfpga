@@ -8,19 +8,19 @@ class VivadoProject:
     Used for handling a Xilinx Vivado HDL project
     """
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
             self,
             name,
             modules,
             part,
             vivado_path,
-            constraints,
+            constraints=None,
     ):
         self.name = name
         self.modules = modules
         self.part = part
         self.vivado_path = vivado_path
-        self.constraints = constraints
+        self.constraints = [] if constraints is None else constraints
 
     def _create_tcl(self, project_path):
         tcl = "create_project %s %s -part %s\n" % (self.name, project_path, self.part)
