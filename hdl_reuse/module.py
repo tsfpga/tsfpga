@@ -2,7 +2,7 @@ from glob import glob
 from importlib.machinery import SourceFileLoader
 from os.path import basename, isfile, join, exists, isdir, splitext
 
-from hdl_reuse.constraints import EntityConstraint
+from hdl_reuse.constraints import Constraint
 
 
 class BaseModule:
@@ -66,7 +66,7 @@ class BaseModule:
         """
         entity_constraints = []
         for file in glob(join(self.path, "entity_constraints", "*.tcl")):
-            entity_constraints.append(EntityConstraint(file, used_in="all"))
+            entity_constraints.append(Constraint(file, used_in="all", entity_level_constraint=True))
         return entity_constraints
 
 

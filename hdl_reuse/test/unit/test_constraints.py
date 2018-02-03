@@ -2,14 +2,14 @@ from os.path import dirname, join
 import pytest
 import unittest
 
-from hdl_reuse.constraints import EntityConstraint
+from hdl_reuse.constraints import Constraint
 from hdl_reuse.test import create_file, delete
 
 
 THIS_DIR = dirname(__file__)
 
 
-class TestEntityConstraint(unittest.TestCase):
+class TestConstraint(unittest.TestCase):
 
     _modules_folder = join(THIS_DIR, "modules_for_test")
 
@@ -19,12 +19,20 @@ class TestEntityConstraint(unittest.TestCase):
     def tearDown(self):
         delete(self._modules_folder)
 
-    def test_tcl(self):
+    def test_constraint(self):
+        constraint = Constraint(self.file)
+        assert constraint.ref is None
+        assert constraint.used_in == "all"
+
+        constraint = Constraint(self.file, used_in="impl")
+        assert constraint.used_in == "impl"
+
+    def test_entity_constraint(self):
         create_file(join(self._modules_folder, "a", "apa.vhd"))
 
-        entity_constraint = EntityConstraint(self.file, used_in="all")
-        assert entity_constraint.load_tcl() == "read_xdc -ref apa -unmanaged " + self.file + "\n"
+        constraint = Constraint(self.file, entity_level_constraint=True)
+        assert constraint.ref == "apa"
 
     def test_matching_entity_not_existing_should_raise_exception(self):
         with pytest.raises(AssertionError):
-            EntityConstraint(self.file, used_in="all")
+            Constraint(self.file, used_in="all", entity_level_constraint=True)

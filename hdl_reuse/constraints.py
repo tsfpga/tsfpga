@@ -1,29 +1,23 @@
 from os.path import basename, join, exists, splitext, dirname
 
 
-class EntityConstraint:
+class Constraint:
     """
-    Class for handling constraints that will be applied to an entity.
-    This function is dependent on the constraint file name being the same as module file name being the same as entity name.
+    Class for handling a constraint file.
+
+    Can handle the regular global constraint files as well as entity-level constraints.
+    For the latter to work the constraint file name must be the same as the module file name, which must the same as entity name.
     """
 
-    def __init__(self, file, used_in):
+    def __init__(self, file, used_in="all", entity_level_constraint=False):
         self.file = file
-        self.name = splitext(basename(file))[0]
         self.used_in = used_in
+        self.ref = splitext(basename(file))[0] if entity_level_constraint else None
 
-        self._valiate()
+        self._validate()
 
-    def _valiate(self):
-        entity_file = join(dirname(self.file), "..", self.name + ".vhd")
-        assert self.used_in in ["all", "impl"], self.used_in
-        assert exists(entity_file), "Could not find a matching entity file %s for constraint file %s" % (entity_file, self.file)
-
-    def load_tcl(self):
-        """
-        The TCL snippet that loads this constraint file.
-        """
-        tcl = "read_xdc -ref %s -unmanaged %s\n" % (self.name, self.file)
-        if self.used_in == "impl":
-            tcl += "set_property used_in_synthesis false [get_files %s]\n" % self.file
-        return tcl
+    def _validate(self):
+        assert self.used_in in ["all", "synth", "impl"], self.used_in
+        if self.ref is not None:
+            entity_file = join(dirname(self.file), "..", self.ref + ".vhd")
+            assert exists(entity_file), "Could not find a matching entity file %s for constraint file %s" % (entity_file, self.file)

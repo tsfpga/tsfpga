@@ -2,6 +2,7 @@ from os import makedirs
 from os.path import join, exists
 
 from hdl_reuse import HDL_REUSE_TCL
+from hdl_reuse.constraints import Constraint
 from hdl_reuse.vivado_utils import run_vivado_tcl
 
 
@@ -22,21 +23,17 @@ class VivadoProject:
         self.modules = modules
         self.part = part
         self.vivado_path = vivado_path
+
         self.constraints = [] if constraints is None else constraints
+        self._setup_constraints_list()
 
-        self.constraints.append(join(HDL_REUSE_TCL, "constrain_clock_crossings.tcl"))
+    def _setup_constraints_list(self):
+        file = join(HDL_REUSE_TCL, "constrain_clock_crossings.tcl")
+        self.constraints.append(Constraint(file, used_in="all"))
 
-    def _create_tcl(self, project_path):
-        tcl = "create_project %s %s -part %s\n" % (self.name, project_path, self.part)
-        tcl += "set_property target_language VHDL [current_project]\n"
-        tcl += "\n"
-        tcl += self._add_modules_tcl()
-        tcl += "\n"
-        tcl += self._add_constraints_tcl()
-        tcl += "\n"
-        tcl += "set_property top %s_top [current_fileset]\n" % self.name
-        tcl += "reorder_files -auto -disable_unused\n"
-        return tcl
+        for module in self.modules:
+            for constraint in module.get_entity_constraints():
+                self.constraints.append(constraint)
 
     def _add_modules_tcl(self):
         tcl = ""
@@ -48,12 +45,26 @@ class VivadoProject:
 
     def _add_constraints_tcl(self):
         tcl = ""
-        for constraint_file in self.constraints:
-            tcl += "read_xdc -unmanaged %s\n" % constraint_file
+        for constraint in self.constraints:
+            if constraint.ref is None:
+                tcl += "read_xdc -unmanaged %s\n" % constraint.file
+            else:
+                tcl += "read_xdc -ref %s -unmanaged %s\n" % (constraint.ref, constraint.file)
+
+            if constraint.used_in == "impl":
+                tcl += "set_property used_in_synthesis false [get_files %s]\n" % constraint.file
+        return tcl
+
+    def _create_tcl(self, project_path):
+        tcl = "create_project %s %s -part %s\n" % (self.name, project_path, self.part)
+        tcl += "set_property target_language VHDL [current_project]\n"
         tcl += "\n"
-        for module in self.modules:
-            for entity_constraint in module.get_entity_constraints():
-                tcl += entity_constraint.load_tcl()
+        tcl += self._add_modules_tcl()
+        tcl += "\n"
+        tcl += self._add_constraints_tcl()
+        tcl += "\n"
+        tcl += "set_property top %s_top [current_fileset]\n" % self.name
+        tcl += "reorder_files -auto -disable_unused\n"
         return tcl
 
     def create_tcl(self, project_path):

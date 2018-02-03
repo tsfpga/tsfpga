@@ -457,7 +457,9 @@ max-returns=6
 max-statements=50
 
 # Minimum number of public methods for a class (see R0903).
-min-public-methods=1
+# It is perfectly acceptable to have a class with no public methods.
+# For example constraints.Constraint has three public variables and one non-public _validate() method.
+min-public-methods=0
 
 
 [EXCEPTIONS]

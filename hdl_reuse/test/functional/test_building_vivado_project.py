@@ -4,6 +4,7 @@ from subprocess import CalledProcessError
 import unittest
 
 from hdl_reuse import HDL_REUSE_MODULES
+from hdl_reuse.constraints import Constraint
 from hdl_reuse.module import get_modules
 from hdl_reuse.test import create_file, delete, file_contains_string
 from hdl_reuse.vivado_project import VivadoProject
@@ -88,9 +89,10 @@ create_clock -period 5 -name clk_2 [get_ports clk_2]
 
         create_file(self.top_file, self.top)
         create_file(self.constraint_file, self.constraints)
+        constraints = [Constraint(self.constraint_file)]
 
         self.modules = get_modules([self.modules_folder, HDL_REUSE_MODULES])
-        self.proj = VivadoProject(name="test_proj", modules=self.modules, part=self.part, constraints=[self.constraint_file])
+        self.proj = VivadoProject(name="test_proj", modules=self.modules, part=self.part, constraints=constraints)
         self.proj.create(self.project_folder)
 
         self.log_file = join(self.project_folder, "vivado.log")
