@@ -2,10 +2,12 @@ from glob import glob
 from importlib.machinery import SourceFileLoader
 from os.path import basename, isfile, join, exists, isdir, splitext
 
+from hdl_reuse.constraints import EntityConstraint
+
 
 class BaseModule:
     """
-    Base class for handling a HDL module. Module objects should inherit this class and override functions as necessary.
+    Base class for handling a HDL module.
     """
 
     _source_code_file_endings = ("vhd", "v")
@@ -27,10 +29,16 @@ class BaseModule:
         return files
 
     def get_synthesis_files(self):
+        """
+        List of files that should be included in a synthesis project.
+        """
         folders = [self.path]
         return self._get_source_code_files_from_folders(folders)
 
     def get_simulation_files(self):
+        """
+        List of files that should be included in a simulation project.
+        """
         folders = [self.path, join(self.path, "test")]
         return self._get_source_code_files_from_folders(folders)
 
@@ -48,8 +56,18 @@ class BaseModule:
     def setup_simulations(self, vunit_proj, **kwargs):
         """
         Setup local configuration of this module's test benches.
+        Should be overriden by modules that have any test benches that operate via generics.
         """
         pass
+
+    def get_entity_constraints(self):
+        """
+        Get a list of constraints that will be applied to a certain entity within the module.
+        """
+        entity_constraints = []
+        for file in glob(join(self.path, "entity_constraints", "*.tcl")):
+            entity_constraints.append(EntityConstraint(file, used_in="all"))
+        return entity_constraints
 
 
 def get_module_object_from_file(path, file):

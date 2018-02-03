@@ -30,3 +30,8 @@ def create_directory(directory, allow_overwrite=True):
 
     makedirs(directory)
     return directory
+
+
+def file_contains_string(file, string):
+    with open(file, "r") as file_handle:
+        return string in file_handle.read()

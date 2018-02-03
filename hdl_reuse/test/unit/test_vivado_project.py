@@ -3,7 +3,7 @@ import pytest
 import unittest
 
 from hdl_reuse.module import get_modules
-from hdl_reuse.test.test_utils import create_file, create_directory, delete
+from hdl_reuse.test import create_file, create_directory, delete
 from hdl_reuse.vivado_project import VivadoProject
 
 

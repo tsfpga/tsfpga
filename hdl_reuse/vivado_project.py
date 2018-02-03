@@ -1,5 +1,7 @@
 from os import makedirs
 from os.path import join, exists
+
+from hdl_reuse import HDL_REUSE_TCL
 from hdl_reuse.vivado_utils import run_vivado_tcl
 
 
@@ -22,6 +24,8 @@ class VivadoProject:
         self.vivado_path = vivado_path
         self.constraints = [] if constraints is None else constraints
 
+        self.constraints.append(join(HDL_REUSE_TCL, "constrain_clock_crossings.tcl"))
+
     def _create_tcl(self, project_path):
         tcl = "create_project %s %s -part %s\n" % (self.name, project_path, self.part)
         tcl += "set_property target_language VHDL [current_project]\n"
@@ -39,14 +43,17 @@ class VivadoProject:
         for module in self.modules:
             if module.get_synthesis_files():
                 file_list_str = " ".join(module.get_synthesis_files())
-                tcl += "add_files -norecurse {%s}\n" % file_list_str
-                tcl += "set_property library %s [get_files {%s}]\n" % (module.library_name, file_list_str)
+                tcl += "read_vhdl -library %s -vhdl2008 {%s}\n" % (module.library_name, file_list_str)
         return tcl
 
     def _add_constraints_tcl(self):
         tcl = ""
         for constraint_file in self.constraints:
             tcl += "read_xdc -unmanaged %s\n" % constraint_file
+        tcl += "\n"
+        for module in self.modules:
+            for entity_constraint in module.get_entity_constraints():
+                tcl += entity_constraint.load_tcl()
         return tcl
 
     def create_tcl(self, project_path):
@@ -65,31 +72,27 @@ class VivadoProject:
         run_vivado_tcl(self.vivado_path, create_vivado_project_tcl)
 
     @staticmethod
-    def _launch_and_wait_on_run_tcl(run):
+    def _run_tcl(run, slack_less_than_requirement, timing_error_message):
         tcl = "launch_runs %s\n" % (run)
         tcl += "wait_on_run %s\n" % run
-        return tcl
-
-    def _launch_and_check_run_tcl(self, run):
-        tcl = self._launch_and_wait_on_run_tcl(run)
+        tcl += "\n"
         tcl += "if {[get_property PROGRESS [get_runs %s]] != \"100%%\"} {\n" % run
-        tcl += "  puts \"ERROR: Run %s failed\"\n" % run
+        tcl += "  puts \"ERROR: Run %s failed.\"\n" % run
+        tcl += "  exit 1\n"
+        tcl += "}\n"
+        tcl += "\n"
+        tcl += "open_run %s\n" % run
+        tcl += "if {[expr {[get_property SLACK [get_timing_paths -delay_type min_max]] < %i}]} {\n" % slack_less_than_requirement
+        tcl += "  puts \"ERROR: %s\"\n" % timing_error_message
         tcl += "  exit 1\n"
         tcl += "}\n"
         return tcl
 
     def _synthesis_tcl(self, run):
-        return self._launch_and_check_run_tcl(run)
+        return self._run_tcl(run, -90, "Timing not OK after %s run. Probably due to an unhandled clock crossings." % run)
 
     def _impl_tcl(self, run):
-        tcl = self._launch_and_check_run_tcl(run)
-        tcl += "\n"
-        tcl += "open_run %s\n" % run
-        tcl += "if {[expr {[get_property SLACK [get_timing_paths -delay_type min_max]] < 0}]} {\n"
-        tcl += "  puts \"ERROR: Timing not OK after %s run\"\n" % run
-        tcl += "  exit 1\n"
-        tcl += "}\n"
-        return tcl
+        return self._run_tcl(run, 0, "Timing not OK after %s run." % run)
 
     def _bitstream_tcl(self, output_path):
         bit_file = join(output_path, self.name)  # Vivado will append the appropriate file ending
