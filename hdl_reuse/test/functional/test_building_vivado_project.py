@@ -69,15 +69,10 @@ end architecture;
 
     constraint_file = join(modules_folder, "apa", "test_proj_pinning.tcl")
     constraints = """
-set_property package_pin Y5 [get_ports clk_1]
-set_property package_pin W6 [get_ports clk_2]
-set_property package_pin W7 [get_ports input]
-set_property package_pin W8 [get_ports output]
-
-set_property iostandard lvcmos18 [get_ports clk_1]
-set_property iostandard lvcmos18 [get_ports clk_2]
-set_property iostandard lvcmos18 [get_ports input]
-set_property iostandard lvcmos18 [get_ports output]
+set_property -dict {package_pin Y5 iostandard lvcmos18} [get_ports clk_1]
+set_property -dict {package_pin W6 iostandard lvcmos18} [get_ports clk_2]
+set_property -dict {package_pin W7 iostandard lvcmos18} [get_ports input]
+set_property -dict {package_pin W8 iostandard lvcmos18} [get_ports output]
 
 # 200 MHz
 create_clock -period 5 -name clk_1 [get_ports clk_1]
