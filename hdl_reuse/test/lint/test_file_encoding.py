@@ -15,6 +15,9 @@ def open_file_with_encoding(file):
 
 
 def test_open_file_with_encoding_should_raise_exception_on_file_with_garbage_characters():
+    """
+    Sanity check that the function we use actually triggers on bad files.
+    """
     file = join(THIS_DIR, "temp_file_for_encoding_test.txt")
     with open(file, "w", encoding="utf-8") as file_handle:
         data = "\N{LATIN CAPITAL LETTER O WITH DIAERESIS}"  # Swedish word for island = non-ASCII character
