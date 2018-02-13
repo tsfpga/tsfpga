@@ -3,6 +3,7 @@ from os.path import join, exists
 
 from hdl_reuse import HDL_REUSE_TCL
 from hdl_reuse.constraints import Constraint
+from hdl_reuse.vivado_tcl import VivadoTcl
 from hdl_reuse.vivado_utils import run_vivado_tcl
 
 
@@ -16,128 +17,69 @@ class VivadoProject:
             name,
             modules,
             part,
-            vivado_path="vivado",  # Whatever Vivado version/location is in PATH will be used
+            top=None,
+            vivado_path=None,
             constraints=None,
     ):
         self.name = name
         self.modules = modules
         self.part = part
-        self.vivado_path = vivado_path
+
+        self.top = name + "_top" if top is None else top
+        self.vivado_path = "vivado" if vivado_path is None else vivado_path  # Default: Whatever version/location is in PATH will be used
 
         self.constraints = [] if constraints is None else constraints
         self._setup_constraints_list()
 
+        self.tcl = VivadoTcl(name=self.name, modules=self.modules, part=self.part, top=self.top, constraints=self.constraints)
+
     def _setup_constraints_list(self):
         file = join(HDL_REUSE_TCL, "constrain_clock_crossings.tcl")
-        self.constraints.append(Constraint(file, used_in="all"))
+        self.constraints.append(Constraint(file))
 
         for module in self.modules:
             for constraint in module.get_entity_constraints():
                 self.constraints.append(constraint)
 
-    def _add_modules_tcl(self):
-        tcl = ""
-        for module in self.modules:
-            if module.get_synthesis_files():
-                file_list_str = " ".join(module.get_synthesis_files())
-                tcl += "read_vhdl -library %s -vhdl2008 {%s}\n" % (module.library_name, file_list_str)
-        return tcl
-
-    def _add_constraints_tcl(self):
-        tcl = ""
-        for constraint in self.constraints:
-            if constraint.ref is None:
-                tcl += "read_xdc -unmanaged %s\n" % constraint.file
-            else:
-                tcl += "read_xdc -ref %s -unmanaged %s\n" % (constraint.ref, constraint.file)
-
-            if constraint.used_in == "impl":
-                tcl += "set_property used_in_synthesis false [get_files %s]\n" % constraint.file
-        return tcl
-
-    def _create_tcl(self, project_path):
-        tcl = "create_project %s %s -part %s\n" % (self.name, project_path, self.part)
-        tcl += "set_property target_language VHDL [current_project]\n"
-        tcl += "\n"
-        tcl += self._add_modules_tcl()
-        tcl += "\n"
-        tcl += self._add_constraints_tcl()
-        tcl += "\n"
-        tcl += "set_property top %s_top [current_fileset]\n" % self.name
-        tcl += "reorder_files -auto -disable_unused\n"
-        return tcl
-
     def create_tcl(self, project_path):
+        """
+        Make a TCL file that creates a Vivado project
+        """
         if exists(project_path):
             raise ValueError("Folder already exists: " + project_path)
         makedirs(project_path)
 
         create_vivado_project_tcl = join(project_path, "create_vivado_project.tcl")
         with open(create_vivado_project_tcl, "w") as file_handle:
-            file_handle.write(self._create_tcl(project_path))
+            file_handle.write(self.tcl.create(project_path))
 
         return create_vivado_project_tcl
 
     def create(self, project_path):
+        """
+        Create a Vivado project
+        """
         create_vivado_project_tcl = self.create_tcl(project_path)
         run_vivado_tcl(self.vivado_path, create_vivado_project_tcl)
 
-    @staticmethod
-    def _run_tcl(run, slack_less_than_requirement, timing_error_message):
-        tcl = "launch_runs %s\n" % (run)
-        tcl += "wait_on_run %s\n" % run
-        tcl += "\n"
-        tcl += "if {[get_property PROGRESS [get_runs %s]] != \"100%%\"} {\n" % run
-        tcl += "  puts \"ERROR: Run %s failed.\"\n" % run
-        tcl += "  exit 1\n"
-        tcl += "}\n"
-        tcl += "\n"
-        tcl += "open_run %s\n" % run
-        tcl += "if {[expr {[get_property SLACK [get_timing_paths -delay_type min_max]] < %i}]} {\n" % slack_less_than_requirement
-        tcl += "  puts \"ERROR: %s\"\n" % timing_error_message
-        tcl += "  exit 1\n"
-        tcl += "}\n"
-        return tcl
-
-    def _synthesis_tcl(self, run):
-        return self._run_tcl(run, -90, "Timing not OK after %s run. Probably due to an unhandled clock crossings." % run)
-
-    def _impl_tcl(self, run):
-        return self._run_tcl(run, 0, "Timing not OK after %s run." % run)
-
-    def _bitstream_tcl(self, output_path):
-        bit_file = join(output_path, self.name)  # Vivado will append the appropriate file ending
-        tcl = "write_bitstream %s\n" % bit_file
-        return tcl
-
-    def _build_tcl(self, project, synth_only, num_threads, output_path):
-        synth_run = "synth_1"
-        impl_run = "impl_1"
-        num_threads = 8 if num_threads > 8 else num_threads  # Max value in Vivado 2017.4. set_param will give an error if higher number.
-
-        tcl = "open_project %s\n" % project
-        tcl += "set_param general.maxThreads %i\n" % num_threads
-        tcl += "\n"
-        tcl += self._synthesis_tcl(synth_run)
-        tcl += "\n"
-        if not synth_only:
-            tcl += self._impl_tcl(impl_run)
-            tcl += "\n"
-            tcl += self._bitstream_tcl(output_path)
-        return tcl
-
     def build_tcl(self, project_path, synth_only, num_threads, output_path):
+        """
+        Make a TCL file that builds a Vivado project
+        """
         project = join(project_path, self.name + ".xpr")
         if not exists(project):
             raise ValueError("Project file does not exist in the specified location: " + project)
 
         build_vivado_project_tcl = join(project_path, "build_vivado_project.tcl")
         with open(build_vivado_project_tcl, "w") as file_handle:
-            file_handle.write(self._build_tcl(project, synth_only, num_threads, output_path))
+            file_handle.write(self.tcl.build(project, synth_only, num_threads, output_path))
 
         return build_vivado_project_tcl
 
     def build(self, project_path, output_path=None, synth_only=False, num_threads=12):
+        """
+        Build a Vivado project
+        """
         if output_path is None and not synth_only:
             raise ValueError("Must specify output_path when doing an implementation run")
 

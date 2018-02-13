@@ -66,7 +66,7 @@ class BaseModule:
         """
         entity_constraints = []
         for file in glob(join(self.path, "entity_constraints", "*.tcl")):
-            entity_constraints.append(Constraint(file, used_in="all", entity_level_constraint=True))
+            entity_constraints.append(Constraint(file, entity_level_constraint=True))
         return entity_constraints
 
 

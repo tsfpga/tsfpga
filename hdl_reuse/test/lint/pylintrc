@@ -321,7 +321,9 @@ ignore-docstrings=yes
 ignore-imports=no
 
 # Minimum lines number of a similarity.
-min-similarity-lines=4
+# This triggers for classes that have the same interface, so I upped i a bit.
+# Not sure how to handle this properly. Probably disable it if it starts to get annoying.
+min-similarity-lines=5
 
 
 [TYPECHECK]

@@ -34,5 +34,6 @@ class TestConstraint(unittest.TestCase):
         assert constraint.ref == "apa"
 
     def test_matching_entity_not_existing_should_raise_exception(self):
-        with pytest.raises(AssertionError):
-            Constraint(self.file, used_in="all", entity_level_constraint=True)
+        with pytest.raises(AssertionError) as exception_info:
+            Constraint(self.file, entity_level_constraint=True)
+        assert str(exception_info.value).startswith("Could not find a matching entity file")

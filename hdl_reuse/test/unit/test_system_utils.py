@@ -40,5 +40,6 @@ def test_run_command_called_with_non_list_should_raise_exception():
     run_command(cmd)
 
     cmd = "ls -la"
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as exception_info:
         run_command(cmd)
+    assert str(exception_info.value).startswith("Must be called with a list")
