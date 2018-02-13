@@ -8,7 +8,7 @@ The modules have been developed with quality and reusability in mind.
 Having these high quality building blocks available will accelerate productivity and creativity in many FPGA projects to come.
 
 ### Requirements
-The modules make heavy use you `VHDL-2008` so you will need a recent simulator and synthesis tool.
+The modules make heavy use of `VHDL-2008` so you will need a recent simulator and synthesis tool.
 
 ## A project platform for FPGA development
 The `hdl_reuse` folder contains a Python package for working with modules and chips in an FPGA project.
@@ -18,8 +18,7 @@ Focus has been placed on modularization and enabling a high level of scalability
 ### Python 3
 This project is built to support Python 3 only.
 Development started from scratch in spring 2018, when Python 3 had been out for over 9 years.
-
-The authors believe in [PEP 20: The Zen of Python](https://www.python.org/dev/peps/pep-0020/) and that a code base that supports both Python 2 and 3 breaks many of these rules.
+The authors believe in [PEP 20: The Zen of Python](https://www.python.org/dev/peps/pep-0020/) and that a code base supporting both Python 2 and 3 breaks many of these rules.
 
 ### Requirements
 In order to use the package you will need
@@ -27,7 +26,7 @@ In order to use the package you will need
 * [VUnit](https://vunit.github.io/) in your `PYTHONPATH`
 * A functioning VHDL simulator in your `PATH`
 
-In order to run the bundled tests you must have
+To run the bundled tests you must have
 * Python packages: `pytest`, `pylint`, `pycodestyle`
 * Xilinx Vivado 2017.4+ in your `PATH`
 
