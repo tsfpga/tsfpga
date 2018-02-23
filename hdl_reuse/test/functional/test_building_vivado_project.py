@@ -24,14 +24,14 @@ class TestBasicProject(unittest.TestCase):
 library ieee;
 use ieee.std_logic_1164.all;
 
-library resync;
+library hdl_reuse_resync;
 
 
 entity test_proj_top is
   port (
-    clk_1 : in std_logic;
-    clk_2 : in std_logic;
+    clk_in : in std_logic;
     input : in std_logic;
+    clk_out : in std_logic;
     output : out std_logic
   );
 end entity;
@@ -42,41 +42,41 @@ begin
 
   pipe_input : process
   begin
-    wait until rising_edge(clk_1);
+    wait until rising_edge(clk_in);
     input_p1 <= input;
   end process;
 
-  {assign_output}
+{assign_output}
 
 end architecture;
 """
 
     resync = """
-  assign_output : entity resync.resync
+  assign_output : entity hdl_reuse_resync.resync
   port map (
     data_in => input_p1,
 
-    clk_out => clk_2,
+    clk_out => clk_out,
     data_out => output
   );"""
 
     unhandled_clock_crossing = """
   assign_output : process
   begin
-    wait until rising_edge(clk_2);
+    wait until rising_edge(clk_out);
     output <= input_p1;
   end process;"""
 
     constraint_file = join(modules_folder, "apa", "test_proj_pinning.tcl")
     constraints = """
-set_property -dict {package_pin Y5 iostandard lvcmos18} [get_ports clk_1]
-set_property -dict {package_pin W6 iostandard lvcmos18} [get_ports clk_2]
+set_property -dict {package_pin Y5 iostandard lvcmos18} [get_ports clk_in]
 set_property -dict {package_pin W7 iostandard lvcmos18} [get_ports input]
+set_property -dict {package_pin W6 iostandard lvcmos18} [get_ports clk_out]
 set_property -dict {package_pin W8 iostandard lvcmos18} [get_ports output]
 
 # 200 MHz
-create_clock -period 5 -name clk_1 [get_ports clk_1]
-create_clock -period 5 -name clk_2 [get_ports clk_2]
+create_clock -period 5 -name clk_in [get_ports clk_in]
+create_clock -period 5 -name clk_out [get_ports clk_out]
 """
 
     def setUp(self):
