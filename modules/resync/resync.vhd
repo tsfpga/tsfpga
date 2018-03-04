@@ -7,6 +7,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+library common;
+use common.attribute_pkg.all;
+
 
 entity resync is
   generic (
@@ -22,8 +25,6 @@ end entity;
 
 architecture a of resync is
   signal data_in_p1, data_out_int : std_logic := default_value;
-
-  attribute async_reg : string;
   attribute async_reg of data_in_p1 : signal is "true";
   attribute async_reg of data_out_int : signal is "true";
 begin

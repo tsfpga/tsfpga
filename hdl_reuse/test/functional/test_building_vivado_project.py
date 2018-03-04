@@ -24,7 +24,7 @@ class TestBasicProject(unittest.TestCase):
 library ieee;
 use ieee.std_logic_1164.all;
 
-library hdl_reuse_resync;
+library resync;
 
 
 entity test_proj_top is
@@ -52,7 +52,7 @@ end architecture;
 """
 
     resync = """
-  assign_output : entity hdl_reuse_resync.resync
+  assign_output : entity resync.resync
   port map (
     data_in => input_p1,
 
