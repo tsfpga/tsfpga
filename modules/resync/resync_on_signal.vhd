@@ -6,6 +6,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+library common;
+use common.attribute_pkg.all;
+
 
 entity resync_on_signal is
   generic (
@@ -21,16 +24,18 @@ entity resync_on_signal is
 end entity;
 
 architecture a of resync_on_signal is
-  signal data_in_p1 : std_logic := default_value;
+  signal data_in_int : std_logic;
+  attribute dont_touch of data_in_int : signal is "true"; -- Keep net so that we can apply constraint
 begin
+
+  data_in_int <= data_in;
 
   main : process
   begin
     wait until rising_edge(clk_out);
     if sample_value then
-      data_out <= data_in_p1;
+      data_out <= data_in_int;
     end if;
-    data_in_p1 <= data_in;
   end process;
 
 end architecture;
