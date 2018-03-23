@@ -45,10 +45,8 @@ cc  = 3
 """
 
     def setUp(self):
-        create_file(self.file, self.ugly_code)
-
-    def tearDown(self):
         delete(self.file)
+        create_file(self.file, self.ugly_code)
 
     def test_pylint_should_raise_exception_if_there_are_ugly_files(self):
         with pytest.raises(subprocess.CalledProcessError):

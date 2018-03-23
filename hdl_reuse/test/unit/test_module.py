@@ -54,12 +54,10 @@ class TestGetModules(unittest.TestCase):
     _modules_folders = [_modules_folder]
 
     def setUp(self):
+        delete(self._modules_folder)
         create_directory(join(self._modules_folder, "a"))
         create_directory(join(self._modules_folder, "b"))
         create_directory(join(self._modules_folder, "c"))
-
-    def tearDown(self):
-        delete(self._modules_folder)
 
     def test_name_filtering(self):
         modules = get_modules(self._modules_folders, ["a", "b"])
