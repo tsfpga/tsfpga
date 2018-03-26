@@ -16,15 +16,14 @@ class TestBasicProject(unittest.TestCase):
     modules_folder = join(THIS_DIR, "modules")
 
     def setUp(self):
+        delete(self.modules_folder)
+        delete(self.project_folder)
+
         self.b_vhd = create_file(join(self.modules_folder, "apa", "b.vhd"))
         self.b_tcl = create_file(join(self.modules_folder, "apa", "entity_constraints", "b.tcl"))
 
         self.modules = get_modules([self.modules_folder])
         self.proj = VivadoProject(name="name", modules=self.modules, part="part")
-
-    def tearDown(self):
-        delete(self.modules_folder)
-        delete(self.project_folder)
 
     def test_constraints(self):
         b_tcl_found = False

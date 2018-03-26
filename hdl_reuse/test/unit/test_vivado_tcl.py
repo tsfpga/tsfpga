@@ -14,6 +14,8 @@ class TestVivadoTcl(unittest.TestCase):
     modules_folder = join(THIS_DIR, "modules")
 
     def setUp(self):
+        delete(self.modules_folder)
+
         # A library with some synth files and some test files
         self.a_vhd = create_file(join(self.modules_folder, "apa", "a.vhd"))
         self.tb_a_vhd = create_file(join(self.modules_folder, "apa", "test", "tb_a.vhd"))
@@ -25,9 +27,6 @@ class TestVivadoTcl(unittest.TestCase):
 
         self.modules = get_modules([self.modules_folder])
         self.tcl = VivadoTcl(name="name", modules=self.modules, part="part", top="top", constraints=[])
-
-    def tearDown(self):
-        delete(self.modules_folder)
 
     def test_only_synthesis_files_added_to_create_project_tcl(self):
         tcl = self.tcl.create(project_folder="")

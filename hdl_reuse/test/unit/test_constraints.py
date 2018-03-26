@@ -14,10 +14,8 @@ class TestConstraint(unittest.TestCase):
     _modules_folder = join(THIS_DIR, "modules_for_test")
 
     def setUp(self):
-        self.file = create_file(join(self._modules_folder, "a", "entity_constraints", "apa.tcl"))
-
-    def tearDown(self):
         delete(self._modules_folder)
+        self.file = create_file(join(self._modules_folder, "a", "entity_constraints", "apa.tcl"))
 
     def test_constraint(self):
         constraint = Constraint(self.file)

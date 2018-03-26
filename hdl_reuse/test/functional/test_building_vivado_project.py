@@ -80,6 +80,9 @@ create_clock -period 5 -name clk_out [get_ports clk_out]
 """
 
     def setUp(self):
+        delete(self.modules_folder)
+        delete(self.project_folder)
+
         self.top = self.top_template.format(assign_output=self.resync)  # Default top level
 
         create_file(self.top_file, self.top)
@@ -91,10 +94,6 @@ create_clock -period 5 -name clk_out [get_ports clk_out]
         self.proj.create(self.project_folder)
 
         self.log_file = join(self.project_folder, "vivado.log")
-
-    def tearDown(self):
-        delete(self.modules_folder)
-        delete(self.project_folder)
 
     def test_create_project(self):
         pass
