@@ -65,6 +65,27 @@ def test_no_checked_in_files_contain_carriage_return():
     assert test_ok
 
 
+def check_file_for_trailing_whitespace(file):
+    test_ok = True
+    with open(file) as file_handle:
+        for idx, line in enumerate(file_handle.readlines()):
+            if " \n" in line:
+                test_ok = False
+                print("Trailing whitespace on line %i in %s" % (idx + 1, file))
+    return test_ok
+
+
+def test_no_checked_in_files_contain_trailing_whitespace():
+    """
+    Trailing whitespace is not allowed.
+    Some motivation here: https://softwareengineering.stackexchange.com/questions/121555/why-is-trailing-whitespace-a-big-deal
+    """
+    test_ok = True
+    for file in find_git_files():
+        test_ok &= check_file_for_carriage_return(file)
+    assert test_ok
+
+
 class TestFileFormat(unittest.TestCase):
 
     file = join(THIS_DIR, "temp_file_for_test.txt")
@@ -72,7 +93,7 @@ class TestFileFormat(unittest.TestCase):
     def setUp(self):
         delete(self.file)
 
-    def test_open_file_with_encoding_should_raise_exception_on_file_with_garbage_characters(self):
+    def test_open_file_with_encoding_should_raise_exception_on_bad_file(self):
         """
         Sanity check that the function we use actually triggers on bad files.
         """
@@ -99,3 +120,11 @@ class TestFileFormat(unittest.TestCase):
         with open(self.file, "wb") as file_handle:
             file_handle.write(data)
         assert not check_file_for_carriage_return(self.file)
+
+    def test_check_file_for_trailing_whitespace(self):
+        """
+        Sanity check that the function we use actually triggers on bad files.
+        """
+        data = "Apa \nhest    \nzebra"
+        create_file(self.file, data)
+        assert not check_file_for_trailing_whitespace(self.file)
