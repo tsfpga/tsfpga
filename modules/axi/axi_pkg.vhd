@@ -240,8 +240,7 @@ package body axi_pkg is
   end function;
 
   function to_slv(data : axi_m2s_w_t; data_width : integer) return std_logic_vector is
-    constant result_sz : integer := axi_m2s_w_sz(data_width);
-    variable result : std_logic_vector(result_sz - 1 downto 0);
+    variable result : std_logic_vector(axi_m2s_w_sz(data_width) - 1 downto 0);
     variable lo, hi : integer := 0;
   begin
     lo := 0;
@@ -280,8 +279,7 @@ package body axi_pkg is
   end function;
 
   function to_slv(data : axi_s2m_r_t; data_width : integer) return std_logic_vector is
-    constant result_sz : integer := axi_s2m_r_sz(data_width);
-    variable result : std_logic_vector(result_sz - 1 downto 0);
+    variable result : std_logic_vector(axi_s2m_r_sz(data_width) - 1 downto 0);
     variable lo, hi : integer := 0;
   begin
     lo := 0;
