@@ -1,0 +1,88 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+library common;
+use common.math_pkg.all;
+
+library axi;
+use axi.axi_pkg.all;
+
+library vunit_lib;
+use vunit_lib.bus_master_pkg.all;
+context vunit_lib.vunit_context;
+
+
+entity axi_master is
+  generic (
+    bus_handle : bus_master_t
+  );
+  port (
+    clk : in std_logic;
+
+    axi_read_m2s : out axi_read_m2s_t := axi_read_m2s_init;
+    axi_read_s2m : in axi_read_s2m_t := axi_read_s2m_init;
+
+    axi_write_m2s : out axi_write_m2s_t := axi_write_m2s_init;
+    axi_write_s2m : in axi_write_s2m_t := axi_write_s2m_init
+  );
+end entity;
+
+architecture a of axi_master is
+
+  constant len : std_logic_vector(axi_write_m2s.aw.len'range) := std_logic_vector(to_unsigned(0, axi_write_m2s.aw.len'length));
+  constant size : std_logic_vector(axi_write_m2s.aw.size'range) := std_logic_vector(to_unsigned(log2(data_length(bus_handle) / 8), axi_write_m2s.aw.size'length));
+
+  signal rdata, wdata : std_logic_vector(data_length(bus_handle) - 1 downto 0);
+  signal wstrb : std_logic_vector(byte_enable_length(bus_handle) - 1 downto 0);
+
+begin
+
+  ------------------------------------------------------------------------------
+  axi_read_m2s.ar.len <= len;
+  axi_read_m2s.ar.size <= size;
+  axi_read_m2s.ar.burst <= axi_a_burst_incr;
+
+  rdata <= axi_read_s2m.r.data(rdata'range);
+
+  axi_write_m2s.aw.len <= len;
+  axi_write_m2s.aw.size <= size;
+  axi_write_m2s.aw.burst <= axi_a_burst_incr;
+
+  axi_write_m2s.w.data(wdata'range) <= wdata;
+  axi_write_m2s.w.last <= '1';
+  axi_write_m2s.w.strb(wstrb'range) <= wstrb;
+
+
+  ------------------------------------------------------------------------------
+  axi_lite_master_inst : entity vunit_lib.axi_lite_master
+  generic map (
+    bus_handle => bus_handle
+  )
+  port map (
+    aclk => clk,
+
+    arready => axi_read_s2m.ar.ready,
+    arvalid => axi_read_m2s.ar.valid,
+    araddr => axi_read_m2s.ar.addr,
+
+    rready => axi_read_m2s.r.ready,
+    rvalid => axi_read_s2m.r.valid,
+    rdata => rdata,
+    rresp => axi_read_s2m.r.resp,
+
+    awready => axi_write_s2m.aw.ready,
+    awvalid => axi_write_m2s.aw.valid,
+    awaddr => axi_write_m2s.aw.addr,
+
+    wready => axi_write_s2m.w.ready,
+    wvalid => axi_write_m2s.w.valid,
+    wdata => wdata,
+    wstrb => wstrb,
+
+    bready => axi_write_m2s.b.ready,
+    bvalid => axi_write_s2m.b.valid,
+    bresp => axi_write_s2m.b.resp
+  );
+
+end architecture;
