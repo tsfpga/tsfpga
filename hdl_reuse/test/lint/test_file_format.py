@@ -82,7 +82,7 @@ def test_no_checked_in_files_contain_trailing_whitespace():
     """
     test_ok = True
     for file in find_git_files():
-        test_ok &= check_file_for_carriage_return(file)
+        test_ok &= check_file_for_trailing_whitespace(file)
     assert test_ok
 
 

@@ -48,7 +48,7 @@ begin
   level_in_resync_inst : entity work.resync
   port map (
     data_in => level_in,
-    
+
     clk_out => clk_out,
     data_out => level_out
   );
