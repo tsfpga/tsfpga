@@ -1,3 +1,6 @@
 [pycodestyle]
-ignore=E501
+max-line-length = 150
+
+# E402 = Wrong import order. Pycodestylerc does not usually allow us doing sys.path.append(...) before import.
+ignore=E402
 
