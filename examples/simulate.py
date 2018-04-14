@@ -14,6 +14,7 @@ from vunit import VUnit
 def main():
     vunit_proj = VUnit.from_argv()
     vunit_proj.add_verification_components()
+    vunit_proj.add_random()
 
     for module in get_modules([hdl_reuse.HDL_REUSE_MODULES]):
         vunit_library = vunit_proj.add_library(module.library_name)
