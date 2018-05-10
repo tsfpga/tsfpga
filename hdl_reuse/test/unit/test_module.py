@@ -1,6 +1,5 @@
 from os.path import dirname, join
 from shutil import rmtree
-import sys
 import unittest
 
 from hdl_reuse.module import BaseModule, get_modules
@@ -76,26 +75,20 @@ from hdl_reuse.module import BaseModule
 
 class Module(BaseModule):
 
-    def whatever(self):
-        pass
-"""
-        create_file(join(self._modules_folder, "a", "module_a.py"), module_file_content)
-        create_file(join(self._modules_folder, "b", "module_b.py"), module_file_content)
+    def id(self):
+        return """
+
+        create_file(join(self._modules_folder, "a", "module_a.py"), module_file_content + "\"a\"")
+        create_file(join(self._modules_folder, "b", "module_b.py"), module_file_content + "\"b\"")
 
         modules = get_modules(self._modules_folders)
-
-        sys.path.append(join(self._modules_folder, "a"))
-        sys.path.append(join(self._modules_folder, "b"))
-
-        import module_a  # pylint: disable=import-error
-        import module_b  # pylint: disable=import-error
 
         assert len(modules) == 3
         for module in modules:
             if module.name == "a":
-                assert isinstance(module, module_a.Module)
+                assert module.id() == "a"
             elif module.name == "b":
-                assert isinstance(module, module_b.Module)
+                assert module.id() == "b"
             elif module.name == "c":
                 assert isinstance(module, BaseModule)
             else:

@@ -1,5 +1,5 @@
 from glob import glob
-from importlib.machinery import SourceFileLoader
+import importlib.util
 from os.path import basename, isfile, join, exists, isdir, splitext
 
 from hdl_reuse.constraints import Constraint
@@ -72,8 +72,12 @@ class BaseModule:
 
 def get_module_object_from_file(path, file):
     python_module_name = splitext(basename(file))[0]
-    source_file_handler = SourceFileLoader(python_module_name, file).load_module()
-    return source_file_handler.Module(path)
+
+    spec = importlib.util.spec_from_file_location(python_module_name, file)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    return module.Module(path)
 
 
 def get_module_object(path, name):
