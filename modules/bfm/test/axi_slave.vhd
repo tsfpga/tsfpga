@@ -10,7 +10,7 @@ use axi.axi_pkg.all;
 
 library vunit_lib;
 use vunit_lib.bus_master_pkg.all;
-use vunit_lib.axi_pkg.all;
+use vunit_lib.axi_slave_pkg.all;
 context vunit_lib.vunit_context;
 
 
@@ -52,7 +52,6 @@ begin
 
       wvalid => axi_write_m2s.w.valid,
       wready => axi_write_s2m.w.ready,
-      wid => aid,
       wdata => axi_write_m2s.w.data(data_width - 1 downto 0),
       wstrb => axi_write_m2s.w.strb,
       wlast => axi_write_m2s.w.last,

@@ -4,7 +4,7 @@ use ieee.numeric_std.all;
 
 library vunit_lib;
 use vunit_lib.bus_master_pkg.all;
-use vunit_lib.axi_pkg.all;
+use vunit_lib.axi_slave_pkg.all;
 use vunit_lib.memory_pkg.all;
 context vunit_lib.vunit_context;
 context vunit_lib.com_context;
@@ -41,7 +41,7 @@ architecture tb of tb_axi_to_axil is
   signal axil_write_s2m : axil_write_s2m_t := axil_write_s2m_init;
 
   constant memory : memory_t := new_memory;
-  constant axi_slave : axi_slave_t := new_axi_slave(address_channel_fifo_depth => 1, memory => memory);
+  constant axi_slave : axi_slave_t := new_axi_slave(address_fifo_depth => 1, memory => memory);
   constant axi_master : bus_master_t := new_bus(data_length => data_width, address_length => axi_read_m2s.ar.addr'length);
 
 begin

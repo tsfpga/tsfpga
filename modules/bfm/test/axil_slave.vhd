@@ -11,7 +11,7 @@ use axi.axil_pkg.all;
 
 library vunit_lib;
 use vunit_lib.bus_master_pkg.all;
-use vunit_lib.axi_pkg.all;
+use vunit_lib.axi_slave_pkg.all;
 context vunit_lib.vunit_context;
 
 
@@ -58,7 +58,6 @@ begin
 
       wvalid => axil_write_m2s.w.valid,
       wready => axil_write_s2m.w.ready,
-      wid => aid,
       wdata => axil_write_m2s.w.data(data_width - 1 downto 0),
       wstrb => axil_write_m2s.w.strb,
       wlast => '1',
