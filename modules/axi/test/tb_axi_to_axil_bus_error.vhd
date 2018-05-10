@@ -14,8 +14,8 @@ use osvvm.RandomPkg.all;
 
 library bfm;
 
-library common;
-use common.math_pkg.all;
+library math;
+use math.math_pkg.all;
 
 use work.axil_pkg.all;
 use work.axi_pkg.all;

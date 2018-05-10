@@ -4,8 +4,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library common;
-use common.math_pkg.all;
+library math;
+use math.math_pkg.all;
 
 use work.axi_pkg.all;
 use work.axil_pkg.all;
