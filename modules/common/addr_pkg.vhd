@@ -4,14 +4,18 @@ use ieee.std_logic_1164.all;
 
 package addr_pkg is
 
+  constant reg_width : integer := 32;
+  subtype reg_t is std_logic_vector(reg_width - 1 downto 0);
+  type reg_vec_t is array (integer range <>) of reg_t;
+
   constant addr_width : integer := 32;
   subtype addr_t is std_logic_vector(addr_width - 1 downto 0);
+
   type addr_and_mask_t is record
     addr : addr_t;
     mask : addr_t;
   end record;
-
-  type addr_and_mask_vec_t is array (natural range <>) of addr_and_mask_t;
+  type addr_and_mask_vec_t is array (integer range <>) of addr_and_mask_t;
 
   function match(addr : addr_t; addr_and_mask : addr_and_mask_t) return boolean;
   function decode(addr : addr_t; addrs : addr_and_mask_vec_t) return integer;
