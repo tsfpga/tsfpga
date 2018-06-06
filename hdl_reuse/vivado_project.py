@@ -7,7 +7,7 @@ from hdl_reuse.vivado_tcl import VivadoTcl
 from hdl_reuse.vivado_utils import run_vivado_tcl
 
 
-class VivadoProject:
+class VivadoProject:  # pylint: disable=too-many-instance-attributes
     """
     Used for handling a Xilinx Vivado HDL project
     """
@@ -20,6 +20,7 @@ class VivadoProject:
             top=None,
             vivado_path=None,
             constraints=None,
+            defined_at=None,  # To get a useful --list message
     ):
         self.name = name
         self.modules = modules
@@ -28,8 +29,11 @@ class VivadoProject:
         self.top = name + "_top" if top is None else top
         self.vivado_path = "vivado" if vivado_path is None else vivado_path  # Default: Whatever version/location is in PATH will be used
 
-        self.constraints = [] if constraints is None else constraints
+        # Lists are imutable. Since we assign and modify this one we have to copy it.
+        self.constraints = [] if constraints is None else constraints.copy()
         self._setup_constraints_list()
+
+        self.defined_at = defined_at
 
         self.tcl = VivadoTcl(name=self.name, modules=self.modules, part=self.part, top=self.top, constraints=self.constraints)
 
@@ -66,13 +70,13 @@ class VivadoProject:
         """
         Make a TCL file that builds a Vivado project
         """
-        project = join(project_path, self.name + ".xpr")
-        if not exists(project):
-            raise ValueError("Project file does not exist in the specified location: " + project)
+        project_file = join(project_path, self.name + ".xpr")
+        if not exists(project_file):
+            raise ValueError("Project file does not exist in the specified location: " + project_file)
 
         build_vivado_project_tcl = join(project_path, "build_vivado_project.tcl")
         with open(build_vivado_project_tcl, "w") as file_handle:
-            file_handle.write(self.tcl.build(project, synth_only, num_threads, output_path))
+            file_handle.write(self.tcl.build(project_file, synth_only, num_threads, output_path))
 
         return build_vivado_project_tcl
 
@@ -85,3 +89,12 @@ class VivadoProject:
 
         build_vivado_project_tcl = self.build_tcl(project_path, synth_only, num_threads, output_path)
         run_vivado_tcl(self.vivado_path, build_vivado_project_tcl)
+
+    def __str__(self):
+        result = str(self.__class__.__name__)
+        if self.defined_at is not None:
+            result += " defined at: %s" % self.defined_at
+        result += "\nName: %s" % self.name
+        result += "\nTop level: %s" % self.top
+
+        return result

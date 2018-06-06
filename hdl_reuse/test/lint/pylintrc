@@ -59,11 +59,13 @@ confidence=
 # wrong-import-order: Pylint does not agree with autopep8.py in Eclipse on what order is correct
 # wrong-import-position: We want to do sys.path.append(...) before import in some cases
 # import-error: Pylint does not recognise the sys.path.append(...) we do before import
+# inconsistent-return-statements: False positive when one branch does sys.exit() and another does return
 
 disable=missing-docstring,
         wrong-import-order,
         wrong-import-position,
-        import-error
+        import-error,
+        inconsistent-return-statements
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -328,7 +330,7 @@ ignore-imports=no
 # Minimum lines number of a similarity.
 # This triggers for classes that have the same interface, so I upped i a bit.
 # Not sure how to handle this properly. Probably disable it if it starts to get annoying.
-min-similarity-lines=5
+min-similarity-lines=7
 
 
 [TYPECHECK]

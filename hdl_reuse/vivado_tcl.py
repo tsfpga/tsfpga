@@ -1,4 +1,4 @@
-from os.path import join
+from os.path import join, abspath
 
 
 class VivadoTcl:
@@ -24,20 +24,21 @@ class VivadoTcl:
         tcl = ""
         for module in self.modules:
             if module.get_synthesis_files():
-                file_list_str = " ".join(module.get_synthesis_files())
+                file_list_str = " ".join([abspath(file) for file in module.get_synthesis_files()])
                 tcl += "read_vhdl -library %s -vhdl2008 {%s}\n" % (module.library_name, file_list_str)
         return tcl
 
     def _add_constraints(self):
         tcl = ""
         for constraint in self.constraints:
+            file = abspath(constraint.file)
             if constraint.ref is None:
-                tcl += "read_xdc -unmanaged %s\n" % constraint.file
+                tcl += "read_xdc -unmanaged %s\n" % file
             else:
-                tcl += "read_xdc -ref %s -unmanaged %s\n" % (constraint.ref, constraint.file)
+                tcl += "read_xdc -ref %s -unmanaged %s\n" % (constraint.ref, file)
 
             if constraint.used_in == "impl":
-                tcl += "set_property used_in_synthesis false [get_files %s]\n" % constraint.file
+                tcl += "set_property used_in_synthesis false [get_files %s]\n" % file
         return tcl
 
     def create(self, project_folder):
@@ -50,6 +51,8 @@ class VivadoTcl:
         tcl += "\n"
         tcl += "set_property top %s [current_fileset]\n" % self.top
         tcl += "reorder_files -auto -disable_unused\n"
+        tcl += "\n"
+        tcl += "exit\n"
         return tcl
 
     @staticmethod
@@ -81,12 +84,12 @@ class VivadoTcl:
         tcl = "write_bitstream %s\n" % bit_file
         return tcl
 
-    def build(self, project, synth_only, num_threads, output_path):
+    def build(self, project_file, synth_only, num_threads, output_path):
         synth_run = "synth_1"
         impl_run = "impl_1"
         num_threads = min(num_threads, 8)  # Max value in Vivado 2017.4. set_param will give an error if higher number.
 
-        tcl = "open_project %s\n" % project
+        tcl = "open_project %s\n" % project_file
         tcl += "set_param general.maxThreads %i\n" % num_threads
         tcl += "\n"
         tcl += self._synthesis(synth_run)
@@ -95,4 +98,6 @@ class VivadoTcl:
             tcl += self._impl(impl_run)
             tcl += "\n"
             tcl += self._bitstream(output_path)
+            tcl += "\n"
+        tcl += "exit\n"
         return tcl

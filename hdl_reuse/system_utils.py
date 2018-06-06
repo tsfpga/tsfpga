@@ -1,5 +1,6 @@
-from os.path import join, exists
+from os.path import join, exists, basename, splitext
 import subprocess
+import importlib.util
 
 from hdl_reuse import ROOT
 
@@ -28,3 +29,13 @@ def run_command(cmd, cwd=None):
         raise ValueError("Must be called with a list, not a string")
 
     subprocess.check_call(cmd, cwd=cwd)
+
+
+def load_python_module(file):
+    python_module_name = splitext(basename(file))[0]
+
+    spec = importlib.util.spec_from_file_location(python_module_name, file)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    return module

@@ -1,8 +1,8 @@
 from glob import glob
-import importlib.util
-from os.path import basename, isfile, join, exists, isdir, splitext
+from os.path import basename, isfile, join, exists, isdir
 
 from hdl_reuse.constraints import Constraint
+from hdl_reuse.system_utils import load_python_module
 
 
 class BaseModule:
@@ -69,32 +69,31 @@ class BaseModule:
             entity_constraints.append(Constraint(file, entity_level_constraint=True))
         return entity_constraints
 
+    def __str__(self):
+        return self.name + ": " + self.path
 
-def get_module_object_from_file(path, file):
-    python_module_name = splitext(basename(file))[0]
 
-    spec = importlib.util.spec_from_file_location(python_module_name, file)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-
-    return module.Module(path)
+def iterate_module_folders(modules_folders):
+    for modules_folder in modules_folders:
+        for module_folder in glob(join(modules_folder, "*")):
+            if isdir(module_folder):
+                yield module_folder
 
 
 def get_module_object(path, name):
     module_file = join(path, "module_" + name + ".py")
 
     if exists(module_file):
-        return get_module_object_from_file(path, module_file)
+        return load_python_module(module_file).Module(path)
     return BaseModule(path)
 
 
 def get_modules(modules_folders, names=None):
     modules = []
 
-    for modules_folder in modules_folders:
-        for module_folder in [folder for folder in glob(join(modules_folder, "*")) if isdir(folder)]:
-            module_name = basename(module_folder)
-            if names is None or module_name in names:
-                modules.append(get_module_object(module_folder, module_name))
+    for module_folder in iterate_module_folders(modules_folders):
+        module_name = basename(module_folder)
+        if names is None or module_name in names:
+            modules.append(get_module_object(module_folder, module_name))
 
     return modules

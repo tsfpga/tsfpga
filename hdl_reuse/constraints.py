@@ -21,3 +21,6 @@ class Constraint:
         if self.ref is not None:
             entity_file = join(dirname(self.file), "..", self.ref + ".vhd")
             assert exists(entity_file), "Could not find a matching entity file %s for constraint file %s" % (entity_file, self.file)
+
+    def __str__(self):
+        return self.file
