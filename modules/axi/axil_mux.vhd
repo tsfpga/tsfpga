@@ -20,17 +20,11 @@ entity axil_mux is
   port (
     clk : in std_logic;
 
-    read_m2s : in axil_read_m2s_t;
-    read_s2m : out axil_read_s2m_t := axil_read_s2m_init;
+    axil_m2s : in axil_m2s_t;
+    axil_s2m : out axil_s2m_t := axil_s2m_init;
 
-    write_m2s : in axil_write_m2s_t;
-    write_s2m : out axil_write_s2m_t := axil_write_s2m_init;
-
-    read_m2s_vec : out axil_read_m2s_vec_t(slave_addrs'range) := (others => axil_read_m2s_init);
-    read_s2m_vec : in axil_read_s2m_vec_t(slave_addrs'range);
-
-    write_m2s_vec : out axil_write_m2s_vec_t(slave_addrs'range) := (others => axil_write_m2s_init);
-    write_s2m_vec : in axil_write_s2m_vec_t(slave_addrs'range)
+    axil_m2s_vec : out axil_m2s_vec_t(slave_addrs'range) := (others => axil_m2s_init);
+    axil_s2m_vec : in axil_s2m_vec_t(slave_addrs'range)
   );
 end entity;
 
@@ -42,28 +36,47 @@ architecture a of axil_mux is
 begin
 
   ------------------------------------------------------------------------------
-  assign_read_m2s : process(all)
+  assign_s2m_read : process(all)
   begin
-    read_m2s_vec <= (others => read_m2s);
-
-    for slave in read_m2s_vec'range loop
-      if read_slave_select /= slave then
-        read_m2s_vec(slave).ar.valid <= '0';
-        read_m2s_vec(slave).r.ready <= '0';
-      end if;
-    end loop;
+    if read_slave_select = slave_not_selected then
+      axil_s2m.read.ar <= (ready => '0');
+      axil_s2m.read.r <= (valid => '0', others => (others => '-'));
+    else
+      axil_s2m.read <= axil_s2m_vec(read_slave_select).read;
+    end if;
   end process;
 
 
   ------------------------------------------------------------------------------
-  assign_read_s2m : process(all)
+  assign_s2m_write : process(all)
   begin
-    if read_slave_select = slave_not_selected then
-      read_s2m.ar <= (ready => '0');
-      read_s2m.r <= (valid => '0', others => (others => '-'));
+    if write_slave_select = slave_not_selected then
+      axil_s2m.write.aw <= (ready => '0');
+      axil_s2m.write.w <= (ready => '0');
+      axil_s2m.write.b <= (valid => '0', resp => (others => '-'));
     else
-      read_s2m <= read_s2m_vec(read_slave_select);
+      axil_s2m.write <= axil_s2m_vec(write_slave_select).write;
     end if;
+  end process;
+
+
+  ------------------------------------------------------------------------------
+  assign_m2s_vec : process(all)
+  begin
+    for slave in axil_m2s_vec'range loop
+      axil_m2s_vec(slave) <= axil_m2s;
+
+      if write_slave_select /= slave then
+        axil_m2s_vec(slave).write.aw.valid <= '0';
+        axil_m2s_vec(slave).write.w.valid <= '0';
+        axil_m2s_vec(slave).write.b.ready <= '0';
+      end if;
+
+      if read_slave_select /= slave then
+        axil_m2s_vec(slave).read.ar.valid <= '0';
+        axil_m2s_vec(slave).read.r.ready <= '0';
+      end if;
+    end loop;
   end process;
 
 
@@ -78,47 +91,19 @@ begin
 
       case state is
         when waiting =>
-          if read_m2s.ar.valid then
-            read_slave_select <= decode(read_m2s.ar.addr, slave_addrs);
+          if axil_m2s.read.ar.valid then
+            read_slave_select <= decode(axil_m2s.read.ar.addr, slave_addrs);
             state <= reading;
           end if;
 
         when reading =>
-          if read_m2s.r.ready and read_s2m.r.valid then
+          if axil_m2s.read.r.ready and axil_s2m.read.r.valid then
             state <= waiting;
             read_slave_select <= slave_not_selected;
           end if;
       end case;
     end process;
   end block;
-
-
-  ------------------------------------------------------------------------------
-  assign_write_m2s : process(all)
-  begin
-    write_m2s_vec <= (others => write_m2s);
-
-    for slave in write_m2s_vec'range loop
-      if write_slave_select /= slave then
-        write_m2s_vec(slave).aw.valid <= '0';
-        write_m2s_vec(slave).w.valid <= '0';
-        write_m2s_vec(slave).b.ready <= '0';
-      end if;
-    end loop;
-  end process;
-
-
-  ------------------------------------------------------------------------------
-  assign_write_s2m : process(all)
-  begin
-    if write_slave_select = slave_not_selected then
-      write_s2m.aw <= (ready => '0');
-      write_s2m.w <= (ready => '0');
-      write_s2m.b <= (valid => '0', resp => (others => '-'));
-    else
-      write_s2m <= write_s2m_vec(write_slave_select);
-    end if;
-  end process;
 
 
   ------------------------------------------------------------------------------
@@ -132,13 +117,13 @@ begin
 
       case state is
         when waiting =>
-          if write_m2s.aw.valid then
-            write_slave_select <= decode(write_m2s.aw.addr, slave_addrs);
+          if axil_m2s.write.aw.valid then
+            write_slave_select <= decode(axil_m2s.write.aw.addr, slave_addrs);
             state <= writing;
           end if;
 
         when writing =>
-          if write_m2s.b.ready and write_s2m.b.valid then
+          if axil_m2s.write.b.ready and axil_s2m.write.b.valid then
             state <= waiting;
             write_slave_select <= slave_not_selected;
           end if;

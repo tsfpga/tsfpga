@@ -28,21 +28,15 @@ end entity;
 architecture tb of tb_axi_to_axil is
   signal clk : std_logic := '0';
 
-  signal axi_read_m2s : axi_read_m2s_t := axi_read_m2s_init;
-  signal axi_read_s2m : axi_read_s2m_t;
+  signal axi_m2s : axi_m2s_t;
+  signal axi_s2m : axi_s2m_t;
 
-  signal axi_write_m2s : axi_write_m2s_t := axi_write_m2s_init;
-  signal axi_write_s2m : axi_write_s2m_t;
-
-  signal axil_read_m2s : axil_read_m2s_t;
-  signal axil_read_s2m : axil_read_s2m_t := axil_read_s2m_init;
-
-  signal axil_write_m2s : axil_write_m2s_t;
-  signal axil_write_s2m : axil_write_s2m_t := axil_write_s2m_init;
+  signal axil_m2s : axil_m2s_t;
+  signal axil_s2m : axil_s2m_t := axil_s2m_init;
 
   constant memory : memory_t := new_memory;
   constant axi_slave : axi_slave_t := new_axi_slave(address_fifo_depth => 1, memory => memory);
-  constant axi_master : bus_master_t := new_bus(data_length => data_width, address_length => axi_read_m2s.ar.addr'length);
+  constant axi_master : bus_master_t := new_bus(data_length => data_width, address_length => axi_m2s.read.ar.addr'length);
 
 begin
 
@@ -87,11 +81,11 @@ begin
     port map (
       clk => clk,
 
-      axi_read_m2s => axi_read_m2s,
-      axi_read_s2m => axi_read_s2m,
+      axi_read_m2s => axi_m2s.read,
+      axi_read_s2m => axi_s2m.read,
 
-      axi_write_m2s => axi_write_m2s,
-      axi_write_s2m => axi_write_s2m
+      axi_write_m2s => axi_m2s.write,
+      axi_write_s2m => axi_s2m.write
     );
 
 
@@ -104,11 +98,8 @@ begin
     port map (
       clk => clk,
 
-      axil_read_m2s => axil_read_m2s,
-      axil_read_s2m => axil_read_s2m,
-
-      axil_write_m2s => axil_write_m2s,
-      axil_write_s2m => axil_write_s2m
+      axil_m2s => axil_m2s,
+      axil_s2m => axil_s2m
     );
 
 
@@ -120,17 +111,11 @@ begin
     port map (
       clk => clk,
 
-      axi_read_m2s => axi_read_m2s,
-      axi_read_s2m => axi_read_s2m,
+      axi_m2s => axi_m2s,
+      axi_s2m => axi_s2m,
 
-      axi_write_m2s => axi_write_m2s,
-      axi_write_s2m => axi_write_s2m,
-
-      axil_read_m2s => axil_read_m2s,
-      axil_read_s2m => axil_read_s2m,
-
-      axil_write_m2s => axil_write_m2s,
-      axil_write_s2m => axil_write_s2m
+      axil_m2s => axil_m2s,
+      axil_s2m => axil_s2m
     );
 
 end architecture;

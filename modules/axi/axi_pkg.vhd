@@ -159,6 +159,7 @@ package axi_pkg is
     ar : axi_m2s_a_t;
     r : axi_m2s_r_t;
   end record;
+  type axi_read_m2s_vec_t is array (integer range <>) of axi_read_m2s_t;
 
   constant axi_read_m2s_init : axi_read_m2s_t := (ar => axi_m2s_a_init, r => axi_m2s_r_init);
 
@@ -166,6 +167,7 @@ package axi_pkg is
     ar : axi_s2m_a_t;
     r : axi_s2m_r_t;
   end record;
+  type axi_read_s2m_vec_t is array (integer range <>) of axi_read_s2m_t;
 
   constant axi_read_s2m_init : axi_read_s2m_t := (ar => axi_s2m_a_init, r => axi_s2m_r_init);
 
@@ -174,6 +176,7 @@ package axi_pkg is
     w : axi_m2s_w_t;
     b : axi_m2s_b_t;
   end record;
+  type axi_write_m2s_vec_t is array (integer range <>) of axi_write_m2s_t;
 
   constant axi_write_m2s_init : axi_write_m2s_t := (aw => axi_m2s_a_init, w => axi_m2s_w_init, b => axi_m2s_b_init);
 
@@ -182,8 +185,25 @@ package axi_pkg is
     w : axi_s2m_w_t;
     b : axi_s2m_b_t;
   end record;
+  type axi_write_s2m_vec_t is array (integer range <>) of axi_write_s2m_t;
 
   constant axi_write_s2m_init : axi_write_s2m_t := (aw => axi_s2m_a_init, w => axi_s2m_w_init, b => axi_s2m_b_init);
+
+  type axi_m2s_t is record
+    read : axi_read_m2s_t;
+    write : axi_write_m2s_t;
+  end record;
+  type axi_m2s_vec_t is array (integer range <>) of axi_m2s_t;
+
+  constant axi_m2s_init : axi_m2s_t := (read => axi_read_m2s_init, write => axi_write_m2s_init);
+
+  type axi_s2m_t is record
+    read : axi_read_s2m_t;
+    write : axi_write_s2m_t;
+  end record;
+  type axi_s2m_vec_t is array (integer range <>) of axi_s2m_t;
+
+  constant axi_s2m_init : axi_s2m_t := (read => axi_read_s2m_init, write => axi_write_s2m_init);
 
 end;
 

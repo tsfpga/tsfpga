@@ -20,11 +20,8 @@ entity axil_master is
   port (
     clk : in std_logic;
 
-    axil_read_m2s : out axil_read_m2s_t := axil_read_m2s_init;
-    axil_read_s2m : in axil_read_s2m_t := axil_read_s2m_init;
-
-    axil_write_m2s : out axil_write_m2s_t := axil_write_m2s_init;
-    axil_write_s2m : in axil_write_s2m_t := axil_write_s2m_init
+    axil_m2s : out axil_m2s_t := axil_m2s_init;
+    axil_s2m : in axil_s2m_t := axil_s2m_init
   );
 end entity;
 
@@ -36,10 +33,10 @@ architecture a of axil_master is
 begin
 
   ------------------------------------------------------------------------------
-  rdata <= axil_read_s2m.r.data(rdata'range);
+  rdata <= axil_s2m.read.r.data(rdata'range);
 
-  axil_write_m2s.w.data(wdata'range) <= wdata;
-  axil_write_m2s.w.strb(wstrb'range) <= wstrb;
+  axil_m2s.write.w.data(wdata'range) <= wdata;
+  axil_m2s.write.w.strb(wstrb'range) <= wstrb;
 
 
   ------------------------------------------------------------------------------
@@ -50,27 +47,27 @@ begin
   port map (
     aclk => clk,
 
-    arready => axil_read_s2m.ar.ready,
-    arvalid => axil_read_m2s.ar.valid,
-    araddr => axil_read_m2s.ar.addr,
+    arready => axil_s2m.read.ar.ready,
+    arvalid => axil_m2s.read.ar.valid,
+    araddr => axil_m2s.read.ar.addr,
 
-    rready => axil_read_m2s.r.ready,
-    rvalid => axil_read_s2m.r.valid,
+    rready => axil_m2s.read.r.ready,
+    rvalid => axil_s2m.read.r.valid,
     rdata => rdata,
-    rresp => axil_read_s2m.r.resp,
+    rresp => axil_s2m.read.r.resp,
 
-    awready => axil_write_s2m.aw.ready,
-    awvalid => axil_write_m2s.aw.valid,
-    awaddr => axil_write_m2s.aw.addr,
+    awready => axil_s2m.write.aw.ready,
+    awvalid => axil_m2s.write.aw.valid,
+    awaddr => axil_m2s.write.aw.addr,
 
-    wready => axil_write_s2m.w.ready,
-    wvalid => axil_write_m2s.w.valid,
+    wready => axil_s2m.write.w.ready,
+    wvalid => axil_m2s.write.w.valid,
     wdata => wdata,
     wstrb => wstrb,
 
-    bready => axil_write_m2s.b.ready,
-    bvalid => axil_write_s2m.b.valid,
-    bresp => axil_write_s2m.b.resp
+    bready => axil_m2s.write.b.ready,
+    bvalid => axil_s2m.write.b.valid,
+    bresp => axil_s2m.write.b.resp
   );
 
 end architecture;

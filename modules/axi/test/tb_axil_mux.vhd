@@ -46,19 +46,13 @@ architecture tb of tb_axil_mux is
 
   signal clk : std_logic := '0';
 
-  signal read_m2s : axil_read_m2s_t;
-  signal read_s2m : axil_read_s2m_t;
+  signal axil_m2s : axil_m2s_t;
+  signal axil_s2m : axil_s2m_t;
 
-  signal write_m2s : axil_write_m2s_t;
-  signal write_s2m : axil_write_s2m_t;
+  signal axil_m2s_vec : axil_m2s_vec_t(slaves_rng);
+  signal axil_s2m_vec : axil_s2m_vec_t(slaves_rng);
 
-  signal read_m2s_vec : axil_read_m2s_vec_t(slaves_rng);
-  signal read_s2m_vec : axil_read_s2m_vec_t(slaves_rng);
-
-  signal write_m2s_vec : axil_write_m2s_vec_t(slaves_rng);
-  signal write_s2m_vec : axil_write_s2m_vec_t(slaves_rng);
-
-  constant axi_master : bus_master_t := new_bus(data_length => data_width, address_length => read_m2s.ar.addr'length);
+  constant axi_master : bus_master_t := new_bus(data_length => data_width, address_length => axil_m2s.read.ar.addr'length);
 
   type memory_vec_t is array (integer range <>) of memory_t;
   constant memory : memory_vec_t (slaves_rng) := (
@@ -146,11 +140,8 @@ begin
     port map (
       clk => clk,
 
-      axil_read_m2s => read_m2s,
-      axil_read_s2m => read_s2m,
-
-      axil_write_m2s => write_m2s,
-      axil_write_s2m => write_s2m
+      axil_m2s => axil_m2s,
+      axil_s2m => axil_s2m
     );
 
 
@@ -165,11 +156,8 @@ begin
     port map (
       clk => clk,
 
-      axil_read_m2s => read_m2s_vec(i),
-      axil_read_s2m => read_s2m_vec(i),
-
-      axil_write_m2s => write_m2s_vec(i),
-      axil_write_s2m => write_s2m_vec(i)
+      axil_m2s => axil_m2s_vec(i),
+      axil_s2m => axil_s2m_vec(i)
     );
   end generate;
 
@@ -182,17 +170,11 @@ begin
     port map (
       clk => clk,
 
-      read_m2s => read_m2s,
-      read_s2m => read_s2m,
+      axil_m2s => axil_m2s,
+      axil_s2m => axil_s2m,
 
-      write_m2s => write_m2s,
-      write_s2m => write_s2m,
-
-      read_m2s_vec => read_m2s_vec,
-      read_s2m_vec => read_s2m_vec,
-
-      write_m2s_vec => write_m2s_vec,
-      write_s2m_vec => write_s2m_vec
+      axil_m2s_vec => axil_m2s_vec,
+      axil_s2m_vec => axil_s2m_vec
     );
 
 end architecture;

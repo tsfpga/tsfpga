@@ -33,17 +33,11 @@ end entity;
 architecture tb of tb_axi_to_axil_bus_error is
   signal clk : std_logic := '0';
 
-  signal axi_read_m2s : axi_read_m2s_t := axi_read_m2s_init;
-  signal axi_read_s2m : axi_read_s2m_t;
+  signal axi_m2s : axi_m2s_t;
+  signal axi_s2m : axi_s2m_t;
 
-  signal axi_write_m2s : axi_write_m2s_t := axi_write_m2s_init;
-  signal axi_write_s2m : axi_write_s2m_t;
-
-  signal axil_read_m2s : axil_read_m2s_t;
-  signal axil_read_s2m : axil_read_s2m_t := axil_read_s2m_init;
-
-  signal axil_write_m2s : axil_write_m2s_t;
-  signal axil_write_s2m : axil_write_s2m_t := axil_write_s2m_init;
+  signal axil_m2s : axil_m2s_t;
+  signal axil_s2m : axil_s2m_t := axil_s2m_init;
 
   constant correct_size : integer := log2(data_width / 8);
   constant correct_len : integer := 0;
@@ -58,34 +52,34 @@ begin
   main : process
     procedure test_ar(len, size : integer; resp : std_logic_vector) is
     begin
-      axil_read_s2m.ar.ready <= '1';
+      axil_s2m.read.ar.ready <= '1';
 
-      axi_read_m2s.ar.valid <= '1';
-      axi_read_m2s.ar.len <= std_logic_vector(to_unsigned(len, axi_read_m2s.ar.len'length));
-      axi_read_m2s.ar.size <= std_logic_vector(to_unsigned(size, axi_read_m2s.ar.size'length));
+      axi_m2s.read.ar.valid <= '1';
+      axi_m2s.read.ar.len <= std_logic_vector(to_unsigned(len, axi_m2s.read.ar.len'length));
+      axi_m2s.read.ar.size <= std_logic_vector(to_unsigned(size, axi_m2s.read.ar.size'length));
 
-      wait until (axi_read_m2s.ar.valid and axi_read_s2m.ar.ready) = '1' and rising_edge(clk);
-      axi_read_m2s.r.ready <= '1';
-      axil_read_s2m.r.valid <= '1';
+      wait until (axi_m2s.read.ar.valid and axi_s2m.read.ar.ready) = '1' and rising_edge(clk);
+      axi_m2s.read.r.ready <= '1';
+      axil_s2m.read.r.valid <= '1';
 
-      wait until (axi_read_s2m.r.valid and axi_read_m2s.r.ready) = '1' and rising_edge(clk);
-      check_equal(axi_read_s2m.r.resp, resp);
+      wait until (axi_s2m.read.r.valid and axi_m2s.read.r.ready) = '1' and rising_edge(clk);
+      check_equal(axi_s2m.read.r.resp, resp);
     end procedure;
 
     procedure test_aw(len, size : integer; resp : std_logic_vector) is
     begin
-      axil_write_s2m.aw.ready <= '1';
+      axil_s2m.write.aw.ready <= '1';
 
-      axi_write_m2s.aw.valid <= '1';
-      axi_write_m2s.aw.len <= std_logic_vector(to_unsigned(len, axi_read_m2s.ar.len'length));
-      axi_write_m2s.aw.size <= std_logic_vector(to_unsigned(size, axi_read_m2s.ar.size'length));
+      axi_m2s.write.aw.valid <= '1';
+      axi_m2s.write.aw.len <= std_logic_vector(to_unsigned(len, axi_m2s.write.aw.len'length));
+      axi_m2s.write.aw.size <= std_logic_vector(to_unsigned(size, axi_m2s.write.aw.size'length));
 
-      wait until (axi_write_m2s.aw.valid and axi_write_s2m.aw.ready) = '1' and rising_edge(clk);
-      axi_write_m2s.b.ready <= '1';
-      axil_write_s2m.b.valid <= '1';
+      wait until (axi_m2s.write.aw.valid and axi_s2m.write.aw.ready) = '1' and rising_edge(clk);
+      axi_m2s.write.b.ready <= '1';
+      axil_s2m.write.b.valid <= '1';
 
-      wait until (axi_write_s2m.b.valid and axi_write_m2s.b.ready) = '1' and rising_edge(clk);
-      check_equal(axi_write_s2m.b.resp, resp);
+      wait until (axi_s2m.write.b.valid and axi_m2s.write.b.ready) = '1' and rising_edge(clk);
+      check_equal(axi_s2m.write.b.resp, resp);
     end procedure;
 
   begin
@@ -117,17 +111,11 @@ begin
     port map (
       clk => clk,
 
-      axi_read_m2s => axi_read_m2s,
-      axi_read_s2m => axi_read_s2m,
+      axi_m2s => axi_m2s,
+      axi_s2m => axi_s2m,
 
-      axi_write_m2s => axi_write_m2s,
-      axi_write_s2m => axi_write_s2m,
-
-      axil_read_m2s => axil_read_m2s,
-      axil_read_s2m => axil_read_s2m,
-
-      axil_write_m2s => axil_write_m2s,
-      axil_write_s2m => axil_write_s2m
+      axil_m2s => axil_m2s,
+      axil_s2m => axil_s2m
     );
 
 end architecture;

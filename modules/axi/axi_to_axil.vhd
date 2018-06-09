@@ -18,17 +18,11 @@ entity axi_to_axil is
   port (
     clk : in std_logic;
 
-    axi_read_m2s : in axi_read_m2s_t := axi_read_m2s_init;
-    axi_read_s2m : out axi_read_s2m_t := axi_read_s2m_init;
+    axi_m2s : in axi_m2s_t := axi_m2s_init;
+    axi_s2m : out axi_s2m_t := axi_s2m_init;
 
-    axi_write_m2s : in axi_write_m2s_t := axi_write_m2s_init;
-    axi_write_s2m : out axi_write_s2m_t := axi_write_s2m_init;
-
-    axil_read_m2s : out axil_read_m2s_t := axil_read_m2s_init;
-    axil_read_s2m : in axil_read_s2m_t := axil_read_s2m_init;
-
-    axil_write_m2s : out axil_write_m2s_t := axil_write_m2s_init;
-    axil_write_s2m : in axil_write_s2m_t := axil_write_s2m_init
+    axil_m2s : out axil_m2s_t := axil_m2s_init;
+    axil_s2m : in axil_s2m_t := axil_s2m_init
   );
 end entity;
 
@@ -45,37 +39,37 @@ architecture a of axi_to_axil is
 begin
 
   ------------------------------------------------------------------------------
-  axil_read_m2s.ar.valid <= axi_read_m2s.ar.valid;
-  axil_read_m2s.ar.addr <= axi_read_m2s.ar.addr;
+  axil_m2s.read.ar.valid <= axi_m2s.read.ar.valid;
+  axil_m2s.read.ar.addr <= axi_m2s.read.ar.addr;
 
-  axi_read_s2m.ar.ready <= axil_read_s2m.ar.ready;
+  axi_s2m.read.ar.ready <= axil_s2m.read.ar.ready;
 
-  axil_read_m2s.r.ready <= axi_read_m2s.r.ready;
+  axil_m2s.read.r.ready <= axi_m2s.read.r.ready;
 
-  axi_read_s2m.r.valid <= axil_read_s2m.r.valid;
-  axi_read_s2m.r.data(data_rng) <= axil_read_s2m.r.data(data_rng);
-  axi_read_s2m.r.resp <= axi_resp_slverr when read_error else axil_read_s2m.r.resp;
-  axi_read_s2m.r.last <= '1';
-
-
-  ------------------------------------------------------------------------------
-  axil_write_m2s.aw.valid <= axi_write_m2s.aw.valid;
-  axil_write_m2s.aw.addr <= axi_write_m2s.aw.addr;
-
-  axi_write_s2m.aw.ready <= axil_write_s2m.aw.ready;
-
-  axil_write_m2s.w.valid <= axi_write_m2s.w.valid;
-  axil_write_m2s.w.data(data_rng) <= axi_write_m2s.w.data(data_rng);
-  axil_write_m2s.w.strb(strb_rng) <= axi_write_m2s.w.strb(strb_rng);
-
-  axi_write_s2m.w.ready <= axil_write_s2m.w.ready;
+  axi_s2m.read.r.valid <= axil_s2m.read.r.valid;
+  axi_s2m.read.r.data(data_rng) <= axil_s2m.read.r.data(data_rng);
+  axi_s2m.read.r.resp <= axi_resp_slverr when read_error else axil_s2m.read.r.resp;
+  axi_s2m.read.r.last <= '1';
 
 
   ------------------------------------------------------------------------------
-  axil_write_m2s.b.ready <= axi_write_m2s.b.ready;
+  axil_m2s.write.aw.valid <= axi_m2s.write.aw.valid;
+  axil_m2s.write.aw.addr <= axi_m2s.write.aw.addr;
 
-  axi_write_s2m.b.valid <= axil_write_s2m.b.valid;
-  axi_write_s2m.b.resp <= axi_resp_slverr when write_error else axil_write_s2m.b.resp;
+  axi_s2m.write.aw.ready <= axil_s2m.write.aw.ready;
+
+  axil_m2s.write.w.valid <= axi_m2s.write.w.valid;
+  axil_m2s.write.w.data(data_rng) <= axi_m2s.write.w.data(data_rng);
+  axil_m2s.write.w.strb(strb_rng) <= axi_m2s.write.w.strb(strb_rng);
+
+  axi_s2m.write.w.ready <= axil_s2m.write.w.ready;
+
+
+  ------------------------------------------------------------------------------
+  axil_m2s.write.b.ready <= axi_m2s.write.b.ready;
+
+  axi_s2m.write.b.valid <= axil_s2m.write.b.valid;
+  axi_s2m.write.b.resp <= axi_resp_slverr when write_error else axil_s2m.write.b.resp;
 
 
   ------------------------------------------------------------------------------
@@ -87,14 +81,14 @@ begin
     -- The software making the memory access will usually hard crash with "Bus error" message if the AXI bus returns an error.
     -- Hence it should not be a problem to block the bus forever.
 
-    if (axi_write_m2s.aw.valid and axi_write_s2m.aw.ready) = '1' then
-      if to_integer(unsigned(axi_write_m2s.aw.len)) /= len or to_integer(unsigned(axi_write_m2s.aw.size)) /= size then
+    if (axi_m2s.write.aw.valid and axi_s2m.write.aw.ready) = '1' then
+      if to_integer(unsigned(axi_m2s.write.aw.len)) /= len or to_integer(unsigned(axi_m2s.write.aw.size)) /= size then
         write_error <= true;
       end if;
     end if;
 
-    if (axi_read_m2s.ar.valid and axi_read_s2m.ar.ready) = '1' then
-      if to_integer(unsigned(axi_read_m2s.ar.len)) /= len or to_integer(unsigned(axi_read_m2s.ar.size)) /= size then
+    if (axi_m2s.read.ar.valid and axi_s2m.read.ar.ready) = '1' then
+      if to_integer(unsigned(axi_m2s.read.ar.len)) /= len or to_integer(unsigned(axi_m2s.read.ar.size)) /= size then
         read_error <= true;
       end if;
     end if;

@@ -120,6 +120,22 @@ package axil_pkg is
 
   constant axil_write_s2m_init : axil_write_s2m_t := (aw => axil_s2m_a_init, w => axil_s2m_w_init, b => axi_s2m_b_init);
 
+  type axil_m2s_t is record
+    read : axil_read_m2s_t;
+    write : axil_write_m2s_t;
+  end record;
+  type axil_m2s_vec_t is array (integer range <>) of axil_m2s_t;
+
+  constant axil_m2s_init : axil_m2s_t := (read => axil_read_m2s_init, write => axil_write_m2s_init);
+
+  type axil_s2m_t is record
+    read : axil_read_s2m_t;
+    write : axil_write_s2m_t;
+  end record;
+  type axil_s2m_vec_t is array (integer range <>) of axil_s2m_t;
+
+  constant axil_s2m_init : axil_s2m_t := (read => axil_read_s2m_init, write => axil_write_s2m_init);
+
 end;
 
 package body axil_pkg is

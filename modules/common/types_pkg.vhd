@@ -4,6 +4,8 @@ use ieee.std_logic_1164.all;
 
 package types_pkg is
 
+  type boolean_vec_t is array (integer range <>) of boolean;
+
   function to_sl(value : boolean) return std_logic;
 
 end package;

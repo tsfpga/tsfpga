@@ -24,7 +24,6 @@ def get_projects():
         modules=modules,
         part=part,
         block_design=block_design,
-        generics=dict(enable=True, number=123),
         constraints=constraints,
         defined_at=THIS_FILE
     ))
@@ -35,7 +34,6 @@ def get_projects():
         part=part,
         top="fpga_top",
         block_design=block_design,
-        generics=dict(enable=False, number=123),
         constraints=constraints,
     ))
 

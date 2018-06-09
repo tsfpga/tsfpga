@@ -21,11 +21,8 @@ entity axil_reg_file is
   port (
     clk : in std_logic;
 
-    read_m2s : in axil_read_m2s_t;
-    read_s2m : out axil_read_s2m_t := (ar => (ready => '1'), r => axil_s2m_r_init);
-
-    write_m2s : in axil_write_m2s_t;
-    write_s2m : out axil_write_s2m_t := (aw => (ready => '1'), w => axil_s2m_w_init, b => axi_s2m_b_init);
+    axil_m2s : in axil_m2s_t;
+    axil_s2m : out axil_s2m_t := (read => (ar => (ready => '1'), r => axil_s2m_r_init), write => (aw => (ready => '1'), w => axil_s2m_w_init, b => axi_s2m_b_init));
 
     reg_values_in : in reg_vec_t(regs'range);
     reg_values_out : out reg_vec_t(regs'range);
@@ -56,21 +53,21 @@ begin
 
       case state is
         when ar =>
-          if read_m2s.ar.valid and read_s2m.ar.ready then
-            read_s2m.ar.ready <= '0';
-            addr <= read_m2s.ar.addr;
+          if axil_m2s.read.ar.valid and axil_s2m.read.ar.ready then
+            axil_s2m.read.ar.ready <= '0';
+            addr <= axil_m2s.read.ar.addr;
             state <= stall;
           end if;
 
         when stall =>
           -- Read address decode is pipelined one step, so we need to stall one cycle.
-          read_s2m.r.valid <= '1';
+          axil_s2m.read.r.valid <= '1';
           state <= r;
 
         when r =>
-          if read_m2s.r.ready and read_s2m.r.valid then
-            read_s2m.ar.ready <= '1';
-            read_s2m.r.valid <= '0';
+          if axil_m2s.read.r.ready and axil_s2m.read.r.valid then
+            axil_s2m.read.ar.ready <= '1';
+            axil_s2m.read.r.valid <= '0';
             state <= ar;
           end if;
       end case;
@@ -80,17 +77,17 @@ begin
     begin
       wait until rising_edge(clk);
 
-      read_s2m.r.resp <= axi_resp_slverr;
+      axil_s2m.read.r.resp <= axi_resp_slverr;
 
       for list_idx in regs'range loop
         if is_read_type(regs(list_idx).reg_type) then
           if match(addr, addr_and_mask_vec(list_idx)) then
-            read_s2m.r.resp <= axi_resp_okay;
+            axil_s2m.read.r.resp <= axi_resp_okay;
 
             if is_fabric_gives_value_type(regs(list_idx).reg_type) then
-              read_s2m.r.data(reg_values(0)'range) <= reg_values_in(list_idx);
+              axil_s2m.read.r.data(reg_values(0)'range) <= reg_values_in(list_idx);
             else
-              read_s2m.r.data(reg_values(0)'range) <= reg_values(list_idx);
+              axil_s2m.read.r.data(reg_values(0)'range) <= reg_values(list_idx);
             end if;
           end if;
         end if;
@@ -111,24 +108,24 @@ begin
 
       case state is
         when aw =>
-          if write_m2s.aw.valid and write_s2m.aw.ready then
-            write_s2m.aw.ready <= '0';
-            write_s2m.w.ready <= '1';
-            addr <= write_m2s.aw.addr;
+          if axil_m2s.write.aw.valid and axil_s2m.write.aw.ready then
+            axil_s2m.write.aw.ready <= '0';
+            axil_s2m.write.w.ready <= '1';
+            addr <= axil_m2s.write.aw.addr;
             state <= w;
           end if;
 
         when w =>
-          if write_m2s.w.valid and write_s2m.w.ready then
-            write_s2m.w.ready <= '0';
-            write_s2m.b.valid <= '1';
+          if axil_m2s.write.w.valid and axil_s2m.write.w.ready then
+            axil_s2m.write.w.ready <= '0';
+            axil_s2m.write.b.valid <= '1';
             state <= b;
           end if;
 
         when b =>
-          if write_m2s.b.ready and write_s2m.b.valid then
-            write_s2m.aw.ready <= '1';
-            write_s2m.b.valid <= '0';
+          if axil_m2s.write.b.ready and axil_s2m.write.b.valid then
+            axil_s2m.write.aw.ready <= '1';
+            axil_s2m.write.b.valid <= '0';
             state <= aw;
           end if;
       end case;
@@ -146,15 +143,15 @@ begin
         end if;
       end loop;
 
-      write_s2m.b.resp <= axi_resp_slverr;
+      axil_s2m.write.b.resp <= axi_resp_slverr;
 
       for list_idx in regs'range loop
         if is_write_type(regs(list_idx).reg_type) then
           if match(addr, addr_and_mask_vec(list_idx)) then
-            write_s2m.b.resp <= axi_resp_okay;
+            axil_s2m.write.b.resp <= axi_resp_okay;
 
-            if write_m2s.w.valid and write_s2m.w.ready then
-              reg_values(list_idx) <= write_m2s.w.data(reg_values(0)'range);
+            if axil_m2s.write.w.valid and axil_s2m.write.w.ready then
+              reg_values(list_idx) <= axil_m2s.write.w.data(reg_values(0)'range);
               reg_was_written(list_idx) <= '1';
             end if;
           end if;

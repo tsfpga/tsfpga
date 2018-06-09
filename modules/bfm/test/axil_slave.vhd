@@ -23,11 +23,8 @@ entity axil_slave is
   port (
     clk : in std_logic;
 
-    axil_read_m2s : in axil_read_m2s_t := axil_read_m2s_init;
-    axil_read_s2m : out axil_read_s2m_t := axil_read_s2m_init;
-
-    axil_write_m2s : in axil_write_m2s_t := axil_write_m2s_init;
-    axil_write_s2m : out axil_write_s2m_t := axil_write_s2m_init
+    axil_m2s : in axil_m2s_t := axil_m2s_init;
+    axil_s2m : out axil_s2m_t := axil_s2m_init
   );
 end entity;
 
@@ -48,24 +45,24 @@ begin
     port map (
       aclk => clk,
 
-      awvalid => axil_write_m2s.aw.valid,
-      awready => axil_write_s2m.aw.ready,
+      awvalid => axil_m2s.write.aw.valid,
+      awready => axil_s2m.write.aw.ready,
       awid => aid,
-      awaddr => axil_write_m2s.aw.addr,
+      awaddr => axil_m2s.write.aw.addr,
       awlen => len,
       awsize => size,
       awburst => axi_a_burst_fixed,
 
-      wvalid => axil_write_m2s.w.valid,
-      wready => axil_write_s2m.w.ready,
-      wdata => axil_write_m2s.w.data(data_width - 1 downto 0),
-      wstrb => axil_write_m2s.w.strb,
+      wvalid => axil_m2s.write.w.valid,
+      wready => axil_s2m.write.w.ready,
+      wdata => axil_m2s.write.w.data(data_width - 1 downto 0),
+      wstrb => axil_m2s.write.w.strb,
       wlast => '1',
 
-      bvalid => axil_write_s2m.b.valid,
-      bready => axil_write_m2s.b.ready,
+      bvalid => axil_s2m.write.b.valid,
+      bready => axil_m2s.write.b.ready,
       bid => bid,
-      bresp => axil_write_s2m.b.resp
+      bresp => axil_s2m.write.b.resp
     );
 
 
@@ -77,19 +74,19 @@ begin
     port map (
       aclk => clk,
 
-      arvalid => axil_read_m2s.ar.valid,
-      arready => axil_read_s2m.ar.ready,
+      arvalid => axil_m2s.read.ar.valid,
+      arready => axil_s2m.read.ar.ready,
       arid => aid,
-      araddr => axil_read_m2s.ar.addr,
+      araddr => axil_m2s.read.ar.addr,
       arlen => len,
       arsize => size,
       arburst => axi_a_burst_fixed,
 
-      rvalid => axil_read_s2m.r.valid,
-      rready => axil_read_m2s.r.ready,
+      rvalid => axil_s2m.read.r.valid,
+      rready => axil_m2s.read.r.ready,
       rid => rid,
-      rdata => axil_read_s2m.r.data(data_width - 1 downto 0),
-      rresp => axil_read_s2m.r.resp,
+      rdata => axil_s2m.read.r.data(data_width - 1 downto 0),
+      rresp => axil_s2m.read.r.resp,
       rlast => open
     );
 

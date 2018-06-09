@@ -53,17 +53,14 @@ architecture tb of tb_axil_reg_file is
 
   signal clk : std_logic := '0';
 
-  signal read_m2s : axil_read_m2s_t;
-  signal read_s2m : axil_read_s2m_t;
-
-  signal write_m2s : axil_write_m2s_t;
-  signal write_s2m : axil_write_s2m_t;
+  signal axil_m2s : axil_m2s_t;
+  signal axil_s2m : axil_s2m_t;
 
   signal reg_values_in : reg_vec_t(regs'range) := (others => (others => '0'));
   signal reg_values_out : reg_vec_t(regs'range);
   signal reg_was_written : std_logic_vector(regs'range);
 
-  constant axi_master : bus_master_t := new_bus(data_length => data_width, address_length => read_m2s.ar.addr'length);
+  constant axi_master : bus_master_t := new_bus(data_length => data_width, address_length => axil_m2s.read.ar.addr'length);
 
   type memory_data_t is array(0 to regs'length - 1) of std_logic_vector(data_width - 1 downto 0);
 
@@ -155,11 +152,8 @@ begin
     port map (
       clk => clk,
 
-      axil_read_m2s => read_m2s,
-      axil_read_s2m => read_s2m,
-
-      axil_write_m2s => write_m2s,
-      axil_write_s2m => write_s2m
+      axil_m2s => axil_m2s,
+      axil_s2m => axil_s2m
     );
 
 
@@ -171,11 +165,8 @@ begin
   port map (
     clk => clk,
 
-    read_m2s => read_m2s,
-    read_s2m => read_s2m,
-
-    write_m2s => write_m2s,
-    write_s2m => write_s2m,
+    axil_m2s => axil_m2s,
+    axil_s2m => axil_s2m,
 
     reg_values_in => reg_values_in,
     reg_values_out => reg_values_out,
