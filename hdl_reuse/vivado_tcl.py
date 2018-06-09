@@ -12,12 +12,16 @@ class VivadoTcl:
             modules,
             part,
             top,
+            block_design,
+            generics,
             constraints,
     ):
         self.name = name
         self.modules = modules
         self.part = part
         self.top = top
+        self.block_design = block_design
+        self.generics = generics
         self.constraints = constraints
 
     def _add_modules(self):
@@ -27,6 +31,24 @@ class VivadoTcl:
                 file_list_str = " ".join([abspath(file) for file in module.get_synthesis_files()])
                 tcl += "read_vhdl -library %s -vhdl2008 {%s}\n" % (module.library_name, file_list_str)
         return tcl
+
+    def _add_block_design(self):
+        return "" if self.block_design is None else "source %s\n" % abspath(self.block_design)
+
+    def _add_generics(self):
+        """
+        Generics are set accoring to this weird format: https://www.xilinx.com/support/answers/52217.html
+        """
+        if self.generics is None:
+            return ""
+
+        generic_list = []
+        for name, value in self.generics.items():
+            if isinstance(value, bool):
+                generic_list.append("%s=%s" % (name, ("1'b1" if value else "1'b0")))
+            else:
+                generic_list.append("%s=%s" % (name, value))
+        return "set_property generic {%s} [current_fileset]\n" % " ".join(generic_list)
 
     def _add_constraints(self):
         tcl = ""
@@ -46,6 +68,10 @@ class VivadoTcl:
         tcl += "set_property target_language VHDL [current_project]\n"
         tcl += "\n"
         tcl += self._add_modules()
+        tcl += "\n"
+        tcl += self._add_block_design()
+        tcl += "\n"
+        tcl += self._add_generics()
         tcl += "\n"
         tcl += self._add_constraints()
         tcl += "\n"

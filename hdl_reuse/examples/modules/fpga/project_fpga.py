@@ -13,12 +13,18 @@ def get_projects():
     projects = []
 
     modules = get_modules(MODULE_FOLDERS)
-    constraints = [Constraint(join(THIS_DIR, "tcl", "fpga_pinning.tcl"))]
+    part = "xczu3eg-sfva625-1-i"
+
+    tcl_dir = join(THIS_DIR, "tcl")
+    block_design = join(tcl_dir, "block_design.tcl")
+    constraints = [Constraint(join(tcl_dir, "fpga_pinning.tcl"))]
 
     projects.append(VivadoProject(
         name="fpga",
         modules=modules,
-        part="xczu3eg-sfva625-1-i",
+        part=part,
+        block_design=block_design,
+        generics=dict(enable=True, number=123),
         constraints=constraints,
         defined_at=THIS_FILE
     ))
@@ -26,8 +32,10 @@ def get_projects():
     projects.append(VivadoProject(
         name="fpga_hest",
         modules=modules,
-        part="xczu3eg-sfva625-1-i",
+        part=part,
         top="fpga_top",
+        block_design=block_design,
+        generics=dict(enable=False, number=123),
         constraints=constraints,
     ))
 

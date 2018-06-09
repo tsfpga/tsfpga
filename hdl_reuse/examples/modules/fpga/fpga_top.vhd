@@ -6,6 +6,10 @@ library resync;
 
 
 entity fpga_top is
+  generic (
+    enable : std_logic;
+    number : integer
+  );
   port (
     clk_in : in std_logic;
     input : in std_logic;

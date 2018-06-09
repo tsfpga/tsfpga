@@ -27,7 +27,7 @@ class TestBasicProject(unittest.TestCase):
 
     def test_constraints(self):
         b_tcl_found = False
-        for constraint in self.proj.constraints:
+        for constraint in self.proj._setup_constraints_list([]):  # pylint: disable=protected-access
             if constraint.file == self.b_tcl:
                 b_tcl_found = True
                 assert constraint.ref == "b"

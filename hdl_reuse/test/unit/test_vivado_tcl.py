@@ -1,5 +1,6 @@
 from os.path import dirname, join
 import unittest
+from collections import OrderedDict
 
 from hdl_reuse.module import get_modules
 from hdl_reuse.test import create_file, delete
@@ -25,8 +26,13 @@ class TestVivadoTcl(unittest.TestCase):
         # A library with only test files
         self.c_vhd = create_file(join(self.modules_folder, "zebra", "test", "c.vhd"))
 
-        self.modules = get_modules([self.modules_folder])
-        self.tcl = VivadoTcl(name="name", modules=self.modules, part="part", top="top", constraints=[])
+        modules = get_modules([self.modules_folder])
+
+        # Use OrderedDict here in test so that order will be preserved and we can test for equality.
+        # In real world case a normal dict can be used.
+        generics = OrderedDict(enable=True, disable=False, integer=123, slv="4'b0101")
+
+        self.tcl = VivadoTcl(name="name", modules=modules, part="part", top="top", block_design=None, generics=generics, constraints=[])
 
     def test_only_synthesis_files_added_to_create_project_tcl(self):
         tcl = self.tcl.create(project_folder="")
@@ -36,3 +42,8 @@ class TestVivadoTcl(unittest.TestCase):
     def test_empty_library_not_in_create_project_tcl(self):
         tcl = self.tcl.create(project_folder="")
         assert "zebra" not in tcl
+
+    def test_generics(self):
+        tcl = self.tcl.create(project_folder="")
+        expected = "\nset_property generic {enable=1'b1 disable=1'b0 integer=123 slv=4'b0101} [current_fileset]\n"
+        assert expected in tcl
