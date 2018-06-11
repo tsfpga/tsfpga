@@ -22,15 +22,16 @@ entity fpga_top is
 end entity;
 
 architecture a of fpga_top is
-  signal pl_clk0 : std_logic := '0';
 
   signal clk_hpm0 : std_logic := '0';
   signal hpm0_m2s : axi_m2s_t := axi_m2s_init;
   signal hpm0_s2m : axi_s2m_t := axi_s2m_init;
 
   signal clk_hp0 : std_logic := '0';
-  signal hp0_m2s : axi_m2s_t := axi_m2s_init;
-  signal hp0_s2m : axi_s2m_t := axi_s2m_init;
+  signal hp0_read_m2s : axi_read_m2s_t := axi_read_m2s_init;
+  signal hp0_read_s2m : axi_read_s2m_t := axi_read_s2m_init;
+  signal hp0_write_m2s : axi_write_m2s_t := axi_write_m2s_init;
+  signal hp0_write_s2m : axi_write_s2m_t := axi_write_s2m_init;
 
   signal regs_m2s : axil_m2s_vec_t(reg_slaves'range) := (others => axil_m2s_init);
   signal regs_s2m : axil_s2m_vec_t(reg_slaves'range) := (others => axil_s2m_init);
@@ -44,7 +45,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axi_to_regs_inst : entity work.axi_to_regs
+  axi_to_regs_inst : entity axi.axi_to_regs
   generic map (
     reg_slaves => reg_slaves
   )
@@ -60,7 +61,7 @@ begin
 
   ------------------------------------------------------------------------------
   register_maps : for slave in reg_slaves'range generate
-    dut : entity reg_file.axil_reg_file
+    axil_reg_file_inst : entity reg_file.axil_reg_file
     generic map (
       regs => reg_map
     )
@@ -81,20 +82,23 @@ begin
 
   ------------------------------------------------------------------------------
   block_design : block
+    signal pl_clk0 : std_logic := '0';
   begin
 
     clk_hpm0 <= pl_clk0;
     clk_hp0 <= pl_clk0;
 
-    block_design_inst : entity work.block_design
+    block_design_inst : entity work.block_design_wrapper
     port map (
       clk_hpm0 => clk_hpm0,
       hpm0_m2s => hpm0_m2s,
       hpm0_s2m => hpm0_s2m,
 
       clk_hp0 => clk_hp0,
-      hp0_m2s => hp0_m2s,
-      hp0_s2m => hp0_s2m,
+      hp0_read_m2s => hp0_read_m2s,
+      hp0_read_s2m => hp0_read_s2m,
+      hp0_write_m2s => hp0_write_m2s,
+      hp0_write_s2m => hp0_write_s2m,
 
       pl_clk0 => pl_clk0
     );

@@ -189,7 +189,7 @@ proc create_root_design { parentCell } {
   # Create interface ports
   set M_AXI_HPM0_FPD [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 M_AXI_HPM0_FPD ]
   set_property -dict [ list \
-   CONFIG.ADDR_WIDTH {40} \
+   CONFIG.ADDR_WIDTH {32} \
    CONFIG.DATA_WIDTH {32} \
    CONFIG.PROTOCOL {AXI4} \
    ] $M_AXI_HPM0_FPD
