@@ -112,12 +112,18 @@ class VivadoTcl:
         tcl = "write_bitstream %s\n" % bit_file
         return tcl
 
+    def _hwdef(self, output_path):
+        hwdef_file = join(output_path, self.name)  # Vivado will append the appropriate file ending
+        tcl = "write_hwdef %s\n" % hwdef_file
+        return tcl
+
     def build(self, project_file, synth_only, num_threads, output_path):
         synth_run = "synth_1"
         impl_run = "impl_1"
         num_threads = min(num_threads, 8)  # Max value in Vivado 2017.4. set_param will give an error if higher number.
+        output_path = abspath(output_path)
 
-        tcl = "open_project %s\n" % project_file
+        tcl = "open_project %s\n" % abspath(project_file)
         tcl += "set_param general.maxThreads %i\n" % num_threads
         tcl += "\n"
         tcl += self._synthesis(synth_run)
@@ -126,6 +132,7 @@ class VivadoTcl:
             tcl += self._impl(impl_run)
             tcl += "\n"
             tcl += self._bitstream(output_path)
+            tcl += self._hwdef(output_path)
             tcl += "\n"
         tcl += "exit\n"
         return tcl
