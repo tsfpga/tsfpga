@@ -92,6 +92,18 @@ class VivadoProject:
 
         return build_vivado_project_tcl
 
+    def pre_build(self, **kwargs):
+        """
+        Override this function in a child class if you wish to do something useful with it.
+        """
+        pass
+
+    def post_build(self, output_path, **kwargs):
+        """
+        Override this function in a child class if you wish to do something useful with it.
+        """
+        pass
+
     def build(self, project_path, output_path=None, synth_only=False, num_threads=12):
         """
         Build a Vivado project
@@ -99,8 +111,12 @@ class VivadoProject:
         if output_path is None and not synth_only:
             raise ValueError("Must specify output_path when doing an implementation run")
 
+        self.pre_build(project_path=project_path, output_path=output_path, synth_only=synth_only, num_threads=num_threads)
+
         build_vivado_project_tcl = self.build_tcl(project_path, synth_only, num_threads, output_path)
         run_vivado_tcl(self.vivado_path, build_vivado_project_tcl)
+
+        self.post_build(project_path=project_path, output_path=output_path, synth_only=synth_only, num_threads=num_threads)
 
     def __str__(self):
         result = str(self.__class__.__name__)

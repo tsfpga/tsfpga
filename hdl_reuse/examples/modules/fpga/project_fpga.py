@@ -28,7 +28,7 @@ def get_projects():
         defined_at=THIS_FILE
     ))
 
-    projects.append(VivadoProject(
+    projects.append(SpecialVivadoProject(
         name="fpga_hest",
         modules=modules,
         part=part,
@@ -38,3 +38,9 @@ def get_projects():
     ))
 
     return projects
+
+
+class SpecialVivadoProject(VivadoProject):
+
+    def post_build(self, output_path, **kwargs):
+        print("Here we can do useful things in the output path: " + output_path)
