@@ -9,10 +9,8 @@ class Module(BaseModule):
             name = "data_width_%i" % data_width
             tb.add_config(name=name, generics=dict(data_width=data_width))
 
-        tb_axil_pkg = vunit_proj.library(self.library_name).test_bench("tb_axil_pkg")
-        tb_axi_to_axil = vunit_proj.library(self.library_name).test_bench("tb_axi_to_axil")
-        tb_axi_to_axil_bus_error = vunit_proj.library(self.library_name).test_bench("tb_axi_to_axil_bus_error")
-        for tb in [tb_axil_pkg, tb_axi_to_axil, tb_axi_to_axil_bus_error]:
+        for tb_name in ["tb_axil_pkg", "tb_axi_to_axil", "tb_axi_to_axil_bus_error"]:
+            tb = vunit_proj.library(self.library_name).test_bench(tb_name)
             for data_width in [32, 64]:
                 name = "data_width_%i" % data_width
                 tb.add_config(name=name, generics=dict(data_width=data_width))
