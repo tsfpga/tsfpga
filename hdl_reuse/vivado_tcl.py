@@ -61,6 +61,8 @@ class VivadoTcl:
 
             if constraint.used_in == "impl":
                 tcl += "set_property used_in_synthesis false [get_files %s]\n" % file
+            elif constraint.used_in == "synth":
+                tcl += "set_property used_in_implementation false [get_files %s]\n" % file
         return tcl
 
     def create(self, project_folder):
