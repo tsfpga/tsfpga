@@ -1,7 +1,8 @@
 from os.path import join, dirname
 import unittest
 
-from hdl_reuse.test import create_file, delete, file_equals
+from hdl_reuse.system_utils import create_file, delete
+from hdl_reuse.test import file_equals
 from hdl_reuse.fix_lint import fix_trailing_whitespace
 
 

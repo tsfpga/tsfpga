@@ -3,7 +3,7 @@ import unittest
 from collections import OrderedDict
 
 from hdl_reuse.module import get_modules
-from hdl_reuse.test import create_file, delete
+from hdl_reuse.system_utils import create_file, delete
 from hdl_reuse.vivado_tcl import VivadoTcl
 from hdl_reuse.vivado_utils import to_tcl_path
 

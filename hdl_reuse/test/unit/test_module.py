@@ -1,9 +1,9 @@
+from unittest import mock, TestCase
 from os.path import dirname, join
 from shutil import rmtree
-import unittest
 
 from hdl_reuse.module import BaseModule, get_modules
-from hdl_reuse.test import create_file, create_directory, delete
+from hdl_reuse.system_utils import create_file, create_directory, delete
 
 
 THIS_DIR = dirname(__file__)
@@ -16,9 +16,9 @@ def test_file_list_filtering():
     create_directory(join(path, "folder_should_not_be_included"))
     create_file(join(path, "should_not_be_included.apa"))
 
-    syn_files = [create_file(join(path, "syn.vhd")),
-                 create_file(join(path, "hdl", "rtl", "syn.vhd")),
-                 create_file(join(path, "hdl", "package", "syn.vhd"))]
+    synth_files = [create_file(join(path, "syn.vhd")),
+                   create_file(join(path, "hdl", "rtl", "syn.vhd")),
+                   create_file(join(path, "hdl", "package", "syn.vhd"))]
 
     test_files = [create_file(join(path, "test", "test.vhd")),
                   create_file(join(path, "rtl", "tb", "test.vhd"))]
@@ -28,18 +28,18 @@ def test_file_list_filtering():
     my_module = BaseModule(path)
 
     files = my_module.get_synthesis_files()
-    assert set(files) == set(syn_files)
+    assert set(files) == set(synth_files)
 
     files = my_module.get_simulation_files()
-    assert set(files) == set(syn_files + test_files + sim_files)
+    assert set(files) == set(synth_files + test_files + sim_files)
 
     files = my_module.get_simulation_files(include_tests=False)
-    assert set(files) == set(syn_files + sim_files)
+    assert set(files) == set(synth_files + sim_files)
 
     rmtree(path)
 
 
-class TestGetModules(unittest.TestCase):
+class TestGetModules(TestCase):
 
     _modules_folder = join(THIS_DIR, "modules_for_test")
     _modules_folders = [_modules_folder]
@@ -95,3 +95,33 @@ class Module(BaseModule):
                 assert isinstance(module, BaseModule)
             else:
                 assert False
+
+    @mock.patch("hdl_reuse.module.from_json")
+    def test_register_object_creation_synthesis(self, from_json):
+        json_file = create_file(join(self._modules_folder, "a", "a_regs.json"))
+
+        module = get_modules(self._modules_folders, names=["a"])[0]
+        module.get_synthesis_files()
+        module.get_synthesis_files()
+
+        from_json.assert_called_once_with("a", json_file)
+
+    @mock.patch("hdl_reuse.module.from_json")
+    def test_register_object_creation_simulation(self, from_json):
+        json_file = create_file(join(self._modules_folder, "a", "a_regs.json"))
+
+        module = get_modules(self._modules_folders, names=["a"])[0]
+        module.get_simulation_files()
+        module.get_simulation_files()
+
+        from_json.assert_called_once_with("a", json_file)
+
+    @mock.patch("hdl_reuse.module.from_json")
+    def test_register_object_creation_mixed(self, from_json):
+        json_file = create_file(join(self._modules_folder, "a", "a_regs.json"))
+
+        module = get_modules(self._modules_folders, names=["a"])[0]
+        module.get_synthesis_files()
+        module.get_simulation_files()
+
+        from_json.assert_called_once_with("a", json_file)

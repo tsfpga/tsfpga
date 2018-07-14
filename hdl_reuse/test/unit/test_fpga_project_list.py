@@ -1,7 +1,7 @@
 from os.path import dirname, join
 import unittest
 
-from hdl_reuse.test import create_file, create_directory, delete
+from hdl_reuse.system_utils import create_file, create_directory, delete
 from hdl_reuse.fpga_project_list import FPGAProjectList
 
 

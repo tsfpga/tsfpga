@@ -6,7 +6,8 @@ import unittest
 from hdl_reuse import HDL_REUSE_MODULES
 from hdl_reuse.constraints import Constraint
 from hdl_reuse.module import get_modules
-from hdl_reuse.test import create_file, delete, file_contains_string
+from hdl_reuse.system_utils import create_file, delete
+from hdl_reuse.test import file_contains_string
 from hdl_reuse.vivado_project import VivadoProject
 
 

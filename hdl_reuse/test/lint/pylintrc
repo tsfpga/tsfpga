@@ -61,13 +61,15 @@ confidence=
 # import-error: Pylint does not recognise the sys.path.append(...) we do before import
 # inconsistent-return-statements: False positive when one branch does sys.exit() and another does return
 # arguments-differ: Common design pattern where a parent class method has kwargs** arguments, while a child class uses whatever arguments they want
+# unsubscriptable-object: False positive when slicing output from subprocess.check_output
 
 disable=missing-docstring,
         wrong-import-order,
         wrong-import-position,
         import-error,
         inconsistent-return-statements,
-        arguments-differ
+        arguments-differ,
+        unsubscriptable-object
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

@@ -1,8 +1,9 @@
 from glob import glob
 from os.path import basename, isfile, join, exists, isdir
 
-from hdl_reuse.constraints import Constraint
 from hdl_reuse.system_utils import load_python_module
+from hdl_reuse.constraints import Constraint
+from hdl_reuse.registers import from_json
 
 
 class BaseModule:
@@ -18,6 +19,7 @@ class BaseModule:
         self.path = path
         self.name = basename(self.path)
         self._library_name_has_lib_suffix = library_name_has_lib_suffix
+        self._registers = None
 
     @staticmethod
     def _get_file_list(folders, file_endings):
@@ -31,10 +33,28 @@ class BaseModule:
                     files.append(file)
         return files
 
+    @property
+    def registers(self):
+        if self._registers is not None:
+            # Only create object once
+            return self._registers
+
+        json_file = join(self.path, self.name + "_regs.json")
+        if exists(json_file):
+            self._registers = from_json(self.name, json_file)
+            return self._registers
+
+    def _create_regs_vhdl_package(self):
+        if self.registers is not None:
+            pkg_file = join(self.path, self.name + "_regs_pkg.vhd")
+            self.registers.create_vhdl_package(pkg_file)
+
     def get_synthesis_files(self):
         """
         List of files that should be included in a synthesis project.
         """
+        self._create_regs_vhdl_package()
+
         folders = [
             self.path,
             join(self.path, "hdl", "rtl"),
@@ -55,6 +75,8 @@ class BaseModule:
         Note: test-files are considered private to the module and
         should never be used by other modules.
         """
+        self._create_regs_vhdl_package()
+
         test_folders = [
             join(self.path, "sim"),
         ]

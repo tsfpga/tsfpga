@@ -9,15 +9,14 @@ image: ghdl/ext:vunit
 
 
 before_script:
+  - apt-get update -qq > /dev/null
+  - apt-get install -y -qq git > /dev/null
+  - python --version
   - export PYTHONPATH=$(pwd)/hdl_reuse
 
 pytest:
   script:
-    - apt-get update -qq > /dev/null
-    - apt-get install -y -qq git > /dev/null
-    - python --version
     - python -m pip install pytest pylint pycodestyle > /dev/null
-    - python -m pytest --version
     - python -m pylint --version
     - python -m pycodestyle --version
     - python -m pytest -v --ignore=hdl_reuse/test/functional/ hdl_reuse/

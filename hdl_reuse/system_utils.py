@@ -1,27 +1,36 @@
-from os.path import join, exists, basename, splitext, normpath
+from os import makedirs, remove
+from os.path import basename, splitext, dirname, isdir, exists, abspath
 import subprocess
 import importlib.util
+from shutil import rmtree
 
-from hdl_reuse import ROOT
+
+def create_file(file, contents=None):
+    create_directory(dirname(file), empty=False)
+
+    contents = "" if contents is None else contents
+    with open(file, "w") as file_handle:
+        file_handle.write(contents)
+
+    return file
 
 
-def find_git_files(file_ending=None):
-    command = ["git", "ls-files"]
-    output = subprocess.check_output(command, cwd=ROOT, universal_newlines=True)
-    ls_files = output.split("\n")
+def delete(path):
+    if exists(path):
+        if isdir(path):
+            rmtree(path)
+        else:
+            remove(path)
 
-    # subprocess.check_output() returns a trailing "\n". The split() call will make that an empty object at the end of the list.
-    ls_files = ls_files[:-1]
 
-    for file in ls_files:
-        if file_ending is None or file.endswith(file_ending):
-            # git ls-files returns paths relative to the working directory where it's called. Hence we prepend the cwd used.
-            file = join(ROOT, file)
-            assert exists(file)  # Make sure concatenation of relative path worked
+def create_directory(directory, empty=True):
+    if empty:
+        delete(directory)
+    elif exists(directory):
+        return directory
 
-            # normpath is necessary in windows where you can get a mix of slashes and backslashes which makes
-            # path comparisons sketchy
-            yield normpath(file)
+    makedirs(abspath(directory))
+    return directory
 
 
 def run_command(cmd, cwd=None):

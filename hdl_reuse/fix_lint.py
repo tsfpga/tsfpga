@@ -1,6 +1,6 @@
 import re
 
-from hdl_reuse.system_utils import find_git_files
+from hdl_reuse.git_utils import find_git_files
 
 
 RE_TRAILING_WHITESPACE = re.compile(" +\n", re.DOTALL)

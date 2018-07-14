@@ -3,7 +3,7 @@ import pytest
 import unittest
 
 from hdl_reuse.constraints import Constraint
-from hdl_reuse.test import create_file, delete
+from hdl_reuse.system_utils import create_file, delete
 
 
 THIS_DIR = dirname(__file__)
