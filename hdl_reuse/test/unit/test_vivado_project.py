@@ -20,19 +20,9 @@ class TestBasicProject(unittest.TestCase):
         delete(self.project_folder)
 
         self.b_vhd = create_file(join(self.modules_folder, "apa", "b.vhd"))
-        self.b_tcl = create_file(join(self.modules_folder, "apa", "entity_constraints", "b.tcl"))
 
         self.modules = get_modules([self.modules_folder])
         self.proj = VivadoProject(name="name", modules=self.modules, part="part")
-
-    def test_constraints(self):
-        b_tcl_found = False
-        for constraint in self.proj._setup_constraints_list([]):  # pylint: disable=protected-access
-            if constraint.file == self.b_tcl:
-                b_tcl_found = True
-                assert constraint.ref == "b"
-                assert constraint.used_in == "all"
-        assert b_tcl_found
 
     def test_create_should_raise_exception_if_project_path_already_exists(self):
         create_directory(self.project_folder)

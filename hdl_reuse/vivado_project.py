@@ -44,16 +44,13 @@ class VivadoProject:
             constraints=constraints_list
         )
 
-    def _setup_constraints_list(self, constraints_from_user):
+    @staticmethod
+    def _setup_constraints_list(constraints_from_user):
         # Lists are imutable. Since we assign and modify this one we have to copy it.
         constraints = [] if constraints_from_user is None else constraints_from_user.copy()
 
         file = join(HDL_REUSE_TCL, "constrain_clock_crossings.tcl")
         constraints.append(Constraint(file))
-
-        for module in self.modules:
-            for constraint in module.get_entity_constraints():
-                constraints.append(constraint)
 
         return constraints
 

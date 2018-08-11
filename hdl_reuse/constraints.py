@@ -5,14 +5,14 @@ class Constraint:
     """
     Class for handling a constraint file.
 
-    Can handle the regular global constraint files as well as entity-level constraints.
+    Can handle the regular global constraint files as well as scoped constraints.
     For the latter to work the constraint file name must be the same as the module file name, which must the same as entity name.
     """
 
-    def __init__(self, file, used_in="all", entity_level_constraint=False):
+    def __init__(self, file, used_in="all", scoped_constraint=False):
         self.file = file
         self.used_in = used_in
-        self.ref = splitext(basename(file))[0] if entity_level_constraint else None
+        self.ref = splitext(basename(file))[0] if scoped_constraint else None
 
         self._validate()
 

@@ -1,4 +1,4 @@
-from os.path import dirname, join
+from os.path import dirname, join, abspath
 import unittest
 from collections import OrderedDict
 
@@ -20,8 +20,10 @@ class TestVivadoTcl(unittest.TestCase):
         # A library with some synth files and some test files
         self.a_vhd = create_file(join(self.modules_folder, "apa", "a.vhd"))
         self.tb_a_vhd = create_file(join(self.modules_folder, "apa", "test", "tb_a.vhd"))
+        self.a_xdc = create_file(join(self.modules_folder, "apa", "scoped_constraints", "a.xdc"))
+
         self.b_vhd = create_file(join(self.modules_folder, "apa", "b.vhd"))
-        self.b_tcl = create_file(join(self.modules_folder, "apa", "entity_constraints", "b.tcl"))
+        self.b_tcl = create_file(join(self.modules_folder, "apa", "scoped_constraints", "b.tcl"))
 
         # A library with only test files
         self.c_vhd = create_file(join(self.modules_folder, "zebra", "test", "c.vhd"))
@@ -46,4 +48,12 @@ class TestVivadoTcl(unittest.TestCase):
     def test_generics(self):
         tcl = self.tcl.create(project_folder="")
         expected = "\nset_property generic {enable=1'b1 disable=1'b0 integer=123 slv=4'b0101} [current_fileset]\n"
+        assert expected in tcl
+
+    def test_constraints(self):
+        tcl = self.tcl.create(project_folder="")
+
+        expected = "\nread_xdc -ref a %s\n" % abspath(self.a_xdc)
+        assert expected in tcl
+        expected = "\nread_xdc -ref b -unmanaged %s\n" % abspath(self.b_tcl)
         assert expected in tcl

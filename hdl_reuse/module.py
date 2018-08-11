@@ -60,14 +60,15 @@ class BaseModule:
         """
         pass
 
-    def get_entity_constraints(self):
+    def get_scoped_constraints(self):
         """
         Get a list of constraints that will be applied to a certain entity within the module.
         """
-        entity_constraints = []
-        for file in glob(join(self.path, "entity_constraints", "*.tcl")):
-            entity_constraints.append(Constraint(file, entity_level_constraint=True))
-        return entity_constraints
+        scoped_constraints = []
+        for file_ending in ["tcl", "xdc"]:
+            for file in glob(join(self.path, "scoped_constraints", "*." + file_ending)):
+                scoped_constraints.append(Constraint(file, scoped_constraint=True))
+        return scoped_constraints
 
     def __str__(self):
         return self.name + ": " + self.path

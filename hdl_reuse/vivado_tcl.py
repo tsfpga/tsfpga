@@ -50,19 +50,27 @@ class VivadoTcl:
                 generic_list.append("%s=%s" % (name, value))
         return "set_property generic {%s} [current_fileset]\n" % " ".join(generic_list)
 
+    def _iterate_constraints(self):
+        for module in self.modules:
+            for constraint in module.get_scoped_constraints():
+                yield constraint
+
+        for constraint in self.constraints:
+            yield constraint
+
     def _add_constraints(self):
         tcl = ""
-        for constraint in self.constraints:
+        for constraint in self._iterate_constraints():
             file = abspath(constraint.file)
-            if constraint.ref is None:
-                tcl += "read_xdc -unmanaged %s\n" % file
-            else:
-                tcl += "read_xdc -ref %s -unmanaged %s\n" % (constraint.ref, file)
+            ref_flags = "" if constraint.ref is None else (f"-ref {constraint.ref} ")
+            managed_flags = "" if file.endswith("xdc") else "-unmanaged "
+
+            tcl += f"read_xdc {ref_flags}{managed_flags}{file}\n"
 
             if constraint.used_in == "impl":
-                tcl += "set_property used_in_synthesis false [get_files %s]\n" % file
+                tcl += f"set_property used_in_synthesis false [get_files {file}]\n"
             elif constraint.used_in == "synth":
-                tcl += "set_property used_in_implementation false [get_files %s]\n" % file
+                tcl += f"set_property used_in_implementation false [get_files {file}]\n"
         return tcl
 
     def create(self, project_folder):
@@ -121,7 +129,6 @@ class VivadoTcl:
         synth_run = "synth_1"
         impl_run = "impl_1"
         num_threads = min(num_threads, 8)  # Max value in Vivado 2017.4. set_param will give an error if higher number.
-        output_path = abspath(output_path)
 
         tcl = "open_project %s\n" % abspath(project_file)
         tcl += "set_param general.maxThreads %i\n" % num_threads
@@ -129,6 +136,7 @@ class VivadoTcl:
         tcl += self._synthesis(synth_run)
         tcl += "\n"
         if not synth_only:
+            output_path = abspath(output_path)
             tcl += self._impl(impl_run)
             tcl += "\n"
             tcl += self._bitstream(output_path)

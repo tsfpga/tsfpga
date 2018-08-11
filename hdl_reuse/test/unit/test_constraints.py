@@ -15,7 +15,7 @@ class TestConstraint(unittest.TestCase):
 
     def setUp(self):
         delete(self._modules_folder)
-        self.file = create_file(join(self._modules_folder, "a", "entity_constraints", "apa.tcl"))
+        self.file = create_file(join(self._modules_folder, "a", "scoped_constraints", "apa.tcl"))
 
     def test_constraint(self):
         constraint = Constraint(self.file)
@@ -25,13 +25,13 @@ class TestConstraint(unittest.TestCase):
         constraint = Constraint(self.file, used_in="impl")
         assert constraint.used_in == "impl"
 
-    def test_entity_constraint(self):
+    def test_scoped_constraint(self):
         create_file(join(self._modules_folder, "a", "apa.vhd"))
 
-        constraint = Constraint(self.file, entity_level_constraint=True)
+        constraint = Constraint(self.file, scoped_constraint=True)
         assert constraint.ref == "apa"
 
     def test_matching_entity_not_existing_should_raise_exception(self):
         with pytest.raises(AssertionError) as exception_info:
-            Constraint(self.file, entity_level_constraint=True)
+            Constraint(self.file, scoped_constraint=True)
         assert str(exception_info.value).startswith("Could not find a matching entity file")
