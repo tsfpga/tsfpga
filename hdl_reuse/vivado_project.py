@@ -95,7 +95,7 @@ class VivadoProject:
         """
         pass
 
-    def post_build(self, output_path, **kwargs):
+    def post_build(self, **kwargs):
         """
         Override this function in a child class if you wish to do something useful with it.
         """
