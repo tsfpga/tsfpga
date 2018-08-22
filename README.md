@@ -5,7 +5,7 @@ It consists of two distinct parts that can be used independently of each other.
 ## A reusable set of HDL building blocks
 The `modules` folder contains a set of VHDL modules/IP that are common in many FPGA projects.
 The modules have been developed with quality and reusability in mind.
-Having these high quality building blocks available will accelerate productivity and creativity in many FPGA projects to come.
+Having these high quality building blocks available will make it easier to add new functionality to your project.
 
 ### Requirements
 The modules make heavy use of `VHDL-2008` so you will need a recent simulator and synthesis tool.
@@ -22,7 +22,7 @@ The authors believe in [PEP 20: The Zen of Python](https://www.python.org/dev/pe
 
 ### Requirements
 In order to use the package you will need
-* Python 3.4+
+* Python 3.6+
 * [VUnit](https://vunit.github.io/) in your `PYTHONPATH`
 * A functioning VHDL simulator in your `PATH`
 
