@@ -19,7 +19,7 @@ def run_pylint(files):
 
 
 def test_pylint():
-    files = find_git_files(file_ending="py")
+    files = list(find_git_files(file_ending="py"))
     run_pylint(files)
 
 
@@ -31,7 +31,7 @@ def run_pycodestyle(files):
 
 
 def test_pycodestyle():
-    files = find_git_files(file_ending="py")
+    files = list(find_git_files(file_ending="py"))
     run_pycodestyle(files)
 
 

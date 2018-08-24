@@ -1,4 +1,6 @@
-from os.path import join, abspath
+from os.path import join
+
+from hdl_reuse.vivado_utils import to_tcl_path
 
 
 class VivadoTcl:
@@ -28,12 +30,12 @@ class VivadoTcl:
         tcl = ""
         for module in self.modules:
             if module.get_synthesis_files():
-                file_list_str = " ".join([abspath(file) for file in module.get_synthesis_files()])
+                file_list_str = " ".join([to_tcl_path(file) for file in module.get_synthesis_files()])
                 tcl += "read_vhdl -library %s -vhdl2008 {%s}\n" % (module.library_name, file_list_str)
         return tcl
 
     def _add_block_design(self):
-        return "" if self.block_design is None else "source %s\n" % abspath(self.block_design)
+        return "" if self.block_design is None else "source %s\n" % to_tcl_path(self.block_design)
 
     def _add_generics(self):
         """
@@ -61,7 +63,7 @@ class VivadoTcl:
     def _add_constraints(self):
         tcl = ""
         for constraint in self._iterate_constraints():
-            file = abspath(constraint.file)
+            file = to_tcl_path(constraint.file)
             ref_flags = "" if constraint.ref is None else (f"-ref {constraint.ref} ")
             managed_flags = "" if file.endswith("xdc") else "-unmanaged "
 
@@ -74,7 +76,7 @@ class VivadoTcl:
         return tcl
 
     def create(self, project_folder):
-        tcl = "create_project %s %s -part %s\n" % (self.name, project_folder, self.part)
+        tcl = "create_project %s %s -part %s\n" % (self.name, to_tcl_path(project_folder), self.part)
         tcl += "set_property target_language VHDL [current_project]\n"
         tcl += "\n"
         tcl += self._add_modules()
@@ -130,13 +132,13 @@ class VivadoTcl:
         impl_run = "impl_1"
         num_threads = min(num_threads, 8)  # Max value in Vivado 2017.4. set_param will give an error if higher number.
 
-        tcl = "open_project %s\n" % abspath(project_file)
+        tcl = "open_project %s\n" % to_tcl_path(project_file)
         tcl += "set_param general.maxThreads %i\n" % num_threads
         tcl += "\n"
         tcl += self._synthesis(synth_run)
         tcl += "\n"
         if not synth_only:
-            output_path = abspath(output_path)
+            output_path = to_tcl_path(output_path)
             tcl += self._impl(impl_run)
             tcl += "\n"
             tcl += self._bitstream(output_path)

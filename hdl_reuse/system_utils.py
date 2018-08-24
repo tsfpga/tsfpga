@@ -1,4 +1,4 @@
-from os.path import join, exists, basename, splitext
+from os.path import join, exists, basename, splitext, normpath
 import subprocess
 import importlib.util
 
@@ -13,15 +13,15 @@ def find_git_files(file_ending=None):
     # subprocess.check_output() returns a trailing "\n". The split() call will make that an empty object at the end of the list.
     ls_files = ls_files[:-1]
 
-    files = []
     for file in ls_files:
         if file_ending is None or file.endswith(file_ending):
             # git ls-files returns paths relative to the working directory where it's called. Hence we prepend the cwd used.
             file = join(ROOT, file)
-            files.append(file)
             assert exists(file)  # Make sure concatenation of relative path worked
 
-    return files
+            # normpath is necessary in windows where you can get a mix of slashes and backslashes which makes
+            # path comparisons sketchy
+            yield normpath(file)
 
 
 def run_command(cmd, cwd=None):
