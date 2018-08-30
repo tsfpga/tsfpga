@@ -7,24 +7,27 @@ from hdl_reuse.system_utils import load_python_module
 
 class BaseModule:
     """
-    Base class for handling a HDL module.
+    Base class for handling a HDL module with RTL code, constraints, etc.
+
+    Files are gathered from a lot of different subfolders, to accomodate for projects having different catalog structure.
     """
 
-    _source_code_file_endings = ("vhd", "v")
+    _hdl_file_endings = ("vhd", "v")
 
     def __init__(self, path, library_name_has_lib_suffix=False):
         self.path = path
         self.name = basename(self.path)
         self._library_name_has_lib_suffix = library_name_has_lib_suffix
 
-    def _get_source_code_files_from_folders(self, folders):
+    @staticmethod
+    def _get_file_list(folders, file_endings):
         """
         Returns a list of files given a list of folders.
         """
         files = []
         for folder in folders:
             for file in glob(join(folder, "*")):
-                if isfile(file) and file.lower().endswith(self._source_code_file_endings):
+                if isfile(file) and file.lower().endswith(file_endings):
                     files.append(file)
         return files
 
@@ -32,15 +35,22 @@ class BaseModule:
         """
         List of files that should be included in a synthesis project.
         """
-        folders = [self.path]
-        return self._get_source_code_files_from_folders(folders)
+        folders = [
+            self.path,
+            join(self.path, "hdl", "rtl"),
+            join(self.path, "hdl", "package"),
+        ]
+        return self._get_file_list(folders, self._hdl_file_endings)
 
     def get_simulation_files(self):
         """
         List of files that should be included in a simulation project.
         """
-        folders = [self.path, join(self.path, "test")]
-        return self._get_source_code_files_from_folders(folders)
+        test_folders = [
+            join(self.path, "test"),
+            join(self.path, "rtl", "tb"),
+        ]
+        return self.get_synthesis_files() + self._get_file_list(test_folders, self._hdl_file_endings)
 
     @property
     def library_name(self):
@@ -64,11 +74,18 @@ class BaseModule:
         """
         Get a list of constraints that will be applied to a certain entity within the module.
         """
-        scoped_constraints = []
-        for file_ending in ["tcl", "xdc"]:
-            for file in glob(join(self.path, "scoped_constraints", "*." + file_ending)):
-                scoped_constraints.append(Constraint(file, scoped_constraint=True))
-        return scoped_constraints
+        scoped_constraints_folders = [
+            join(self.path, "scoped_constraints"),
+            join(self.path, "entity_constraints"),
+            join(self.path, "hdl", "constraints"),
+        ]
+        constraints_file_endings = ("tcl", "xdc")
+        constraint_files = self._get_file_list(scoped_constraints_folders, constraints_file_endings)
+
+        constraints = []
+        for file in constraint_files:
+            constraints.append(Constraint(file, scoped_constraint=True))
+        return constraints
 
     def __str__(self):
         return self.name + ": " + self.path
@@ -81,20 +98,20 @@ def iterate_module_folders(modules_folders):
                 yield module_folder
 
 
-def get_module_object(path, name):
+def get_module_object(path, name, library_name_has_lib_suffix):
     module_file = join(path, "module_" + name + ".py")
 
     if exists(module_file):
-        return load_python_module(module_file).Module(path)
-    return BaseModule(path)
+        return load_python_module(module_file).Module(path, library_name_has_lib_suffix)
+    return BaseModule(path, library_name_has_lib_suffix)
 
 
-def get_modules(modules_folders, names=None):
+def get_modules(modules_folders, names=None, library_name_has_lib_suffix=False):
     modules = []
 
     for module_folder in iterate_module_folders(modules_folders):
         module_name = basename(module_folder)
         if names is None or module_name in names:
-            modules.append(get_module_object(module_folder, module_name))
+            modules.append(get_module_object(module_folder, module_name, library_name_has_lib_suffix))
 
     return modules

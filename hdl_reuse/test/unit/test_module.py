@@ -9,25 +9,6 @@ from hdl_reuse.test import create_file, create_directory, delete
 THIS_DIR = dirname(__file__)
 
 
-def test_default_library_name_should_have_no_suffix():
-    name = "apa"
-    path = join(THIS_DIR, name)
-
-    my_module = BaseModule(path)
-
-    assert my_module.library_name == name
-
-
-def test_library_name_should_have_suffix():
-    module_name = "hest"
-    library_name = "hest_lib"
-    path = join(THIS_DIR, module_name)
-
-    my_module = BaseModule(path=path, library_name_has_lib_suffix=True)
-
-    assert my_module.library_name == library_name
-
-
 def test_file_list_filtering():
     module_name = "zebra"
     path = join(THIS_DIR, module_name)
@@ -59,10 +40,20 @@ class TestGetModules(unittest.TestCase):
         create_directory(join(self._modules_folder, "c"))
 
     def test_name_filtering(self):
-        modules = get_modules(self._modules_folders, ["a", "b"])
+        modules = get_modules(self._modules_folders, names=["a", "b"])
         assert len(modules) == 2
         for module in modules:
             assert module.name != "c"
+
+    def test_library_name_does_not_have_lib_suffix(self):
+        modules = get_modules(self._modules_folders)
+        for module in modules:
+            assert len(module.library_name) == 1  # I.e. does not end with "_lib"
+
+    def test_library_name_has_lib_suffix(self):
+        modules = get_modules(self._modules_folders, library_name_has_lib_suffix=True)
+        for module in modules:
+            assert module.library_name in ["a_lib", "b_lib", "c_lib"]
 
     def test_stray_file_can_exist_in_modules_folder_without_error(self):
         create_file(join(self._modules_folder, "text_file.txt"))
