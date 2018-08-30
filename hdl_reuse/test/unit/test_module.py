@@ -15,15 +15,26 @@ def test_file_list_filtering():
 
     create_directory(join(path, "folder_should_not_be_included"))
     create_file(join(path, "should_not_be_included.apa"))
-    good_file = create_file(join(path, "source_code.vhd"))
+
+    syn_files = [create_file(join(path, "syn.vhd")),
+                 create_file(join(path, "hdl", "rtl", "syn.vhd")),
+                 create_file(join(path, "hdl", "package", "syn.vhd"))]
+
+    test_files = [create_file(join(path, "test", "test.vhd")),
+                  create_file(join(path, "rtl", "tb", "test.vhd"))]
+
+    sim_files = [create_file(join(path, "sim", "sim.vhd"))]
 
     my_module = BaseModule(path)
 
-    synthesis_files = my_module.get_synthesis_files()
-    assert len(synthesis_files) == 1 and good_file in synthesis_files
+    files = my_module.get_synthesis_files()
+    assert set(files) == set(syn_files)
 
-    simulation_files = my_module.get_simulation_files()
-    assert len(simulation_files) == 1 and good_file in simulation_files
+    files = my_module.get_simulation_files()
+    assert set(files) == set(syn_files + test_files + sim_files)
+
+    files = my_module.get_simulation_files(include_tests=False)
+    assert set(files) == set(syn_files + sim_files)
 
     rmtree(path)
 

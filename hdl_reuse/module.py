@@ -42,14 +42,28 @@ class BaseModule:
         ]
         return self._get_file_list(folders, self._hdl_file_endings)
 
-    def get_simulation_files(self):
+    def get_simulation_files(self, include_tests=True):
         """
         List of files that should be included in a simulation project.
+
+        When include_tests is False the test folder is not included.
+        The use case of include_tests is when testing a primary module
+        that depends on other secondary modules we may want to compile
+        the simulation files of the secondary modules but not their
+        test files.
+
+        Note: test-files are considered private to the module and
+        should never be used by other modules.
+
         """
         test_folders = [
-            join(self.path, "test"),
-            join(self.path, "rtl", "tb"),
+            join(self.path, "sim"),
         ]
+
+        if include_tests:
+            test_folders += [join(self.path, "rtl", "tb"),
+                             join(self.path, "test")]
+
         return self.get_synthesis_files() + self._get_file_list(test_folders, self._hdl_file_endings)
 
     @property
