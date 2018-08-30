@@ -30,6 +30,10 @@ To run the bundled tests you must have
 * Python packages: `pytest`, `pylint`, `pycodestyle`
 * Xilinx Vivado 2017.4+ in your `PATH`
 
+# Main contributors
+* Olof Kraigher
+* Ludvig Vidlid
+* Lukas Vik
+
 # License
 This project is released under the terms of the MIT License.
-
