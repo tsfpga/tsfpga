@@ -54,7 +54,6 @@ class BaseModule:
 
         Note: test-files are considered private to the module and
         should never be used by other modules.
-
         """
         test_folders = [
             join(self.path, "sim"),
