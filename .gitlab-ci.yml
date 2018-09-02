@@ -1,0 +1,28 @@
+# Instructions here: https://docs.gitlab.com/ee/ci/yaml/
+# Linter here: https://gitlab.com/LukasVik/hdl_reuse/-/ci/lint
+
+# Use docker image from ghdl project
+# Available at https://hub.docker.com/r/ghdl/ext/
+# Configured at https://github.com/ghdl/docker/tree/master/dockerfiles
+# Note that docker image can also be set on a stage/job basis
+image: ghdl/ext:vunit
+
+
+before_script:
+  - export PYTHONPATH=$(pwd)/hdl_reuse
+
+pytest:
+  script:
+    - apt-get update -qq > /dev/null
+    - apt-get install -y -qq git > /dev/null
+    - python --version
+    - python -m pip install pytest pylint pycodestyle > /dev/null
+    - python -m pytest --version
+    - python -m pylint --version
+    - python -m pycodestyle --version
+    - python -m pytest -v --ignore=hdl_reuse/test/functional/ hdl_reuse/
+
+simulate:
+  script:
+    - ghdl --version
+    - python hdl_reuse/examples/simulate.py --num-threads 4
