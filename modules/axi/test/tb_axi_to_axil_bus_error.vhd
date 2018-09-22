@@ -84,19 +84,23 @@ begin
   begin
     test_runner_setup(runner, runner_cfg);
 
-    if run("ar_ok") then
-      test_ar(correct_len, correct_size, axi_resp_okay);
-    elsif run("ar_len_error") then
+    -- All should be okay before test
+    test_ar(correct_len, correct_size, axi_resp_okay);
+    test_aw(correct_len, correct_size, axi_resp_okay);
+
+    if run("ar_len_error") then
       test_ar(correct_len + 1, correct_size, axi_resp_slverr);
     elsif run("ar_size_error") then
       test_ar(correct_len, correct_size + 1, axi_resp_slverr);
-    elsif run("aw_ok") then
-      test_aw(correct_len, correct_size, axi_resp_okay);
     elsif run("aw_len_error") then
       test_aw(correct_len + 1, correct_size, axi_resp_slverr);
     elsif run("aw_size_error") then
       test_aw(correct_len, correct_size + 1, axi_resp_slverr);
     end if;
+
+    -- The upcoming transaction after an offending transaction should be all okay
+    test_ar(correct_len, correct_size, axi_resp_okay);
+    test_aw(correct_len, correct_size, axi_resp_okay);
 
     test_runner_cleanup(runner);
   end process;

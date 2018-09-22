@@ -1,4 +1,6 @@
--- @brief Convert AXI transfers to AXI-Lite transfers, along with some checks.
+-- @brief Convert AXI transfers to AXI-Lite transfers.
+--
+-- This module does not handle splitting of AXI bursts. If the length is greater than one, an error will be returned.
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -84,12 +86,16 @@ begin
     if (axi_m2s.write.aw.valid and axi_s2m.write.aw.ready) = '1' then
       if to_integer(unsigned(axi_m2s.write.aw.len)) /= len or to_integer(unsigned(axi_m2s.write.aw.size)) /= size then
         write_error <= true;
+      else
+        write_error <= false;
       end if;
     end if;
 
     if (axi_m2s.read.ar.valid and axi_s2m.read.ar.ready) = '1' then
       if to_integer(unsigned(axi_m2s.read.ar.len)) /= len or to_integer(unsigned(axi_m2s.read.ar.size)) /= size then
         read_error <= true;
+      else
+        read_error <= false;
       end if;
     end if;
   end process;
