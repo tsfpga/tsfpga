@@ -152,7 +152,7 @@ package body axil_pkg is
   end function;
 
   function to_axil_m2s_a(data : std_logic_vector) return axil_m2s_a_t is
-    variable result : axil_m2s_a_t;
+    variable result : axil_m2s_a_t := axil_m2s_a_init;
     variable lo, hi : integer := 0;
   begin
     lo := 0;
@@ -183,7 +183,7 @@ package body axil_pkg is
   end function;
 
   function to_axil_m2s_w(data : std_logic_vector; data_width : integer) return axil_m2s_w_t is
-    variable result : axil_m2s_w_t;
+    variable result : axil_m2s_w_t := axil_m2s_w_init;
     variable lo, hi : integer := 0;
   begin
     lo := 0;
@@ -216,7 +216,7 @@ package body axil_pkg is
   end function;
 
   function to_axil_s2m_r(data : std_logic_vector; data_width : integer) return axil_s2m_r_t is
-    variable result : axil_s2m_r_t;
+    variable result : axil_s2m_r_t := axil_s2m_r_init;
     variable lo, hi : integer := 0;
   begin
     lo := 0;

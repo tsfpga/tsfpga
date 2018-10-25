@@ -22,8 +22,8 @@ entity afifo is
   generic (
     width : integer;
     depth : integer;
-    almost_full_level : integer range 0 to depth;
-    almost_empty_level : integer range 0 to depth
+    almost_full_level : integer range 0 to depth := depth / 2;
+    almost_empty_level : integer range 0 to depth := depth / 2
     );
   port (
     clk_read : in std_logic;

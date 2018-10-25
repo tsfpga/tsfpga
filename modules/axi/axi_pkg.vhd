@@ -125,6 +125,7 @@ package axi_pkg is
   end record;
 
   constant axi_s2m_b_init : axi_s2m_b_t := (valid => '0', others => (others => '0'));
+  constant axi_s2m_b_sz : integer := axi_resp_sz; -- Exluded member: valid
 
 
   ------------------------------------------------------------------------------

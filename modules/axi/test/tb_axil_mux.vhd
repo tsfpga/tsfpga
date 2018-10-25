@@ -44,6 +44,7 @@ architecture tb of tb_axil_mux is
     (addr => x"0000_3000", mask => x"0000_3000")
   );
 
+  constant clk_period : time := 10 ns;
   signal clk : std_logic := '0';
 
   signal axil_m2s : axil_m2s_t;
@@ -70,12 +71,10 @@ architecture tb of tb_axil_mux is
     3 => new_axi_slave(address_fifo_depth => 1, memory => memory(3))
   );
 
-  type memory_data_t is array(0 to num_slaves - 1, 0 to num_words - 1) of std_logic_vector(data_width - 1 downto 0);
-
 begin
 
   test_runner_watchdog(runner, 2 ms);
-  clk <= not clk after 2 ns;
+  clk <= not clk after clk_period / 2;
 
 
   ------------------------------------------------------------------------------
@@ -84,8 +83,6 @@ begin
     variable data : std_logic_vector(data_width - 1 downto 0);
     variable address : integer;
     variable buf : buffer_t;
-
-    variable memory_data : memory_data_t;
 
     function bank_address(slave, word : integer) return integer is
     begin
@@ -103,11 +100,10 @@ begin
       for word in 0 to num_words - 1 loop
         address := bank_address(slave, word);
         data := rnd.RandSLV(data'length);
-
         set_expected_word(memory(slave), address, data);
-        memory_data(slave, word) := data;
 
-        write_bus(net, axi_master, address, data); -- Call is non-blocking. I.e. we will build up a queue of writes.
+        -- Call is non-blocking. I.e. we will build up a queue of writes.
+        write_bus(net, axi_master, address, data);
         wait until rising_edge(clk);
       end loop;
     end loop;
@@ -122,7 +118,7 @@ begin
     for slave in axi_slave'range loop
       for word in 0 to num_words - 1 loop
         address := bank_address(slave, word);
-        data := memory_data(slave, word);
+        data := read_word(memory(slave), address, 4);
 
         check_bus(net, axi_master, address, data);
       end loop;

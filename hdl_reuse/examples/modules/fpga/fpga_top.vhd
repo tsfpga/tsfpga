@@ -45,17 +45,17 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axi_to_regs_inst : entity axi.axi_to_regs
+  axi_to_regs_inst : entity axi.axi_to_axil_vec
   generic map (
-    reg_slaves => reg_slaves
+    axil_slaves => reg_slaves
   )
   port map (
     clk_axi => clk_hpm0,
     axi_m2s => hpm0_m2s,
     axi_s2m => hpm0_s2m,
 
-    regs_m2s => regs_m2s,
-    regs_s2m => regs_s2m
+    axil_vec_m2s => regs_m2s,
+    axil_vec_s2m => regs_s2m
   );
 
 
