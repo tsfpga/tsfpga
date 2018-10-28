@@ -118,12 +118,12 @@ class VivadoTcl:
         return self._run(run, 0, "Timing not OK after %s run." % run)
 
     def _bitstream(self, output_path):
-        bit_file = join(output_path, self.name)  # Vivado will append the appropriate file ending
+        bit_file = to_tcl_path(join(output_path, self.name))  # Vivado will append the appropriate file ending
         tcl = "write_bitstream %s\n" % bit_file
         return tcl
 
     def _hwdef(self, output_path):
-        hwdef_file = join(output_path, self.name)  # Vivado will append the appropriate file ending
+        hwdef_file = to_tcl_path(join(output_path, self.name))  # Vivado will append the appropriate file ending
         tcl = "write_hwdef %s\n" % hwdef_file
         return tcl
 
@@ -138,7 +138,6 @@ class VivadoTcl:
         tcl += self._synthesis(synth_run)
         tcl += "\n"
         if not synth_only:
-            output_path = to_tcl_path(output_path)
             tcl += self._impl(impl_run)
             tcl += "\n"
             tcl += self._bitstream(output_path)
