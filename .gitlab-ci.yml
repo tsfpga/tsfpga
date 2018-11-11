@@ -19,7 +19,7 @@ pytest:
     - python -m pip install pytest pylint pycodestyle > /dev/null
     - python -m pylint --version
     - python -m pycodestyle --version
-    - python -m pytest -v --ignore=hdl_reuse/test/functional/ hdl_reuse/
+    - python -m pytest -v --ignore=hdl_reuse/test/vivado/ hdl_reuse/
 
 simulate:
   script:

@@ -15,8 +15,9 @@ def main():
 
     for module in get_modules(MODULE_FOLDERS):
         if module.registers is not None:
-            module.registers.create_html_table(join(release_dir, "doc", "tables"))
+            module.registers.create_c_header(join(release_dir, "header"))
             module.registers.create_html_page(join(release_dir, "doc"))
+            module.registers.create_html_table(join(release_dir, "doc", "tables"))
 
 
 if __name__ == "__main__":

@@ -6,20 +6,13 @@ from hdl_reuse.register_html_generator import RegisterHtmlGenerator
 from hdl_reuse.register_vhdl_generator import RegisterVhdlGenerator
 from hdl_reuse.register_list import RegisterList
 from hdl_reuse.system_utils import create_file
+from hdl_reuse.register_c_generator import RegisterCGenerator
 
 
 class Registers:
 
     def __init__(self, register_list):
         self.register_list = register_list
-
-    def create_html_page(self, output_path):
-        output_file = join(output_path, self.register_list.name + "_regs.html")
-        create_file(output_file, RegisterHtmlGenerator(self.register_list).get_page())
-
-    def create_html_table(self, output_path):
-        output_file = join(output_path, self.register_list.name + "_regs_table.html")
-        create_file(output_file, RegisterHtmlGenerator(self.register_list).get_table())
 
     def create_vhdl_package(self, output_file):
         """
@@ -30,6 +23,18 @@ class Registers:
         """
         with open(output_file, "w") as file_handle:
             file_handle.write(RegisterVhdlGenerator(self.register_list).get_package())
+
+    def create_c_header(self, output_path):
+        output_file = join(output_path, self.register_list.name + "_regs.h")
+        create_file(output_file, RegisterCGenerator(self.register_list).get_header())
+
+    def create_html_page(self, output_path):
+        output_file = join(output_path, self.register_list.name + "_regs.html")
+        create_file(output_file, RegisterHtmlGenerator(self.register_list).get_page())
+
+    def create_html_table(self, output_path):
+        output_file = join(output_path, self.register_list.name + "_regs_table.html")
+        create_file(output_file, RegisterHtmlGenerator(self.register_list).get_table())
 
 
 def load_json_file(file_name):

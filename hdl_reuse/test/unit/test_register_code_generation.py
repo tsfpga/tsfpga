@@ -3,6 +3,7 @@ import unittest
 from hdl_reuse.register_list import RegisterList
 from hdl_reuse.register_html_generator import RegisterHtmlGenerator
 from hdl_reuse.register_vhdl_generator import RegisterVhdlGenerator
+from hdl_reuse.register_c_generator import RegisterCGenerator
 
 
 class TestRegisterCodeGeneration(unittest.TestCase):
@@ -12,14 +13,15 @@ class TestRegisterCodeGeneration(unittest.TestCase):
 
         register = register_list.append("conf", "r_w")
         register.description = "conf desc"
-        register.append_bit("conf_bit_0", "conf bit 0 desc")
-        register.append_bit("conf_bit_1", "")
+        register.append_bit("bit_0", "conf bit 0 desc")
+        register.append_bit("bit_1", "")
 
         register = register_list.append("addr", "w")
         register.description = "addr desc"
 
         self.html_generator = RegisterHtmlGenerator(register_list)
         self.vhdl_generator = RegisterVhdlGenerator(register_list)
+        self.c_generator = RegisterCGenerator(register_list)
 
     def test_generated_html_contains_all_fields_in_correct_order(self):
         expected = """
@@ -30,13 +32,13 @@ class TestRegisterCodeGeneration(unittest.TestCase):
     <td>conf desc</td>
   </tr>
   <tr>
-    <td>&nbsp;&nbsp;<em>conf_bit_0</em></td>
+    <td>&nbsp;&nbsp;<em>bit_0</em></td>
     <td>0</td>
     <td></td>
     <td>conf bit 0 desc</td>
   </tr>
   <tr>
-    <td>&nbsp;&nbsp;<em>conf_bit_1</em></td>
+    <td>&nbsp;&nbsp;<em>bit_1</em></td>
     <td>1</td>
     <td></td>
     <td></td>
@@ -75,7 +77,25 @@ class TestRegisterCodeGeneration(unittest.TestCase):
     (idx => sensor_addr, reg_type => w)
   );
 
-  constant sensor_conf_conf_bit_0 : integer := 0;
-  constant sensor_conf_conf_bit_1 : integer := 1;
+  constant sensor_conf_bit_0 : integer := 0;
+  constant sensor_conf_bit_1 : integer := 1;
 """
         assert expected in self.vhdl_generator.get_package()
+
+    def test_generated_c_contains_all_fields_in_correct_order(self):
+        expected = """
+struct sensor_regs_t {
+  uint32_t conf;
+  uint32_t addr;
+};
+"""
+        assert expected in self.c_generator.get_header()
+
+        expected = """
+#define SENSOR_CONF_BIT_0_BIT (0uL)
+#define SENSOR_CONF_BIT_0     (1uL)
+
+#define SENSOR_CONF_BIT_1_BIT (1uL)
+#define SENSOR_CONF_BIT_1     (2uL)
+"""
+        assert expected in self.c_generator.get_header()
