@@ -35,7 +35,18 @@ class TestVivadoTcl(unittest.TestCase):
         # In real world case a normal dict can be used.
         generics = OrderedDict(enable=True, disable=False, integer=123, slv="4'b0101")
 
-        self.tcl = VivadoTcl(name="name", modules=modules, part="part", top="top", block_design=None, generics=generics, constraints=[])
+        # Any files
+        tcl_sources = [self.a_xdc, self.b_tcl]
+
+        self.tcl = VivadoTcl(
+            name="name",
+            modules=modules,
+            part="part",
+            top="top",
+            tcl_sources=tcl_sources,
+            generics=generics,
+            constraints=[]
+        )
 
     def test_only_synthesis_files_added_to_create_project_tcl(self):
         tcl = self.tcl.create(project_folder="")
@@ -58,3 +69,8 @@ class TestVivadoTcl(unittest.TestCase):
         assert expected in tcl
         expected = "\nread_xdc -ref b -unmanaged %s\n" % self.b_tcl
         assert expected in tcl
+
+    def test_multiple_tcl_sources(self):
+        tcl = self.tcl.create(project_folder="")
+        assert "\nsource %s\n" % self.a_xdc in tcl
+        assert "\nsource %s\n" % self.b_tcl in tcl

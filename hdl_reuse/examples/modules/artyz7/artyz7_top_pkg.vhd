@@ -8,7 +8,7 @@ library reg_file;
 use reg_file.reg_file_pkg.all;
 
 
-package fpga_top_pkg is
+package artyz7_top_pkg is
 
   constant reg_slaves : addr_and_mask_vec_t(0 to 12 - 1) := (
     0 => (addr => x"0000_0000", mask => x"0000_f000"),
@@ -23,26 +23,6 @@ package fpga_top_pkg is
     9 => (addr => x"0000_9000", mask => x"0000_f000"),
     10 => (addr => x"0000_a000", mask => x"0000_f000"),
     11 => (addr => x"0000_b000", mask => x"0000_f000")
-  );
-
-  -- All registers are R/W so that they wont be opitimised away
-  constant reg_map : reg_definition_vec_t(0 to 16 - 1) := (
-    (idx => 0, reg_type => r_w),
-    (idx => 1, reg_type => r_w),
-    (idx => 2, reg_type => r_w),
-    (idx => 3, reg_type => r_w),
-    (idx => 4, reg_type => r_w),
-    (idx => 5, reg_type => r_w),
-    (idx => 6, reg_type => r_w),
-    (idx => 7, reg_type => r_w),
-    (idx => 8, reg_type => r_w),
-    (idx => 9, reg_type => r_w),
-    (idx => 10, reg_type => r_w),
-    (idx => 11, reg_type => r_w),
-    (idx => 12, reg_type => r_w),
-    (idx => 13, reg_type => r_w),
-    (idx => 14, reg_type => r_w),
-    (idx => 15, reg_type => r_w)
   );
 
 end;

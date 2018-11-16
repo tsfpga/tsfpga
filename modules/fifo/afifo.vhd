@@ -11,6 +11,7 @@ use ieee.numeric_std.all;
 
 library common;
 use common.types_pkg.all;
+use common.attribute_pkg.all;
 
 library math;
 use math.math_pkg.all;
@@ -138,7 +139,9 @@ begin
   memory : block
     subtype word_t is std_logic_vector(width - 1 downto 0);
     type mem_t is array (integer range <>) of word_t;
+
     signal mem : mem_t(0 to depth - 1) := (others => (others => '0'));
+    attribute ram_style of mem : signal is "block";
   begin
     write_memory : process
     begin

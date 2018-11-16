@@ -91,7 +91,8 @@ class RegisterHtmlGenerator:
         html += self._get_table()
         return html
 
-    def _get_mode_descriptions(self):
+    @staticmethod
+    def _get_mode_descriptions():
         html = """
 <table>
 <thead>
@@ -163,7 +164,7 @@ th {
 </head>
 <body>
   <h1>{title}</h1>
-  <p>This document is a specification for the PS interface of the {module_name} module.</p>
+  <p>This document is a specification of the PS interface of the {module_name} module.</p>
   <h2>Register modes</h2>
   <p>The following register modes are available.</p>
 {self._get_mode_descriptions()}

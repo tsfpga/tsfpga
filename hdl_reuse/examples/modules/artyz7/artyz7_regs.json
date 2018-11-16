@@ -1,0 +1,56 @@
+{
+  "config": {
+    "description": "Markdown syntax with **asterisks** and *asterisks* or __underscores__ and _underscores_.",
+    "mode": "r_w",
+    "bits": {
+      "enable": "You can markdown annotate **a long sentence** of course.",
+      "disable": "Asterisks \\* and underscores \\_ can still be used."
+    }
+  },
+  "dummy_reg_0": {
+    "description": "Register are R/W so they won't be optimized away",
+    "mode": "r_w"
+  },
+  "dummy_reg_1": {
+    "mode": "r_w"
+  },
+  "dummy_reg_2": {
+    "mode": "r_w"
+  },
+  "dummy_reg_3": {
+    "mode": "r_w"
+  },
+  "dummy_reg_4": {
+    "mode": "r_w"
+  },
+  "dummy_reg_5": {
+    "mode": "r_w"
+  },
+  "dummy_reg_6": {
+    "mode": "r_w"
+  },
+  "dummy_reg_7": {
+    "mode": "r_w"
+  },
+  "dummy_reg_8": {
+    "mode": "r_w"
+  },
+  "dummy_reg_9": {
+    "mode": "r_w"
+  },
+  "dummy_reg_10": {
+    "mode": "r_w"
+  },
+  "dummy_reg_11": {
+    "mode": "r_w"
+  },
+  "dummy_reg_12": {
+    "mode": "r_w"
+  },
+  "dummy_reg_13": {
+    "mode": "r_w"
+  },
+  "dummy_reg_14": {
+    "mode": "r_w"
+  }
+}

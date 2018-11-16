@@ -3,7 +3,7 @@ from os.path import abspath, dirname, join
 from hdl_reuse.vivado_project import VivadoProject
 from hdl_reuse.module import get_modules
 from hdl_reuse.examples import MODULE_FOLDERS
-from hdl_reuse.constraints import Constraint
+from hdl_reuse.constraint import Constraint
 
 THIS_DIR = abspath(dirname(__file__))
 THIS_FILE = abspath(__file__)
@@ -13,28 +13,30 @@ def get_projects():
     projects = []
 
     modules = get_modules(MODULE_FOLDERS)
-    part = "xczu3eg-sfva625-1-i"
+    part = "xc7z020clg400-1"
 
     tcl_dir = join(THIS_DIR, "tcl")
     block_design = join(tcl_dir, "block_design.tcl")
-    constraints = [Constraint(join(tcl_dir, "fpga_pinning.tcl"))]
+
+    # This one creates clocks, so for other constraint files to work it has to be processed early.
+    pinning = Constraint(join(tcl_dir, "artyz7_pinning.tcl"), processing_order="early")
 
     projects.append(VivadoProject(
-        name="fpga",
+        name="artyz7",
         modules=modules,
         part=part,
-        block_design=block_design,
-        constraints=constraints,
+        tcl_sources=[block_design],
+        constraints=[pinning],
         defined_at=THIS_FILE
     ))
 
     projects.append(SpecialVivadoProject(
-        name="fpga_hest",
+        name="artyz7_hest",
         modules=modules,
         part=part,
-        top="fpga_top",
-        block_design=block_design,
-        constraints=constraints,
+        top="artyz7_top",
+        tcl_sources=[block_design],
+        constraints=[pinning],
     ))
 
     return projects

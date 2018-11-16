@@ -2,7 +2,7 @@ from glob import glob
 from os.path import basename, isfile, join, exists, isdir
 
 from hdl_reuse.system_utils import load_python_module
-from hdl_reuse.constraints import Constraint
+from hdl_reuse.constraint import Constraint
 from hdl_reuse.registers import from_json
 
 
@@ -103,7 +103,6 @@ class BaseModule:
         Setup local configuration of this module's test benches.
         Should be overriden by modules that have any test benches that operate via generics.
         """
-        pass
 
     def get_scoped_constraints(self):
         """

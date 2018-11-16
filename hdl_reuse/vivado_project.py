@@ -2,7 +2,7 @@ from os import makedirs
 from os.path import join, exists
 
 from hdl_reuse import HDL_REUSE_TCL
-from hdl_reuse.constraints import Constraint
+from hdl_reuse.constraint import Constraint
 from hdl_reuse.vivado_tcl import VivadoTcl
 from hdl_reuse.vivado_utils import run_vivado_tcl
 
@@ -18,7 +18,7 @@ class VivadoProject:
             modules,
             part,
             top=None,  # Name of top level entity
-            block_design=None,  # TCL file that creates the block design
+            tcl_sources=None,  # Block design, settings, etc.
             generics=None,  # A dict with generics values
             vivado_path=None,  # Default: Whatever version/location is in PATH will be used
             constraints=None,  # A list of TCL files
@@ -31,6 +31,7 @@ class VivadoProject:
         self.vivado_path = "vivado" if vivado_path is None else vivado_path
 
         constraints_list = self._setup_constraints_list(constraints)
+        tcl_sources_list = self._setup_tcl_sources_list(tcl_sources)
 
         self.defined_at = defined_at
 
@@ -39,7 +40,7 @@ class VivadoProject:
             modules=self.modules,
             part=part,
             top=self.top,
-            block_design=block_design,
+            tcl_sources=tcl_sources_list,
             generics=generics,
             constraints=constraints_list
         )
@@ -53,6 +54,18 @@ class VivadoProject:
         constraints.append(Constraint(file))
 
         return constraints
+
+    @staticmethod
+    def _setup_tcl_sources_list(tcl_sources_from_user):
+        # Lists are imutable. Since we assign and modify this one we have to copy it.
+        tcl_sources = [] if tcl_sources_from_user is None else tcl_sources_from_user.copy()
+
+        tcl_sources += [
+            join(HDL_REUSE_TCL, "vivado_settings.tcl"),
+            join(HDL_REUSE_TCL, "vivado_messages.tcl"),
+        ]
+
+        return tcl_sources
 
     def create_tcl(self, project_path):
         """
@@ -93,13 +106,11 @@ class VivadoProject:
         """
         Override this function in a child class if you wish to do something useful with it.
         """
-        pass
 
     def post_build(self, **kwargs):
         """
         Override this function in a child class if you wish to do something useful with it.
         """
-        pass
 
     def build(self, project_path, output_path=None, synth_only=False, num_threads=12):
         """

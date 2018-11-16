@@ -8,11 +8,13 @@ use ieee.std_logic_1164.all;
 
 package axi_pkg is
 
+  constant axi_id_sz : integer := 32; -- Max value
+
   ------------------------------------------------------------------------------
   -- A (Address Read and Address Write) channels
   ------------------------------------------------------------------------------
 
-  constant axi_a_addr_sz : integer := 32; -- @TODO what?
+  constant axi_a_addr_sz : integer := 32;
   constant axi_a_len_sz : integer := 8; -- Number of transfers = len + 1
   constant axi_a_size_sz : integer := 3; -- Bytes per transfer = 2^size
 
@@ -53,19 +55,20 @@ package axi_pkg is
 
   type axi_m2s_a_t is record
     valid : std_logic;
+    id : std_logic_vector(axi_id_sz - 1 downto 0);
     addr : std_logic_vector(axi_a_addr_sz - 1 downto 0);
     len : std_logic_vector(axi_a_len_sz - 1 downto 0);
     size : std_logic_vector(axi_a_size_sz - 1 downto 0);
     burst : std_logic_vector(axi_a_burst_sz - 1 downto 0);
-    -- @note Excluded members: id, lock, cache, prot, region.
+    -- @note Excluded members: lock, cache, prot, region.
     -- These are typically not changed on a transfer-to-transfer basis.
   end record;
 
   constant axi_m2s_a_init : axi_m2s_a_t := (valid => '0', others => (others => '0'));
-  constant axi_m2s_a_sz : integer := axi_a_addr_sz + axi_a_len_sz + axi_a_size_sz + axi_a_burst_sz; -- Exluded member: valid
+  function axi_m2s_a_sz(id_width : integer := 0)  return integer;
 
-  function to_slv(data : axi_m2s_a_t) return std_logic_vector;
-  function to_axi_m2s_a(data : std_logic_vector) return axi_m2s_a_t;
+  function to_slv(data : axi_m2s_a_t; id_width : integer := 0) return std_logic_vector;
+  function to_axi_m2s_a(data : std_logic_vector; id_width : integer := 0) return axi_m2s_a_t;
 
   type axi_s2m_a_t is record
     ready : std_logic;
@@ -86,7 +89,7 @@ package axi_pkg is
     data : std_logic_vector(axi_data_max_sz - 1 downto 0);
     strb : std_logic_vector(axi_w_strb_max_sz - 1 downto 0);
     last : std_logic;
-    -- @note AXI3 has an id as well
+    -- @note AXI3 has an id for each write beat as well
   end record;
 
   constant axi_m2s_w_init : axi_m2s_w_t := (valid => '0', data => (others => '-'), last => '0', others => (others => '0'));
@@ -121,11 +124,15 @@ package axi_pkg is
 
   type axi_s2m_b_t is record
     valid : std_logic;
+    id : std_logic_vector(axi_id_sz - 1 downto 0);
     resp : std_logic_vector(axi_resp_sz - 1 downto 0);
   end record;
 
   constant axi_s2m_b_init : axi_s2m_b_t := (valid => '0', others => (others => '0'));
-  constant axi_s2m_b_sz : integer := axi_resp_sz; -- Exluded member: valid
+  function axi_s2m_b_sz(id_width : integer := 0)  return integer;
+
+  function to_slv(data : axi_s2m_b_t; id_width : integer := 0) return std_logic_vector;
+  function to_axi_s2m_b(data : std_logic_vector; id_width : integer := 0) return axi_s2m_b_t;
 
 
   ------------------------------------------------------------------------------
@@ -140,16 +147,17 @@ package axi_pkg is
 
   type axi_s2m_r_t is record
     valid : std_logic;
+    id : std_logic_vector(axi_id_sz - 1 downto 0);
     data : std_logic_vector(axi_data_max_sz - 1 downto 0);
     resp : std_logic_vector(axi_resp_sz - 1 downto 0);
     last : std_logic;
-    -- @note Excluded member id
   end record;
 
   constant axi_s2m_r_init : axi_s2m_r_t := (valid => '0', last => '0', others => (others => '0'));
-  function axi_s2m_r_sz(data_width : integer)  return integer;
-  function to_slv(data : axi_s2m_r_t; data_width : integer) return std_logic_vector;
-  function to_axi_s2m_r(data : std_logic_vector; data_width : integer) return axi_s2m_r_t;
+  function axi_s2m_r_sz(data_width : integer; id_width : integer := 0)  return integer;
+
+  function to_slv(data : axi_s2m_r_t; data_width : integer; id_width : integer := 0) return std_logic_vector;
+  function to_axi_s2m_r(data : std_logic_vector; data_width : integer; id_width : integer := 0) return axi_s2m_r_t;
 
 
   ------------------------------------------------------------------------------
@@ -210,11 +218,21 @@ end;
 
 package body axi_pkg is
 
-  function to_slv(data : axi_m2s_a_t) return std_logic_vector is
-    variable result : std_logic_vector(axi_m2s_a_sz - 1 downto 0);
+  function axi_m2s_a_sz(id_width : integer := 0) return integer is
+  begin
+    return id_width + axi_a_addr_sz + axi_a_len_sz + axi_a_size_sz + axi_a_burst_sz; -- Exluded member: valid
+  end function;
+
+  function to_slv(data : axi_m2s_a_t; id_width : integer := 0) return std_logic_vector is
+    variable result : std_logic_vector(axi_m2s_a_sz(id_width) - 1 downto 0);
     variable lo, hi : integer := 0;
   begin
     lo := 0;
+    if id_width > 0 then
+      hi := id_width - 1;
+      result(hi downto lo) := data.id(hi downto lo);
+      lo := hi + 1;
+    end if;
     hi := lo + data.addr'length - 1;
     result(hi downto lo) := data.addr;
     lo := hi + 1;
@@ -230,11 +248,16 @@ package body axi_pkg is
     return result;
   end function;
 
-  function to_axi_m2s_a(data : std_logic_vector) return axi_m2s_a_t is
+  function to_axi_m2s_a(data : std_logic_vector; id_width : integer := 0) return axi_m2s_a_t is
     variable result : axi_m2s_a_t;
     variable lo, hi : integer := 0;
   begin
     lo := 0;
+    if id_width > 0 then
+      hi := id_width - 1;
+      result.id(hi downto lo) := data(hi downto lo);
+      lo := hi + 1;
+    end if;
     hi := lo + result.addr'length - 1;
     result.addr := data(hi downto lo);
     lo := hi + 1;
@@ -294,16 +317,58 @@ package body axi_pkg is
     return result;
   end function;
 
-  function axi_s2m_r_sz(data_width : integer)  return integer is
+  function axi_s2m_b_sz(id_width : integer := 0)  return integer is
   begin
-    return data_width + axi_resp_sz + 1; -- Exluded member: valid
+    return id_width + axi_resp_sz; -- Exluded member: valid
   end function;
 
-  function to_slv(data : axi_s2m_r_t; data_width : integer) return std_logic_vector is
-    variable result : std_logic_vector(axi_s2m_r_sz(data_width) - 1 downto 0);
+  function to_slv(data : axi_s2m_b_t; id_width : integer := 0) return std_logic_vector is
+    variable result : std_logic_vector(axi_s2m_b_sz(id_width) - 1 downto 0);
     variable lo, hi : integer := 0;
   begin
     lo := 0;
+    if id_width > 0 then
+      hi := id_width - 1;
+      result(hi downto lo) := data.id(hi downto lo);
+      lo := hi + 1;
+    end if;
+    hi := lo + axi_resp_sz - 1;
+    result(hi downto lo) := data.resp;
+    assert hi = result'high;
+    return result;
+  end function;
+
+  function to_axi_s2m_b(data : std_logic_vector; id_width : integer := 0) return axi_s2m_b_t is
+    variable result : axi_s2m_b_t;
+    variable lo, hi : integer := 0;
+  begin
+    lo := 0;
+    if id_width > 0 then
+      hi := id_width - 1;
+      result.id(hi downto lo) := data(hi downto lo);
+      lo := hi + 1;
+    end if;
+    hi := lo + axi_resp_sz - 1;
+    result.resp := data(hi downto lo);
+    assert hi = data'high;
+    return result;
+  end function;
+
+  function axi_s2m_r_sz(data_width : integer; id_width : integer := 0)  return integer is
+  begin
+    return data_width + id_width + axi_resp_sz + 1; -- 1 == last
+  end function;
+
+  function to_slv(data : axi_s2m_r_t; data_width : integer; id_width : integer := 0) return std_logic_vector is
+    variable result : std_logic_vector(axi_s2m_r_sz(data_width, id_width) - 1 downto 0);
+    variable lo, hi : integer := 0;
+  begin
+    lo := 0;
+    if id_width > 0 then
+      hi := id_width - 1;
+      result(hi downto lo) := data.id(hi downto lo);
+      lo := hi + 1;
+    end if;
     hi := lo + data_width - 1;
     result(hi downto lo) := data.data(data_width - 1 downto 0);
     lo := hi + 1;
@@ -316,11 +381,16 @@ package body axi_pkg is
     return result;
   end function;
 
-  function to_axi_s2m_r(data : std_logic_vector; data_width : integer) return axi_s2m_r_t is
+  function to_axi_s2m_r(data : std_logic_vector; data_width : integer; id_width : integer := 0) return axi_s2m_r_t is
     variable result : axi_s2m_r_t;
     variable lo, hi : integer := 0;
   begin
     lo := 0;
+    if id_width > 0 then
+      hi := id_width - 1;
+      result.id(hi downto lo) := data(hi downto lo);
+      lo := hi + 1;
+    end if;
     hi := lo + data_width - 1;
     result.data(data_width - 1 downto 0) := data(hi downto lo);
     lo := hi + 1;

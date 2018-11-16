@@ -2,6 +2,10 @@
 # Unintentional clock crossings will fail timing with ~100 ns thanks to this.
 # Clock crossing which are intentional should be handled with a "set_false_path" statement.
 
+puts "================================================================================="
+puts "constrain_clock_crossings.tcl. Constraining clocks: "
+puts [get_clocks]
+
 foreach clk1 [get_clocks] {
   foreach clk2 [get_clocks] {
     if {${clk1} != ${clk2}} {

@@ -6,6 +6,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library common;
+use common.types_pkg.all;
+
 library math;
 use math.math_pkg.all;
 
@@ -33,6 +36,8 @@ architecture a of axi_to_axil is
   constant len : integer := 0;
   constant size : integer := log2(data_width / 8);
 
+  signal read_id, write_id : std_logic_vector(axi_m2s.read.ar.id'range) := (others => '0');
+
   subtype data_rng is integer range data_width - 1 downto 0;
   subtype strb_rng is integer range data_width / 8 - 1 downto 0;
 
@@ -49,6 +54,7 @@ begin
   axil_m2s.read.r.ready <= axi_m2s.read.r.ready;
 
   axi_s2m.read.r.valid <= axil_s2m.read.r.valid;
+  axi_s2m.read.r.id <= read_id;
   axi_s2m.read.r.data(data_rng) <= axil_s2m.read.r.data(data_rng);
   axi_s2m.read.r.resp <= axi_resp_slverr when read_error else axil_s2m.read.r.resp;
   axi_s2m.read.r.last <= '1';
@@ -71,7 +77,25 @@ begin
   axil_m2s.write.b.ready <= axi_m2s.write.b.ready;
 
   axi_s2m.write.b.valid <= axil_s2m.write.b.valid;
+  axi_s2m.write.b.id <= write_id;
   axi_s2m.write.b.resp <= axi_resp_slverr when write_error else axil_s2m.write.b.resp;
+
+
+  ------------------------------------------------------------------------------
+  mirror_id : process
+  begin
+    wait until rising_edge(clk);
+
+    -- Save the ID's used by PS so that they can be returned in the read/write response transactions.
+
+    if axi_m2s.read.ar.valid and axi_s2m.read.ar.ready then
+      read_id <= axi_m2s.read.ar.id;
+    end if;
+
+    if axi_m2s.write.aw.valid and axi_s2m.write.aw.ready then
+      write_id <= axi_m2s.write.aw.id;
+    end if;
+  end process;
 
 
   ------------------------------------------------------------------------------
@@ -79,11 +103,10 @@ begin
   begin
     wait until rising_edge(clk);
 
-    -- If an error occurs the bus will return an error not only for the offending transaction, but for all upcoming transactions as well.
-    -- The software making the memory access will usually hard crash with "Bus error" message if the AXI bus returns an error.
-    -- Hence it should not be a problem to block the bus forever.
+    -- If an error occurs the bus will return an error. The bus will be unlocked for any
+    -- upcoming transactions, if the SW can handle it.
 
-    if (axi_m2s.write.aw.valid and axi_s2m.write.aw.ready) = '1' then
+    if axi_m2s.write.aw.valid and axi_s2m.write.aw.ready then
       if to_integer(unsigned(axi_m2s.write.aw.len)) /= len or to_integer(unsigned(axi_m2s.write.aw.size)) /= size then
         write_error <= true;
       else
@@ -91,7 +114,7 @@ begin
       end if;
     end if;
 
-    if (axi_m2s.read.ar.valid and axi_s2m.read.ar.ready) = '1' then
+    if axi_m2s.read.ar.valid and axi_s2m.read.ar.ready then
       if to_integer(unsigned(axi_m2s.read.ar.len)) /= len or to_integer(unsigned(axi_m2s.read.ar.size)) /= size then
         read_error <= true;
       else

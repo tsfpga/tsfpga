@@ -53,7 +53,7 @@ begin
     if write_slave_select = slave_not_selected then
       axil_s2m.write.aw <= (ready => '0');
       axil_s2m.write.w <= (ready => '0');
-      axil_s2m.write.b <= (valid => '0', resp => (others => '-'));
+      axil_s2m.write.b <= (valid => '0', others => (others => '-'));
     else
       axil_s2m.write <= axil_s2m_vec(write_slave_select).write;
     end if;

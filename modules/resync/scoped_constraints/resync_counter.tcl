@@ -13,4 +13,4 @@ set min_clk_period [expr {((${clk_in_period} < ${clk_out_period}) ? ${clk_in_per
 set_bus_skew ${min_clk_period} -from ${stable_registers} -to ${first_resync_registers}
 
 # Help router by adding max delay. The bus skew constraint is the important part.
-set_max_delay -datapath_only $clk_in_period -from ${stable_registers} -to ${first_resync_registers}
+set_max_delay -datapath_only ${min_clk_period} -from ${stable_registers} -to ${first_resync_registers}

@@ -2,7 +2,7 @@ from os.path import dirname, join
 import pytest
 import unittest
 
-from hdl_reuse.constraints import Constraint
+from hdl_reuse.constraint import Constraint
 from hdl_reuse.system_utils import create_file, delete
 
 

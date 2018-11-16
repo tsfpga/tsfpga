@@ -14,7 +14,7 @@ class VivadoTcl:
             modules,
             part,
             top,
-            block_design,
+            tcl_sources,
             generics,
             constraints,
     ):
@@ -22,7 +22,7 @@ class VivadoTcl:
         self.modules = modules
         self.part = part
         self.top = top
-        self.block_design = block_design
+        self.tcl_sources = tcl_sources
         self.generics = generics
         self.constraints = constraints
 
@@ -34,8 +34,11 @@ class VivadoTcl:
                 tcl += "read_vhdl -library %s -vhdl2008 {%s}\n" % (module.library_name, file_list_str)
         return tcl
 
-    def _add_block_design(self):
-        return "" if self.block_design is None else "source %s\n" % to_tcl_path(self.block_design)
+    def _add_tcl_sources(self):
+        tcl = ""
+        for tcl_source_file in self.tcl_sources:
+            tcl += "source %s\n" % to_tcl_path(tcl_source_file)
+        return tcl
 
     def _add_generics(self):
         """
@@ -68,11 +71,13 @@ class VivadoTcl:
             managed_flags = "" if file.endswith("xdc") else "-unmanaged "
 
             tcl += f"read_xdc {ref_flags}{managed_flags}{file}\n"
+            tcl += f"set_property PROCESSING_ORDER {constraint.processing_order} [get_files {file}]\n"
 
             if constraint.used_in == "impl":
                 tcl += f"set_property used_in_synthesis false [get_files {file}]\n"
             elif constraint.used_in == "synth":
                 tcl += f"set_property used_in_implementation false [get_files {file}]\n"
+
         return tcl
 
     def create(self, project_folder):
@@ -81,7 +86,7 @@ class VivadoTcl:
         tcl += "\n"
         tcl += self._add_modules()
         tcl += "\n"
-        tcl += self._add_block_design()
+        tcl += self._add_tcl_sources()
         tcl += "\n"
         tcl += self._add_generics()
         tcl += "\n"
@@ -112,19 +117,21 @@ class VivadoTcl:
 
     def _synthesis(self, run):
         # -90 in slack timing check comes from the always failing -100 constraint applied to unhandled clock crossings
-        return self._run(run, -90, "Timing not OK after %s run. Probably due to an unhandled clock crossings." % run)
+        tcl = self._run(run, -90, f"Timing not OK after {run} run. Probably due to an unhandled clock crossings.")
+        return tcl
 
     def _impl(self, run):
         return self._run(run, 0, "Timing not OK after %s run." % run)
 
     def _bitstream(self, output_path):
         bit_file = to_tcl_path(join(output_path, self.name))  # Vivado will append the appropriate file ending
-        tcl = "write_bitstream %s\n" % bit_file
+        tcl = "write_bitstream -force %s\n" % bit_file
         return tcl
 
     def _hwdef(self, output_path):
-        hwdef_file = to_tcl_path(join(output_path, self.name))  # Vivado will append the appropriate file ending
-        tcl = "write_hwdef %s\n" % hwdef_file
+        # Vivado will append the wrong file ending (.hwdef) unless specified
+        hwdef_file = to_tcl_path(join(output_path, self.name + ".hdf"))
+        tcl = "write_hwdef -force %s\n" % hwdef_file
         return tcl
 
     def build(self, project_file, synth_only, num_threads, output_path):
@@ -141,7 +148,6 @@ class VivadoTcl:
             tcl += self._impl(impl_run)
             tcl += "\n"
             tcl += self._bitstream(output_path)
-            tcl += self._hwdef(output_path)
             tcl += "\n"
         tcl += "exit\n"
         return tcl

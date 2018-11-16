@@ -4,7 +4,7 @@ from subprocess import CalledProcessError
 import unittest
 
 from hdl_reuse import HDL_REUSE_MODULES
-from hdl_reuse.constraints import Constraint
+from hdl_reuse.constraint import Constraint
 from hdl_reuse.module import get_modules
 from hdl_reuse.system_utils import create_file, delete
 from hdl_reuse.test import file_contains_string
@@ -16,7 +16,7 @@ THIS_DIR = dirname(__file__)
 
 class TestBasicProject(unittest.TestCase):
 
-    part = "xczu3eg-sfva625-1-i"
+    part = "xc7z020clg400-1"
     modules_folder = join(THIS_DIR, "modules")
     project_folder = join(THIS_DIR, "vivado")
 
@@ -70,10 +70,10 @@ end architecture;
 
     constraint_file = join(modules_folder, "apa", "test_proj_pinning.tcl")
     constraints = """
-set_property -dict {package_pin Y5 iostandard lvcmos18} [get_ports clk_in]
-set_property -dict {package_pin W7 iostandard lvcmos18} [get_ports input]
-set_property -dict {package_pin W6 iostandard lvcmos18} [get_ports clk_out]
-set_property -dict {package_pin W8 iostandard lvcmos18} [get_ports output]
+set_property -dict {package_pin H16 iostandard lvcmos33} [get_ports clk_in]
+set_property -dict {package_pin P14 iostandard lvcmos33} [get_ports input]
+set_property -dict {package_pin K17 iostandard lvcmos33} [get_ports clk_out]
+set_property -dict {package_pin T16 iostandard lvcmos33} [get_ports output]
 
 # 200 MHz
 create_clock -period 5 -name clk_in [get_ports clk_in]
