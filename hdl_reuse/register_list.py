@@ -11,15 +11,22 @@ class Bit:
         self.description = description
 
 
-class Register:
+# mode: (mode_readable, description)
+REGISTER_MODES = {
+    "r": ("Read", "PS can read a value that PL provides."),
+    "w": ("Write", "PS can write a value that is available for PL usage."),
+    "r_w": (
+        "Read, Write",
+        "PS can write a value and read it back. The written value is available for PL usage."),
+    "wpulse": ("Write-pulse", "PS can write a value that is asserted for one cycle in PL."),
+    "r_wpulse": (
+        "Read, Write-pulse",
+        "PS can read a value that PL provides. "
+        "PS can write a value that is asserted for one cycle in PL."),
+}
 
-    _modes_readable = {
-        "r": "Read",
-        "w": "Write",
-        "r_w": "Read, Write",
-        "wpulse": "Write-pulse",
-        "r_wpulse": "Read, Write-pulse",
-    }
+
+class Register:
 
     def __init__(self, name, idx, mode):
         self.name = name
@@ -37,7 +44,7 @@ class Register:
 
     @property
     def mode_readable(self):
-        return self._modes_readable[self.mode]
+        return REGISTER_MODES[self.mode][0]
 
     @property
     def address(self):

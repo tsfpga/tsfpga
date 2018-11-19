@@ -1,5 +1,7 @@
 import re
 
+from hdl_reuse.register_list import REGISTER_MODES
+
 
 class RegisterHtmlGenerator:
 
@@ -89,8 +91,32 @@ class RegisterHtmlGenerator:
         html += self._get_table()
         return html
 
+    def _get_mode_descriptions(self):
+        html = """
+<table>
+<thead>
+  <tr>
+    <th>Mode</th>
+    <th>Description</th>
+  </tr>
+</thead>
+<tbody>"""
+
+        for (mode_readable, description) in REGISTER_MODES.values():
+            html += f"""
+<tr>
+  <td>{mode_readable}</td>
+  <td>{description}</td>
+</tr>
+"""
+        html += """
+</tbody>
+</table>"""
+        return html
+
     def get_page(self, table_style=None, font_style=None, extra_style=""):
-        title = f"Documentation of {self.register_list.name} registers"
+        module_name = self.register_list.name
+        title = f"Documentation of {module_name} registers"
 
         if font_style is None:
             font_style = """
@@ -137,6 +163,12 @@ th {
 </head>
 <body>
   <h1>{title}</h1>
+  <p>This document is a specification for the PS interface of the {module_name} module.</p>
+  <h2>Register modes</h2>
+  <p>The following register modes are available.</p>
+{self._get_mode_descriptions()}
+  <h2>Register map</h2>
+  <p>The following registers make up the register map for the {module_name} module.</p>
 {self._get_table()}
 <p>{footer}</p>
 </body>

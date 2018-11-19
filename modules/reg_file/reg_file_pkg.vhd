@@ -12,11 +12,11 @@ use math.math_pkg.all;
 package reg_file_pkg is
 
   type reg_type_t is (
-    r, -- Bus can read a value that fabric provides.
-    w, -- Fabric can read a value that bus writes
-    r_w, -- Bus can write a value and read it back. Fabric can read the written value.
-    wpulse, -- Bus can write a value which will be available one cycle for fabric to read.
-    r_wpulse -- Bus can write a value which will be available one cycle for fabric to read. Bus can read a value that fabric provides.
+    r, -- PS can read a value that PL provides
+    w, -- PS can write a value that is available for PL usage
+    r_w, -- PS can write a value and read it back. The written value is available for PL usage
+    wpulse, -- PS can write a value that is asserted for one cycle in PL
+    r_wpulse -- PS can read a value that PL provides. PS can write a value that is asserted for one cycle in PL
   );
 
   function is_read_type(reg_type : reg_type_t) return boolean;
