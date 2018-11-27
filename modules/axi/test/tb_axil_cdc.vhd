@@ -3,11 +3,9 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library vunit_lib;
-use vunit_lib.bus_master_pkg.all;
-use vunit_lib.axi_slave_pkg.all;
 use vunit_lib.memory_pkg.all;
 context vunit_lib.vunit_context;
-context vunit_lib.com_context;
+context vunit_lib.vc_context;
 
 library osvvm;
 use osvvm.RandomPkg.all;

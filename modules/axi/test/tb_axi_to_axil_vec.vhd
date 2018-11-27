@@ -2,9 +2,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 library vunit_lib;
-use vunit_lib.bus_master_pkg.all;
 context vunit_lib.vunit_context;
 context vunit_lib.com_context;
+context vunit_lib.vc_context;
 
 library common;
 use common.addr_pkg.all;

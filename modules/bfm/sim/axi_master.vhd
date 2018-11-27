@@ -9,8 +9,8 @@ library axi;
 use axi.axi_pkg.all;
 
 library vunit_lib;
-use vunit_lib.bus_master_pkg.all;
 context vunit_lib.vunit_context;
+context vunit_lib.vc_context;
 
 
 entity axi_master is

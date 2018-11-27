@@ -10,9 +10,8 @@ use axi.axi_pkg.all;
 use axi.axil_pkg.all;
 
 library vunit_lib;
-use vunit_lib.bus_master_pkg.all;
-use vunit_lib.axi_slave_pkg.all;
 context vunit_lib.vunit_context;
+context vunit_lib.vc_context;
 
 
 entity axil_slave is
