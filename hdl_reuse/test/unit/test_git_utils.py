@@ -3,9 +3,7 @@ import pytest
 import unittest
 
 from hdl_reuse.git_utils import *  # pylint: disable=wildcard-import,unused-wildcard-import
-import hdl_reuse
-from hdl_reuse.system_utils import create_file, delete
-from hdl_reuse.system_utils import run_command
+from hdl_reuse.system_utils import create_file, delete, run_command, system_is_windows
 
 
 THIS_FILE = abspath(__file__)
@@ -32,9 +30,10 @@ def test_check_that_git_commands_are_available_with_current_cwd_should_pass():
 
 
 def test_check_that_git_commands_are_available_with_invalid_cwd_should_raise_exception():
-    path_outside_of_repo = hdl_reuse.ROOT
-    while exists(join(path_outside_of_repo, "..")):
-        path_outside_of_repo = join(path_outside_of_repo, "..")
+    if system_is_windows():
+        path_outside_of_repo = "c:/"
+    else:
+        path_outside_of_repo = "/"
 
     with pytest.raises(RuntimeError) as exception_info:
         check_that_git_commands_are_available(cwd=path_outside_of_repo)

@@ -3,6 +3,7 @@ from os.path import basename, splitext, dirname, isdir, exists, abspath
 import subprocess
 import importlib.util
 from shutil import rmtree
+from platform import system
 
 
 def create_file(file, contents=None):
@@ -48,3 +49,7 @@ def load_python_module(file):
     spec.loader.exec_module(module)
 
     return module
+
+
+def system_is_windows():
+    return system() == "Windows"
