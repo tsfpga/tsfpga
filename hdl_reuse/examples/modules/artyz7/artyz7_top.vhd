@@ -59,13 +59,10 @@ begin
     -- and second half to be in another clock domain.
     signal reg_clks : std_logic_vector(reg_slaves'range) := (others => '0');
     constant clocks_are_the_same : boolean_vector(reg_slaves'range) :=
-      (0 to 5 => true, 6 to 11 => false);
-
-    -- @TODO Workaround while theres a bug in GHDL: https://github.com/ghdl/ghdl/issues/707
-    --(clk_m_gp0_rng => true, clk_ext_rng => false);
+      (clk_m_gp0_rng => true, clk_ext_rng => false);
   begin
 
-    reg_clks <= (0 to 5 => clk_m_gp0, 6 to 11 => clk_ext);
+    reg_clks <= (clk_m_gp0_rng => clk_m_gp0, clk_ext_rng => clk_ext);
 
     ------------------------------------------------------------------------------
     axi_to_regs_inst : entity axi.axi_to_axil_vec
