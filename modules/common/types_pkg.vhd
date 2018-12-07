@@ -7,6 +7,7 @@ package types_pkg is
   type boolean_vec_t is array (integer range <>) of boolean;
 
   function to_sl(value : boolean) return std_logic;
+  function to_bool(value : std_logic) return boolean;
   function to_int(value : boolean) return integer;
   function to_int(value : std_logic) return integer;
 
@@ -20,6 +21,17 @@ package body types_pkg is
       return '1';
     end if;
     return '0';
+  end function;
+
+  function to_bool(value : std_logic) return boolean is
+  begin
+    if value = '1' then
+      return true;
+    elsif value = '0' then
+      return false;
+    end if;
+    assert false report "Can not convert value " & to_string(value) severity failure;
+    return false;
   end function;
 
   function to_int(value : boolean) return integer is
@@ -39,7 +51,7 @@ package body types_pkg is
       return 0;
     end if;
 
-    assert false report "Cannot convert this value to integer: " & to_string(value);
+    assert false report "Can not convert value " & to_string(value) severity failure;
     return 0;
   end function;
 
