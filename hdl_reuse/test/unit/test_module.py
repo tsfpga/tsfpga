@@ -96,32 +96,38 @@ class Module(BaseModule):
             else:
                 assert False
 
+    @mock.patch("hdl_reuse.module.get_default_registers")
     @mock.patch("hdl_reuse.module.from_json")
-    def test_register_object_creation_synthesis(self, from_json):
+    def test_register_object_creation_synthesis(self, from_json, get_default_registers):
         json_file = create_file(join(self._modules_folder, "a", "a_regs.json"))
 
         module = get_modules(self._modules_folders, names=["a"])[0]
         module.get_synthesis_files()
         module.get_synthesis_files()
 
-        from_json.assert_called_once_with("a", json_file)
+        get_default_registers.assert_called_once()
+        from_json.assert_called_once_with("a", json_file, mock.ANY)
 
+    @mock.patch("hdl_reuse.module.get_default_registers")
     @mock.patch("hdl_reuse.module.from_json")
-    def test_register_object_creation_simulation(self, from_json):
+    def test_register_object_creation_simulation(self, from_json, get_default_registers):
         json_file = create_file(join(self._modules_folder, "a", "a_regs.json"))
 
         module = get_modules(self._modules_folders, names=["a"])[0]
         module.get_simulation_files()
         module.get_simulation_files()
 
-        from_json.assert_called_once_with("a", json_file)
+        get_default_registers.assert_called_once()
+        from_json.assert_called_once_with("a", json_file, mock.ANY)
 
+    @mock.patch("hdl_reuse.module.get_default_registers")
     @mock.patch("hdl_reuse.module.from_json")
-    def test_register_object_creation_mixed(self, from_json):
+    def test_register_object_creation_mixed(self, from_json, get_default_registers):
         json_file = create_file(join(self._modules_folder, "a", "a_regs.json"))
 
         module = get_modules(self._modules_folders, names=["a"])[0]
         module.get_synthesis_files()
         module.get_simulation_files()
 
-        from_json.assert_called_once_with("a", json_file)
+        get_default_registers.assert_called_once()
+        from_json.assert_called_once_with("a", json_file, mock.ANY)

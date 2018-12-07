@@ -3,7 +3,7 @@ from os.path import basename, isfile, join, exists, isdir
 
 from hdl_reuse.system_utils import load_python_module
 from hdl_reuse.constraint import Constraint
-from hdl_reuse.registers import from_json
+from hdl_reuse.registers import from_json, get_default_registers
 
 
 class BaseModule:
@@ -41,7 +41,7 @@ class BaseModule:
 
         json_file = join(self.path, self.name + "_regs.json")
         if exists(json_file):
-            self._registers = from_json(self.name, json_file)
+            self._registers = from_json(self.name, json_file, get_default_registers())
             return self._registers
 
     def _create_regs_vhdl_package(self):

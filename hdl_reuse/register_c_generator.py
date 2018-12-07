@@ -16,14 +16,14 @@ class RegisterCGenerator:
 
     def _register_struct(self):
         c_code = f"struct {self.register_list.name}_regs_t {{\n"
-        for register in self.register_list.registers:
+        for register in self.register_list.iterate_registers():
             c_code += f"  uint32_t {register.name};\n"
         c_code += "};\n"
         return c_code
 
     def _register_bits(self):
         c_code = ""
-        for register in self.register_list.registers:
+        for register in self.register_list.iterate_registers():
             for bit in register.bits:
                 bit_name = (self.register_list.name + "_" + register.name + "_" + bit.name).upper()
                 c_code += f"#define {bit_name}_BIT ({bit.idx}uL)\n"

@@ -18,7 +18,7 @@ class RegisterVhdlGenerator:
 
     def _register_indexes(self):
         vhdl = ""
-        for register in self.register_list.registers:
+        for register in self.register_list.iterate_registers():
             constant = self._register_constant_name(register)
             vhdl += f"  constant {constant} : integer := {register.idx};\n"
 
@@ -29,7 +29,7 @@ class RegisterVhdlGenerator:
         map_name = self.register_list.name + "_reg_map"
 
         register_definitions = []
-        for register in self.register_list.registers:
+        for register in self.register_list.iterate_registers():
             constant = self._register_constant_name(register)
             mode = register.mode
             register_definitions.append(f"  (idx => {constant}, reg_type => {mode})")
@@ -37,12 +37,14 @@ class RegisterVhdlGenerator:
         vhdl = f"  constant {map_name} : reg_definition_vec_t(0 to {num_regs} - 1) := (\n  "
         vhdl += ",\n  ".join(register_definitions)
         vhdl += "\n  );\n"
+        vhdl += "\n"
+        vhdl += f"  subtype {self.register_list.name}_reg_values_t is reg_vec_t({map_name}'range);\n"
 
         return vhdl
 
     def _register_bits(self):
         vhdl = ""
-        for register in self.register_list.registers:
+        for register in self.register_list.iterate_registers():
             for bit in register.bits:
                 name = self._register_constant_name(register) + "_" + bit.name
                 vhdl += f"  constant {name} : integer := {bit.idx};\n"

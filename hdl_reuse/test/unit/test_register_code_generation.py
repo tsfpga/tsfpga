@@ -71,12 +71,14 @@ class TestRegisterCodeGeneration(unittest.TestCase):
         expected = """
   constant sensor_conf : integer := 0;
   constant sensor_addr : integer := 1;
-
-  constant sensor_reg_map : reg_definition_vec_t(0 to 2 - 1) := (
+"""
+        assert expected in self.vhdl_generator.get_package()
+        expected = """
     (idx => sensor_conf, reg_type => r_w),
     (idx => sensor_addr, reg_type => w)
-  );
-
+"""
+        assert expected in self.vhdl_generator.get_package()
+        expected = """
   constant sensor_conf_bit_0 : integer := 0;
   constant sensor_conf_bit_1 : integer := 1;
 """

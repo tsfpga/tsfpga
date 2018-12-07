@@ -24,7 +24,7 @@ entity axil_reg_file is
     axil_m2s : in axil_m2s_t;
     axil_s2m : out axil_s2m_t := (read => (ar => (ready => '1'), r => axil_s2m_r_init), write => (aw => (ready => '1'), w => axil_s2m_w_init, b => axi_s2m_b_init));
 
-    reg_values_in : in reg_vec_t(regs'range);
+    reg_values_in : in reg_vec_t(regs'range) := (others => (others => '0'));
     reg_values_out : out reg_vec_t(regs'range);
     reg_was_written : out std_logic_vector(regs'range) := (others => '0')
   );

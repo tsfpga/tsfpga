@@ -79,13 +79,13 @@ begin
             data_width => data_width
           )
           port map (
-            clk_input => clk_axi,
-            input_m2s => axil_m2s_vec(slave),
-            input_s2m => axil_s2m_vec(slave),
+            clk_master => clk_axi,
+            master_m2s => axil_m2s_vec(slave),
+            master_s2m => axil_s2m_vec(slave),
             --
-            clk_output => clk_axil_vec(slave),
-            output_m2s => axil_vec_m2s(slave),
-            output_s2m => axil_vec_s2m(slave)
+            clk_slave => clk_axil_vec(slave),
+            slave_m2s => axil_vec_m2s(slave),
+            slave_s2m => axil_vec_s2m(slave)
           );
       end generate;
     end generate;

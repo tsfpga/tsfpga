@@ -76,7 +76,7 @@ class RegisterHtmlGenerator:
 </thead>
 <tbody>"""
 
-        for register in self.register_list.registers:
+        for register in self.register_list.iterate_registers():
             html += self._annotate_register(register)
             for bit in register.bits:
                 html += self._annotate_bit(bit)

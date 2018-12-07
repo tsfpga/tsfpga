@@ -14,13 +14,13 @@ entity axil_cdc is
     data_width : integer
   );
   port (
-    clk_input : in std_logic;
-    input_m2s : in axil_m2s_t;
-    input_s2m : out axil_s2m_t := axil_s2m_init;
+    clk_master : in std_logic;
+    master_m2s : in axil_m2s_t;
+    master_s2m : out axil_s2m_t := axil_s2m_init;
     --
-    clk_output : in std_logic;
-    output_m2s : out axil_m2s_t := axil_m2s_init;
-    output_s2m : in axil_s2m_t
+    clk_slave : in std_logic;
+    slave_m2s : out axil_m2s_t := axil_m2s_init;
+    slave_s2m : in axil_s2m_t
   );
 end entity;
 
@@ -38,27 +38,27 @@ begin
       depth => fifo_depth
     )
     port map(
-      clk_read => clk_output,
-      read_ready => output_s2m.write.aw.ready,
-      read_valid => output_m2s.write.aw.valid,
-      read_data => output_m2s.write.aw.addr,
+      clk_read => clk_slave,
+      read_ready => slave_s2m.write.aw.ready,
+      read_valid => slave_m2s.write.aw.valid,
+      read_data => slave_m2s.write.aw.addr,
       --
-      clk_write => clk_input,
-      write_ready => input_s2m.write.aw.ready,
-      write_valid => input_m2s.write.aw.valid,
-      write_data => input_m2s.write.aw.addr
+      clk_write => clk_master,
+      write_ready => master_s2m.write.aw.ready,
+      write_valid => master_m2s.write.aw.valid,
+      write_data => master_m2s.write.aw.addr
     );
 
 
   ------------------------------------------------------------------------------
   w_block : block
     constant w_width : integer := axil_m2s_w_sz(data_width);
-    signal input_m2s_w, output_m2s_w : std_logic_vector(w_width - 1 downto 0);
+    signal master_m2s_w, slave_m2s_w : std_logic_vector(w_width - 1 downto 0);
   begin
 
-    output_m2s.write.w.data <= to_axil_m2s_w(output_m2s_w, data_width).data;
-    output_m2s.write.w.strb <= to_axil_m2s_w(output_m2s_w, data_width).strb;
-    input_m2s_w <= to_slv(input_m2s.write.w, data_width);
+    slave_m2s.write.w.data <= to_axil_m2s_w(slave_m2s_w, data_width).data;
+    slave_m2s.write.w.strb <= to_axil_m2s_w(slave_m2s_w, data_width).strb;
+    master_m2s_w <= to_slv(master_m2s.write.w, data_width);
 
     w_afifo_inst : entity fifo.afifo
       generic map (
@@ -66,15 +66,15 @@ begin
         depth => fifo_depth
       )
       port map(
-        clk_read => clk_output,
-        read_ready => output_s2m.write.w.ready,
-        read_valid => output_m2s.write.w.valid,
-        read_data => output_m2s_w,
+        clk_read => clk_slave,
+        read_ready => slave_s2m.write.w.ready,
+        read_valid => slave_m2s.write.w.valid,
+        read_data => slave_m2s_w,
         --
-        clk_write => clk_input,
-        write_ready => input_s2m.write.w.ready,
-        write_valid => input_m2s.write.w.valid,
-        write_data => input_m2s_w
+        clk_write => clk_master,
+        write_ready => master_s2m.write.w.ready,
+        write_valid => master_m2s.write.w.valid,
+        write_data => master_m2s_w
       );
   end block;
 
@@ -86,15 +86,15 @@ begin
       depth => fifo_depth
     )
     port map(
-      clk_read => clk_input,
-      read_ready => input_m2s.write.b.ready,
-      read_valid => input_s2m.write.b.valid,
-      read_data => input_s2m.write.b.resp,
+      clk_read => clk_master,
+      read_ready => master_m2s.write.b.ready,
+      read_valid => master_s2m.write.b.valid,
+      read_data => master_s2m.write.b.resp,
       --
-      clk_write => clk_output,
-      write_ready => output_m2s.write.b.ready,
-      write_valid => output_s2m.write.b.valid,
-      write_data => output_s2m.write.b.resp
+      clk_write => clk_slave,
+      write_ready => slave_m2s.write.b.ready,
+      write_valid => slave_s2m.write.b.valid,
+      write_data => slave_s2m.write.b.resp
     );
 
 
@@ -105,27 +105,29 @@ begin
       depth => fifo_depth
     )
     port map(
-      clk_read => clk_output,
-      read_ready => output_s2m.read.ar.ready,
-      read_valid => output_m2s.read.ar.valid,
-      read_data => output_m2s.read.ar.addr,
+      clk_read => clk_slave,
+      read_ready => slave_s2m.read.ar.ready,
+      read_valid => slave_m2s.read.ar.valid,
+      read_data => slave_m2s.read.ar.addr,
       --
-      clk_write => clk_input,
-      write_ready => input_s2m.read.ar.ready,
-      write_valid => input_m2s.read.ar.valid,
-      write_data => input_m2s.read.ar.addr
+      clk_write => clk_master,
+      write_ready => master_s2m.read.ar.ready,
+      write_valid => master_m2s.read.ar.valid,
+      write_data => master_m2s.read.ar.addr
     );
 
 
   ------------------------------------------------------------------------------
   r_block : block
     constant r_width : integer := axil_s2m_r_sz(data_width);
-    signal input_s2m_r, output_s2m_r : std_logic_vector(r_width - 1 downto 0);
+    signal master_s2m_r, slave_s2m_r : std_logic_vector(r_width - 1 downto 0);
+    signal slave_s2m_r_converted : axil_s2m_r_t;
   begin
 
-    input_s2m.read.r.data <= to_axil_s2m_r(input_s2m_r, data_width).data;
-    input_s2m.read.r.resp <= to_axil_s2m_r(input_s2m_r, data_width).resp;
-    output_s2m_r <= to_slv(output_s2m.read.r, data_width);
+    master_s2m.read.r.data <= to_axil_s2m_r(master_s2m_r, data_width).data;
+    master_s2m.read.r.resp <= to_axil_s2m_r(master_s2m_r, data_width).resp;
+    slave_s2m_r <= to_slv(slave_s2m.read.r, data_width);
+    slave_s2m_r_converted <= to_axil_s2m_r(slave_s2m_r, data_width);
 
     r_afifo_inst : entity fifo.afifo
       generic map (
@@ -133,15 +135,15 @@ begin
         depth => fifo_depth
       )
       port map(
-        clk_read => clk_input,
-        read_ready => input_m2s.read.r.ready,
-        read_valid => input_s2m.read.r.valid,
-        read_data => input_s2m_r,
+        clk_read => clk_master,
+        read_ready => master_m2s.read.r.ready,
+        read_valid => master_s2m.read.r.valid,
+        read_data => master_s2m_r,
         --
-        clk_write => clk_output,
-        write_ready => output_m2s.read.r.ready,
-        write_valid => output_s2m.read.r.valid,
-        write_data => output_s2m_r
+        clk_write => clk_slave,
+        write_ready => slave_m2s.read.r.ready,
+        write_valid => slave_s2m.read.r.valid,
+        write_data => slave_s2m_r
       );
   end block;
 

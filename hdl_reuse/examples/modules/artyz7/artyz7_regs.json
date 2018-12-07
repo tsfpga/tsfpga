@@ -1,7 +1,6 @@
 {
   "config": {
     "description": "Markdown syntax with **asterisks** and *asterisks* or __underscores__ and _underscores_.",
-    "mode": "r_w",
     "bits": {
       "enable": "You can markdown annotate **a long sentence** of course.",
       "disable": "Asterisks \\* and underscores \\_ can still be used."

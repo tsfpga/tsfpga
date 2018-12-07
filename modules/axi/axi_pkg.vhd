@@ -4,6 +4,10 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+library math;
+use math.math_pkg.all;
 
 
 package axi_pkg is
@@ -18,14 +22,20 @@ package axi_pkg is
   constant axi_a_len_sz : integer := 8; -- Number of transfers = len + 1
   constant axi_a_size_sz : integer := 3; -- Bytes per transfer = 2^size
 
+  function to_len(burst_length : integer) return std_logic_vector;
+  function to_size(data_width : integer) return std_logic_vector;
+
   constant axi_a_burst_sz : integer := 2;
   constant axi_a_burst_fixed : std_logic_vector(axi_a_burst_sz - 1 downto 0) := "00";
   constant axi_a_burst_incr : std_logic_vector(axi_a_burst_sz - 1 downto 0) := "01";
   constant axi_a_burst_wrap : std_logic_vector(axi_a_burst_sz - 1 downto 0) := "10";
 
-  constant axi_a_lock_sz : integer := 1; -- @note Two bytes in AXI3, with additional mode "Locked access"
+  constant axi_a_lock_sz : integer := 1; -- @note Two bits in AXI3
   constant axi_a_lock_normal : std_logic_vector(axi_a_lock_sz - 1 downto 0) := "0";
   constant axi_a_lock_exclusive : std_logic_vector(axi_a_lock_sz - 1 downto 0) := "1";
+  constant axi3_a_lock_normal : std_logic_vector(2 - 1 downto 0) := "00";
+  constant axi3_a_lock_exclusive : std_logic_vector(2 - 1 downto 0) := "01";
+  constant axi3_a_lock_locked : std_logic_vector(2 - 1 downto 0) := "10";
 
   constant axi_a_cache_sz : integer := 4;
   constant axi_a_cache_device_non_bufferable : std_logic_vector(axi_a_cache_sz - 1 downto 0) := "0000";
@@ -83,6 +93,8 @@ package axi_pkg is
 
   constant axi_data_max_sz : integer := 128; -- Max value
   constant axi_w_strb_max_sz : integer := axi_data_max_sz / 8; -- Max value
+
+  function to_strb(data_width : integer) return std_logic_vector;
 
   type axi_m2s_w_t is record
     valid : std_logic;
@@ -218,6 +230,22 @@ end;
 
 package body axi_pkg is
 
+  function to_len(burst_length : integer) return std_logic_vector is
+    variable result : std_logic_vector(axi_a_len_sz - 1 downto 0);
+  begin
+    -- Burst_length as in number of transfers (beats)
+    result := std_logic_vector(to_unsigned(burst_length - 1, result'length));
+    return result;
+  end function;
+
+  function to_size(data_width : integer) return std_logic_vector is
+    variable result : std_logic_vector(axi_a_size_sz - 1 downto 0);
+  begin
+    -- Data_width is a number of bits.
+    result := std_logic_vector(to_unsigned(log2(data_width / 8), result'length));
+    return result;
+  end function;
+
   function axi_m2s_a_sz(id_width : integer := 0) return integer is
   begin
     return id_width + axi_a_addr_sz + axi_a_len_sz + axi_a_size_sz + axi_a_burst_sz; -- Exluded member: valid
@@ -270,6 +298,13 @@ package body axi_pkg is
     hi := lo + result.burst'length - 1;
     result.burst := data(hi downto lo);
     assert hi = data'high;
+    return result;
+  end function;
+
+  function to_strb(data_width : integer) return std_logic_vector is
+    variable result : std_logic_vector(axi_w_strb_max_sz - 1 downto 0) := (others => '0');
+  begin
+    result(data_width / 8 - 1 downto 0) := (others => '1');
     return result;
   end function;
 

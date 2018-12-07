@@ -1,4 +1,5 @@
 import datetime
+from collections import OrderedDict
 
 from hdl_reuse.git_utils import git_commands_are_available, get_git_commit
 
@@ -28,11 +29,11 @@ REGISTER_MODES = {
 
 class Register:
 
-    def __init__(self, name, idx, mode):
+    def __init__(self, name, idx, mode, description=""):
         self.name = name
         self.idx = idx
         self.mode = mode
-        self.description = ""
+        self.description = description
         self.bits = []
 
     def append_bit(self, bit_name, bit_description):
@@ -58,13 +59,13 @@ class RegisterList:
 
     def __init__(self, name):
         self.name = name
-        self.registers = []
+        self.registers = OrderedDict()
 
     def append(self, register_name, mode):
         idx = len(self.registers)
         register = Register(register_name, idx, mode)
 
-        self.registers.append(register)
+        self.registers[register_name] = register
         return register
 
     @staticmethod
@@ -89,3 +90,7 @@ class RegisterList:
 
         info = f"Generated {git_commit_info}on {time_info}."
         return info
+
+    def iterate_registers(self):
+        for register in self.registers.values():
+            yield register

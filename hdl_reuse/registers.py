@@ -4,9 +4,31 @@ import json
 
 from hdl_reuse.register_html_generator import RegisterHtmlGenerator
 from hdl_reuse.register_vhdl_generator import RegisterVhdlGenerator
-from hdl_reuse.register_list import RegisterList
+from hdl_reuse.register_list import RegisterList, Register
 from hdl_reuse.system_utils import create_file
 from hdl_reuse.register_c_generator import RegisterCGenerator
+
+
+def get_default_registers():
+    registers = OrderedDict(
+        config=Register("config", 0, "r_w", "Configuration register."),
+        command=Register(
+            "command", 1, "wpulse",
+            "When this register is written, all '1's in the written word will be asserted for one "
+            "clock cycle in the FPGA logic."),
+        status=Register("status", 2, "r", "Status register."),
+        irq_status=Register(
+            "irq_status", 3, "r_wpulse",
+            "Reading a '1' in this register means the corresponding interrupt has triggered. Writing "
+            "to this register will clear the interrupts where there is a '1' in the written word."),
+        irq_mask=Register(
+            "irq_mask", 4, "r_w",
+            "A '1' in this register means that the corresponding interrupt is enabled. ")
+    )
+    return registers
+
+
+DEFAULT_REGISTER_LIST = get_default_registers()
 
 
 class Registers:
@@ -17,7 +39,7 @@ class Registers:
     def create_vhdl_package(self, output_file):
         """
         Assumes that the containing folder already exists.
-        This assumption makes it slightly faster that the other functions that use create_file().
+        This assumption makes it slightly faster than the other functions that use create_file().
         Necessary since this one is often used in real time (before simulations, etc..) and not in
         one off scenarios like the others (when making a release).
         """
@@ -62,15 +84,27 @@ def load_json_file(file_name):
             raise ValueError(message)
 
 
-def from_json(module_name, json_file):
-    register_list = RegisterList(module_name)
+def from_json(module_name, json_file, default_registers=None):
     json_data = load_json_file(json_file)
+    register_list = RegisterList(module_name)
+    if default_registers is not None:
+        register_list.registers = default_registers
 
     for register_name, register_fields in json_data.items():
-        if "mode" not in register_fields:
-            raise ValueError(f"Register {register_name} in {json_file} does not have mode field")
+        if default_registers is not None and register_name in default_registers:
+            # Default registers can be "updated" in the sense that the user can use a custom
+            # description and add whatever bits they use in the current module. They can not however
+            # change the mode.
+            register = register_list.registers[register_name]
+            if "mode" in register_fields:
+                mesg = f"Overloading register {register_name} in {json_file}, one can not change mode from default"
+                raise ValueError(mesg)
+        else:
+            # If it is a new register however the mode has to be specified.
+            if "mode" not in register_fields:
+                raise ValueError(f"Register {register_name} in {json_file} does not have mode field")
+            register = register_list.append(register_name, register_fields["mode"])
 
-        register = register_list.append(register_name, register_fields["mode"])
         if "description" in register_fields:
             register.description = register_fields["description"]
 
