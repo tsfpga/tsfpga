@@ -17,3 +17,6 @@ class Module(BaseModule):
         test = tb.get_tests("test_full_throughput")[0]
         test.add_config(name="input_16.output_8", generics=dict(input_width=16, output_width=8, data_jitter=False))
         test.add_config(name="input_8.output_16", generics=dict(input_width=8, output_width=16, data_jitter=False))
+
+        test = vunit_proj.library(self.library_name).test_bench("tb_handshake_pipeline").get_tests("test_full_throughput")[0]
+        test.set_generic("data_jitter", False)
