@@ -12,14 +12,14 @@ before_script:
   - apt-get update -qq > /dev/null
   - apt-get install -y -qq git > /dev/null
   - python --version
-  - export PYTHONPATH=$(pwd)/hdl_reuse
+  - export PYTHONPATH=$(pwd)/tsfpga
 
 pytest:
   script:
     - python -m pip install pytest pylint pycodestyle > /dev/null
     - python -m pylint --version
     - python -m pycodestyle --version
-    - python -m pytest -v --ignore=hdl_reuse/test/vivado/ hdl_reuse/
+    - python -m pytest -v --ignore=tsfpga/test/vivado/ hdl_reuse/
 
 simulate:
   script:

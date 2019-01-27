@@ -1,4 +1,4 @@
-from hdl_reuse.module import BaseModule
+from tsfpga.module import BaseModule
 
 
 class Module(BaseModule):
