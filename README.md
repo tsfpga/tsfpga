@@ -1,4 +1,4 @@
-# About hdl_reuse
+# About tsfpga
 This repo contains a set of tools for working in a modern FPGA project.
 It consists of two distinct parts that can be used independently of each other.
 
@@ -29,6 +29,7 @@ In order to use the package you will need
 To run the bundled tests you must have
 * Python packages: `pytest`, `pylint`, `pycodestyle`
 * Xilinx Vivado 2017.4+ in your `PATH`
+* GCC in your `PATH`
 
 # Main contributors
 * Olof Kraigher
@@ -36,4 +37,4 @@ To run the bundled tests you must have
 * Lukas Vik
 
 # License
-This project is released under the terms of the MIT License.
+This project is released under the terms of the BSD 3-Clause License. See `LICENSE.txt` for details.
