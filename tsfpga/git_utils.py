@@ -1,5 +1,5 @@
 import os
-from os.path import join, exists, normpath
+from os.path import join, exists, normpath, isfile
 import subprocess
 
 from tsfpga import ROOT
@@ -63,11 +63,12 @@ def find_git_files(file_ending=None, directory=ROOT):
     ls_files = ls_files[:-1]
 
     for file in ls_files:
-        if file_ending is None or file.endswith(file_ending):
-            # git ls-files returns paths relative to the working directory where it's called. Hence we prepend the cwd used.
-            file = join(directory, file)
-            assert exists(file)  # Make sure concatenation of relative path worked
+        if isfile(file):  # "git ls-files" also lists submodule folders
+            if file_ending is None or file.endswith(file_ending):
+                # git ls-files returns paths relative to the working directory where it's called. Hence we prepend the cwd used.
+                file = join(directory, file)
+                assert exists(file)  # Make sure concatenation of relative path worked
 
-            # normpath is necessary in windows where you can get a mix of slashes and backslashes which makes
-            # path comparisons sketchy
-            yield normpath(file)
+                # normpath is necessary in windows where you can get a mix of slashes and backslashes which makes
+                # path comparisons sketchy
+                yield normpath(file)
