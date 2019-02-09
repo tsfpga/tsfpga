@@ -54,9 +54,9 @@ def check_that_git_commands_are_available(cwd=None):
         raise RuntimeError(mesg)
 
 
-def find_git_files(file_ending=None):
+def find_git_files(file_ending=None, directory=ROOT):
     command = ["git", "ls-files"]
-    output = subprocess.check_output(command, cwd=ROOT, universal_newlines=True)
+    output = subprocess.check_output(command, cwd=directory, universal_newlines=True)
     ls_files = output.split("\n")
 
     # subprocess.check_output() returns a trailing "\n". The split() call will make that an empty object at the end of the list.
@@ -65,7 +65,7 @@ def find_git_files(file_ending=None):
     for file in ls_files:
         if file_ending is None or file.endswith(file_ending):
             # git ls-files returns paths relative to the working directory where it's called. Hence we prepend the cwd used.
-            file = join(ROOT, file)
+            file = join(directory, file)
             assert exists(file)  # Make sure concatenation of relative path worked
 
             # normpath is necessary in windows where you can get a mix of slashes and backslashes which makes

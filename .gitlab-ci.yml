@@ -11,17 +11,17 @@ image: ghdl/ext:vunit
 before_script:
   - apt-get update -qq > /dev/null
   - apt-get install -y -qq git > /dev/null
-  - python --version
+  - python3 --version
   - export PYTHONPATH=$(pwd)/tsfpga
 
 pytest:
   script:
-    - python -m pip install pytest pylint pycodestyle > /dev/null
-    - python -m pylint --version
-    - python -m pycodestyle --version
-    - python -m pytest -v --ignore=tsfpga/test/vivado/ hdl_reuse/
+    - python3 -m pip install pytest pylint pycodestyle > /dev/null
+    - python3 -m pylint --version
+    - python3 -m pycodestyle --version
+    - python3 -m pytest -v --ignore=tsfpga/test/vivado/ tsfpga/
 
 simulate:
   script:
     - ghdl --version
-    - python hdl_reuse/examples/simulate.py --num-threads 4
+    - python3 tsfpga/examples/simulate.py --num-threads 4

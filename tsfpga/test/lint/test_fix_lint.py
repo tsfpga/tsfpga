@@ -3,7 +3,7 @@ import unittest
 
 from tsfpga.system_utils import create_file, delete
 from tsfpga.test import file_equals
-from tsfpga.fix_lint import fix_trailing_whitespace
+from tsfpga.fix_lint import fix_trailing_whitespace, fix_tabs
 
 
 THIS_DIR = dirname(__file__)
@@ -22,4 +22,16 @@ class TestFixLint(unittest.TestCase):
 
         create_file(self.file, data)
         fix_trailing_whitespace(self.file)
+        assert file_equals(self.file, data_fixed)
+
+    def test_fix_tabs(self):
+        data = "Apa\thest \t zebra"
+        data_fixed = "Apa hest   zebra"
+        create_file(self.file, data)
+        fix_tabs(self.file, tab_width=1)
+        assert file_equals(self.file, data_fixed)
+
+        data_fixed = "Apa  hest    zebra"
+        create_file(self.file, data)
+        fix_tabs(self.file, tab_width=2)
         assert file_equals(self.file, data_fixed)
