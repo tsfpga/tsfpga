@@ -1,8 +1,8 @@
 from os.path import join, dirname
 import sys
 
-PATH_TO_HLD_REUSE = join(dirname(__file__), "..", "..")
-sys.path.append(PATH_TO_HLD_REUSE)
+PATH_TO_TSFPGA = join(dirname(__file__), "..", "..")
+sys.path.append(PATH_TO_TSFPGA)
 import tsfpga
 from tsfpga.module import get_modules
 from tsfpga.examples import MODULE_FOLDERS

@@ -2,8 +2,8 @@ from os.path import join, dirname, abspath
 import sys
 import argparse
 
-PATH_TO_HLD_REUSE = join(dirname(__file__), "..", "..")
-sys.path.append(PATH_TO_HLD_REUSE)
+PATH_TO_TSFPGA = join(dirname(__file__), "..", "..")
+sys.path.append(PATH_TO_TSFPGA)
 from tsfpga.examples import MODULE_FOLDERS
 from tsfpga.fpga_project_list import FPGAProjectList
 

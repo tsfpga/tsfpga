@@ -11,7 +11,7 @@ Having these high quality building blocks available will make it easier to add n
 The modules make heavy use of `VHDL-2008` so you will need a recent simulator and synthesis tool.
 
 ## A project platform for FPGA development
-The `hdl_reuse` folder contains a Python package for working with modules and chips in an FPGA project.
+The `tsfpga` folder contains a Python package for working with modules and chips in an FPGA project.
 The goal is a highly useable system for working in a multi-chip and multi-vendor environment.
 Focus has been placed on modularization and enabling a high level of scalability.
 
