@@ -104,6 +104,16 @@ class BaseModule:
         Should be overriden by modules that have any test benches that operate via generics.
         """
 
+    def get_ip_core_files(self):
+        """
+        Get a list of TCL files that set up the IP cores from this module.
+        """
+        folders = [
+            join(self.path, "ip_cores"),
+        ]
+        file_endings = ("tcl")
+        return self._get_file_list(folders, file_endings)
+
     def get_scoped_constraints(self):
         """
         Get a list of constraints that will be applied to a certain entity within the module.

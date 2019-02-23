@@ -11,7 +11,7 @@ from tsfpga.vivado_utils import to_tcl_path
 THIS_DIR = dirname(__file__)
 
 
-class TestVivadoTcl(unittest.TestCase):
+class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-attributes
 
     modules_folder = join(THIS_DIR, "modules")
 
@@ -25,6 +25,8 @@ class TestVivadoTcl(unittest.TestCase):
 
         self.b_vhd = to_tcl_path(create_file(join(self.modules_folder, "apa", "b.vhd")))
         self.b_tcl = to_tcl_path(create_file(join(self.modules_folder, "apa", "scoped_constraints", "b.tcl")))
+
+        self.c_tcl = to_tcl_path(create_file(join(self.modules_folder, "apa", "ip_cores", "c.tcl")))
 
         # A library with only test files
         self.c_vhd = to_tcl_path(create_file(join(self.modules_folder, "zebra", "test", "c.vhd")))
@@ -72,5 +74,9 @@ class TestVivadoTcl(unittest.TestCase):
 
     def test_multiple_tcl_sources(self):
         tcl = self.tcl.create(project_folder="")
-        assert "\nsource %s\n" % self.a_xdc in tcl
-        assert "\nsource %s\n" % self.b_tcl in tcl
+        assert "\nsource -notrace %s\n" % self.a_xdc in tcl
+        assert "\nsource -notrace %s\n" % self.b_tcl in tcl
+
+    def test_ip_core_files(self):
+        tcl = self.tcl.create(project_folder="")
+        assert "\nsource -notrace %s\n" % self.c_tcl in tcl

@@ -9,7 +9,7 @@ def run_vivado_tcl(vivado_path, tcl_file, no_log_file=False):
 
     Subprocess has to be run with shell=True on Windows where vivado is a bat file.
     """
-    cmd = "%s -mode batch -source %s" % (vivado_path, tcl_file)
+    cmd = "%s -mode batch -notrace -source %s" % (vivado_path, tcl_file)
     if no_log_file:
         cmd += " -nojournal -nolog"
     cwd = dirname(tcl_file)

@@ -67,6 +67,12 @@ class VivadoProject:
 
         return tcl_sources
 
+    def project_file(self, project_path):
+        """
+        Return the project file path of this project, in the given folder
+        """
+        return join(project_path, self.name + ".xpr")
+
     def create_tcl(self, project_path):
         """
         Make a TCL file that creates a Vivado project
@@ -92,7 +98,7 @@ class VivadoProject:
         """
         Make a TCL file that builds a Vivado project
         """
-        project_file = join(project_path, self.name + ".xpr")
+        project_file = self.project_file(project_path)
         if not exists(project_file):
             raise ValueError("Project file does not exist in the specified location: " + project_file)
 

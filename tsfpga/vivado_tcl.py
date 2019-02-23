@@ -32,12 +32,14 @@ class VivadoTcl:
             if module.get_synthesis_files():
                 file_list_str = " ".join([to_tcl_path(file) for file in module.get_synthesis_files()])
                 tcl += "read_vhdl -library %s -vhdl2008 {%s}\n" % (module.library_name, file_list_str)
+            for tcl_source_file in module.get_ip_core_files():
+                tcl += "source -notrace %s\n" % to_tcl_path(tcl_source_file)
         return tcl
 
     def _add_tcl_sources(self):
         tcl = ""
         for tcl_source_file in self.tcl_sources:
-            tcl += "source %s\n" % to_tcl_path(tcl_source_file)
+            tcl += "source -notrace %s\n" % to_tcl_path(tcl_source_file)
         return tcl
 
     def _add_generics(self):
