@@ -69,8 +69,7 @@ def load_json_file(file_name):
         for key, value in ordered_pairs:
             if key in result:
                 raise ValueError(f"Duplicate key {key}")
-            else:
-                result[key] = value
+            result[key] = value
         return result
 
     if not exists(file_name):
