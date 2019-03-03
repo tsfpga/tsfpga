@@ -150,6 +150,7 @@ class VivadoTcl:
             tcl += self._impl(impl_run)
             tcl += "\n"
             tcl += self._bitstream(output_path)
+            tcl += self._hwdef(output_path)
             tcl += "\n"
         tcl += "exit\n"
         return tcl
