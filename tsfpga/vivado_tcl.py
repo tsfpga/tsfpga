@@ -102,7 +102,8 @@ class VivadoTcl:
 
     @staticmethod
     def _run(run, slack_less_than_requirement, timing_error_message):
-        tcl = "launch_runs %s\n" % run
+        tcl = "reset_run %s\n" % run
+        tcl += "launch_runs %s\n" % run
         tcl += "wait_on_run %s\n" % run
         tcl += "\n"
         tcl += "if {[get_property PROGRESS [get_runs %s]] != \"100%%\"} {\n" % run
