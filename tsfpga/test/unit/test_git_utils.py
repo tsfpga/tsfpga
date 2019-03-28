@@ -25,6 +25,22 @@ def test_this_file_is_not_listed_by_find_git_files_with_bad_argument():
     assert THIS_FILE not in git_files
 
 
+def test_this_file_is_not_listed_by_find_git_files_with_exclude_directory():
+    git_files = find_git_files(exclude_directories=[THIS_DIR])
+    assert THIS_FILE not in git_files
+
+    git_files = find_git_files(exclude_directories=[join(THIS_DIR, "..")])
+    assert THIS_FILE not in git_files
+
+    git_files = find_git_files(exclude_directories=[join(THIS_DIR, ".."), THIS_DIR])
+    assert THIS_FILE not in git_files
+
+
+def test_this_file_is_not_listed_by_find_git_files_with_bad_exclude_directory():
+    git_files = find_git_files(exclude_directories=[join(THIS_DIR, "..", "apa")])
+    assert THIS_FILE in git_files
+
+
 def test_check_that_git_commands_are_available_with_current_cwd_should_pass():
     check_that_git_commands_are_available()
 

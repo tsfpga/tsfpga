@@ -1,5 +1,5 @@
 import os
-from os.path import join, exists, normpath, isfile
+from os.path import join, exists, normpath, abspath, isfile, commonpath
 import subprocess
 
 from tsfpga import ROOT
@@ -54,7 +54,10 @@ def check_that_git_commands_are_available(cwd=None):
         raise RuntimeError(mesg)
 
 
-def find_git_files(file_ending=None, directory=ROOT):
+def find_git_files(file_ending=None, directory=ROOT, exclude_directories=None):
+    exclude_directories = [] if exclude_directories is None else \
+        [normpath(abspath(exclude_directory)) for exclude_directory in exclude_directories]
+
     command = ["git", "ls-files"]
     output = subprocess.check_output(command, cwd=directory, universal_newlines=True)
     ls_files = output.split("\n")
@@ -66,9 +69,17 @@ def find_git_files(file_ending=None, directory=ROOT):
         if isfile(file):  # "git ls-files" also lists submodule folders
             if file_ending is None or file.endswith(file_ending):
                 # git ls-files returns paths relative to the working directory where it's called. Hence we prepend the cwd used.
-                file = join(directory, file)
+                # Normpath is necessary in windows where you can get a mix of slashes and backslashes which makes
+                # path comparisons sketchy
+                file = normpath(join(directory, file))
                 assert exists(file)  # Make sure concatenation of relative path worked
 
-                # normpath is necessary in windows where you can get a mix of slashes and backslashes which makes
-                # path comparisons sketchy
-                yield normpath(file)
+                if not _file_is_in_directory(file, exclude_directories):
+                    yield normpath(file)
+
+
+def _file_is_in_directory(filename, directories):
+    for directory in directories:
+        if commonpath([filename, directory]) == directory:
+            return True
+    return False
