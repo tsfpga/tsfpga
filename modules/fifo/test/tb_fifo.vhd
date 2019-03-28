@@ -29,6 +29,7 @@ architecture tb of tb_fifo is
   signal read_ready, read_valid, almost_empty : std_logic := '0';
   signal write_ready, write_valid, almost_full : std_logic := '0';
   signal read_data, write_data : std_logic_vector(width - 1 downto 0) := (others => '0');
+  signal queue : queue_t := new_queue;
 
 begin
 
@@ -59,6 +60,37 @@ begin
         check_equal(to_integer(unsigned(read_data)), get(data, i));
       end loop;
       read_ready <= '0';
+    end procedure;
+
+    procedure write_read_vector is
+      variable stimuli_data : std_logic_vector(width - 1 downto 0);
+    begin
+      for i in 0 to length(data) - 1 loop
+        write_valid <= '1';
+        read_ready <= '1'; -- set ready before valid
+
+        stimuli_data := std_logic_vector(to_unsigned(get(data, i), width));
+        write_data <= stimuli_data;
+        push(queue, stimuli_data);
+
+        loop
+          wait until rising_edge(clk);
+          if (read_ready and read_valid) = '1' then
+            check_equal(read_data, pop_std_ulogic_vector(queue));
+          end if;
+          exit when (write_ready and write_valid) = '1';
+        end loop;
+      end loop;
+      write_valid <= '0';
+
+      loop
+        wait until rising_edge(clk);
+        exit when read_valid = '0';
+        check_equal(read_data, pop_std_ulogic_vector(queue));
+      end loop;
+      read_ready <= '0';
+
+      check(is_empty(queue));
     end procedure;
 
     procedure test_almost_full is
@@ -143,6 +175,10 @@ begin
       for i in 0 to 4 loop
         test_almost_empty;
       end loop;
+
+    elsif run("test_read_before_valid") then
+      random_integer_vector_ptr(rnd, data, length=>depth, bits_per_word=>width, is_signed=>false);
+      write_read_vector;
     end if;
 
     test_runner_cleanup(runner);

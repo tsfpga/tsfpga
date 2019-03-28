@@ -77,6 +77,7 @@ begin
       write_addr_plus_1 := write_addr + 1;
     end if;
 
+    read_valid <= '1' when level > 0; -- unless otherwise stated below
     if read_ready and read_valid and not write_valid then
       -- Read but no write
       write_ready <= '1';
@@ -87,9 +88,8 @@ begin
         read_valid <= '0';
       end if;
 
-    elsif write_ready and write_valid and not read_ready then
+    elsif write_ready and write_valid and not (read_ready and read_valid) then
       -- Write but no read
-      read_valid <= '1';
       write_addr <= write_addr_plus_1;
       level <= level + 1;
 
