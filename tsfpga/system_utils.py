@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) Lukas Vik. All rights reserved.
+# ------------------------------------------------------------------------------
+
 from os import makedirs, remove
 from os.path import basename, splitext, dirname, isdir, exists, abspath
 import subprocess
@@ -14,6 +18,11 @@ def create_file(file, contents=None):
         file_handle.write(contents)
 
     return file
+
+
+def read_file(file):
+    with open(file) as file_handle:
+        return file_handle.read()
 
 
 def delete(path):

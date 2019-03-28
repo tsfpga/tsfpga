@@ -1,6 +1,10 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) Lukas Vik. All rights reserved.
+# ------------------------------------------------------------------------------
 # Create an always failing constraint for data paths between two clocks.
 # Unintentional clock crossings will fail timing with ~100 ns thanks to this.
 # Clock crossing which are intentional should be handled with a "set_false_path" statement.
+# ------------------------------------------------------------------------------
 
 puts "================================================================================="
 puts "constrain_clock_crossings.tcl. Constraining clocks: "

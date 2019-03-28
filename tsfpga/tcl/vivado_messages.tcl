@@ -1,9 +1,13 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) Lukas Vik. All rights reserved.
+# ------------------------------------------------------------------------------
 # Set the severity of various Vivado mesages
 #
 # A lot of WARNINGs from Vivado are not interesting. They should be suppressed as to not clutter
 # the logs. This is achieved by lowering their severity to INFO.
 #
 # For some inspiration see https://github.com/slaclab/ruckus/blob/master/vivado_messages.tcl
+# ------------------------------------------------------------------------------
 
 puts "Applying vivado messages"
 

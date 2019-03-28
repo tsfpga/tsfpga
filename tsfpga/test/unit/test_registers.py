@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) Lukas Vik. All rights reserved.
+# ------------------------------------------------------------------------------
+
 from os.path import dirname, join
 import unittest
 import pytest

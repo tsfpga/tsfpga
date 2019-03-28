@@ -1,7 +1,11 @@
+-- -----------------------------------------------------------------------------
+-- Copyright (c) Lukas Vik. All rights reserved.
+-- -----------------------------------------------------------------------------
 -- @brief Sample a bit from one clock domain to another.
 --
 -- @details This modules does not utilize any meta stability protection.
 -- It is up to the user to ensure that data_in is stable when sample_value is asserted.
+-- -----------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;

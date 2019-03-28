@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) Lukas Vik. All rights reserved.
+# ------------------------------------------------------------------------------
+
 import datetime
 from collections import OrderedDict
 

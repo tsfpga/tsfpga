@@ -1,10 +1,13 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) Lukas Vik. All rights reserved.
+# ------------------------------------------------------------------------------
+
+from tsfpga.system_utils import read_file
 
 
 def file_contains_string(file, string):
-    with open(file) as file_handle:
-        return string in file_handle.read()
+    return string in read_file(file)
 
 
 def file_equals(file, string):
-    with open(file) as file_handle:
-        return file_handle.read() == string
+    return string == read_file(file)

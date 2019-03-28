@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) Lukas Vik. All rights reserved.
+# ------------------------------------------------------------------------------
+
 import re
 
 from tsfpga.register_list import REGISTER_MODES

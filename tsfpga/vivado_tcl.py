@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) Lukas Vik. All rights reserved.
+# ------------------------------------------------------------------------------
+
 from os.path import join
 
 from tsfpga.vivado_utils import to_tcl_path

@@ -1,7 +1,12 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) Lukas Vik. All rights reserved.
+# ------------------------------------------------------------------------------
+
 import re
 import argparse
 
 from tsfpga.git_utils import find_git_files
+from tsfpga.test.lint.test_copyright import CopyrightHeader, files_to_check_for_copyright_header
 
 
 RE_TRAILING_WHITESPACE = re.compile(" +\n", re.DOTALL)
@@ -47,6 +52,12 @@ def main():
 
     files = args.files if args.files else list(find_git_files())
     fix_lint(files, args.tab_width)
+
+    files = args.files if args.files else list(files_to_check_for_copyright_header())
+    for filename in files:
+        copyright_header = CopyrightHeader("Lukas Vik", filename)
+        if not copyright_header.check_file():
+            copyright_header.fix_file()
 
 
 if __name__ == "__main__":

@@ -1,9 +1,13 @@
+-- -----------------------------------------------------------------------------
+-- Copyright (c) Lukas Vik. All rights reserved.
+-- -----------------------------------------------------------------------------
 -- @brief Asynchronous FIFO.
 --
 -- @details Vivado synthesis example with Zynq 7020 and the following generics
 --   width: 64, depth: 1024, almost_full_level: 512, almost_empty_level: 40
 -- resulted in resource utilization
---   RAMB36: 2, LUT: 138 , FF 109:
+--   RAMB36: 2, LUT: 138 , FF: 109
+-- -----------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;

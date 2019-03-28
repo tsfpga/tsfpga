@@ -1,6 +1,10 @@
+-- -----------------------------------------------------------------------------
+-- Copyright (c) Lukas Vik. All rights reserved.
+-- -----------------------------------------------------------------------------
 -- @brief Convert AXI transfers to AXI-Lite transfers.
 --
 -- This module does not handle splitting of AXI bursts. If the length is greater than one, an error will be returned.
+-- -----------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;

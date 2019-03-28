@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) Lukas Vik. All rights reserved.
+# ------------------------------------------------------------------------------
+
 from os.path import join, exists, basename
 
 from tsfpga.system_utils import load_python_module

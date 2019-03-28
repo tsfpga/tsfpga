@@ -1,4 +1,8 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) Lukas Vik. All rights reserved.
+# ------------------------------------------------------------------------------
 # Xilinx User Guide UG903 provides a good example of this type of constraints
+# ------------------------------------------------------------------------------
 
 set stable_registers [get_cells counter_in_gray_reg*]
 set first_resync_registers [get_cells counter_in_gray_p1_reg*]

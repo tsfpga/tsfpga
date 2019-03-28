@@ -1,7 +1,11 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) Lukas Vik. All rights reserved.
+# ------------------------------------------------------------------------------
 # A lot of information about the steps and possible settings can be found in UG904 and UG 901.
 #
 # The names of the properties can be found by changing a setting in the GUI an see what TCL
 # command is printed to the console.
+# ------------------------------------------------------------------------------
 
 puts "Applying vivado directives settings"
 

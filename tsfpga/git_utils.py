@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) Lukas Vik. All rights reserved.
+# ------------------------------------------------------------------------------
+
 import os
 from os.path import join, exists, normpath, abspath, isfile, commonpath
 import subprocess

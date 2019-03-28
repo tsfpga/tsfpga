@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) Lukas Vik. All rights reserved.
+# ------------------------------------------------------------------------------
+
 from unittest import mock, TestCase
 from os.path import dirname, join
 from shutil import rmtree

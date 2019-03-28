@@ -1,3 +1,7 @@
+-- -----------------------------------------------------------------------------
+-- Copyright (c) Lukas Vik. All rights reserved.
+-- -----------------------------------------------------------------------------
+
 library vunit_lib;
 use vunit_lib.bus_master_pkg.all;
 use vunit_lib.memory_pkg.all;

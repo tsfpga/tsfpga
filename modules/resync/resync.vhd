@@ -1,8 +1,12 @@
+-- -----------------------------------------------------------------------------
+-- Copyright (c) Lukas Vik. All rights reserved.
+-- -----------------------------------------------------------------------------
 -- @brief Resync a single bit from one clock domain to another.
 --
 -- @details The two registers will be placed in the same slice, in order to minimize MTBF.
 -- This guarantees proper resynchronization of semi static "level" type signals without meta stability on rising/falling edges.
 -- It can not handle "pulse" type signals. Pulses can be missed and single-cycle pulse behaviour will not work.
+-- -----------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;

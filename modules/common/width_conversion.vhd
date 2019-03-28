@@ -1,5 +1,9 @@
+-- -----------------------------------------------------------------------------
+-- Copyright (c) Lukas Vik. All rights reserved.
+-- -----------------------------------------------------------------------------
 -- @brief Width conversion of a data bus. Can handle wide to thin or thin
--- to widr, with some restrctions.
+-- to wide, with some restrctions.
+-- -----------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
