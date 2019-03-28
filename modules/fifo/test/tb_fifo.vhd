@@ -35,157 +35,173 @@ architecture tb of tb_fifo is
   signal read_data, write_data : std_logic_vector(width - 1 downto 0) := (others => '0');
   signal queue : queue_t := new_queue;
 
+  signal read_num, read_max_jitter, write_num, write_max_jitter : integer := 0;
+  signal read_start, read_done, write_start, write_done : boolean := false;
+
+  signal has_gone_full_times, has_gone_empty_times : integer := 0;
+
+  signal data_queue : queue_t := new_queue;
+  shared variable rnd : RandomPType;
+
 begin
 
-  test_runner_watchdog(runner, 2 ms);
+  test_runner_watchdog(runner, 20 ms);
   clk <= not clk after 2 ns;
 
 
   ------------------------------------------------------------------------------
   main : process
-    variable rnd : RandomPType;
-    variable data : integer_vector_ptr_t := null_ptr;
 
-    procedure write_vector is
+    procedure run_test is
     begin
-      for i in 0 to length(data) - 1 loop
-        write_valid <= '1';
-        write_data <= std_logic_vector(to_unsigned(get(data, i), width));
-        wait until (write_ready and write_valid) = '1' and rising_edge(clk);
-      end loop;
-      write_valid <= '0';
-    end procedure;
-
-    procedure read_vector is
-    begin
-      for i in 0 to length(data) - 1 loop
-        read_ready <= '1';
-        wait until (read_ready and read_valid) = '1' and rising_edge(clk);
-        check_equal(to_integer(unsigned(read_data)), get(data, i));
-      end loop;
-      read_ready <= '0';
-    end procedure;
-
-    procedure write_read_vector is
-      variable stimuli_data : std_logic_vector(width - 1 downto 0);
-    begin
-      for i in 0 to length(data) - 1 loop
-        write_valid <= '1';
-        read_ready <= '1'; -- set ready before valid
-
-        stimuli_data := std_logic_vector(to_unsigned(get(data, i), width));
-        write_data <= stimuli_data;
-        push(queue, stimuli_data);
-
-        loop
-          wait until rising_edge(clk);
-          if (read_ready and read_valid) = '1' then
-            check_equal(read_data, pop_std_ulogic_vector(queue));
-          end if;
-          exit when (write_ready and write_valid) = '1';
-        end loop;
-      end loop;
-      write_valid <= '0';
-
-      loop
-        wait until rising_edge(clk);
-        exit when read_valid = '0';
-        check_equal(read_data, pop_std_ulogic_vector(queue));
-      end loop;
-      read_ready <= '0';
-
-      check(is_empty(queue));
-    end procedure;
-
-    procedure test_almost_full is
-    begin
-      for i in 0 to almost_full_level - 1 loop
-        write_valid <= '1';
-        wait until (write_ready and write_valid) = '1' and rising_edge(clk);
-        check_equal(almost_full, '0');
-      end loop;
-      write_valid <= '0';
+      read_start <= true;
+      write_start <= true;
 
       wait until rising_edge(clk);
-      check_equal(almost_full, '1');
+      read_start <= false;
+      write_start <= false;
 
-      for i in 0 to almost_full_level - 1 loop
-        read_ready <= '1';
-        wait until (read_ready and read_valid) = '1' and rising_edge(clk);
-
-        if i = 0 then
-          -- The flag switches after a one cycle delay. So for the first read we have to wait an extra cycle.
-          read_ready <= '0';
-          wait until rising_edge(clk);
-          read_ready <= '1';
-        end if;
-
-        check_equal(almost_full, '0');
-      end loop;
-      read_ready <= '0';
+      wait until read_done and write_done and rising_edge(clk);
     end procedure;
 
-    procedure test_almost_empty is
+    procedure run_read is
     begin
-      for i in 0 to almost_empty_level - 1 loop
-        write_valid <= '1';
-        wait until (write_ready and write_valid) = '1' and rising_edge(clk);
-        check_equal(almost_empty, '1');
-      end loop;
-      write_valid <= '0';
-
+      read_start <= true;
       wait until rising_edge(clk);
-      check_equal(almost_empty, '0');
+      read_start <= false;
+      wait until read_done and rising_edge(clk);
+    end procedure;
 
-      for i in 0 to almost_empty_level - 1 loop
-        read_ready <= '1';
-        wait until (read_ready and read_valid) = '1' and rising_edge(clk);
-
-        if i = 0 then
-          -- The flag switches after a one cycle delay. So for the first read we have to wait an extra cycle.
-          read_ready <= '0';
-          wait until rising_edge(clk);
-          read_ready <= '1';
-        end if;
-
-        check_equal(almost_empty, '1');
-      end loop;
-      read_ready <= '0';
+    procedure run_write is
+    begin
+      write_start <= true;
+      wait until rising_edge(clk);
+      write_start <= false;
+      wait until write_done and rising_edge(clk);
     end procedure;
 
   begin
     test_runner_setup(runner, runner_cfg);
     rnd.InitSeed(rnd'instance_name);
 
-    if run("fill_fifo") then
-      for i in 0 to 4 loop
-        random_integer_vector_ptr(rnd, data, length=>depth, bits_per_word=>width, is_signed=>false);
+    if run("test_write_faster_than_read") then
+      read_num <= 100 * depth;
+      write_num <= 100 * depth;
 
-        write_vector;
-        wait until rising_edge(clk);
-        check_equal(write_ready, '0', "Should be full");
+      write_max_jitter <= 2;
+      read_max_jitter <= 4;
 
-        read_vector;
-        wait until rising_edge(clk);
-        check_equal(read_valid, '0', "Should be empty");
-      end loop;
+      run_test;
+      check_true(is_empty(data_queue));
+      check_relation(has_gone_full_times > 200, "Got " & to_string(has_gone_full_times));
+
+    elsif run("test_read_faster_than_write") then
+      read_num <= 100 * depth;
+      write_num <= 100 * depth;
+
+      write_max_jitter <= 4;
+      read_max_jitter <= 2;
+
+      run_test;
+      check_true(is_empty(data_queue));
+      check_relation(has_gone_empty_times > 200, "Got " & to_string(has_gone_empty_times));
 
     elsif run("test_almost_full") then
-      for i in 0 to 4 loop
-        test_almost_full;
-      end loop;
+      write_num <= almost_full_level - 1;
+      run_write;
+      check_equal(almost_full, '0');
+
+      write_num <= 1;
+      run_write;
+      check_equal(almost_full, '1');
+
+      read_num <= 1;
+      run_read;
+      check_equal(almost_full, '0');
 
     elsif run("test_almost_empty") then
-      for i in 0 to 4 loop
-        test_almost_empty;
-      end loop;
+      write_num <= almost_empty_level - 1;
+      run_write;
+      check_equal(almost_empty, '1');
 
-    elsif run("test_read_before_valid") then
-      random_integer_vector_ptr(rnd, data, length=>depth, bits_per_word=>width, is_signed=>false);
-      write_read_vector;
+      write_num <= 1;
+      run_write;
+      check_equal(almost_empty, '0');
+
+      read_num <= 1;
+      run_read;
+      check_equal(almost_empty, '1');
     end if;
 
     test_runner_cleanup(runner);
+  end process;
+
+
+  ------------------------------------------------------------------------------
+  write : process
+    variable data : std_logic_vector(write_data'range);
+  begin
+    wait until write_start and rising_edge(clk);
+    write_done <= false;
+
+    for data_idx in 0 to write_num - 1 loop
+      data := rnd.RandSLV(data'length);
+      push(data_queue, data);
+
+      write_data <= data;
+      write_valid <= '1';
+      wait until (write_ready and write_valid) = '1' and rising_edge(clk);
+
+      write_valid <= '0';
+      for wait_cycle in 1 to rnd.FavorSmall(0, write_max_jitter) loop
+        wait until rising_edge(clk);
+      end loop;
+    end loop;
+
+    write_done <= true;
+  end process;
+
+
+  ------------------------------------------------------------------------------
+  read : process
+  begin
+    wait until read_start and rising_edge(clk);
+    read_done <= false;
+
+    for data_idx in 0 to read_num - 1 loop
+      read_ready <= '1';
+      wait until (read_ready and read_valid) = '1' and rising_edge(clk);
+
+      check_equal(read_data, pop_std_ulogic_vector(data_queue), "data_idx " & to_string(data_idx));
+
+      read_ready <= '0';
+      for wait_cycle in 1 to rnd.FavorSmall(0, read_max_jitter) loop
+        wait until rising_edge(clk);
+      end loop;
+    end loop;
+
+    read_done <= true;
+  end process;
+
+
+  ------------------------------------------------------------------------------
+  status_tracking : process
+    variable read_transaction, write_transaction : std_logic := '0';
+  begin
+    wait until rising_edge(clk);
+
+    -- If there was a read transaction last clock cycle, and we now want to read but there is no data available.
+    if read_transaction and read_ready and not read_valid then
+      has_gone_empty_times <= has_gone_empty_times + 1;
+    end if;
+
+    -- If there was a write transaction last clock cycle, and we now want to write but the fifo is full.
+    if write_transaction and write_valid and not write_ready then
+      has_gone_full_times <= has_gone_full_times + 1;
+    end if;
+
+    read_transaction := read_ready and read_valid;
+    write_transaction := write_ready and write_valid;
   end process;
 
 

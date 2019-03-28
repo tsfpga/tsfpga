@@ -25,18 +25,23 @@ end entity;
 
 architecture tb of tb_afifo is
 
-  signal clk_read  : std_logic := '0';
-  signal clk_write : std_logic := '0';
+  signal clk_read, clk_write : std_logic := '0';
 
-  signal read_ready, read_valid                  : std_logic                            := '0';
-  signal write_ready, write_valid                : std_logic                            := '0';
-  signal almost_empty, almost_full               : std_logic                            := '0';
-  signal read_data, write_data                   : std_logic_vector(width - 1 downto 0) := (others => '0');
-  signal start_stimuli, writer_done, reader_done : boolean                              := false;
-  signal stop_read_clk, stop_write_clk           : std_logic                            := '0';
+  signal read_ready, read_valid    : std_logic                            := '0';
+  signal write_ready, write_valid  : std_logic                            := '0';
+  signal almost_empty, almost_full : std_logic                            := '0';
+  signal read_data, write_data     : std_logic_vector(width - 1 downto 0) := (others => '0');
+
+  signal start_stimuli, writer_done, reader_done : boolean   := false;
+  signal stop_read_clk, stop_write_clk           : std_logic := '0';
+
+  constant num_stimuli : integer := 50 * depth;
+  signal write_max_jitter, read_max_jitter : integer := 0;
+
+  signal has_gone_full_times, has_gone_empty_times : integer := 0;
 
   shared variable rnd : RandomPType;
-  signal queue        : queue_t := new_queue;
+  signal data_queue   : queue_t := new_queue;
 
 begin
 
@@ -47,17 +52,38 @@ begin
 
   ------------------------------------------------------------------------------
   main : process
-  begin
-    test_runner_setup(runner, runner_cfg);
-    rnd.InitSeed(rnd'instance_name);
-
-    if run("random_read_and_write") then
+    procedure run_test is
+    begin
       start_stimuli <= true;
       wait until rising_edge(clk_read);
       wait until rising_edge(clk_write);
       start_stimuli <= false;
 
       wait until writer_done and reader_done;
+    end procedure;
+
+  begin
+    test_runner_setup(runner, runner_cfg);
+    rnd.InitSeed(rnd'instance_name);
+
+    if run("random_read_and_write") then
+      run_test;
+
+    elsif run("random_read_and_write_with_more_write_jitter") then
+      read_max_jitter <= 1;
+      write_max_jitter <= 8;
+
+      run_test;
+      check_relation(has_gone_empty_times > 200, "Got " & to_string(has_gone_empty_times));
+      check_true(is_empty(data_queue));
+
+    elsif run("random_read_and_write_with_more_read_jitter") then
+      read_max_jitter <= 8;
+      write_max_jitter <= 1;
+
+      run_test;
+      check_relation(has_gone_full_times > 200, "Got " & to_string(has_gone_full_times));
+      check_true(is_empty(data_queue));
 
     elsif run("very_strange_clocks") then
       start_stimuli <= true;
@@ -114,15 +140,16 @@ begin
       write_valid <= '1';
       write_data  <= rnd.RandSlv(write_data'length);
       wait until (write_ready and write_valid) = '1' and rising_edge(clk_write);
-      push(queue, write_data);
+      push(data_queue, write_data);
       write_valid <= '0';
     end procedure;
   begin
     wait until rising_edge(clk_write) and start_stimuli;
-    while now < 1 ms loop
-      wait until rising_edge(clk_write);
+    writer_done <= false;
+
+    for stimuli_idx in 1 to num_stimuli loop
       write_fifo;
-      for delay in 1 to rnd.FavorSmall(0, 0) loop
+      for delay in 1 to rnd.FavorSmall(0, write_max_jitter) loop
         wait until rising_edge(clk_write);
       end loop;
     end loop;
@@ -137,20 +164,51 @@ begin
     begin
       read_ready <= '1';
       wait until (read_ready and read_valid) = '1' and rising_edge(clk_read);
-      check_equal(read_data, pop_std_ulogic_vector(queue));
+      check_equal(read_data, pop_std_ulogic_vector(data_queue));
       read_ready <= '0';
     end procedure;
   begin
     wait until rising_edge(clk_read) and start_stimuli;
-    while now < 1 ms loop
-      wait until rising_edge(clk_read);
+    reader_done <= false;
+
+    for stimuli_idx in 1 to num_stimuli loop
       read_fifo;
-      for delay in 1 to rnd.FavorSmall(0, 4) loop
+      for delay in 1 to rnd.FavorSmall(0, read_max_jitter) loop
         wait until rising_edge(clk_read);
       end loop;
     end loop;
 
     reader_done <= true;
+  end process;
+
+
+  ------------------------------------------------------------------------------
+  read_status_tracking : process
+    variable read_transaction : std_logic := '0';
+  begin
+    wait until rising_edge(clk_read);
+
+    -- If there was a read transaction last clock cycle, and we now want to read but there is no data available.
+    if read_transaction and read_ready and not read_valid then
+      has_gone_empty_times <= has_gone_empty_times + 1;
+    end if;
+
+    read_transaction := read_ready and read_valid;
+  end process;
+
+
+  ------------------------------------------------------------------------------
+  write_status_tracking : process
+    variable write_transaction : std_logic := '0';
+  begin
+    wait until rising_edge(clk_write);
+
+    -- If there was a write transaction last clock cycle, and we now want to write but the fifo is full.
+    if write_transaction and write_valid and not write_ready then
+      has_gone_full_times <= has_gone_full_times + 1;
+    end if;
+
+    write_transaction := write_ready and write_valid;
   end process;
 
 

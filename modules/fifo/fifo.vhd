@@ -81,8 +81,8 @@ begin
       write_addr_plus_1 := write_addr + 1;
     end if;
 
-    read_valid <= '1' when level > 0; -- unless otherwise stated below
-    if read_ready and read_valid and not write_valid then
+    read_valid <= to_sl(level > 0);
+    if read_ready and read_valid and not (write_valid and write_ready) then
       -- Read but no write
       write_ready <= '1';
       level <= level - 1;
@@ -105,6 +105,11 @@ begin
     elsif read_ready and read_valid and write_ready and write_valid then
       -- Write and read
       write_addr <= write_addr_plus_1;
+
+      if read_addr = write_addr then
+        -- Race condition. Need to let write data propagate into RAM before it can be read.
+        read_valid <= '0';
+      end if;
     end if;
   end process;
 
