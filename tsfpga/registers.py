@@ -2,15 +2,15 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import join, exists
 from collections import OrderedDict
+from os.path import join
 import json
 
-from tsfpga.register_html_generator import RegisterHtmlGenerator
-from tsfpga.register_vhdl_generator import RegisterVhdlGenerator
-from tsfpga.register_list import RegisterList, Register
-from tsfpga.system_utils import create_file
 from tsfpga.register_c_generator import RegisterCGenerator
+from tsfpga.register_html_generator import RegisterHtmlGenerator
+from tsfpga.register_list import RegisterList, Register
+from tsfpga.register_vhdl_generator import RegisterVhdlGenerator
+from tsfpga.system_utils import create_file
 
 
 def get_default_registers():
@@ -42,7 +42,7 @@ class Registers:
         Assumes that the containing folder already exists.
         This assumption makes it slightly faster than the other functions that use create_file().
         Necessary since this one is often used in real time (before simulations, etc..) and not in
-        one off scenarios like the others (when making a release).
+        one-off scenarios like the others (when making a release).
         """
         with open(output_file, "w") as file_handle:
             file_handle.write(RegisterVhdlGenerator(self.register_list).get_package())
@@ -73,15 +73,14 @@ def load_json_file(file_name):
             result[key] = value
         return result
 
-    if not exists(file_name):
-        raise ValueError(f"Requested json file does not exist: {file_name}")
-
-    with open(file_name) as file_handle:
-        try:
+    try:
+        with open(file_name) as file_handle:
             return json.load(file_handle, object_pairs_hook=check_for_duplicate_keys)
-        except ValueError as exception_info:
-            message = f"Error while parsing JSON file {file_name}:\n%s" % exception_info
-            raise ValueError(message)
+    except ValueError as exception_info:
+        message = f"Error while parsing JSON file {file_name}:\n%s" % exception_info
+        raise ValueError(message)
+    except FileNotFoundError as exception_info:
+        raise FileNotFoundError(f"Requested json file does not exist: {file_name}")
 
 
 def from_json(module_name, json_file, default_registers=None):

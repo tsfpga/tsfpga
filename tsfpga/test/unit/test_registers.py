@@ -70,7 +70,7 @@ class TestRegisters(unittest.TestCase):
 
     def test_load_nonexistent_json_file_should_raise_exception(self):
         filename = self.json_file + "apa"
-        with pytest.raises(ValueError) as exception_info:
+        with pytest.raises(FileNotFoundError) as exception_info:
             load_json_file(self.json_file + "apa")
         assert str(exception_info.value) == f"Requested json file does not exist: {filename}"
 
