@@ -32,9 +32,6 @@ def get_default_registers():
     return registers
 
 
-DEFAULT_REGISTER_LIST = get_default_registers()
-
-
 class Registers:
 
     def __init__(self, register_list):
