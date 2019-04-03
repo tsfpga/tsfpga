@@ -77,9 +77,9 @@ def load_json_file(file_name):
         with open(file_name) as file_handle:
             return json.load(file_handle, object_pairs_hook=check_for_duplicate_keys)
     except ValueError as exception_info:
-        message = f"Error while parsing JSON file {file_name}:\n%s" % exception_info
+        message = f"Error while parsing JSON file {file_name}:\n{exception_info}"
         raise ValueError(message)
-    except FileNotFoundError as exception_info:
+    except FileNotFoundError:
         raise FileNotFoundError(f"Requested json file does not exist: {file_name}")
 
 
