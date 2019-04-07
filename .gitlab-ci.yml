@@ -24,4 +24,4 @@ pytest:
 simulate:
   script:
     - ghdl --version
-    - python3 tsfpga/examples/simulate.py --num-threads 4 --ip-skip
+    - python3 tsfpga/examples/simulate.py --num-threads 4 --vivado-skip

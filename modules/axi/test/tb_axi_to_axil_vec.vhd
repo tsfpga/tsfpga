@@ -136,9 +136,7 @@ begin
       clk => clk_axil_vec(slave),
 
       axil_m2s => axil_vec_m2s(slave),
-      axil_s2m => axil_vec_s2m(slave),
-
-      reg_values_in => (others => (others => '0'))
+      axil_s2m => axil_vec_s2m(slave)
     );
   end generate;
 

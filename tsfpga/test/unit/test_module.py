@@ -100,8 +100,8 @@ class Module(BaseModule):
             else:
                 assert False
 
-    @mock.patch("tsfpga.module.get_default_registers")
-    @mock.patch("tsfpga.module.from_json")
+    @mock.patch("tsfpga.module.get_default_registers", autospec=True)
+    @mock.patch("tsfpga.module.from_json", autospec=True)
     def test_register_object_creation_synthesis(self, from_json, get_default_registers):
         json_file = create_file(join(self._modules_folder, "a", "a_regs.json"))
 
@@ -112,8 +112,8 @@ class Module(BaseModule):
         get_default_registers.assert_called_once()
         from_json.assert_called_once_with("a", json_file, mock.ANY)
 
-    @mock.patch("tsfpga.module.get_default_registers")
-    @mock.patch("tsfpga.module.from_json")
+    @mock.patch("tsfpga.module.get_default_registers", autospec=True)
+    @mock.patch("tsfpga.module.from_json", autospec=True)
     def test_register_object_creation_simulation(self, from_json, get_default_registers):
         json_file = create_file(join(self._modules_folder, "a", "a_regs.json"))
 
@@ -124,8 +124,8 @@ class Module(BaseModule):
         get_default_registers.assert_called_once()
         from_json.assert_called_once_with("a", json_file, mock.ANY)
 
-    @mock.patch("tsfpga.module.get_default_registers")
-    @mock.patch("tsfpga.module.from_json")
+    @mock.patch("tsfpga.module.get_default_registers", autospec=True)
+    @mock.patch("tsfpga.module.from_json", autospec=True)
     def test_register_object_creation_mixed(self, from_json, get_default_registers):
         json_file = create_file(join(self._modules_folder, "a", "a_regs.json"))
 

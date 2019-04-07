@@ -55,7 +55,7 @@ class VivadoIpCores:
         return self._vivado_project.project_file(self._project_folder)
 
     def generate_files(self):
-        print("Generating IP cores")
+        print(f"Generating IP cores in {self._project_folder}")
         delete(self._project_folder)
         self._vivado_project.create(self._project_folder)
         self._save_hash()

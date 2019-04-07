@@ -9,8 +9,9 @@ PATH_TO_TSFPGA = abspath(join(dirname(__file__), "..", ".."))
 sys.path.append(PATH_TO_TSFPGA)
 import tsfpga
 from tsfpga.module import get_modules
-from tsfpga.examples import MODULE_FOLDERS
+from tsfpga.examples import MODULE_FOLDERS, MODULE_FOLDERS_WITH_IP
 from tsfpga.vivado_ip_cores import VivadoIpCores
+from tsfpga.vivado_simlib import VivadoSimlib
 
 PATH_TO_VUNIT = abspath(join(tsfpga.ROOT, "..", "..", "vunit"))
 sys.path.append(PATH_TO_VUNIT)
@@ -21,14 +22,18 @@ from vunit.vivado.vivado import create_compile_order_file, add_from_compile_orde
 def main():
     args = arguments()
 
-    # Change to MODULE_FOLDERS_WITH_IP to test with Vivado IP cores
-    modules = get_modules(MODULE_FOLDERS)
+    if args.vivado_skip:
+        modules = get_modules(MODULE_FOLDERS)
+    else:
+        modules = get_modules(MODULE_FOLDERS_WITH_IP)
 
     vunit_proj = VUnit.from_args(args=args)
     vunit_proj.add_verification_components()
     vunit_proj.add_random()
 
-    if not args.ip_skip:
+    if not args.vivado_skip:
+        add_simlib(vunit_proj, args.temp_dir, args.simlib_compile)
+
         ip_core_compile_order_file = generate_ip_core_compile_order(modules, args.temp_dir, args.ip_compile)
         add_from_compile_order_file(vunit_proj, ip_core_compile_order_file)
 
@@ -43,14 +48,24 @@ def main():
 
 def arguments():
     cli = VUnitCLI()
-    default_temp_directory = join(PATH_TO_TSFPGA, ".simulation_data")
+    default_temp_directory = join(PATH_TO_TSFPGA, "generated")
     cli.parser.add_argument("--temp-dir",
                             type=str,
                             default=default_temp_directory,
                             help="where to place files needed for simulation flow")
+    cli.parser.add_argument("--vivado-skip", action="store_true", help="skip all steps that require Vivado")
     cli.parser.add_argument("--ip-compile", action="store_true", help="force (re)compile of IP cores")
-    cli.parser.add_argument("--ip-skip", action="store_true", help="skip handling of IP cores (useful if Vivado is not available)")
+    cli.parser.add_argument("--simlib-compile", action="store_true", help="force (re)compile of Vivado simlib")
     return cli.parse_args()
+
+
+def add_simlib(vunit_proj, temp_dir, force_compile):
+    vivado_simlib = VivadoSimlib(vunit_proj, temp_dir)
+    if force_compile:
+        vivado_simlib.compile()
+    else:
+        vivado_simlib.compile_if_needed()
+    vivado_simlib.add_to_vunit_project()
 
 
 def generate_ip_core_compile_order(modules, temp_dir, force_generate):
