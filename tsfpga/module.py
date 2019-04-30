@@ -22,7 +22,7 @@ class BaseModule:
     def __init__(self, path, library_name_has_lib_suffix=False):
         self.path = path
         self.name = basename(self.path)
-        self._library_name_has_lib_suffix = library_name_has_lib_suffix
+        self.library_name = self._get_library_name(self.name, library_name_has_lib_suffix)
         self._registers = None
 
     @staticmethod
@@ -91,16 +91,16 @@ class BaseModule:
 
         return self.get_synthesis_files() + self._get_file_list(test_folders, self._hdl_file_endings)
 
-    @property
-    def library_name(self):
+    @staticmethod
+    def _get_library_name(module_name, library_name_has_lib_suffix):
         """
         Some think library name should be <module_name>_lib.
         It actually shouldn't since built in VHDL libraries are named e.g. ieee not ieee_lib.
         But we keep the functionality for legacy reasons.
         """
-        if self._library_name_has_lib_suffix:
-            return self.name + "_lib"
-        return self.name
+        if library_name_has_lib_suffix:
+            return module_name + "_lib"
+        return module_name
 
     def setup_simulations(self, vunit_proj, **kwargs):
         """
