@@ -19,7 +19,10 @@ def main():
 
     for module in get_modules(MODULE_FOLDERS):
         if module.registers is not None:
-            module.registers.create_c_header(join(release_dir, "header"))
+            module.registers.create_c_header(join(release_dir, "c"))
+            module.registers.create_cpp_interface(join(release_dir, "cpp", "include"))
+            module.registers.create_cpp_header(join(release_dir, "cpp", "include"))
+            module.registers.create_cpp_implementation(join(release_dir, "cpp"))
             module.registers.create_html_page(join(release_dir, "doc"))
             module.registers.create_html_table(join(release_dir, "doc", "tables"))
 

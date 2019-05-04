@@ -3,10 +3,11 @@
 # ------------------------------------------------------------------------------
 
 from collections import OrderedDict
-from os.path import join
 import json
+from os.path import join
 
 from tsfpga.register_c_generator import RegisterCGenerator
+from tsfpga.register_cpp_generator import RegisterCppGenerator
 from tsfpga.register_html_generator import RegisterHtmlGenerator
 from tsfpga.register_list import RegisterList, Register
 from tsfpga.register_vhdl_generator import RegisterVhdlGenerator
@@ -50,6 +51,18 @@ class Registers:
     def create_c_header(self, output_path):
         output_file = join(output_path, self.register_list.name + "_regs.h")
         create_file(output_file, RegisterCGenerator(self.register_list).get_header())
+
+    def create_cpp_interface(self, output_path):
+        output_file = join(output_path, "i_" + self.register_list.name + ".h")
+        create_file(output_file, RegisterCppGenerator(self.register_list).get_interface())
+
+    def create_cpp_header(self, output_path):
+        output_file = join(output_path, self.register_list.name + ".h")
+        create_file(output_file, RegisterCppGenerator(self.register_list).get_header())
+
+    def create_cpp_implementation(self, output_path):
+        output_file = join(output_path, self.register_list.name + ".cpp")
+        create_file(output_file, RegisterCppGenerator(self.register_list).get_implementation())
 
     def create_html_page(self, output_path):
         output_file = join(output_path, self.register_list.name + "_regs.html")

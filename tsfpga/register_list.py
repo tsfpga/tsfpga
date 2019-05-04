@@ -49,6 +49,9 @@ class Register:
 
     @property
     def mode_readable(self):
+        """
+        A human-readable representation of the register mode.
+        """
         return REGISTER_MODES[self.mode][0]
 
     @property
@@ -57,6 +60,20 @@ class Register:
         num_nibbles_needed = 4
         formatting_string = "0x{:0%iX}" % num_nibbles_needed
         return formatting_string.format(address_int)
+
+    @property
+    def is_ps_readable(self):
+        """
+        Return true if the register is readable by PS.
+        """
+        return self.mode in ["r", "r_w", "r_wpulse"]
+
+    @property
+    def is_ps_writeable(self):
+        """
+        Return true if the register is writeable by PS.
+        """
+        return self.mode in ["w", "r_w", "wpulse", "r_wpulse"]
 
 
 class RegisterList:
