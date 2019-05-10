@@ -15,11 +15,6 @@ The `tsfpga` folder contains a Python package for working with modules and chips
 The goal is a highly useable system for working in a multi-chip and multi-vendor environment.
 Focus has been placed on modularization and enabling a high level of scalability.
 
-### Python 3
-This project is built to support Python 3 only.
-Development started from scratch in spring 2018, when Python 3 had been out for over 9 years.
-The authors believe in [PEP 20: The Zen of Python](https://www.python.org/dev/peps/pep-0020/) and that a code base supporting both Python 2 and 3 breaks many of these rules.
-
 ### Requirements
 In order to use the package you will need
 * Python 3.6+
