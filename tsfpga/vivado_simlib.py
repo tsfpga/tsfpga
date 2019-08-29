@@ -75,7 +75,7 @@ class VivadoSimlib:
         vivado_path = self._vivado_path
         if vivado_path == "vivado":
             vivado_path = which(vivado_path)
-            assert exists(vivado_path), "Could not find vivado location: " + vivado_path
+            assert vivado_path is not None, "Could not find vivado location"
         vivado_version = basename(abspath(join(dirname(vivado_path), "..")))
         return "vivado_" + vivado_version.replace(".", "_")
 
