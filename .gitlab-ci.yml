@@ -5,17 +5,17 @@
 # Available at https://hub.docker.com/r/ghdl/ext/
 # Configured at https://github.com/ghdl/docker/tree/master/dockerfiles
 # Note that docker image can also be set on a stage/job basis
-image: ghdl/ext:vunit
+image: ghdl/ext:ls-vunit
 
 
 before_script:
-  - apt-get update -qq > /dev/null
-  - apt-get install -y -qq git > /dev/null
   - python3 --version
   - export PYTHONPATH=$(pwd)/tsfpga
 
 pytest:
   script:
+    - apt-get update -qq > /dev/null
+    - apt-get install -y -qq git g++ > /dev/null
     - python3 -m pip install pytest pylint pycodestyle > /dev/null
     - python3 -m pylint --version
     - python3 -m pycodestyle --version
