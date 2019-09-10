@@ -57,7 +57,7 @@ set_property STEPS.OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
 set_property STEPS.OPT_DESIGN.ARGS.DIRECTIVE Default [get_runs impl_1]
 
 # Pre-place power opt design (power_opt_design)
-set_property STEPS.OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
+set_property STEPS.POWER_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
 
 # Place design (place_design)
 set_property STEPS.PLACE_DESIGN.ARGS.DIRECTIVE Default [get_runs impl_1]
