@@ -29,10 +29,13 @@ class RegisterHtmlGenerator:
         Emphasis: *single asterisks* or _single underscores_
         Literal asterisks or underscores are escaped: \* \_
         """
-        self.strong_pattern1 = re.compile(r"\*\*(.*?)\*\*")
-        self.strong_pattern2 = re.compile(r"__(.*?)__")
-        self.em_pattern1 = re.compile(r"\*(.*?)\*")
-        self.em_pattern2 = re.compile(r"_(.*?)_")
+        # These patterns match underscores and asterisks
+        # only if they are not preceded by \escape
+        self.strong_pattern1 = re.compile(r"(?<!\\)\*\*(.*?)(?<!\\)\*\*")
+        self.strong_pattern2 = re.compile(r"(?<!\\)__(.*?)(?<!\\)__")
+        self.em_pattern1 = re.compile(r"(?<!\\)\*(.*?)(?<!\\)\*")
+        self.em_pattern2 = re.compile(r"(?<!\\)_(.*?)(?<!\\)_")
+        # This pattern matches escaped underscores and asterisks
         self.escaped_literal_pattern = re.compile(r"\\(\*|_)")
 
     def _markdown_parser(self, text):
