@@ -6,7 +6,6 @@ from os import makedirs
 from os.path import join, exists
 
 from tsfpga import TSFPGA_TCL
-from tsfpga.constraint import Constraint
 from tsfpga.vivado_tcl import VivadoTcl
 from tsfpga.vivado_utils import run_vivado_tcl
 
@@ -53,9 +52,6 @@ class VivadoProject:
     def _setup_constraints_list(constraints_from_user):
         # Lists are imutable. Since we assign and modify this one we have to copy it.
         constraints = [] if constraints_from_user is None else constraints_from_user.copy()
-
-        file = join(TSFPGA_TCL, "constrain_clock_crossings.tcl")
-        constraints.append(Constraint(file))
 
         return constraints
 

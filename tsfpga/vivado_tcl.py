@@ -105,7 +105,7 @@ class VivadoTcl:
         return tcl
 
     @staticmethod
-    def _run(run, slack_less_than_requirement, timing_error_message):
+    def _run(run):
         tcl = "reset_run %s\n" % run
         tcl += "launch_runs %s\n" % run
         tcl += "wait_on_run %s\n" % run
@@ -116,19 +116,34 @@ class VivadoTcl:
         tcl += "}\n"
         tcl += "\n"
         tcl += "open_run %s\n" % run
-        tcl += "if {[expr {[get_property SLACK [get_timing_paths -delay_type min_max]] < %i}]} {\n" % slack_less_than_requirement
-        tcl += "  puts \"ERROR: %s\"\n" % timing_error_message
+        return tcl
+
+    @staticmethod
+    def _check_clock_interaction(run):
+        tcl = r"if {[regexp {\(unsafe\)} [report_clock_interaction -delay_type min_max -return_string]]} "
+        tcl += "{\n"
+        tcl += "  puts \"ERROR: Unhandled clock crossing in %s run.\"\n" % run
+        tcl += "  exit 1\n"
+        tcl += "}\n"
+        return tcl
+
+    @staticmethod
+    def _check_timing(run):
+        tcl = "if {[expr {[get_property SLACK [get_timing_paths -delay_type min_max]] < 0}]} {\n"
+        tcl += "  puts \"ERROR: Timing not OK after %s run.\"\n" % run
         tcl += "  exit 1\n"
         tcl += "}\n"
         return tcl
 
     def _synthesis(self, run):
-        # -90 in slack timing check comes from the always failing -100 constraint applied to unhandled clock crossings
-        tcl = self._run(run, -90, f"Timing not OK after {run} run. Probably due to an unhandled clock crossings.")
+        tcl = self._run(run)
+        tcl += self._check_clock_interaction(run)
         return tcl
 
     def _impl(self, run):
-        return self._run(run, 0, "Timing not OK after %s run." % run)
+        tcl = self._run(run)
+        tcl += self._check_timing(run)
+        return tcl
 
     def _bitstream(self, output_path):
         bit_file = to_tcl_path(join(output_path, self.name))  # Vivado will append the appropriate file ending

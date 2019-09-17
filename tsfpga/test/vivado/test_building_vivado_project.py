@@ -120,7 +120,7 @@ create_clock -period 5 -name clk_out [get_ports clk_out]
 
         with pytest.raises(CalledProcessError):
             self.proj.build(self.project_folder, synth_only=True)
-        assert file_contains_string(self.log_file, "\nERROR: Timing not OK after synth_1 run. Probably due to an unhandled clock crossings.")
+        assert file_contains_string(self.log_file, "\nERROR: Unhandled clock crossing in synth_1 run.")
 
     def test_build_project(self):
         self.proj.build(self.project_folder, self.project_folder)
