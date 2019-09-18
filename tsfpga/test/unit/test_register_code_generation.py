@@ -22,7 +22,7 @@ class TestRegisterCodeGeneration(unittest.TestCase):
         register.append_bit("bit_1", "")
 
         register = self.register_list.append("addr", "w")
-        register.description = "addr desc"
+        register.description = "addr desc is _very_ good"
 
     def test_generated_html_contains_all_fields_in_correct_order(self):
         expected = """
@@ -48,27 +48,12 @@ class TestRegisterCodeGeneration(unittest.TestCase):
     <td><strong>addr</strong></td>
     <td>0x0004</td>
     <td>Write</td>
-    <td>addr desc</td>
+    <td>addr desc is <em>very</em> good</td>
   </tr>
 """
         html_generator = RegisterHtmlGenerator(self.register_list)
         assert expected in html_generator.get_table()
         assert expected in html_generator.get_page()
-
-    # pylint: disable=protected-access
-    def test_markdown_parser_can_handle_annotating_sentences(self):
-        html_generator = RegisterHtmlGenerator(self.register_list)
-        expected = "This sentence <b>should have a large portion</b> in bold face"
-        text = "This sentence **should have a large portion** in bold face"
-        assert expected in html_generator._markdown_parser(text)
-        text = "This sentence __should have a large portion__ in bold face"
-        assert expected in html_generator._markdown_parser(text)
-
-        expected = "This sentence <em>should have a large portion</em> in italics"
-        text = "This sentence *should have a large portion* in italics"
-        assert expected in html_generator._markdown_parser(text)
-        text = "This sentence _should have a large portion_ in italics"
-        assert expected in html_generator._markdown_parser(text)
 
     def test_generated_vhdl_contains_all_fields_in_correct_order(self):
         vhdl_generator = RegisterVhdlGenerator(self.register_list)

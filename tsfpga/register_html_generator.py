@@ -2,17 +2,15 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-import re
-
 from tsfpga.register_list import REGISTER_MODES
+from tsfpga.markdown_to_html_translator import MarkdownToHtmlTranslator
 
 
 class RegisterHtmlGenerator:
 
     def __init__(self, register_list):
         self.register_list = register_list
-
-        self._compile_markdown_parser()
+        self._markdown_to_html = MarkdownToHtmlTranslator()
 
     @staticmethod
     def _comment(comment):
@@ -23,31 +21,8 @@ class RegisterHtmlGenerator:
         html += self._comment(self.register_list.generated_source_info())
         return html
 
-    def _compile_markdown_parser(self):
-        r"""
-        Strong: **double asterisks** or __double underscores__
-        Emphasis: *single asterisks* or _single underscores_
-        Literal asterisks or underscores are escaped: \* \_
-        """
-        # These patterns match underscores and asterisks
-        # only if they are not preceded by \escape
-        self.strong_pattern1 = re.compile(r"(?<!\\)\*\*(.*?)(?<!\\)\*\*")
-        self.strong_pattern2 = re.compile(r"(?<!\\)__(.*?)(?<!\\)__")
-        self.em_pattern1 = re.compile(r"(?<!\\)\*(.*?)(?<!\\)\*")
-        self.em_pattern2 = re.compile(r"(?<!\\)_(.*?)(?<!\\)_")
-        # This pattern matches escaped underscores and asterisks
-        self.escaped_literal_pattern = re.compile(r"\\(\*|_)")
-
-    def _markdown_parser(self, text):
-        text = re.sub(self.strong_pattern1, r"<b>\g<1></b>", text)
-        text = re.sub(self.strong_pattern2, r"<b>\g<1></b>", text)
-        text = re.sub(self.em_pattern1, r"<em>\g<1></em>", text)
-        text = re.sub(self.em_pattern2, r"<em>\g<1></em>", text)
-        text = re.sub(self.escaped_literal_pattern, r"\g<1>", text)
-        return text
-
     def _annotate_register(self, register):
-        description = self._markdown_parser(register.description)
+        description = self._markdown_to_html.translate(register.description)
         html = f"""
   <tr>
     <td><strong>{register.name}</strong></td>
@@ -59,7 +34,7 @@ class RegisterHtmlGenerator:
         return html
 
     def _annotate_bit(self, bit):
-        description = self._markdown_parser(bit.description)
+        description = self._markdown_to_html.translate(bit.description)
         html = f"""
   <tr>
     <td>&nbsp;&nbsp;<em>{bit.name}</em></td>
