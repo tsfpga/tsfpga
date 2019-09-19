@@ -15,7 +15,7 @@ from tsfpga.fpga_project_list import FPGAProjectList
 def arguments(projects):
     parser = argparse.ArgumentParser("Build/synth/create an FPGA project")
     parser.add_argument("--list", "-l", action="store_true", help="list the available projects")
-    parser.add_argument("--use-existing-project", action="store_true", help="build and existing project")
+    parser.add_argument("--use-existing-project", action="store_true", help="build an existing project")
     parser.add_argument("--create-only", action="store_true", help="only create a project")
     parser.add_argument("--synth-only", action="store_true", help="only synthesize a project")
     parser.add_argument("--project-path", type=str, default=".", help="the FPGA build project will be placed here")
