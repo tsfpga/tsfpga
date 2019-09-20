@@ -18,12 +18,11 @@ Focus has been placed on modularization and enabling a high level of scalability
 ### Requirements
 In order to use the package you will need
 * Python 3.6+
-* [VUnit](https://vunit.github.io/) in your `PYTHONPATH`
-* A functioning VHDL simulator in your `PATH`
+* [VUnit](https://vunit.github.io/) in your `PYTHONPATH`, with a functioning VHDL simulator in your `PATH`
 
 To run the bundled tests you must have
 * Python packages: `pytest`, `pylint`, `pycodestyle`
-* Xilinx Vivado 2017.4+ in your `PATH`
+* Xilinx Vivado 2019.1+ in your `PATH`
 * GCC in your `PATH`
 
 # Main contributors

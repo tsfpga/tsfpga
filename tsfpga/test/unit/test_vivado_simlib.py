@@ -25,7 +25,7 @@ class TestVivadoSimlib(TestCase):
         self.vunit_mock._simulator_class.find_prefix.return_value = \
             "/opt/Aldec/Riviera-PRO-2018.10-x64/bin"
 
-        self.vivado_path = "/opt/xilinx/Vivado/2017.4/bin/vivado"
+        self.vivado_path = "/tools/xilinx/Vivado/2019.1/bin/vivado"
 
     def test_should_not_recompile(self):
         vivado_simlib = VivadoSimlib(self.vunit_mock, self.output_path, self.vivado_path)
