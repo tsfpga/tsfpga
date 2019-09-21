@@ -31,4 +31,4 @@ To run the bundled tests you must have
 * Lukas Vik
 
 # License
-This project is released under the terms of the BSD 3-Clause License. See `LICENSE.txt` for details.
+This project is released under the terms of the BSD 3-Clause License. See `license.txt` for details.
