@@ -70,8 +70,9 @@ class RegisterCppGenerator:
 
     def get_implementation(self):
         cpp_code = f"{self._class_name}::{self._constructor_signature()}\n"
+        cpp_code += "    : m_registers(reinterpret_cast<volatile uint32_t *>(base_address))\n"
         cpp_code += "{\n"
-        cpp_code += "  m_registers = reinterpret_cast<volatile uint32_t *>(base_address);\n"
+        cpp_code += "  // Empty\n"
         cpp_code += "}\n\n"
 
         for register in self.register_list.registers.values():
