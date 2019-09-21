@@ -15,7 +15,7 @@ library common;
 use common.attribute_pkg.all;
 
 
-entity resync is
+entity resync_level is
   generic (
     default_value : std_logic := '0'
   );
@@ -27,7 +27,7 @@ entity resync is
   );
 end entity;
 
-architecture a of resync is
+architecture a of resync_level is
   signal data_in_p1, data_out_int : std_logic := default_value;
   attribute async_reg of data_in_p1 : signal is "true";
   attribute async_reg of data_out_int : signal is "true";

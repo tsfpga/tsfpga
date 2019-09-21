@@ -10,13 +10,13 @@ library vunit_lib;
 context vunit_lib.vunit_context;
 
 
-entity tb_resync_slv is
+entity tb_resync_slv_level is
   generic (
     runner_cfg : string
   );
 end entity;
 
-architecture tb of tb_resync_slv is
+architecture tb of tb_resync_slv_level is
   signal clk_out : std_logic := '0';
   signal data_in, data_out : std_logic_vector(16-1 downto 0) := (others => '0');
 begin
@@ -60,7 +60,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  dut : entity work.resync_slv
+  dut : entity work.resync_slv_level
     port map (
       data_in => data_in,
 

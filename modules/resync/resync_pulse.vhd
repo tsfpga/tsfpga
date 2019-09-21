@@ -49,7 +49,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  level_in_resync_inst : entity work.resync
+  level_in_resync_inst : entity work.resync_level
   port map (
     data_in => level_in,
 
@@ -59,7 +59,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  level_out_resync_inst : entity work.resync
+  level_out_resync_inst : entity work.resync_level
   port map (
     data_in => level_out,
 
