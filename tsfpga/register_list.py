@@ -23,11 +23,11 @@ REGISTER_MODES = {
     "r_w": (
         "Read, Write",
         "PS can write a value and read it back. The written value is available for PL usage."),
-    "wpulse": ("Write-pulse", "PS can write a value that is asserted for one cycle in PL."),
+    "wpulse": ("Write-pulse", "PS can write a value that is asserted for one clock cycle in PL."),
     "r_wpulse": (
         "Read, Write-pulse",
         "PS can read a value that PL provides. "
-        "PS can write a value that is asserted for one cycle in PL."),
+        "PS can write a value that is asserted for one clock cycle in PL."),
 }
 
 
