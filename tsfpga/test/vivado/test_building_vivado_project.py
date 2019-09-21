@@ -5,17 +5,32 @@
 from os.path import dirname, join, exists
 import pytest
 from subprocess import CalledProcessError
+import sys
 import unittest
 
-from tsfpga import TSFPGA_MODULES
+from tsfpga import TSFPGA_MODULES, TSFPGA_EXAMPLES
 from tsfpga.constraint import Constraint
 from tsfpga.module import get_modules
-from tsfpga.system_utils import create_file, delete
+from tsfpga.system_utils import create_file, delete, run_command
 from tsfpga.test import file_contains_string
 from tsfpga.vivado_project import VivadoProject
 
 
 THIS_DIR = dirname(__file__)
+
+
+def test_building_artyz7_project(tmpdir):
+    build_py = join(TSFPGA_EXAMPLES, "build.py")
+    cmd = [
+        sys.executable,
+        build_py,
+        "artyz7",
+        "--project-path", tmpdir,
+        "--output-path", tmpdir
+    ]
+    run_command(cmd)
+    assert exists(join(tmpdir, "artyz7.bit"))
+    assert exists(join(tmpdir, "artyz7.hdf"))
 
 
 class TestBasicProject(unittest.TestCase):
@@ -57,7 +72,7 @@ end architecture;
 """
 
     resync = """
-  assign_output : entity resync.resync
+  assign_output : entity resync.resync_level
   port map (
     data_in => input_p1,
 
