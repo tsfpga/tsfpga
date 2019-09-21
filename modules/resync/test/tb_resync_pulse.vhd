@@ -10,7 +10,7 @@ library vunit_lib;
 context vunit_lib.vunit_context;
 
 
-entity tb_pulse_resync is
+entity tb_resync_pulse is
   generic (
     output_clock_is_faster : boolean := false;
     output_clock_is_slower : boolean := false;
@@ -19,7 +19,7 @@ entity tb_pulse_resync is
   );
 end entity;
 
-architecture tb of tb_pulse_resync is
+architecture tb of tb_resync_pulse is
   constant clock_period_fast : time := 2 ns;
   constant clock_period_medium : time := 5 ns;
   constant clock_period_slow : time := 10 ns;
@@ -88,7 +88,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  dut : entity work.pulse_resync
+  dut : entity work.resync_pulse
     generic map (
       assert_false_on_pulse_overload => not input_pulse_overload
     )

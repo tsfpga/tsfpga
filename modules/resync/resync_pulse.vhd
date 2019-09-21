@@ -16,7 +16,7 @@ library common;
 use common.types_pkg.all;
 
 
-entity pulse_resync is
+entity resync_pulse is
   generic (
     assert_false_on_pulse_overload : boolean := true
   );
@@ -29,7 +29,7 @@ entity pulse_resync is
   );
 end entity;
 
-architecture a of pulse_resync is
+architecture a of resync_pulse is
   signal level_in, level_out, level_out_p1, level_out_feedback : std_logic := '0';
 begin
 
