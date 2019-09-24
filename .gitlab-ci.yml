@@ -16,7 +16,9 @@ pytest:
   script:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git g++ > /dev/null
-    - python3 -m pip install pytest pylint pycodestyle > /dev/null
+    - python3 -m pip install pytest pylint==2.3.1 pycodestyle > /dev/null
+    - python3 -m pip uninstall -y astroid > /dev/null
+    - python3 -m pip install astroid==2.2.5 > /dev/null
     - python3 -m pylint --version
     - python3 -m pycodestyle --version
     - python3 -m pytest -v --ignore=tsfpga/test/vivado/ tsfpga/
