@@ -54,7 +54,7 @@ architecture a of afifo is
   -- one clock domain since during one cycle in the other domain
   signal read_addr, next_read_addr_reg, read_addr_reg, write_addr, read_addr_resync, write_addr_resync : integer range 0 to 2*depth - 1 := 0;
   signal clk_write_level, clk_read_level : integer range 0 to depth := 0;
-
+  signal read_data_int : std_logic_vector(read_data'range);
 begin
 
   assert is_power_of_two(depth) report "Depth must be a power of two, to make counter synchronization convenient";
@@ -145,7 +145,6 @@ begin
     type mem_t is array (integer range <>) of word_t;
 
     signal mem : mem_t(0 to depth - 1) := (others => (others => '0'));
-    attribute ram_style of mem : signal is "block";
   begin
     write_memory : process
     begin
@@ -160,8 +159,9 @@ begin
     begin
       wait until rising_edge(clk_read);
 
-      read_data <= mem(read_addr mod depth);
+      read_data_int <= mem(read_addr mod depth);
     end process;
+    read_data <= read_data_int;
   end block;
 
 end architecture;

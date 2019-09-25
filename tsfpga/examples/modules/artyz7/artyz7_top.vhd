@@ -14,6 +14,7 @@ library common;
 use common.addr_pkg.all;
 
 library ddr_buffer;
+library fifo;
 library reg_file;
 library resync;
 
@@ -145,6 +146,62 @@ begin
       pl_clk0 => pl_clk0,
       pl_clk1 => pl_clk1
     );
+  end block;
+
+
+  ------------------------------------------------------------------------------
+  resync_test_block : block
+    signal afifo_read_data            : std_logic_vector(1 downto 0);
+    signal led_data                   : std_logic_vector(2 to 3) := (others => '0');
+    signal afifo_read_ready           : std_logic;
+    signal afifo_read_valid           : std_logic;
+    signal ddr_buffer_reg_was_read    : std_logic;
+    signal ddr_buffer_reg_was_written : std_logic;
+  begin
+
+    -- Write fifo when a ddr buffer register was written, and read when a register was read
+    ddr_buffer_reg_was_written <= regs_m2s(ddr_buffer_regs_idx).write.w.valid and regs_s2m(ddr_buffer_regs_idx).write.w.ready;
+    ddr_buffer_reg_was_read    <= regs_s2m(ddr_buffer_regs_idx).read.r.valid and regs_m2s(ddr_buffer_regs_idx).read.r.ready;
+
+    resync_pulse_inst: entity resync.resync_pulse
+      port map (
+        clk_in    => clk_s_hp0,
+        pulse_in  => ddr_buffer_reg_was_read,
+        clk_out   => clk_ext,
+        pulse_out => afifo_read_ready
+      );
+
+    afifo_inst : entity fifo.afifo
+      generic map (
+        width => afifo_read_data'length,
+        depth => 1024 -- Depth is selected to create a BRAM
+        )
+      port map (
+        clk_read     => clk_ext,
+        read_ready   => afifo_read_ready,
+        read_valid   => afifo_read_valid,
+        read_data    => afifo_read_data,
+        clk_write    => clk_s_hp0,
+        write_ready  => open,
+        write_valid  => ddr_buffer_reg_was_written,
+        write_data   => regs_m2s(ddr_buffer_regs_idx).write.w.data(1 downto 0)
+        );
+
+    latch_led_data : process
+    begin
+      wait until rising_edge(clk_ext);
+      if afifo_read_ready and afifo_read_valid then
+        led_data <= afifo_read_data;
+      end if;
+    end process;
+
+    resync_slv_level_inst: entity resync.resync_slv_level
+      port map (
+        data_in  => led_data,
+        clk_out  => clk_s_hp0,
+        data_out => led(2 to 3)
+      );
+
   end block;
 
 end architecture;
