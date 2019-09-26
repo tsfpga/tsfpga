@@ -21,9 +21,7 @@ def get_projects():
 
     tcl_dir = join(THIS_DIR, "tcl")
     block_design = join(tcl_dir, "block_design.tcl")
-
-    # This one creates clocks, so for other constraint files to work it has to be processed early.
-    pinning = Constraint(join(tcl_dir, "artyz7_pinning.tcl"), processing_order="early")
+    pinning = Constraint(join(tcl_dir, "artyz7_pinning.tcl"))
 
     projects.append(VivadoProject(
         name="artyz7",

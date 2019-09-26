@@ -132,7 +132,9 @@ class BaseModule:
 
         constraints = []
         for file in constraint_files:
-            constraints.append(Constraint(file, scoped_constraint=True))
+            # Scoped constraints often depend on clocks having been created by another constraint
+            # file before they can work. Set processing order to "late" to make this more probable.
+            constraints.append(Constraint(file, scoped_constraint=True, processing_order="late"))
         return constraints
 
     def __str__(self):
