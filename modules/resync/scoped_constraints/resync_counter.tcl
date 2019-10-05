@@ -4,8 +4,8 @@
 # Xilinx User Guide UG903 provides a good example of this type of constraints
 # ------------------------------------------------------------------------------
 
-set stable_registers [get_cells counter_in_gray_reg*]
-set first_resync_registers [get_cells counter_in_gray_p1_reg*]
+set stable_registers [get_cells counter_in_gray_reg* -filter {PRIMITIVE_SUBGROUP==flop}]
+set first_resync_registers [get_cells counter_in_gray_p1_reg* -filter {PRIMITIVE_SUBGROUP==flop}]
 set clk_out [get_clocks -of_objects [get_ports clk_out]]
 set clk_out_period [get_property -min PERIOD ${clk_out}]
 set clk_in [get_clocks -of_objects [get_ports clk_in]]
