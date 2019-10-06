@@ -2,7 +2,7 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import basename, join, exists, splitext, dirname
+from os.path import basename, splitext
 
 
 class Constraint:
@@ -19,15 +19,19 @@ class Constraint:
         self.ref = splitext(basename(file))[0] if scoped_constraint else None
         self.processing_order = processing_order.lower()
 
-        self._validate()
-
-    def _validate(self):
         assert self.used_in in ["all", "synth", "impl"], self.used_in
         assert self.processing_order in ["early", "normal", "late"], self.processing_order
 
+    def validate_scoped_entity(self, source_files):
+        """
+        Make sure that a matching entity file exists in case this is a scoped constraint. The list of source files should be
+        the synthesis files for the module that this constraint belongs to.
+        """
         if self.ref is not None:
-            entity_file = join(dirname(self.file), "..", self.ref + ".vhd")
-            assert exists(entity_file), "Could not find a matching entity file %s for constraint file %s" % (entity_file, self.file)
+            entity_file_name = self.ref + ".vhd"
+            if not any([source_file.endswith(entity_file_name)] for source_file in source_files):
+                raise FileNotFoundError(f"Could not find a matching entity file {entity_file_name} for constraint file {self.file}")
+        return True
 
     def __str__(self):
         return self.file

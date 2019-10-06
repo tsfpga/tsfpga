@@ -23,6 +23,8 @@ class TestConstraint(unittest.TestCase):
 
     def test_constraint(self):
         constraint = Constraint(self.file)
+        constraint.validate_scoped_entity([])
+
         assert constraint.ref is None
         assert constraint.used_in == "all"
 
@@ -30,12 +32,14 @@ class TestConstraint(unittest.TestCase):
         assert constraint.used_in == "impl"
 
     def test_scoped_constraint(self):
-        create_file(join(self._modules_folder, "a", "apa.vhd"))
-
         constraint = Constraint(self.file, scoped_constraint=True)
         assert constraint.ref == "apa"
 
+        source_files = [join(self._modules_folder, "a", "apa.vhd")]
+        constraint.validate_scoped_entity(source_files)
+
     def test_matching_entity_not_existing_should_raise_exception(self):
-        with pytest.raises(AssertionError) as exception_info:
-            Constraint(self.file, scoped_constraint=True)
+        constraint = Constraint(self.file, scoped_constraint=True)
+        with pytest.raises(FileNotFoundError) as exception_info:
+            constraint.validate_scoped_entity([])
         assert str(exception_info.value).startswith("Could not find a matching entity file")

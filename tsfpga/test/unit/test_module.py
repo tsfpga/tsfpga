@@ -4,7 +4,7 @@
 
 from unittest import mock, TestCase
 from os.path import dirname, join
-from shutil import rmtree
+import pytest
 
 from tsfpga.module import BaseModule, get_modules
 from tsfpga.system_utils import create_file, create_directory, delete
@@ -13,14 +13,15 @@ from tsfpga.system_utils import create_file, create_directory, delete
 THIS_DIR = dirname(__file__)
 
 
-def test_file_list_filtering():
+def test_file_list_filtering(tmpdir):
     module_name = "zebra"
-    path = join(THIS_DIR, module_name)
+    path = join(tmpdir, module_name)
 
     create_directory(join(path, "folder_should_not_be_included"))
     create_file(join(path, "should_not_be_included.apa"))
 
     synth_files = [create_file(join(path, "syn.vhd")),
+                   create_file(join(path, "src", "syn.vhd")),
                    create_file(join(path, "hdl", "rtl", "syn.vhd")),
                    create_file(join(path, "hdl", "package", "syn.vhd"))]
 
@@ -40,7 +41,26 @@ def test_file_list_filtering():
     files = my_module.get_simulation_files(include_tests=False)
     assert set(files) == set(synth_files + sim_files)
 
-    rmtree(path)
+
+def test_scoped_constraints(tmpdir):
+    module_path = join(tmpdir, "apa")
+    create_file(join(module_path, "src", "hest.vhd"))
+    create_file(join(module_path, "scoped_constraints", "hest.tcl"))
+
+    my_module = BaseModule(module_path)
+    scoped_constraints = my_module.get_scoped_constraints()
+    assert len(scoped_constraints) == 1
+    assert scoped_constraints[0].ref == "hest"
+
+
+def test_scoped_constraint_entity_not_existing_should_raise_error(tmpdir):
+    module_path = join(tmpdir, "apa")
+    create_file(join(module_path, "scoped_constraints", "hest.tcl"))
+
+    module = BaseModule(module_path)
+    with pytest.raises(FileNotFoundError) as exception_info:
+        module.get_scoped_constraints()
+    assert str(exception_info.value).startswith("Could not find a matching entity file")
 
 
 class TestGetModules(TestCase):

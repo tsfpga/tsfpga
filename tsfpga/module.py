@@ -61,6 +61,7 @@ class BaseModule:
 
         folders = [
             self.path,
+            join(self.path, "src"),
             join(self.path, "hdl", "rtl"),
             join(self.path, "hdl", "package"),
         ]
@@ -131,10 +132,14 @@ class BaseModule:
         constraint_files = self._get_file_list(scoped_constraints_folders, constraints_file_endings)
 
         constraints = []
-        for file in constraint_files:
-            # Scoped constraints often depend on clocks having been created by another constraint
-            # file before they can work. Set processing order to "late" to make this more probable.
-            constraints.append(Constraint(file, scoped_constraint=True, processing_order="late"))
+        if constraint_files:
+            synthesis_files = self.get_synthesis_files()
+            for constraint_file in constraint_files:
+                # Scoped constraints often depend on clocks having been created by another constraint
+                # file before they can work. Set processing order to "late" to make this more probable.
+                constraint = Constraint(constraint_file, scoped_constraint=True, processing_order="late")
+                constraint.validate_scoped_entity(synthesis_files)
+                constraints.append(constraint)
         return constraints
 
     def __str__(self):
