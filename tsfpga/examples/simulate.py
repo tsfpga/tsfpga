@@ -56,7 +56,10 @@ def arguments():
     cli.parser.add_argument("--vivado-skip", action="store_true", help="skip all steps that require Vivado")
     cli.parser.add_argument("--ip-compile", action="store_true", help="force (re)compile of IP cores")
     cli.parser.add_argument("--simlib-compile", action="store_true", help="force (re)compile of Vivado simlib")
-    return cli.parse_args()
+
+    args = cli.parse_args()
+    args.output_path = join(args.temp_dir, "vunit_out")
+    return args
 
 
 def add_simlib(vunit_proj, temp_dir, force_compile):
