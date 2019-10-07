@@ -84,3 +84,36 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
     def test_ip_core_files(self):
         tcl = self.tcl.create(project_folder="")
         assert "\nsource -notrace %s\n" % self.c_tcl in tcl
+
+
+def test_ip_cache_location():
+    tcl = VivadoTcl(
+        name="name",
+        modules=[],
+        part="part",
+        top="top",
+        tcl_sources=[],
+        generics=dict(),
+        constraints=[]
+    ).build(project_file="",
+            output_path="",
+            synth_only=False,
+            num_threads=12,
+            ip_cache_path=None)
+    assert "config_ip_cache" not in tcl
+
+    ip_cache_location = to_tcl_path(THIS_DIR)
+    tcl = VivadoTcl(
+        name="name",
+        modules=[],
+        part="part",
+        top="top",
+        tcl_sources=[],
+        generics=dict(),
+        constraints=[]
+    ).build(project_file="",
+            output_path="",
+            synth_only=False,
+            num_threads=12,
+            ip_cache_path=ip_cache_location)
+    assert f"\nconfig_ip_cache -use_cache_location {ip_cache_location}\n" in tcl

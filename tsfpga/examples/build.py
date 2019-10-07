@@ -22,6 +22,10 @@ def arguments(projects):
                         type=str,
                         default=join(PATH_TO_TSFPGA, "generated", "projects"),
                         help="the FPGA build project will be placed here")
+    parser.add_argument("--ip-cache-path",
+                        type=str,
+                        default=join(PATH_TO_TSFPGA, "generated", "vivado_ip_cache"),
+                        help="location of Vivado IP cache")
     parser.add_argument("--output-path", type=str, required=False, help="the output products (bit file, ...) will be placed here")
     parser.add_argument("--num-threads", type=int, default=8, help="number of threads to use when building project")
     parser.add_argument("project_name", nargs="?", choices=projects.names(), help="which project to build")
@@ -53,7 +57,11 @@ def main():
     if args.create_only:
         return
 
-    project.build(project_path, args.output_path, args.synth_only, args.num_threads)
+    project.build(project_path=project_path,
+                  output_path=args.output_path,
+                  ip_cache_path=args.ip_cache_path,
+                  synth_only=args.synth_only,
+                  num_threads=args.num_threads)
 
 
 if __name__ == "__main__":

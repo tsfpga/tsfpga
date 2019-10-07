@@ -95,7 +95,8 @@ class VivadoProject:
         create_vivado_project_tcl = self._create_tcl(project_path)
         run_vivado_tcl(self.vivado_path, create_vivado_project_tcl)
 
-    def _build_tcl(self, project_path, synth_only, num_threads, output_path):
+    # pylint: disable=too-many-arguments
+    def _build_tcl(self, project_path, output_path, ip_cache_path, synth_only, num_threads):
         """
         Make a TCL file that builds a Vivado project
         """
@@ -105,7 +106,12 @@ class VivadoProject:
 
         build_vivado_project_tcl = join(project_path, "build_vivado_project.tcl")
         with open(build_vivado_project_tcl, "w") as file_handle:
-            file_handle.write(self.tcl.build(project_file, synth_only, num_threads, output_path))
+            file_handle.write(self.tcl.build(
+                project_file=project_file,
+                output_path=output_path,
+                ip_cache_path=ip_cache_path,
+                synth_only=synth_only,
+                num_threads=num_threads))
 
         return build_vivado_project_tcl
 
@@ -119,7 +125,8 @@ class VivadoProject:
         Override this function in a child class if you wish to do something useful with it.
         """
 
-    def build(self, project_path, output_path=None, synth_only=False, num_threads=12):
+    # pylint: disable=too-many-arguments
+    def build(self, project_path, output_path=None, ip_cache_path=None, synth_only=False, num_threads=12):
         """
         Build a Vivado project
         """
@@ -131,12 +138,24 @@ class VivadoProject:
         else:
             print(f"Building Vivado project in {project_path}, placing artifacts in {output_path}")
 
-        self.pre_build(project_path=project_path, output_path=output_path, synth_only=synth_only, num_threads=num_threads)
+        self.pre_build(project_path=project_path,
+                       output_path=output_path,
+                       ip_cache_path=ip_cache_path,
+                       synth_only=synth_only,
+                       num_threads=num_threads)
 
-        build_vivado_project_tcl = self._build_tcl(project_path, synth_only, num_threads, output_path)
+        build_vivado_project_tcl = self._build_tcl(project_path=project_path,
+                                                   output_path=output_path,
+                                                   ip_cache_path=ip_cache_path,
+                                                   synth_only=synth_only,
+                                                   num_threads=num_threads)
         run_vivado_tcl(self.vivado_path, build_vivado_project_tcl)
 
-        self.post_build(project_path=project_path, output_path=output_path, synth_only=synth_only, num_threads=num_threads)
+        self.post_build(project_path=project_path,
+                        output_path=output_path,
+                        ip_cache_path=ip_cache_path,
+                        synth_only=synth_only,
+                        num_threads=num_threads)
 
     def __str__(self):
         result = str(self.__class__.__name__)

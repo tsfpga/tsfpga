@@ -87,7 +87,7 @@ class VivadoTcl:
         return tcl
 
     def create(self, project_folder):
-        tcl = "create_project %s %s -part %s\n" % (self.name, to_tcl_path(project_folder), self.part)
+        tcl = f"create_project {self.name} {to_tcl_path(project_folder)} -part {self.part}\n"
         tcl += "set_property target_language VHDL [current_project]\n"
         tcl += "\n"
         tcl += self._add_modules()
@@ -98,7 +98,7 @@ class VivadoTcl:
         tcl += "\n"
         tcl += self._add_constraints()
         tcl += "\n"
-        tcl += "set_property top %s [current_fileset]\n" % self.top
+        tcl += f"set_property top {self.top} [current_fileset]\n"
         tcl += "reorder_files -auto -disable_unused\n"
         tcl += "\n"
         tcl += "exit\n"
@@ -156,13 +156,17 @@ class VivadoTcl:
         tcl = "write_hwdef -force %s\n" % hwdef_file
         return tcl
 
-    def build(self, project_file, synth_only, num_threads, output_path):
+    # pylint: disable=too-many-arguments
+    def build(self, project_file, output_path, synth_only, num_threads, ip_cache_path):
         synth_run = "synth_1"
         impl_run = "impl_1"
         num_threads = min(num_threads, 8)  # Max value in Vivado 2017.4. set_param will give an error if higher number.
 
         tcl = "open_project %s\n" % to_tcl_path(project_file)
         tcl += "set_param general.maxThreads %i\n" % num_threads
+        if ip_cache_path is not None:
+            tcl += f"config_ip_cache -use_cache_location {to_tcl_path(ip_cache_path)}\n"
+            tcl += "\n"
         tcl += "\n"
         tcl += self._synthesis(synth_run)
         tcl += "\n"
