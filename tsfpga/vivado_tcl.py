@@ -91,6 +91,8 @@ class VivadoTcl:
         tcl += "set_property target_language VHDL [current_project]\n"
         if ip_cache_path is not None:
             tcl += f"config_ip_cache -use_cache_location {to_tcl_path(ip_cache_path)}\n"
+        # Default value for when opening project in GUI. Will be overwritten if using build() function.
+        tcl += "set_param general.maxThreads 4\n"
         tcl += "\n"
         tcl += self._add_modules()
         tcl += "\n"
