@@ -73,7 +73,7 @@ class VivadoProject:
         """
         return join(project_path, self.name + ".xpr")
 
-    def _create_tcl(self, project_path):
+    def _create_tcl(self, project_path, ip_cache_path):
         """
         Make a TCL file that creates a Vivado project
         """
@@ -83,20 +83,19 @@ class VivadoProject:
 
         create_vivado_project_tcl = join(project_path, "create_vivado_project.tcl")
         with open(create_vivado_project_tcl, "w") as file_handle:
-            file_handle.write(self.tcl.create(project_path))
+            file_handle.write(self.tcl.create(project_path, ip_cache_path))
 
         return create_vivado_project_tcl
 
-    def create(self, project_path):
+    def create(self, project_path, ip_cache_path=None):
         """
         Create a Vivado project
         """
         print("Creating Vivado project in " + project_path)
-        create_vivado_project_tcl = self._create_tcl(project_path)
+        create_vivado_project_tcl = self._create_tcl(project_path, ip_cache_path)
         run_vivado_tcl(self.vivado_path, create_vivado_project_tcl)
 
-    # pylint: disable=too-many-arguments
-    def _build_tcl(self, project_path, output_path, ip_cache_path, synth_only, num_threads):
+    def _build_tcl(self, project_path, output_path, synth_only, num_threads):
         """
         Make a TCL file that builds a Vivado project
         """
@@ -109,7 +108,6 @@ class VivadoProject:
             file_handle.write(self.tcl.build(
                 project_file=project_file,
                 output_path=output_path,
-                ip_cache_path=ip_cache_path,
                 synth_only=synth_only,
                 num_threads=num_threads))
 
@@ -125,8 +123,7 @@ class VivadoProject:
         Override this function in a child class if you wish to do something useful with it.
         """
 
-    # pylint: disable=too-many-arguments
-    def build(self, project_path, output_path=None, ip_cache_path=None, synth_only=False, num_threads=12):
+    def build(self, project_path, output_path=None, synth_only=False, num_threads=12):
         """
         Build a Vivado project
         """
@@ -140,20 +137,17 @@ class VivadoProject:
 
         self.pre_build(project_path=project_path,
                        output_path=output_path,
-                       ip_cache_path=ip_cache_path,
                        synth_only=synth_only,
                        num_threads=num_threads)
 
         build_vivado_project_tcl = self._build_tcl(project_path=project_path,
                                                    output_path=output_path,
-                                                   ip_cache_path=ip_cache_path,
                                                    synth_only=synth_only,
                                                    num_threads=num_threads)
         run_vivado_tcl(self.vivado_path, build_vivado_project_tcl)
 
         self.post_build(project_path=project_path,
                         output_path=output_path,
-                        ip_cache_path=ip_cache_path,
                         synth_only=synth_only,
                         num_threads=num_threads)
 

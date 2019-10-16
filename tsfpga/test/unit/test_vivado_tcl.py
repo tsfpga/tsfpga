@@ -95,11 +95,8 @@ def test_ip_cache_location():
         tcl_sources=[],
         generics=dict(),
         constraints=[]
-    ).build(project_file="",
-            output_path="",
-            synth_only=False,
-            num_threads=12,
-            ip_cache_path=None)
+    ).create(project_folder="",
+             ip_cache_path=None)
     assert "config_ip_cache" not in tcl
 
     ip_cache_location = to_tcl_path(THIS_DIR)
@@ -111,9 +108,6 @@ def test_ip_cache_location():
         tcl_sources=[],
         generics=dict(),
         constraints=[]
-    ).build(project_file="",
-            output_path="",
-            synth_only=False,
-            num_threads=12,
-            ip_cache_path=ip_cache_location)
+    ).create(project_folder="",
+             ip_cache_path=ip_cache_location)
     assert f"\nconfig_ip_cache -use_cache_location {ip_cache_location}\n" in tcl

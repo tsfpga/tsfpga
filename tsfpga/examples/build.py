@@ -52,14 +52,13 @@ def main():
         args.output_path = project_path
 
     if not args.use_existing_project:
-        project.create(project_path)
+        project.create(project_path=project_path, ip_cache_path=args.ip_cache_path)
 
     if args.create_only:
         return
 
     project.build(project_path=project_path,
                   output_path=args.output_path,
-                  ip_cache_path=args.ip_cache_path,
                   synth_only=args.synth_only,
                   num_threads=args.num_threads)
 
