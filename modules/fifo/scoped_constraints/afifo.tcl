@@ -4,8 +4,18 @@
 
 set read_data [get_cells memory.read_data_int_reg* -filter {PRIMITIVE_SUBGROUP==flop}]
 if {${read_data} != {}} {
-    # These constraints are needed when the afifo is implemented using distributed
-    # ram, as there is a timing path from write clock to the read data registers.
+    # These registers exist when the RAM is implemented as distributed RAM.
+    # In this case there is a timing path from write clock to the read data registers which
+    # can be safely ignored in order for timing to pass.
+    # See discussion in https://gitlab.com/truestream/tsfpga/merge_requests/20
     set clk_write [get_clocks -of_objects [get_ports clk_write]]
-    set_false_path -setup -hold -from ${clk_write} -to ${read_data}
+    if {${clk_write} == {}} {
+        puts "WARNING tsfpga afifo.tcl: Could not find clock to constrain DistRAM."
+        # In some cases the clock might not be created yet, most likely during synthesis.
+        # Hopefully it will be defined when this constraint file is applied again during
+        # implementation. If not the build should fail timing.
+    } else {
+        puts "INFO tsfpga afifo.tcl: Setting false path from write clock to read data registers."
+        set_false_path -setup -hold -from ${clk_write} -to ${read_data}
+    }
 }
