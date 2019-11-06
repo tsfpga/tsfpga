@@ -8,7 +8,6 @@ A set of reusable functions for working with HDL projects.
 
 
 from os.path import dirname, abspath, join
-import test
 
 
 THIS_DIR = dirname(__file__)
