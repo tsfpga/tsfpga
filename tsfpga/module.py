@@ -67,6 +67,7 @@ class BaseModule:
         folders = [
             self.path,
             join(self.path, "src"),
+            join(self.path, "rtl"),
             join(self.path, "hdl", "rtl"),
             join(self.path, "hdl", "package"),
         ]

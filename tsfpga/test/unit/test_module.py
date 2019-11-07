@@ -21,6 +21,7 @@ def test_file_list_filtering(tmpdir):
     create_file(join(path, "should_not_be_included.apa"))
 
     synth_files = [create_file(join(path, "syn.v")),
+                   create_file(join(path, "rtl", "syn.v")),
                    create_file(join(path, "src", "syn.vhd")),
                    create_file(join(path, "hdl", "rtl", "syn.vhd")),
                    create_file(join(path, "hdl", "package", "syn.vhd"))]
