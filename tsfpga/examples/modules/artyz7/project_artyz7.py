@@ -38,6 +38,7 @@ def get_projects():
         part=part,
         top="artyz7_top",
         tcl_sources=[block_design],
+        generics=dict(dummy=True, values=123),
         constraints=[pinning],
     ))
 

@@ -29,14 +29,14 @@ class VivadoProject:
     ):
         self.name = name
         self.modules = modules
+        self.generics = generics
+        self.defined_at = defined_at
 
         self.top = name + "_top" if top is None else top
         self.vivado_path = "vivado" if vivado_path is None else vivado_path
 
         constraints_list = self._setup_constraints_list(constraints)
         tcl_sources_list = self._setup_tcl_sources_list(tcl_sources)
-
-        self.defined_at = defined_at
 
         self.tcl = VivadoTcl(
             name=self.name,
@@ -154,8 +154,13 @@ class VivadoProject:
     def __str__(self):
         result = str(self.__class__.__name__)
         if self.defined_at is not None:
-            result += " defined at: %s" % self.defined_at
-        result += "\nName: %s" % self.name
-        result += "\nTop level: %s" % self.top
+            result += " defined at: " + self.defined_at
+        result += "\nName:      " + self.name
+        result += "\nTop level: " + self.top
+        if self.generics is None:
+            generics = "-"
+        else:
+            generics = ", ".join([f"{name}={value}" for name, value in self.generics.items()])
+        result += "\nGenerics:  " + generics
 
         return result
