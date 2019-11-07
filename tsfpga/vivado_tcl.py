@@ -173,7 +173,7 @@ class VivadoTcl:
 
     def _bitstream(self, output_path):
         bit_file = to_tcl_path(join(output_path, self.name))  # Vivado will append the appropriate file ending
-        tcl = "write_bitstream -force %s\n" % bit_file
+        tcl = f"write_bitstream -force -bin {bit_file}\n"
         return tcl
 
     def _hwdef(self, output_path):
