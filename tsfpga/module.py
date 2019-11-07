@@ -5,9 +5,10 @@
 from glob import glob
 from os.path import basename, isfile, join, exists, isdir
 
-from tsfpga.system_utils import load_python_module
 from tsfpga.constraint import Constraint
+from tsfpga.hdl_file import HdlFile
 from tsfpga.registers import from_json, get_default_registers
+from tsfpga.system_utils import load_python_module
 
 
 class BaseModule:
@@ -16,8 +17,6 @@ class BaseModule:
 
     Files are gathered from a lot of different subfolders, to accomodate for projects having different catalog structure.
     """
-
-    _hdl_file_endings = ("vhd", "v")
 
     def __init__(self, path, library_name_has_lib_suffix=False):
         self.path = path
@@ -32,10 +31,16 @@ class BaseModule:
         """
         files = []
         for folder in folders:
-            for file in glob(join(folder, "*")):
-                if isfile(file) and file.lower().endswith(file_endings):
-                    files.append(file)
+            for filename in glob(join(folder, "*")):
+                if isfile(filename) and filename.lower().endswith(file_endings):
+                    files.append(filename)
         return files
+
+    def _get_hdl_file_list(self, folders):
+        """
+        Return a list of HDL file objects.
+        """
+        return [HdlFile(filename) for filename in self._get_file_list(folders, HdlFile.file_endings)]
 
     @property
     def registers(self):
@@ -65,7 +70,7 @@ class BaseModule:
             join(self.path, "hdl", "rtl"),
             join(self.path, "hdl", "package"),
         ]
-        return self._get_file_list(folders, self._hdl_file_endings)
+        return self._get_hdl_file_list(folders)
 
     def get_simulation_files(self, include_tests=True):
         """
@@ -90,7 +95,7 @@ class BaseModule:
             test_folders += [join(self.path, "rtl", "tb"),
                              join(self.path, "test")]
 
-        return self.get_synthesis_files() + self._get_file_list(test_folders, self._hdl_file_endings)
+        return self.get_synthesis_files() + self._get_hdl_file_list(test_folders)
 
     @staticmethod
     def _get_library_name(module_name, library_name_has_lib_suffix):

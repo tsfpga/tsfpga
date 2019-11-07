@@ -29,7 +29,7 @@ class Constraint:
         """
         if self.ref is not None:
             entity_file_name = self.ref + ".vhd"
-            if not any([source_file.endswith(entity_file_name)] for source_file in source_files):
+            if not any([source_file.filename.endswith(entity_file_name)] for source_file in source_files):
                 raise FileNotFoundError(f"Could not find a matching entity file {entity_file_name} for constraint file {self.file}")
         return True
 

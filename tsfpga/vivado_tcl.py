@@ -33,9 +33,31 @@ class VivadoTcl:
     def _add_modules(self):
         tcl = ""
         for module in self.modules:
-            if module.get_synthesis_files():
-                file_list_str = " ".join([to_tcl_path(file) for file in module.get_synthesis_files()])
-                tcl += "read_vhdl -library %s -vhdl2008 {%s}\n" % (module.library_name, file_list_str)
+            vhdl_files = []
+            verilog_source_files = []
+            for hdl_file in module.get_synthesis_files():
+                if hdl_file.is_vhdl:
+                    vhdl_files.append(to_tcl_path(hdl_file.filename))
+                elif hdl_file.is_verilog_source:
+                    verilog_source_files.append(to_tcl_path(hdl_file.filename))
+                else:
+                    raise NotImplementedError("Can not handle file: " + hdl_file.filename)
+                    # Verilog headers do not need to be handled at all if the
+                    # source file that uses them is in the same directory. If
+                    # it is not, the path needs to be added to include_dirs with
+                    # a tcl command like:
+                    #   set_property include_dirs {/some/path /some/other/path} [current_fileset]
+                    # See https://www.xilinx.com/support/answers/54006.html
+
+                    # Encrypted source files (verilog (.vp?), VHDL) I do not know how
+                    # to handle, since I have no use case for it at the moment.
+
+            if vhdl_files:
+                tcl += "read_vhdl -library %s -vhdl2008 {%s}\n" % \
+                    (module.library_name, " ".join(vhdl_files))
+            if verilog_source_files:
+                tcl += "read_verilog {%s}\n" % " ".join(verilog_source_files)
+
             for tcl_source_file in module.get_ip_core_files():
                 tcl += "source -notrace %s\n" % to_tcl_path(tcl_source_file)
         return tcl

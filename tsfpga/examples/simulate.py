@@ -39,8 +39,11 @@ def main():
 
     for module in modules:
         vunit_library = vunit_proj.add_library(module.library_name)
-        for file in module.get_simulation_files():
-            vunit_library.add_source_file(file)
+        for hdl_file in module.get_simulation_files():
+            if hdl_file.is_vhdl or hdl_file.is_verilog_source:
+                vunit_library.add_source_file(hdl_file.filename)
+            else:
+                assert False, "Can not handle this file: " + hdl_file.filename
         module.setup_simulations(vunit_proj)
 
     vunit_proj.main()

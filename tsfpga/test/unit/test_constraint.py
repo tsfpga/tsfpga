@@ -7,6 +7,7 @@ import pytest
 import unittest
 
 from tsfpga.constraint import Constraint
+from tsfpga.hdl_file import HdlFile
 from tsfpga.system_utils import create_file, delete
 
 
@@ -35,7 +36,7 @@ class TestConstraint(unittest.TestCase):
         constraint = Constraint(self.file, scoped_constraint=True)
         assert constraint.ref == "apa"
 
-        source_files = [join(self._modules_folder, "a", "apa.vhd")]
+        source_files = [HdlFile(join(self._modules_folder, "a", "apa.vhd"))]
         constraint.validate_scoped_entity(source_files)
 
     def test_matching_entity_not_existing_should_raise_exception(self):

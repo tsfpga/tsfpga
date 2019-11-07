@@ -27,7 +27,7 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
         self.tb_a_vhd = to_tcl_path(create_file(join(self.modules_folder, "apa", "test", "tb_a.vhd")))
         self.a_xdc = to_tcl_path(create_file(join(self.modules_folder, "apa", "scoped_constraints", "a.xdc")))
 
-        self.b_vhd = to_tcl_path(create_file(join(self.modules_folder, "apa", "b.vhd")))
+        self.b_v = to_tcl_path(create_file(join(self.modules_folder, "apa", "b.v")))
         self.b_tcl = to_tcl_path(create_file(join(self.modules_folder, "apa", "scoped_constraints", "b.tcl")))
 
         self.c_tcl = to_tcl_path(create_file(join(self.modules_folder, "apa", "ip_cores", "c.tcl")))
@@ -56,8 +56,13 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
 
     def test_only_synthesis_files_added_to_create_project_tcl(self):
         tcl = self.tcl.create(project_folder="")
-        assert self.a_vhd in tcl and self.b_vhd in tcl
+        assert self.a_vhd in tcl and self.b_v in tcl
         assert self.tb_a_vhd not in tcl and "tb_a.vhd" not in tcl
+
+    def test_different_hdl_file_types(self):
+        tcl = self.tcl.create(project_folder="")
+        assert f"read_vhdl -library apa -vhdl2008 {{{self.a_vhd}}}" in tcl
+        assert f"read_verilog {{{self.b_v}}}" in tcl
 
     def test_empty_library_not_in_create_project_tcl(self):
         tcl = self.tcl.create(project_folder="")

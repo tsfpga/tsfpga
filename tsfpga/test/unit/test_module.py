@@ -20,25 +20,25 @@ def test_file_list_filtering(tmpdir):
     create_directory(join(path, "folder_should_not_be_included"))
     create_file(join(path, "should_not_be_included.apa"))
 
-    synth_files = [create_file(join(path, "syn.vhd")),
+    synth_files = [create_file(join(path, "syn.v")),
                    create_file(join(path, "src", "syn.vhd")),
                    create_file(join(path, "hdl", "rtl", "syn.vhd")),
                    create_file(join(path, "hdl", "package", "syn.vhd"))]
 
-    test_files = [create_file(join(path, "test", "test.vhd")),
+    test_files = [create_file(join(path, "test", "test.v")),
                   create_file(join(path, "rtl", "tb", "test.vhd"))]
 
     sim_files = [create_file(join(path, "sim", "sim.vhd"))]
 
     my_module = BaseModule(path)
 
-    files = my_module.get_synthesis_files()
+    files = [file.filename for file in my_module.get_synthesis_files()]
     assert set(files) == set(synth_files)
 
-    files = my_module.get_simulation_files()
+    files = [file.filename for file in my_module.get_simulation_files()]
     assert set(files) == set(synth_files + test_files + sim_files)
 
-    files = my_module.get_simulation_files(include_tests=False)
+    files = [file.filename for file in my_module.get_simulation_files(include_tests=False)]
     assert set(files) == set(synth_files + sim_files)
 
 
