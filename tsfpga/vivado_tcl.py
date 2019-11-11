@@ -131,9 +131,9 @@ class VivadoTcl:
         return tcl
 
     @staticmethod
-    def _run(run):
+    def _run(run, num_threads=1):
         tcl = "reset_run %s\n" % run
-        tcl += "launch_runs %s\n" % run
+        tcl += "launch_runs %s -jobs %d\n" % (run, num_threads)
         tcl += "wait_on_run %s\n" % run
         tcl += "\n"
         tcl += "if {[get_property PROGRESS [get_runs %s]] != \"100%%\"} {\n" % run
@@ -161,13 +161,13 @@ class VivadoTcl:
         tcl += "}\n"
         return tcl
 
-    def _synthesis(self, run):
-        tcl = self._run(run)
+    def _synthesis(self, run, num_threads=1):
+        tcl = self._run(run, num_threads)
         tcl += self._check_clock_interaction(run)
         return tcl
 
-    def _impl(self, run):
-        tcl = self._run(run)
+    def _impl(self, run, num_threads=1):
+        tcl = self._run(run, num_threads)
         tcl += self._check_timing(run)
         return tcl
 
@@ -190,10 +190,10 @@ class VivadoTcl:
         tcl = "open_project %s\n" % to_tcl_path(project_file)
         tcl += "set_param general.maxThreads %i\n" % num_threads
         tcl += "\n"
-        tcl += self._synthesis(synth_run)
+        tcl += self._synthesis(synth_run, num_threads)
         tcl += "\n"
         if not synth_only:
-            tcl += self._impl(impl_run)
+            tcl += self._impl(impl_run, num_threads)
             tcl += "\n"
             tcl += self._bitstream(output_path)
             tcl += self._hwdef(output_path)
