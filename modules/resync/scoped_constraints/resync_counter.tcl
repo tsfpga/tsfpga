@@ -20,7 +20,7 @@ if {${clk_in} == {} || ${clk_out} == {}} {
     set clk_out_period [get_property -min PERIOD ${clk_out}]
     set clk_in_period [get_property -min PERIOD ${clk_in}]
     set min_period [expr {((${clk_in_period} < ${clk_out_period}) ? ${clk_in_period} : ${clk_out_period})} ]
-    puts "INFO tsfpga resync_counter.tcl: Using min period ${min_clk_period}"
+    puts "INFO tsfpga resync_counter.tcl: Using min period ${min_period}"
 }
 
 # Add bus skew constraint to make sure that multiple bit changes on one clk_in cycle are detected
