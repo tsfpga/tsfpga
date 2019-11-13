@@ -15,6 +15,12 @@ The `tsfpga` folder contains a Python package for working with modules and chips
 The goal is a highly useable system for working in a multi-chip and multi-vendor environment.
 Focus has been placed on modularization and enabling a high level of scalability.
 
+### Key features
+* Source code centric project structure: Constraints, IP cores, test configurations, build projects, etc. are handled "close" to the source code.
+See e.g. [resync_counter.tcl](modules/resync/scoped_constraints/resync_counter.tcl), [mult_u12_u5.tcl](tsfpga/examples/modules_with_ip/module_with_ip_cores/ip_cores/mult_u12_u5.tcl), [module_math.py](modules/math/module_math.py), [project_artyz7.py](tsfpga/examples/modules/artyz7/project_artyz7.py).
+* Generic AXI-Lite register file, with automatic register generation from JSON: VHDL package, C header, C++ class, HTML documentation. See e.g. [ddr_buffer_regs.json](tsfpga/examples/modules/ddr_buffer/ddr_buffer_regs.json) and [build.py](tsfpga/examples/build.py#L100).
+* Automatic (re)compile of simlib and IP core simulation files. See e.g. [vivado_simlib.py](tsfpga/vivado_simlib.py), [vivado_ip_cores.py](tsfpga/vivado_ip_cores.py) and [simulate.py](tsfpga/examples/simulate.py#L34).
+
 ### Requirements
 In order to use the package you will need
 * Python 3.6+
