@@ -138,10 +138,5 @@ create_clock -period 5 -name clk_out [get_ports clk_out]
         assert file_contains_string(self.log_file, "\nERROR: Unhandled clock crossing in synth_1 run.")
 
     def test_build_project(self):
-        num_threads = 2
-        self.proj.build(self.project_folder, self.project_folder, num_threads=num_threads)
+        self.proj.build(self.project_folder, self.project_folder)
         assert exists(join(self.project_folder, self.proj.name + ".bit"))
-        with open(join(self.project_folder, "build_vivado_project.tcl")) as file_handle:
-            build_tcl_content = file_handle.read()
-            assert "launch_runs synth_1 -jobs %d" % num_threads in build_tcl_content
-            assert "launch_runs impl_1 -jobs %d" % num_threads in build_tcl_content

@@ -90,6 +90,13 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
         tcl = self.tcl.create(project_folder="")
         assert "\nsource -notrace %s\n" % self.c_tcl in tcl
 
+    def test_set_multiple_threads(self):
+        num_threads = 2
+        tcl = self.tcl.build(project_file="", output_path="", synth_only=False, num_threads=num_threads)
+        assert "set_param general.maxThreads %d" % num_threads in tcl
+        assert "launch_runs synth_1 -jobs %d" % num_threads in tcl
+        assert "launch_runs impl_1 -jobs %d" % num_threads in tcl
+
 
 def test_ip_cache_location():
     tcl = VivadoTcl(
