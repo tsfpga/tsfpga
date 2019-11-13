@@ -12,27 +12,13 @@ class VivadoTcl:
     Class with methods for translating a set of sources into Vivado TCL
     """
 
-    def __init__(  # pylint: disable=too-many-arguments
-            self,
-            name,
-            modules,
-            part,
-            top,
-            tcl_sources,
-            generics,
-            constraints,
-    ):
+    def __init__(self, name,):
         self.name = name
-        self.modules = modules
-        self.part = part
-        self.top = top
-        self.tcl_sources = tcl_sources
-        self.generics = generics
-        self.constraints = constraints
 
-    def _add_modules(self):
+    @staticmethod
+    def _add_modules(modules):
         tcl = ""
-        for module in self.modules:
+        for module in modules:
             vhdl_files = []
             verilog_source_files = []
             for hdl_file in module.get_synthesis_files():
@@ -62,38 +48,42 @@ class VivadoTcl:
                 tcl += "source -notrace %s\n" % to_tcl_path(tcl_source_file)
         return tcl
 
-    def _add_tcl_sources(self):
+    @staticmethod
+    def _add_tcl_sources(tcl_sources):
         tcl = ""
-        for tcl_source_file in self.tcl_sources:
+        for tcl_source_file in tcl_sources:
             tcl += "source -notrace %s\n" % to_tcl_path(tcl_source_file)
         return tcl
 
-    def _add_generics(self):
+    @staticmethod
+    def _add_generics(generics):
         """
         Generics are set accoring to this weird format: https://www.xilinx.com/support/answers/52217.html
         """
-        if self.generics is None:
+        if generics is None:
             return ""
 
         generic_list = []
-        for name, value in self.generics.items():
+        for name, value in generics.items():
             if isinstance(value, bool):
                 generic_list.append("%s=%s" % (name, ("1'b1" if value else "1'b0")))
             else:
                 generic_list.append("%s=%s" % (name, value))
         return "set_property generic {%s} [current_fileset]\n" % " ".join(generic_list)
 
-    def _iterate_constraints(self):
-        for module in self.modules:
+    @staticmethod
+    def _iterate_constraints(modules, constraints):
+        for module in modules:
             for constraint in module.get_scoped_constraints():
                 yield constraint
 
-        for constraint in self.constraints:
+        for constraint in constraints:
             yield constraint
 
-    def _add_constraints(self):
+    @staticmethod
+    def _add_constraints(constraints):
         tcl = ""
-        for constraint in self._iterate_constraints():
+        for constraint in constraints:
             file = to_tcl_path(constraint.file)
             ref_flags = "" if constraint.ref is None else (f"-ref {constraint.ref} ")
             managed_flags = "" if file.endswith("xdc") else "-unmanaged "
@@ -108,30 +98,40 @@ class VivadoTcl:
 
         return tcl
 
-    def create(self, project_folder, ip_cache_path=None):
-        tcl = f"create_project {self.name} {to_tcl_path(project_folder)} -part {self.part}\n"
+    # pylint: disable=too-many-arguments
+    def create(self,
+               part,
+               modules,
+               top,
+               tcl_sources,
+               generics,
+               constraints,
+               project_folder,
+               ip_cache_path):
+        tcl = f"create_project {self.name} {to_tcl_path(project_folder)} -part {part}\n"
         tcl += "set_property target_language VHDL [current_project]\n"
         if ip_cache_path is not None:
             tcl += f"config_ip_cache -use_cache_location {to_tcl_path(ip_cache_path)}\n"
         # Default value for when opening project in GUI. Will be overwritten if using build() function.
         tcl += "set_param general.maxThreads 4\n"
         tcl += "\n"
-        tcl += self._add_modules()
+        tcl += self._add_modules(modules)
         tcl += "\n"
-        tcl += self._add_tcl_sources()
+        tcl += self._add_tcl_sources(tcl_sources)
         tcl += "\n"
-        tcl += self._add_generics()
+        tcl += self._add_generics(generics)
         tcl += "\n"
-        tcl += self._add_constraints()
+        all_constraints = self._iterate_constraints(modules, constraints)
+        tcl += self._add_constraints(all_constraints)
         tcl += "\n"
-        tcl += f"set_property top {self.top} [current_fileset]\n"
+        tcl += f"set_property top {top} [current_fileset]\n"
         tcl += "reorder_files -auto -disable_unused\n"
         tcl += "\n"
         tcl += "exit\n"
         return tcl
 
     @staticmethod
-    def _run(run, num_threads=1):
+    def _run(run, num_threads):
         tcl = "reset_run %s\n" % run
         tcl += "launch_runs %s -jobs %d\n" % (run, num_threads)
         tcl += "wait_on_run %s\n" % run
@@ -161,12 +161,12 @@ class VivadoTcl:
         tcl += "}\n"
         return tcl
 
-    def _synthesis(self, run, num_threads=1):
+    def _synthesis(self, run, num_threads):
         tcl = self._run(run, num_threads)
         tcl += self._check_clock_interaction(run)
         return tcl
 
-    def _impl(self, run, num_threads=1):
+    def _impl(self, run, num_threads):
         tcl = self._run(run, num_threads)
         tcl += self._check_timing(run)
         return tcl
@@ -182,13 +182,15 @@ class VivadoTcl:
         tcl = "write_hwdef -force %s\n" % hwdef_file
         return tcl
 
-    def build(self, project_file, output_path, synth_only, num_threads):
+    def build(self, project_file, generics, output_path, synth_only, num_threads):
         synth_run = "synth_1"
         impl_run = "impl_1"
         num_threads = min(num_threads, 8)  # Max value in Vivado 2017.4. set_param will give an error if higher number.
 
-        tcl = "open_project %s\n" % to_tcl_path(project_file)
-        tcl += "set_param general.maxThreads %i\n" % num_threads
+        tcl = f"open_project {to_tcl_path(project_file)}\n"
+        tcl += f"set_param general.maxThreads {num_threads}\n"
+        tcl += "\n"
+        tcl += self._add_generics(generics)
         tcl += "\n"
         tcl += self._synthesis(synth_run, num_threads)
         tcl += "\n"
