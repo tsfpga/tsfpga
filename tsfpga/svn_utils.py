@@ -6,6 +6,14 @@ import re
 import subprocess
 
 
+def get_svn_revision_information(cwd=None):
+    check_that_svn_commands_are_available(cwd)
+    result = "r" + get_svn_revision(cwd)
+    if svn_local_changes_are_present(cwd):
+        result += " (local changes present)"
+    return result
+
+
 def svn_commands_are_available(cwd=None):
     try:
         get_svn_revision(cwd)
