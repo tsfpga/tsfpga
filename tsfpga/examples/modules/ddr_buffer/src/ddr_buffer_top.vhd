@@ -48,14 +48,14 @@ architecture a of ddr_buffer_top is
 begin
 
   ------------------------------------------------------------------------------
-  axi_read_m2s.ar.addr <= reg_values_out(ddr_buffer_read_addr);
+  axi_read_m2s.ar.addr(reg_values_out(0)'range) <= reg_values_out(ddr_buffer_read_addr);
   axi_read_m2s.ar.len <= to_len(burst_length);
   axi_read_m2s.ar.size <= to_size(axi_width);
   axi_read_m2s.ar.burst <= axi_a_burst_incr;
 
 
   ------------------------------------------------------------------------------
-  axi_write_m2s.aw.addr <= reg_values_out(ddr_buffer_write_addr);
+  axi_write_m2s.aw.addr(reg_values_out(0)'range) <= reg_values_out(ddr_buffer_write_addr);
   axi_write_m2s.aw.len <= to_len(burst_length);
   axi_write_m2s.aw.size <= to_size(axi_width);
   axi_write_m2s.aw.burst <= axi_a_burst_incr;

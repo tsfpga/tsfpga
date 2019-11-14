@@ -55,17 +55,17 @@ begin
     subtype axi3_len_rng is integer range 3 downto 0;
 
     subtype m_gp0_id_rng is integer range 11 downto 0;
-    subtype m_gp0_strb_rng is integer range axi_w_strb_sz(m_gp0_data_width) - 1 downto 0;
+    subtype m_gp0_strb_rng is integer range axi_w_strb_width(m_gp0_data_width) - 1 downto 0;
 
     subtype s_hp0_id_rng is integer range 5 downto 0;
     subtype s_hp0_data_rng is integer range s_hp0_data_width - 1 downto 0;
-    subtype s_hp0_strb_rng is integer range axi_w_strb_sz(s_hp0_data_width) - 1 downto 0;
+    subtype s_hp0_strb_rng is integer range axi_w_strb_width(s_hp0_data_width) - 1 downto 0;
   begin
 
     ----------------------------------------------------------------------------
     block_design_inst : component block_design
       port map (
-        M_AXI_GP0_araddr => m_gp0_m2s.read.ar.addr,
+        M_AXI_GP0_araddr => m_gp0_m2s.read.ar.addr(m_gp0_addr_width - 1 downto 0),
         M_AXI_GP0_arburst => m_gp0_m2s.read.ar.burst,
         M_AXI_GP0_arcache => open,
         M_AXI_GP0_arid => m_gp0_m2s.read.ar.id(m_gp0_id_rng),
@@ -76,7 +76,7 @@ begin
         M_AXI_GP0_arready => m_gp0_s2m.read.ar.ready,
         M_AXI_GP0_arsize  => m_gp0_m2s.read.ar.size,
         M_AXI_GP0_arvalid => m_gp0_m2s.read.ar.valid,
-        M_AXI_GP0_awaddr => m_gp0_m2s.write.aw.addr,
+        M_AXI_GP0_awaddr => m_gp0_m2s.write.aw.addr(m_gp0_addr_width - 1 downto 0),
         M_AXI_GP0_awburst => m_gp0_m2s.write.aw.burst,
         M_AXI_GP0_awcache => open,
         M_AXI_GP0_awid => m_gp0_m2s.write.aw.id(m_gp0_id_rng),
@@ -128,8 +128,8 @@ begin
         S_AXI_HP0_awsize => s_hp0_m2s.write.aw.size,
         S_AXI_HP0_arprot => axi_a_prot_unprivileged or axi_a_prot_secure or axi_a_prot_data,
         S_AXI_HP0_awprot => axi_a_prot_unprivileged or axi_a_prot_secure or axi_a_prot_data,
-        S_AXI_HP0_araddr => s_hp0_m2s.read.ar.addr,
-        S_AXI_HP0_awaddr => s_hp0_m2s.write.aw.addr,
+        S_AXI_HP0_araddr => s_hp0_m2s.read.ar.addr(s_hp0_addr_width - 1 downto 0),
+        S_AXI_HP0_awaddr => s_hp0_m2s.write.aw.addr(s_hp0_addr_width - 1 downto 0),
         S_AXI_HP0_arcache => axi_a_cache_device_non_bufferable,
         S_AXI_HP0_arlen => s_hp0_m2s.read.ar.len(axi3_len_rng),
         S_AXI_HP0_arqos => (others => '0'), -- No QoS scheme

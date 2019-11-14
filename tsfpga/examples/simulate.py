@@ -31,6 +31,8 @@ def main():
     vunit_proj = VUnit.from_args(args=args)
     vunit_proj.add_verification_components()
     vunit_proj.add_random()
+    vunit_proj.enable_location_preprocessing()
+    vunit_proj.enable_check_preprocessing()
 
     if not args.vivado_skip:
         add_simlib(vunit_proj, args.temp_dir, args.simlib_compile)

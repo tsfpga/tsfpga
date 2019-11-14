@@ -31,20 +31,27 @@ begin
 
   main : process
     variable value : signed(5 - 1 downto 0);
+
+    -- Use this function to get addr vector constrained
+    function decode(addr : std_logic_vector(32 - 1 downto 0)) return integer is
+    begin
+      return decode(addr, addrs);
+    end function;
+
   begin
     test_runner_setup(runner, runner_cfg);
 
     if run("test_decode_happy_path") then
-      check_equal(decode(x"43C0_0000", addrs), 0);
-      check_equal(decode(x"43C0_1000", addrs), 1);
-      check_equal(decode(x"43C0_2000", addrs), 2);
-      check_equal(decode(x"43C0_2100", addrs), 3);
-      check_equal(decode(x"43C0_3000", addrs), 4);
-      check_equal(decode(x"43C0_4000", addrs), 5);
+      check_equal(decode(x"43C0_0000"), 0);
+      check_equal(decode(x"43C0_1000"), 1);
+      check_equal(decode(x"43C0_2000"), 2);
+      check_equal(decode(x"43C0_2100"), 3);
+      check_equal(decode(x"43C0_3000"), 4);
+      check_equal(decode(x"43C0_4000"), 5);
     elsif run("test_decode_fail") then
-      check_equal(decode(x"43C0_2200", addrs), addrs'length);
-      check_equal(decode(x"43C0_2300", addrs), addrs'length);
-      check_equal(decode(x"43C0_5000", addrs), addrs'length);
+      check_equal(decode(x"43C0_2200"), addrs'length);
+      check_equal(decode(x"43C0_2300"), addrs'length);
+      check_equal(decode(x"43C0_5000"), addrs'length);
     end if;
 
     test_runner_cleanup(runner);

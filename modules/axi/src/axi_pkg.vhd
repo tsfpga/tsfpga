@@ -22,7 +22,7 @@ package axi_pkg is
   -- A (Address Read and Address Write) channels
   ------------------------------------------------------------------------------
 
-  constant axi_a_addr_sz : integer := 32;
+  constant axi_a_addr_sz : integer := 64; -- Max value
   constant axi_a_len_sz : integer := 8; -- Number of transfers = len + 1
   constant axi_a_size_sz : integer := 3; -- Bytes per transfer = 2^size
 
@@ -95,22 +95,22 @@ package axi_pkg is
   -- W (Write Data) channels
   ------------------------------------------------------------------------------
 
-  constant axi_data_max_sz : integer := 128; -- Max value
-  constant axi_w_strb_max_sz : integer := axi_data_max_sz / 8; -- Max value
+  constant axi_data_sz : integer := 128; -- Max value
+  constant axi_w_strb_sz : integer := axi_data_sz / 8; -- Max value
 
   function to_strb(data_width : integer) return std_logic_vector;
 
   type axi_m2s_w_t is record
     valid : std_logic;
-    data : std_logic_vector(axi_data_max_sz - 1 downto 0);
-    strb : std_logic_vector(axi_w_strb_max_sz - 1 downto 0);
+    data : std_logic_vector(axi_data_sz - 1 downto 0);
+    strb : std_logic_vector(axi_w_strb_sz - 1 downto 0);
     last : std_logic;
     -- @note AXI3 has an id for each write beat as well
   end record;
 
   constant axi_m2s_w_init : axi_m2s_w_t := (valid => '0', data => (others => '-'), last => '0', others => (others => '0'));
 
-  function axi_w_strb_sz(data_width : integer)  return integer;
+  function axi_w_strb_width(data_width : integer)  return integer;
   function axi_m2s_w_sz(data_width : integer)  return integer;
   function to_slv(data : axi_m2s_w_t; data_width : integer) return std_logic_vector;
   function to_axi_m2s_w(data : std_logic_vector; data_width : integer) return axi_m2s_w_t;
@@ -164,7 +164,7 @@ package axi_pkg is
   type axi_s2m_r_t is record
     valid : std_logic;
     id : std_logic_vector(axi_id_sz - 1 downto 0);
-    data : std_logic_vector(axi_data_max_sz - 1 downto 0);
+    data : std_logic_vector(axi_data_sz - 1 downto 0);
     resp : std_logic_vector(axi_resp_sz - 1 downto 0);
     last : std_logic;
   end record;
@@ -306,20 +306,20 @@ package body axi_pkg is
   end function;
 
   function to_strb(data_width : integer) return std_logic_vector is
-    variable result : std_logic_vector(axi_w_strb_max_sz - 1 downto 0) := (others => '0');
+    variable result : std_logic_vector(axi_w_strb_sz - 1 downto 0) := (others => '0');
   begin
     result(data_width / 8 - 1 downto 0) := (others => '1');
     return result;
   end function;
 
-  function axi_w_strb_sz(data_width : integer)  return integer is
+  function axi_w_strb_width(data_width : integer)  return integer is
   begin
     return data_width / 8;
   end function;
 
   function axi_m2s_w_sz(data_width : integer) return integer is
   begin
-    return data_width + axi_w_strb_sz(data_width) + 1; -- Exluded member: valid
+    return data_width + axi_w_strb_width(data_width) + 1; -- Exluded member: valid
   end function;
 
   function to_slv(data : axi_m2s_w_t; data_width : integer) return std_logic_vector is
@@ -330,8 +330,8 @@ package body axi_pkg is
     hi := lo + data_width - 1;
     result(hi downto lo) := data.data(data_width - 1 downto 0);
     lo := hi + 1;
-    hi := lo + axi_w_strb_sz(data_width) - 1;
-    result(hi downto lo) := data.strb(axi_w_strb_sz(data_width) - 1 downto 0);
+    hi := lo + axi_w_strb_width(data_width) - 1;
+    result(hi downto lo) := data.strb(axi_w_strb_width(data_width) - 1 downto 0);
     lo := hi + 1;
     hi := lo;
     result(hi) := data.last;
@@ -347,8 +347,8 @@ package body axi_pkg is
     hi := lo + data_width - 1;
     result.data(data_width - 1 downto 0) := data(hi downto lo);
     lo := hi + 1;
-    hi := lo + axi_w_strb_sz(data_width) - 1;
-    result.strb(axi_w_strb_sz(data_width) - 1 downto 0) := data(hi downto lo);
+    hi := lo + axi_w_strb_width(data_width) - 1;
+    result.strb(axi_w_strb_width(data_width) - 1 downto 0) := data(hi downto lo);
     lo := hi + 1;
     hi := lo;
     result.last := data(hi);

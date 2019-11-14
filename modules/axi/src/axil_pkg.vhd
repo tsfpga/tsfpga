@@ -42,13 +42,13 @@ package axil_pkg is
   -- W (Write Data) channels
   ------------------------------------------------------------------------------
 
-  constant axil_data_max_sz : integer := 64; -- Max value
-  constant axil_w_strb_max_sz : integer := axil_data_max_sz / 8; -- Max value
+  constant axil_data_sz : integer := 64; -- Max value
+  constant axil_w_strb_sz : integer := axil_data_sz / 8; -- Max value
 
   type axil_m2s_w_t is record
     valid : std_logic;
-    data : std_logic_vector(axil_data_max_sz - 1 downto 0);
-    strb : std_logic_vector(axil_w_strb_max_sz - 1 downto 0);
+    data : std_logic_vector(axil_data_sz - 1 downto 0);
+    strb : std_logic_vector(axil_w_strb_sz - 1 downto 0);
   end record;
 
   constant axil_m2s_w_init : axil_m2s_w_t := (valid => '0', others => (others => '-'));
@@ -76,7 +76,7 @@ package axil_pkg is
 
   type axil_s2m_r_t is record
     valid : std_logic;
-    data : std_logic_vector(axil_data_max_sz - 1 downto 0);
+    data : std_logic_vector(axil_data_sz - 1 downto 0);
     resp : std_logic_vector(axi_resp_sz - 1 downto 0);
   end record;
 
@@ -169,7 +169,7 @@ package body axil_pkg is
   function axil_m2s_w_sz(data_width : integer) return integer is
   begin
     assert data_width = 32 or data_width = 64 report "AXI4-Lite protocol only supports data width 32 or 64";
-    return data_width + axi_w_strb_sz(data_width); -- Exluded member: valid
+    return data_width + axi_w_strb_width(data_width); -- Exluded member: valid
   end function;
 
   function to_slv(data : axil_m2s_w_t; data_width : integer) return std_logic_vector is
@@ -180,8 +180,8 @@ package body axil_pkg is
     hi := lo + data_width - 1;
     result(hi downto lo) := data.data(data_width - 1 downto 0);
     lo := hi + 1;
-    hi := lo + axi_w_strb_sz(data_width) - 1;
-    result(hi downto lo) := data.strb(axi_w_strb_sz(data_width) - 1 downto 0);
+    hi := lo + axi_w_strb_width(data_width) - 1;
+    result(hi downto lo) := data.strb(axi_w_strb_width(data_width) - 1 downto 0);
     assert hi = result'high;
     return result;
   end function;
@@ -194,8 +194,8 @@ package body axil_pkg is
     hi := lo + data_width - 1;
     result.data(data_width - 1 downto 0) := data(hi downto lo);
     lo := hi + 1;
-    hi := lo + axi_w_strb_sz(data_width) - 1;
-    result.strb(axi_w_strb_sz(data_width) - 1 downto 0) := data(hi downto lo);
+    hi := lo + axi_w_strb_width(data_width) - 1;
+    result.strb(axi_w_strb_width(data_width) - 1 downto 0) := data(hi downto lo);
     assert hi = data'high;
     return result;
   end function;
