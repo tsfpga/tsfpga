@@ -132,33 +132,57 @@ class VivadoTcl:
 
     @staticmethod
     def _run(run, num_threads):
-        tcl = "reset_run %s\n" % run
-        tcl += "launch_runs %s -jobs %d\n" % (run, num_threads)
+        tcl = f"reset_run {run}\n"
+        tcl += f"launch_runs {run} -jobs {num_threads}\n"
         tcl += "wait_on_run %s\n" % run
         tcl += "\n"
         tcl += "if {[get_property PROGRESS [get_runs %s]] != \"100%%\"} {\n" % run
-        tcl += "  puts \"ERROR: Run %s failed.\"\n" % run
+        tcl += f"  puts \"ERROR: Run {run} failed.\"\n"
         tcl += "  exit 1\n"
         tcl += "}\n"
         tcl += "\n"
-        tcl += "open_run %s\n" % run
+        tcl += f"open_run {run}\n"
+        tcl += f"set run_directory [get_property DIRECTORY [get_runs {run}]]\n"
         return tcl
 
-    @staticmethod
-    def _check_clock_interaction(run):
+    def _check_clock_interaction(self, run):
         tcl = r"if {[regexp {\(unsafe\)} [report_clock_interaction -delay_type min_max -return_string]]} "
         tcl += "{\n"
-        tcl += "  puts \"ERROR: Unhandled clock crossing in %s run.\"\n" % run
+        tcl += f"  puts \"ERROR: Unhandled clock crossing in {run} run. See reports in ${{run_directory}}\"\n"
+        tcl += "\n"
+        tcl += self._save_clock_interaction_report()
+        tcl += self._save_timing_report()
+        tcl += "\n"
         tcl += "  exit 1\n"
         tcl += "}\n"
         return tcl
 
     @staticmethod
-    def _check_timing(run):
+    def _save_clock_interaction_report():
+        tcl = "set output_file [file join ${run_directory} \"report_clock_interaction.txt\"]\n"
+        tcl += "report_clock_interaction -delay_type min_max -file ${output_file}\n"
+        return tcl
+
+    @staticmethod
+    def _save_timing_report():
+        tcl = "set output_file [file join ${run_directory} \"report_timing.txt\"]\n"
+        tcl += "report_timing_summary -file ${output_file}\n"
+        return tcl
+
+    def _check_timing(self, run):
         tcl = "if {[expr {[get_property SLACK [get_timing_paths -delay_type min_max]] < 0}]} {\n"
-        tcl += "  puts \"ERROR: Timing not OK after %s run.\"\n" % run
+        tcl += f"  puts \"ERROR: Timing not OK after {run} run. See reports in ${{run_directory}}\"\n"
+        tcl += "\n"
+        tcl += self._save_timing_report()
+        tcl += "\n"
         tcl += "  exit 1\n"
         tcl += "}\n"
+        return tcl
+
+    @staticmethod
+    def _report_utilization():
+        tcl = "set output_file [file join ${run_directory} \"report_hierarchical_utilization.txt\"]\n"
+        tcl += "report_utilization -hierarchical -hierarchical_depth 4 -file ${output_file}\n"
         return tcl
 
     def _synthesis(self, run, num_threads):
@@ -168,6 +192,8 @@ class VivadoTcl:
 
     def _impl(self, run, num_threads):
         tcl = self._run(run, num_threads)
+        tcl += self._report_utilization()
+        tcl += "\n"
         tcl += self._check_timing(run)
         return tcl
 
