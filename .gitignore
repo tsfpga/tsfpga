@@ -2,6 +2,8 @@
 
 *.pyc
 
+.svn
+
 .cache
 
 generated
