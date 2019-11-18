@@ -8,8 +8,9 @@ import sys
 PATH_TO_TSFPGA = abspath(join(dirname(__file__), "..", ".."))
 sys.path.append(PATH_TO_TSFPGA)
 import tsfpga
-from tsfpga.module import get_modules
 from tsfpga.examples import MODULE_FOLDERS, MODULE_FOLDERS_WITH_IP
+from tsfpga.module import get_modules
+from tsfpga.registers import get_default_registers
 from tsfpga.vivado_ip_cores import VivadoIpCores
 from tsfpga.vivado_simlib import VivadoSimlib
 
@@ -23,9 +24,9 @@ def main():
     args = arguments()
 
     if args.vivado_skip:
-        modules = get_modules(MODULE_FOLDERS)
+        modules = get_modules(MODULE_FOLDERS, default_registers=get_default_registers())
     else:
-        modules = get_modules(MODULE_FOLDERS_WITH_IP)
+        modules = get_modules(MODULE_FOLDERS_WITH_IP, default_registers=get_default_registers())
 
     vunit_proj = VUnit.from_args(args=args)
     vunit_proj.add_verification_components()

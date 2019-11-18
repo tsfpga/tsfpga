@@ -2,12 +2,13 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
+import copy
 from glob import glob
 from os.path import basename, isfile, join, exists, isdir
 
 from tsfpga.constraint import Constraint
 from tsfpga.hdl_file import HdlFile
-from tsfpga.registers import from_json, get_default_registers
+from tsfpga.registers import from_json
 from tsfpga.system_utils import load_python_module
 
 
@@ -18,10 +19,13 @@ class BaseModule:
     Files are gathered from a lot of different subfolders, to accomodate for projects having different catalog structure.
     """
 
-    def __init__(self, path, library_name_has_lib_suffix=False):
+    def __init__(self, path, library_name_has_lib_suffix=False, default_registers=None):
         self.path = path
         self.name = basename(self.path)
         self.library_name = self._get_library_name(self.name, library_name_has_lib_suffix)
+
+        # Note: Likely mutable object, need to create deep copy before using.
+        self._default_registers = default_registers
         self._registers = None
 
     @staticmethod
@@ -50,7 +54,7 @@ class BaseModule:
 
         json_file = join(self.path, self.name + "_regs.json")
         if exists(json_file):
-            self._registers = from_json(self.name, json_file, get_default_registers())
+            self._registers = from_json(self.name, json_file, copy.deepcopy(self._default_registers))
             return self._registers
 
     def _create_regs_vhdl_package(self):
@@ -159,20 +163,28 @@ def iterate_module_folders(modules_folders):
                 yield module_folder
 
 
-def get_module_object(path, name, library_name_has_lib_suffix):
+def get_module_object(path, name, library_name_has_lib_suffix, default_registers):
     module_file = join(path, "module_" + name + ".py")
 
     if exists(module_file):
-        return load_python_module(module_file).Module(path, library_name_has_lib_suffix)
-    return BaseModule(path, library_name_has_lib_suffix)
+        return load_python_module(module_file).Module(path,
+                                                      library_name_has_lib_suffix,
+                                                      default_registers)
+    return BaseModule(path, library_name_has_lib_suffix, default_registers)
 
 
-def get_modules(modules_folders, names=None, library_name_has_lib_suffix=False):
+def get_modules(modules_folders,
+                names=None,
+                library_name_has_lib_suffix=False,
+                default_registers=None):
     modules = []
 
     for module_folder in iterate_module_folders(modules_folders):
         module_name = basename(module_folder)
         if names is None or module_name in names:
-            modules.append(get_module_object(module_folder, module_name, library_name_has_lib_suffix))
+            modules.append(get_module_object(module_folder,
+                                             module_name,
+                                             library_name_has_lib_suffix,
+                                             default_registers))
 
     return modules

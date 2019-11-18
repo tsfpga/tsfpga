@@ -2,6 +2,7 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
+import copy
 from os.path import dirname, join
 import unittest
 import pytest
@@ -11,6 +12,17 @@ from tsfpga.registers import load_json_file, from_json, get_default_registers
 
 
 THIS_DIR = dirname(__file__)
+
+
+def test_deep_copy_of_register_actually_copies_everything():
+    registers = get_default_registers()
+    registers_copy = copy.deepcopy(registers)
+
+    registers_copy["config"].description = "Dummy"
+    registers_copy["config"].bits.append("dummy object")
+
+    assert registers["config"].description == "Configuration register."
+    assert len(registers["config"].bits) == 0
 
 
 class TestRegisters(unittest.TestCase):
