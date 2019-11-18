@@ -15,8 +15,6 @@ context vunit_lib.com_context;
 library osvvm;
 use osvvm.RandomPkg.all;
 
-library bfm;
-
 library math;
 use math.math_pkg.all;
 
