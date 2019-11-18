@@ -108,9 +108,12 @@ class VivadoProject:
         if not exists(project_file):
             raise ValueError("Project file does not exist in the specified location: " + project_file)
 
-        # Add the two dictionaries
-        all_generics = self.static_generics.copy()
-        all_generics.update(generics)
+        if self.static_generics is None:
+            all_generics = generics
+        else:
+            # Add the two dictionaries
+            all_generics = self.static_generics.copy()
+            all_generics.update(generics)
 
         build_vivado_project_tcl = join(project_path, "build_vivado_project.tcl")
         with open(build_vivado_project_tcl, "w") as file_handle:
