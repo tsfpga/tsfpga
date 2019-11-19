@@ -37,6 +37,8 @@ architecture a of axi_master is
   constant len : std_logic_vector(axi_write_m2s.aw.len'range) := std_logic_vector(to_unsigned(0, axi_write_m2s.aw.len'length));
   constant size : std_logic_vector(axi_write_m2s.aw.size'range) := std_logic_vector(to_unsigned(log2(data_length(bus_handle) / 8), axi_write_m2s.aw.size'length));
 
+  constant addr_length : integer := address_length(bus_handle);
+
   signal rdata, wdata : std_logic_vector(data_length(bus_handle) - 1 downto 0);
   signal wstrb : std_logic_vector(byte_enable_length(bus_handle) - 1 downto 0);
 
@@ -68,7 +70,7 @@ begin
 
     arready => axi_read_s2m.ar.ready,
     arvalid => axi_read_m2s.ar.valid,
-    araddr => axi_read_m2s.ar.addr,
+    araddr => axi_read_m2s.ar.addr(addr_length - 1 downto 0),
 
     rready => axi_read_m2s.r.ready,
     rvalid => axi_read_s2m.r.valid,
@@ -77,7 +79,7 @@ begin
 
     awready => axi_write_s2m.aw.ready,
     awvalid => axi_write_m2s.aw.valid,
-    awaddr => axi_write_m2s.aw.addr,
+    awaddr => axi_write_m2s.aw.addr(addr_length - 1 downto 0),
 
     wready => axi_write_s2m.w.ready,
     wvalid => axi_write_m2s.w.valid,
