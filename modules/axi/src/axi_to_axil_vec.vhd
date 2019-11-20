@@ -1,6 +1,8 @@
 -- -----------------------------------------------------------------------------
 -- Copyright (c) Lukas Vik. All rights reserved.
 -- -----------------------------------------------------------------------------
+-- Convenience wrapper for splitting and CDC'ing a register bus.
+-- -----------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -24,25 +26,22 @@ entity axi_to_axil_vec is
     axi_s2m : out axi_s2m_t;
 
     clk_axil_vec : in std_logic_vector(axil_slaves'range) := (others => '0'); -- Only need to set if different from axi_clk
-    axil_vec_m2s : out axil_m2s_vec_t(axil_slaves'range);
-    axil_vec_s2m : in axil_s2m_vec_t(axil_slaves'range)
+    axil_m2s_vec : out axil_m2s_vec_t(axil_slaves'range);
+    axil_s2m_vec : in axil_s2m_vec_t(axil_slaves'range)
   );
 end entity;
 
 architecture a of axi_to_axil_vec is
-  constant data_width : integer := 32;
 
   signal axil_m2s : axil_m2s_t;
   signal axil_s2m : axil_s2m_t;
 
-  signal axil_m2s_vec : axil_m2s_vec_t(axil_slaves'range);
-  signal axil_s2m_vec : axil_s2m_vec_t(axil_slaves'range);
 begin
 
   ------------------------------------------------------------------------------
-  axi_to_axil_inst : entity axi.axi_to_axil
+  axi_to_axil_inst : entity work.axi_to_axil
     generic map (
-      data_width => data_width
+      data_width => 32
     )
     port map (
       clk => clk_axi,
@@ -56,42 +55,19 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axil_mux_inst : entity axi.axil_mux
+  axil_to_vec_inst : entity work.axil_to_vec
     generic map (
-      slave_addrs => axil_slaves
+      axil_slaves => axil_slaves,
+      clocks_are_the_same => clocks_are_the_same
     )
     port map (
-      clk => clk_axi,
-
+      clk_axil => clk_axi,
       axil_m2s => axil_m2s,
       axil_s2m => axil_s2m,
 
+      clk_axil_vec => clk_axil_vec,
       axil_m2s_vec => axil_m2s_vec,
       axil_s2m_vec => axil_s2m_vec
     );
-
-
-    ------------------------------------------------------------------------------
-    clock_domain_crossing : for slave in axil_slaves'range generate
-      assign : if clocks_are_the_same(slave) generate
-        axil_vec_m2s(slave) <= axil_m2s_vec(slave);
-        axil_s2m_vec(slave) <= axil_vec_s2m(slave);
-
-      else generate
-        axil_cdc_inst : entity axi.axil_cdc
-          generic map (
-            data_width => data_width
-          )
-          port map (
-            clk_master => clk_axi,
-            master_m2s => axil_m2s_vec(slave),
-            master_s2m => axil_s2m_vec(slave),
-            --
-            clk_slave => clk_axil_vec(slave),
-            slave_m2s => axil_vec_m2s(slave),
-            slave_s2m => axil_vec_s2m(slave)
-          );
-      end generate;
-    end generate;
 
 end architecture;

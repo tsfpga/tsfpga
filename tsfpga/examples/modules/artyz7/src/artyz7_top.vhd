@@ -83,8 +83,8 @@ begin
 
         clk_axil_vec(ddr_buffer_regs_idx) => clk_s_hp0,
         clk_axil_vec(dummy_reg_slaves) => (dummy_reg_slaves => '0'),
-        axil_vec_m2s => regs_m2s,
-        axil_vec_s2m => regs_s2m
+        axil_m2s_vec => regs_m2s,
+        axil_s2m_vec => regs_s2m
       );
 
 

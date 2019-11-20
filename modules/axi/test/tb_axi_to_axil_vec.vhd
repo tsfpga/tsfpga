@@ -60,8 +60,8 @@ architecture tb of tb_axi_to_axil_vec is
   signal axi_m2s : axi_m2s_t;
   signal axi_s2m : axi_s2m_t;
 
-  signal axil_vec_m2s : axil_m2s_vec_t(axil_slaves'range);
-  signal axil_vec_s2m : axil_s2m_vec_t(axil_slaves'range);
+  signal axil_m2s_vec : axil_m2s_vec_t(axil_slaves'range);
+  signal axil_s2m_vec : axil_s2m_vec_t(axil_slaves'range);
 
   constant axi_master : bus_master_t := new_bus(data_length => 32, address_length => axi_m2s.read.ar.addr'length);
 
@@ -135,8 +135,8 @@ begin
     port map (
       clk => clk_axil_vec(slave),
 
-      axil_m2s => axil_vec_m2s(slave),
-      axil_s2m => axil_vec_s2m(slave)
+      axil_m2s => axil_m2s_vec(slave),
+      axil_s2m => axil_s2m_vec(slave)
     );
   end generate;
 
@@ -153,8 +153,8 @@ begin
     axi_s2m => axi_s2m,
 
     clk_axil_vec => clk_axil_vec,
-    axil_vec_m2s => axil_vec_m2s,
-    axil_vec_s2m => axil_vec_s2m
+    axil_m2s_vec => axil_m2s_vec,
+    axil_s2m_vec => axil_s2m_vec
   );
 
 end architecture;
