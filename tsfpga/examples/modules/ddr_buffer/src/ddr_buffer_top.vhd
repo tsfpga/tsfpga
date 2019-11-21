@@ -40,22 +40,22 @@ architecture a of ddr_buffer_top is
   type ctrl_state_t is (idle, wait_for_address_transactions, running);
   signal ctrl_state : ctrl_state_t := idle;
 
-  signal reg_values_in, reg_values_out : ddr_buffer_reg_values_t := (others => (others => '0'));
+  signal regs_up, regs_down : ddr_buffer_regs_t := ddr_buffer_regs_zero;
 
-  alias command_start is reg_values_out(ddr_buffer_command)(ddr_buffer_command_start);
-  alias status_idle is reg_values_in(ddr_buffer_status)(ddr_buffer_status_idle);
+  alias command_start is regs_down(ddr_buffer_command)(ddr_buffer_command_start);
+  alias status_idle is regs_up(ddr_buffer_status)(ddr_buffer_status_idle);
 
 begin
 
   ------------------------------------------------------------------------------
-  axi_read_m2s.ar.addr(reg_values_out(0)'range) <= reg_values_out(ddr_buffer_read_addr);
+  axi_read_m2s.ar.addr(regs_down(0)'range) <= regs_down(ddr_buffer_read_addr);
   axi_read_m2s.ar.len <= to_len(burst_length);
   axi_read_m2s.ar.size <= to_size(axi_width);
   axi_read_m2s.ar.burst <= axi_a_burst_incr;
 
 
   ------------------------------------------------------------------------------
-  axi_write_m2s.aw.addr(reg_values_out(0)'range) <= reg_values_out(ddr_buffer_write_addr);
+  axi_write_m2s.aw.addr(regs_down(0)'range) <= regs_down(ddr_buffer_write_addr);
   axi_write_m2s.aw.len <= to_len(burst_length);
   axi_write_m2s.aw.size <= to_size(axi_width);
   axi_write_m2s.aw.burst <= axi_a_burst_incr;
@@ -125,8 +125,8 @@ begin
       axil_m2s => regs_m2s,
       axil_s2m => regs_s2m,
 
-      reg_values_in => reg_values_in,
-      reg_values_out => reg_values_out
+      regs_up => regs_up,
+      regs_down => regs_down
     );
 
 end architecture;

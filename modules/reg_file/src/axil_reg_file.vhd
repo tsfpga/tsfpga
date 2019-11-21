@@ -28,8 +28,8 @@ entity axil_reg_file is
     axil_m2s : in axil_m2s_t;
     axil_s2m : out axil_s2m_t := (read => (ar => (ready => '1'), r => axil_s2m_r_init), write => (aw => (ready => '1'), w => axil_s2m_w_init, b => axi_s2m_b_init));
 
-    reg_values_in : in reg_vec_t(regs'range) := (others => (others => '0'));
-    reg_values_out : out reg_vec_t(regs'range);
+    regs_up : in reg_vec_t(regs'range) := (others => (others => '0'));
+    regs_down : out reg_vec_t(regs'range);
     reg_was_written : out std_logic_vector(regs'range) := (others => '0')
   );
 end entity;
@@ -45,7 +45,7 @@ architecture a of axil_reg_file is
 
 begin
 
-  reg_values_out <= reg_values;
+  regs_down <= reg_values;
 
 
   ------------------------------------------------------------------------------
@@ -92,7 +92,7 @@ begin
 
         axil_s2m.read.r.data <= (others => '0');
         if is_fabric_gives_value_type(regs(decoded_idx).reg_type) then
-          axil_s2m.read.r.data(reg_values(0)'range) <= reg_values_in(decoded_idx);
+          axil_s2m.read.r.data(reg_values(0)'range) <= regs_up(decoded_idx);
         else
           axil_s2m.read.r.data(reg_values(0)'range) <= reg_values(decoded_idx);
         end if;

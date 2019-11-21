@@ -41,9 +41,9 @@ class RegisterVhdlGenerator:
         vhdl += ",\n  ".join(register_definitions)
         vhdl += "\n  );\n"
         vhdl += "\n"
-        vhdl += f"  subtype {self.register_list.name}_reg_values_t is reg_vec_t({map_name}'range);\n"
-        vhdl += f"  constant {self.register_list.name}_reg_values_zero : \
-{self.register_list.name}_reg_values_t := (others => (others => '0'));\n"
+        vhdl += f"  subtype {self.register_list.name}_regs_t is reg_vec_t({map_name}'range);\n"
+        vhdl += f"  constant {self.register_list.name}_regs_zero : \
+{self.register_list.name}_regs_t := (others => (others => '0'));\n"
         vhdl += f"  subtype {self.register_list.name}_reg_was_written_t is std_logic_vector({map_name}'range);\n"
         return vhdl
 

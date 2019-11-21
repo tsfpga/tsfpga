@@ -60,8 +60,8 @@ architecture tb of tb_axil_reg_file is
   signal axil_m2s : axil_m2s_t;
   signal axil_s2m : axil_s2m_t;
 
-  signal reg_values_in : reg_vec_t(regs'range) := (others => (others => '0'));
-  signal reg_values_out : reg_vec_t(regs'range);
+  signal regs_up : reg_vec_t(regs'range) := (others => (others => '0'));
+  signal regs_down : reg_vec_t(regs'range);
   signal reg_was_written : std_logic_vector(regs'range);
 
   constant axi_master : bus_master_t := new_bus(data_length => data_width, address_length => axil_m2s.read.ar.addr'length);
@@ -89,7 +89,7 @@ begin
       end if;
 
       if is_fabric_gives_value_type(reg.reg_type) then
-        reg_values_in(reg.idx) <= fabric_data(reg.idx);
+        regs_up(reg.idx) <= fabric_data(reg.idx);
       end if;
     end procedure;
 
@@ -102,7 +102,7 @@ begin
         wait_for_write_to_go_through : while true loop
           if is_write_pulse_type(reg.reg_type) then
             -- The value that fabric gets should be zero all cycles except the one where the write happens
-            check_equal(reg_values_out(reg.idx), reg_zero);
+            check_equal(regs_down(reg.idx), reg_zero);
           end if;
 
           wait until rising_edge(clk);
@@ -112,13 +112,13 @@ begin
           end if;
         end loop;
 
-        check_equal(reg_values_out(reg.idx), bus_data(reg.idx));
+        check_equal(regs_down(reg.idx), bus_data(reg.idx));
       end if;
 
       if is_write_pulse_type(reg.reg_type) then
         wait until rising_edge(clk);
         -- The value that fabric gets should be zero all cycles except the one where the write happens
-        check_equal(reg_values_out(reg.idx), reg_zero);
+        check_equal(regs_down(reg.idx), reg_zero);
       end if;
 
       if is_read_type(reg.reg_type) then
@@ -172,8 +172,8 @@ begin
     axil_m2s => axil_m2s,
     axil_s2m => axil_s2m,
 
-    reg_values_in => reg_values_in,
-    reg_values_out => reg_values_out,
+    regs_up => regs_up,
+    regs_down => regs_down,
     reg_was_written => reg_was_written
   );
 
