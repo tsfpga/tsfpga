@@ -159,13 +159,13 @@ class VivadoTcl:
 
     @staticmethod
     def _save_clock_interaction_report():
-        tcl = "set output_file [file join ${run_directory} \"report_clock_interaction.txt\"]\n"
+        tcl = "set output_file [file join ${run_directory} \"clock_interaction.rpt\"]\n"
         tcl += "report_clock_interaction -delay_type min_max -file ${output_file}\n"
         return tcl
 
     @staticmethod
     def _save_timing_report():
-        tcl = "set output_file [file join ${run_directory} \"report_timing.txt\"]\n"
+        tcl = "set output_file [file join ${run_directory} \"timing_summary.rpt\"]\n"
         tcl += "report_timing_summary -file ${output_file}\n"
         return tcl
 
@@ -181,17 +181,21 @@ class VivadoTcl:
 
     @staticmethod
     def _report_utilization():
-        tcl = "set output_file [file join ${run_directory} \"report_hierarchical_utilization.txt\"]\n"
+        tcl = "set output_file [file join ${run_directory} \"hierarchical_utilization.rpt\"]\n"
         tcl += "report_utilization -hierarchical -hierarchical_depth 4 -file ${output_file}\n"
         return tcl
 
     def _synthesis(self, run, num_threads):
         tcl = self._run(run, num_threads)
+        tcl += "\n"
+        tcl += self._report_utilization()
+        tcl += "\n"
         tcl += self._check_clock_interaction(run)
         return tcl
 
     def _impl(self, run, num_threads):
         tcl = self._run(run, num_threads)
+        tcl += "\n"
         tcl += self._report_utilization()
         tcl += "\n"
         tcl += self._check_timing(run)
