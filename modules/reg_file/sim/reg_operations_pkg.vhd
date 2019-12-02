@@ -32,6 +32,20 @@ package reg_operations_pkg is
     value : out reg_t;
     base_address : in addr_t := (others => '0'));
 
+  procedure read_reg(
+    signal net : inout network_t;
+    bus_handle : in bus_master_t;
+    reg_index : in integer;
+    value : out integer;
+    base_address : in addr_t := (others => '0'));
+
+  procedure check_reg_equal(
+    signal net : inout network_t;
+    bus_handle : in bus_master_t;
+    reg_index : in integer;
+    expected : in integer;
+    base_address : in addr_t := (others => '0'));
+
   procedure write_reg(
     signal net : inout network_t;
     bus_handle : in bus_master_t;
@@ -78,6 +92,31 @@ package body reg_operations_pkg is
   begin
     address := base_address or std_logic_vector(to_unsigned(4 * reg_index, address'length));
     read_bus(net, bus_handle, address, value);
+  end procedure;
+
+  procedure read_reg(
+    signal net : inout network_t;
+    bus_handle : in bus_master_t;
+    reg_index : in integer;
+    value : out integer;
+    base_address : in addr_t := (others => '0')) is
+    variable slv_value : reg_t;
+  begin
+    read_reg(net, bus_handle, reg_index, slv_value);
+    value := to_integer(unsigned(slv_value));
+  end procedure;
+
+  procedure check_reg_equal(
+    signal net : inout network_t;
+    bus_handle : in bus_master_t;
+    reg_index : in integer;
+    expected : in integer;
+    base_address : in addr_t := (others => '0')) is
+    variable got : integer;
+  begin
+    read_reg(net, bus_handle, reg_index, got);
+    --check_equals(got, expected, "Reg index: " & to_string(reg_index));
+    check_equal(got, expected);
   end procedure;
 
   procedure write_reg(
