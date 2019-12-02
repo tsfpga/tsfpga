@@ -7,9 +7,9 @@ from shutil import copy2, make_archive
 import argparse
 import sys
 
-PATH_TO_TSFPGA = join(dirname(__file__), "..", "..")
+PATH_TO_TSFPGA = join(dirname(__file__), "..")
 sys.path.append(PATH_TO_TSFPGA)
-from tsfpga.examples import MODULE_FOLDERS
+import tsfpga
 from tsfpga.fpga_project_list import FPGAProjectList
 from tsfpga.system_utils import create_directory, delete
 
@@ -57,7 +57,8 @@ def arguments(projects):
 
 
 def main():
-    projects = FPGAProjectList(MODULE_FOLDERS)
+    module_folders = [tsfpga.TSFPGA_MODULES, join(dirname(__file__), "modules")]
+    projects = FPGAProjectList(module_folders)
     args = arguments(projects)
 
     if args.list:

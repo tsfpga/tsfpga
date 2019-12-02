@@ -5,16 +5,15 @@
 from os.path import join, dirname, abspath
 import sys
 
-PATH_TO_TSFPGA = abspath(join(dirname(__file__), "..", ".."))
+PATH_TO_TSFPGA = abspath(join(dirname(__file__), ".."))
 sys.path.append(PATH_TO_TSFPGA)
 import tsfpga
-from tsfpga.examples import MODULE_FOLDERS, MODULE_FOLDERS_WITH_IP
 from tsfpga.module import get_modules
 from tsfpga.registers import get_default_registers
 from tsfpga.vivado_ip_cores import VivadoIpCores
 from tsfpga.vivado_simlib import VivadoSimlib
 
-PATH_TO_VUNIT = abspath(join(tsfpga.ROOT, "..", "..", "vunit"))
+PATH_TO_VUNIT = abspath(join(tsfpga.ROOT, "..", "vunit"))
 sys.path.append(PATH_TO_VUNIT)
 from vunit import VUnitCLI, VUnit
 from vunit.vivado.vivado import create_compile_order_file, add_from_compile_order_file
@@ -23,10 +22,11 @@ from vunit.vivado.vivado import create_compile_order_file, add_from_compile_orde
 def main():
     args = arguments()
 
-    if args.vivado_skip:
-        modules = get_modules(MODULE_FOLDERS, default_registers=get_default_registers())
-    else:
-        modules = get_modules(MODULE_FOLDERS_WITH_IP, default_registers=get_default_registers())
+    module_folders = [tsfpga.TSFPGA_MODULES, join(dirname(__file__), "modules")]
+    if not args.vivado_skip:
+        # Can onl be used with a commercial simulator
+        module_folders.append(join(dirname(__file__), "modules_with_ip"))
+    modules = get_modules(module_folders, default_registers=get_default_registers())
 
     vunit_proj = VUnit.from_args(args=args)
     vunit_proj.add_verification_components()

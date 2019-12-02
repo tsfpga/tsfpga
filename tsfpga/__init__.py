@@ -12,6 +12,6 @@ from os.path import dirname, abspath, join
 
 THIS_DIR = dirname(__file__)
 ROOT = abspath(join(THIS_DIR, ".."))  # Root of the git repo
-TSFPGA_EXAMPLES = join(THIS_DIR, "examples")
+TSFPGA_EXAMPLES = join(ROOT, "examples")
 TSFPGA_MODULES = join(ROOT, "modules")
 TSFPGA_TCL = join(THIS_DIR, "tcl")
