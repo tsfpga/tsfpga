@@ -14,7 +14,11 @@ use axi.axi_pkg.all;
 
 library bfm;
 
+library reg_file;
+use reg_file.reg_operations_pkg.all;
+
 use work.top_level_sim_pkg.all;
+use work.artyz7_top_pkg.all;
 
 
 entity block_design_mock is
@@ -46,9 +50,14 @@ begin
 
 
   ------------------------------------------------------------------------------
+  -- If our register AXI master port used different dimensions than these
+  -- we would need to create another bus master, probably in top_level_sim_pkg.
+  assert m_gp0_data_width = data_length(regs_bus_master);
+  assert m_gp0_addr_width = address_length(regs_bus_master);
+
   axi_master_inst : entity bfm.axi_master
   generic map (
-    bus_handle => regs_axi_master
+    bus_handle => regs_bus_master
   )
   port map (
     clk => clk_m_gp0,

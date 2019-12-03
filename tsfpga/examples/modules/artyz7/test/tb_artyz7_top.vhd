@@ -58,27 +58,27 @@ begin
     rnd.InitSeed(rnd'instance_name);
 
     if run("test_register_read_write") then
-      write_bus(net, regs_axi_master, reg_slaves(0).addr or x"43c0_0000", beef);
-      check_bus(net, regs_axi_master, reg_slaves(0).addr or x"43c0_0000", beef);
+      write_reg(net, 0, beef, base_address => reg_slaves(0).addr or x"43c0_0000");
+      check_reg_equal(net, 0, beef, base_address => reg_slaves(0).addr or x"43c0_0000");
 
       -- Write different value to same register in another register map.
       -- Should be in another clock domain to verify CDC.
-      write_bus(net, regs_axi_master, reg_slaves(ddr_buffer_regs_idx).addr or x"43c0_0000", dead);
-      check_bus(net, regs_axi_master, reg_slaves(ddr_buffer_regs_idx).addr or x"43c0_0000", dead);
+      write_reg(net, 0, dead, base_address => reg_slaves(ddr_buffer_regs_idx).addr or x"43c0_0000");
+      check_reg_equal(net, 0, dead, base_address => reg_slaves(ddr_buffer_regs_idx).addr or x"43c0_0000");
 
-      check_bus(net, regs_axi_master, reg_slaves(0).addr or x"43c0_0000", beef);
+      check_reg_equal(net, 0, beef, base_address => reg_slaves(0).addr or x"43c0_0000");
 
     elsif run("test_ddr_buffer") then
       random_integer_array(rnd, memory_data, width=>burst_size_bytes, bits_per_word=>8);
 
       buf := write_integer_array(axi_memory, memory_data, "read data", permissions=>read_only);
-      write_reg(net, regs_axi_master, ddr_buffer_read_addr, base_address(buf), ddr_buffer_regs_base_addr);
+      write_reg(net, ddr_buffer_read_addr, base_address(buf), ddr_buffer_regs_base_addr);
 
       buf := set_expected_integer_array(axi_memory, memory_data, "write data", permissions=>write_only);
-      write_reg(net, regs_axi_master, ddr_buffer_write_addr, base_address(buf), ddr_buffer_regs_base_addr);
+      write_reg(net, ddr_buffer_write_addr, base_address(buf), ddr_buffer_regs_base_addr);
 
-      write_command(net, regs_axi_master, ddr_buffer_command_start, ddr_buffer_regs_base_addr);
-      wait_for_status_bit(net, regs_axi_master, ddr_buffer_status_idle, ddr_buffer_regs_base_addr);
+      write_command(net, ddr_buffer_command_start, ddr_buffer_regs_base_addr);
+      wait_for_status_bit(net, ddr_buffer_status_idle, ddr_buffer_regs_base_addr);
 
       check_expected_was_written(axi_memory);
     end if;

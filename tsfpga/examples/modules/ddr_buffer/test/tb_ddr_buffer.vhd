@@ -54,7 +54,6 @@ architecture tb of tb_ddr_buffer is
   constant burst_size_bytes : integer := burst_length * axi_width / 8;
 
   constant memory : memory_t := new_memory;
-  constant regs_master : bus_master_t := new_bus(data_length => 32, address_length => regs_m2s.read.ar.addr'length);
   constant axi_slave : axi_slave_t := new_axi_slave(address_fifo_depth => 1, memory => memory);
 
 begin
@@ -75,13 +74,13 @@ begin
     random_integer_array(rnd, memory_data, width=>burst_size_bytes, bits_per_word=>8);
 
     buf := write_integer_array(memory, memory_data, "read data", permissions=>read_only);
-    write_reg(net, regs_master, ddr_buffer_read_addr, base_address(buf));
+    write_reg(net, ddr_buffer_read_addr, base_address(buf));
 
     buf := set_expected_integer_array(memory, memory_data, "write data", permissions=>write_only);
-    write_reg(net, regs_master, ddr_buffer_write_addr, base_address(buf));
+    write_reg(net, ddr_buffer_write_addr, base_address(buf));
 
-    write_command(net, regs_master, ddr_buffer_command_start);
-    wait_for_status_bit(net, regs_master, ddr_buffer_status_idle);
+    write_command(net, ddr_buffer_command_start);
+    wait_for_status_bit(net, ddr_buffer_status_idle);
 
     check_expected_was_written(memory);
     test_runner_cleanup(runner);
@@ -91,7 +90,7 @@ begin
   ------------------------------------------------------------------------------
   axil_master_inst : entity bfm.axil_master
     generic map (
-      bus_handle => regs_master
+      bus_handle => regs_bus_master
     )
     port map (
       clk => clk_axi,
