@@ -57,7 +57,10 @@ class BaseModule:
             self._registers = from_json(self.name, json_file, copy.deepcopy(self._default_registers))
             return self._registers
 
-    def _create_regs_vhdl_package(self):
+    def create_regs_vhdl_package(self):
+        """
+        Create a VHDL package in this module with register definitions.
+        """
         if self.registers is not None:
             pkg_file = join(self.path, self.name + "_regs_pkg.vhd")
             self.registers.create_vhdl_package(pkg_file)
@@ -66,7 +69,7 @@ class BaseModule:
         """
         List of files that should be included in a synthesis project.
         """
-        self._create_regs_vhdl_package()
+        self.create_regs_vhdl_package()
 
         folders = [
             self.path,
@@ -90,7 +93,7 @@ class BaseModule:
         Note: test-files are considered private to the module and
         should never be used by other modules.
         """
-        self._create_regs_vhdl_package()
+        self.create_regs_vhdl_package()
 
         test_folders = [
             join(self.path, "sim"),
