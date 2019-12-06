@@ -7,6 +7,8 @@ from shutil import copy2, make_archive
 import argparse
 import sys
 
+from tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
+
 PATH_TO_TSFPGA = join(dirname(__file__), "..")
 sys.path.append(PATH_TO_TSFPGA)
 import tsfpga
@@ -15,14 +17,17 @@ from tsfpga.system_utils import create_directory, delete
 
 
 def arguments(projects):
-    parser = argparse.ArgumentParser("Build/synth/create an FPGA project",
+    parser = argparse.ArgumentParser("Create, synth and build an FPGA project",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("--list", "-l",
+    parser.add_argument("--list-only",
                         action="store_true",
                         help="list the available projects")
     parser.add_argument("--use-existing-project",
                         action="store_true",
                         help="build an existing project")
+    parser.add_argument("--generate-registers-only",
+                        action="store_true",
+                        help="only generate the register artifacts (C/C++ code, HTML, ...) for inspection")
     parser.add_argument("--create-only",
                         action="store_true",
                         help="only create a project")
@@ -30,10 +35,10 @@ def arguments(projects):
                         action="store_true",
                         help="only synthesize a project")
     parser.add_argument("--project-path",
-                        default=join(PATH_TO_TSFPGA, "generated", "projects"),
+                        default=join(TSFPGA_EXAMPLES_TEMP_DIR, "projects"),
                         help="the FPGA build project will be placed here")
     parser.add_argument("--ip-cache-path",
-                        default=join(PATH_TO_TSFPGA, "generated", "vivado_ip_cache"),
+                        default=join(TSFPGA_EXAMPLES_TEMP_DIR, "vivado_ip_cache"),
                         help="location of Vivado IP cache")
     parser.add_argument("--output-path",
                         required=False,
@@ -50,32 +55,41 @@ def arguments(projects):
                         help="only create release zip from an existing build result")
     args = parser.parse_args()
 
-    if not args.project_name and not args.list:
+    if not args.project_name and not (args.list_only or args.create_registers_only):
         sys.exit("Need to specify project name")
 
     return args
 
 
 def main():
-    module_folders = [tsfpga.TSFPGA_MODULES, join(dirname(__file__), "modules")]
-    projects = FPGAProjectList(module_folders)
+    projects = FPGAProjectList(tsfpga.ALL_TSFPGA_MODULES_FOLDERS)
     args = arguments(projects)
 
-    if args.list:
+    if args.list_only:
         print("Available projects:\n\n%s" % projects)
         return
 
     project = projects.get(args.project_name)
     project_path = abspath(join(args.project_path, project.name))
 
+    if args.generate_registers_only:
+        # Generate register output from all modules. Note that this is not used by the build
+        # flow or simulation flow, it is only for the user to inspect the artifacts.
+        generate_registers(get_tsfpga_modules(tsfpga.ALL_TSFPGA_MODULES_FOLDERS),
+                           join(TSFPGA_EXAMPLES_TEMP_DIR, "registers"))
+        return
+
     if not args.output_path:
         args.output_path = project_path
 
+    # Possible that the user wants to collect artifacts (bit file) from a previous build
     if not args.collect_artifacts_only:
         build(args, project, project_path)
 
-    if not args.create_only:
-        collect_artifacts(args, project)
+    if args.create_only:
+        return
+
+    collect_artifacts(project, args.output_path)
 
 
 def build(args, project, project_path):
@@ -92,24 +106,34 @@ def build(args, project, project_path):
                   num_threads=args.num_threads)
 
 
-def collect_artifacts(args, project):
-    version = "0.0.0.0"
+def generate_registers(modules, output_path):
+    print("Generating registers in " + abspath(output_path))
 
-    release_dir = create_directory(join(args.output_path, project.name + "-" + version), empty=True)
+    for module in modules:
+        # Create the package in the modules' folder as well, for completeness sake
+        module.create_regs_vhdl_package()
+
+        if module.registers is not None:
+            vhdl_path = create_directory(join(output_path, "vhdl"), empty=False)
+            module.registers.create_vhdl_package(vhdl_path)
+
+            module.registers.create_c_header(join(output_path, "c"))
+            module.registers.create_cpp_interface(join(output_path, "cpp", "include"))
+            module.registers.create_cpp_header(join(output_path, "cpp", "include"))
+            module.registers.create_cpp_implementation(join(output_path, "cpp"))
+            module.registers.create_html_page(join(output_path, "doc"))
+            module.registers.create_html_table(join(output_path, "doc", "tables"))
+
+
+def collect_artifacts(project, output_path):
+    version = "0.0.0.0"
+    release_dir = create_directory(join(output_path, project.name + "-" + version), empty=True)
     print("Creating release in " + abspath(release_dir) + ".zip")
 
-    for module in project.modules:
-        if module.registers is not None:
-            module.registers.create_c_header(join(release_dir, "c"))
-            module.registers.create_cpp_interface(join(release_dir, "cpp", "include"))
-            module.registers.create_cpp_header(join(release_dir, "cpp", "include"))
-            module.registers.create_cpp_implementation(join(release_dir, "cpp"))
-            module.registers.create_html_page(join(release_dir, "doc"))
-            module.registers.create_html_table(join(release_dir, "doc", "tables"))
-
-    copy2(join(args.output_path, project.name + ".bit"), release_dir)
-    copy2(join(args.output_path, project.name + ".bin"), release_dir)
-    copy2(join(args.output_path, project.name + ".hdf"), release_dir)
+    generate_registers(project.modules, join(release_dir, "registers"))
+    copy2(join(output_path, project.name + ".bit"), release_dir)
+    copy2(join(output_path, project.name + ".bin"), release_dir)
+    copy2(join(output_path, project.name + ".hdf"), release_dir)
 
     make_archive(release_dir, "zip", release_dir)
 

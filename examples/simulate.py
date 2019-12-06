@@ -5,14 +5,15 @@
 from os.path import join, dirname, abspath
 import sys
 
+
 PATH_TO_TSFPGA = abspath(join(dirname(__file__), ".."))
 sys.path.append(PATH_TO_TSFPGA)
 import tsfpga
 import tsfpga.create_vhdl_ls_config
-from tsfpga.module import get_modules
-from tsfpga.registers import get_default_registers
 from tsfpga.vivado_ip_cores import VivadoIpCores
 from tsfpga.vivado_simlib import VivadoSimlib
+
+from tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
 
 PATH_TO_VUNIT = abspath(join(tsfpga.ROOT, "..", "vunit"))
 sys.path.append(PATH_TO_VUNIT)
@@ -27,7 +28,7 @@ def main():
     if not args.vivado_skip:
         # Can only be used with a commercial simulator
         module_folders.append(tsfpga.TSFPGA_EXAMPLE_MODULES_WITH_IP)
-    modules = get_modules(module_folders, default_registers=get_default_registers())
+    modules = get_tsfpga_modules(module_folders)
 
     vunit_proj = VUnit.from_args(args=args)
     vunit_proj.add_verification_components()
@@ -57,10 +58,9 @@ def main():
 
 def arguments():
     cli = VUnitCLI()
-    default_temp_directory = join(PATH_TO_TSFPGA, "generated")
     cli.parser.add_argument("--temp-dir",
                             type=str,
-                            default=default_temp_directory,
+                            default=TSFPGA_EXAMPLES_TEMP_DIR,
                             help="where to place files needed for simulation flow")
     cli.parser.add_argument("--vivado-skip", action="store_true", help="skip all steps that require Vivado")
     cli.parser.add_argument("--ip-compile", action="store_true", help="force (re)compile of IP cores")
@@ -104,7 +104,7 @@ def create_vhdl_ls_configuration(vunit_proj):
     """
     tsfpga.create_vhdl_ls_config.create_configuration(
         PATH_TO_TSFPGA,
-        get_modules(tsfpga.ALL_TSFPGA_MODULES_FOLDERS),
+        get_tsfpga_modules(tsfpga.ALL_TSFPGA_MODULES_FOLDERS),
         vunit_proj)
 
 

@@ -6,9 +6,9 @@ from os.path import abspath, dirname, join
 
 import tsfpga
 from tsfpga.constraint import Constraint
-from tsfpga.module import get_modules
-from tsfpga.registers import get_default_registers
 from tsfpga.vivado_project import VivadoProject
+
+from tsfpga_example_env import get_tsfpga_modules
 
 THIS_DIR = abspath(dirname(__file__))
 THIS_FILE = abspath(__file__)
@@ -17,8 +17,7 @@ THIS_FILE = abspath(__file__)
 def get_projects():
     projects = []
 
-    modules_folders = [tsfpga.TSFPGA_MODULES, join(THIS_DIR, "..", "..")]
-    modules = get_modules(modules_folders, default_registers=get_default_registers())
+    modules = get_tsfpga_modules(tsfpga.ALL_TSFPGA_MODULES_FOLDERS)
     part = "xc7z020clg400-1"
 
     tcl_dir = join(THIS_DIR, "tcl")

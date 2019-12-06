@@ -38,14 +38,14 @@ class Registers:
     def __init__(self, register_list):
         self.register_list = register_list
 
-    def create_vhdl_package(self, output_file):
+    def create_vhdl_package(self, output_path):
         """
-        Assumes that the containing folder already exists.
+        Assumes that the output_path folder already exists.
         This assumption makes it slightly faster than the other functions that use create_file().
         Necessary since this one is often used in real time (before simulations, etc..) and not in
         one-off scenarios like the others (when making a release).
         """
-        with open(output_file, "w") as file_handle:
+        with open(join(output_path, self.register_list.name + "_regs_pkg.vhd"), "w") as file_handle:
             file_handle.write(RegisterVhdlGenerator(self.register_list).get_package())
 
     def create_c_header(self, output_path):

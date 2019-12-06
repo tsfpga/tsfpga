@@ -62,8 +62,7 @@ class BaseModule:
         Create a VHDL package in this module with register definitions.
         """
         if self.registers is not None:
-            pkg_file = join(self.path, self.name + "_regs_pkg.vhd")
-            self.registers.create_vhdl_package(pkg_file)
+            self.registers.create_vhdl_package(self.path)
 
     def get_synthesis_files(self):
         """
