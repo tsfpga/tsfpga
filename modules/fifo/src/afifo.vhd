@@ -29,22 +29,27 @@ entity afifo is
     depth : integer;
     almost_full_level : integer range 0 to depth := depth / 2;
     almost_empty_level : integer range 0 to depth := depth / 2
-    );
+  );
   port (
+    -- Read data interface
     clk_read : in std_logic;
-
     read_ready : in  std_logic;
     read_valid : out std_logic := '0';  -- '1' if FIFO is not empty
     read_data  : out std_logic_vector(width - 1 downto 0);
-    almost_empty : out std_logic;
-
+    -- Status signals on the read side. Updated one clock cycle after read transactions.
+    -- Updated "a while" after write transactions (not deterministic).
+    read_level : out integer range 0 to depth := 0;
+    read_almost_empty : out std_logic;
+    -- Write data interface
     clk_write : in std_logic;
-
     write_ready : out std_logic := '1';  -- '1' if FIFO is not full
     write_valid : in  std_logic;
     write_data  : in  std_logic_vector(width - 1 downto 0);
-    almost_full : out std_logic
-    );
+    -- Status signals on the write side. Updated one clock cycle after write transactions.
+    -- Updated "a while" after read transactions (not deterministic).
+    write_level : out integer range 0 to depth := 0;
+    write_almost_full : out std_logic
+  );
 end entity;
 
 architecture a of afifo is
@@ -53,15 +58,14 @@ architecture a of afifo is
   -- This is done to be able to detect if all words where written or read in
   -- one clock domain since during one cycle in the other domain
   signal read_addr, next_read_addr_reg, read_addr_reg, write_addr, read_addr_resync, write_addr_resync : integer range 0 to 2*depth - 1 := 0;
-  signal clk_write_level, clk_read_level : integer range 0 to depth := 0;
   signal read_data_int : std_logic_vector(read_data'range);
 begin
 
   assert is_power_of_two(depth) report "Depth must be a power of two, to make counter synchronization convenient";
 
-  write_ready <= not to_sl(clk_write_level > depth-1);
-  almost_full <= to_sl(clk_write_level > almost_full_level - 1);
-  almost_empty <= to_sl(clk_read_level < almost_empty_level);
+  write_ready <= not to_sl(write_level > depth-1);
+  write_almost_full <= to_sl(write_level > almost_full_level - 1);
+  read_almost_empty <= to_sl(read_level < almost_empty_level);
 
 
   ------------------------------------------------------------------------------
@@ -79,7 +83,7 @@ begin
   ------------------------------------------------------------------------------
   write_status : process
     variable next_write_addr : integer range 0 to 2*depth-1;
-    variable current_clk_write_level : integer range 0 to depth;
+    variable current_write_level : integer range 0 to depth;
   begin
     wait until rising_edge(clk_write);
 
@@ -87,15 +91,15 @@ begin
 
     if read_addr_resync / depth = 1 and write_addr / depth = 0 then
       -- Write address is below read address
-      current_clk_write_level := (2*depth + write_addr - read_addr_resync);
+      current_write_level := (2*depth + write_addr - read_addr_resync);
     else
-      current_clk_write_level := (write_addr - read_addr_resync);
+      current_write_level := (write_addr - read_addr_resync);
     end if;
     if write_ready and write_valid then
-      clk_write_level <= current_clk_write_level  + 1;
+      write_level <= current_write_level  + 1;
       write_addr <= next_write_addr;
     else--if write_addr /= read_addr_resync then
-      clk_write_level <= current_clk_write_level;
+      write_level <= current_write_level;
     end if;
   end process;
 
@@ -123,7 +127,7 @@ begin
       read_valid <= '0';
     end if;
 
-    clk_read_level <= (write_addr_resync - read_addr) mod depth;
+    read_level <= (write_addr_resync - read_addr) mod depth;
   end process;
 
 

@@ -27,6 +27,7 @@ entity fifo is
   );
   port (
     clk : in std_logic;
+    level : out integer range 0 to depth := 0;
 
     read_ready : in std_logic;
     read_valid : out std_logic := '0'; -- '1' if FIFO is not empty
@@ -42,7 +43,6 @@ end entity;
 
 architecture a of fifo is
 
-  signal level : integer range 0 to depth := 0;
   signal read_addr, read_addr_plus_1_reg, read_addr_reg, write_addr : integer range 0 to depth - 1 := 0;
 
 begin

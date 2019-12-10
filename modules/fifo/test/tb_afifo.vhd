@@ -226,14 +226,14 @@ begin
       read_ready   => read_ready,
       read_valid   => read_valid,
       read_data    => read_data,
-      almost_empty => almost_empty,
+      read_almost_empty => almost_empty,
 
       clk_write => clk_write,
 
       write_ready => write_ready,
       write_valid => write_valid,
       write_data  => write_data,
-      almost_full => almost_full
+      write_almost_full => almost_full
       );
 
 end architecture;
