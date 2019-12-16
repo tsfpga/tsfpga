@@ -8,6 +8,7 @@ import sys
 PATH_TO_TSFPGA = abspath(join(dirname(__file__), ".."))
 sys.path.append(PATH_TO_TSFPGA)
 import tsfpga
+import tsfpga.create_vhdl_ls_config
 from tsfpga.module import get_modules
 from tsfpga.registers import get_default_registers
 from tsfpga.vivado_ip_cores import VivadoIpCores
@@ -22,10 +23,10 @@ from vunit.vivado.vivado import create_compile_order_file, add_from_compile_orde
 def main():
     args = arguments()
 
-    module_folders = [tsfpga.TSFPGA_MODULES, join(dirname(__file__), "modules")]
+    module_folders = [tsfpga.TSFPGA_MODULES, tsfpga.TSFPGA_EXAMPLE_MODULES]
     if not args.vivado_skip:
-        # Can onl be used with a commercial simulator
-        module_folders.append(join(dirname(__file__), "modules_with_ip"))
+        # Can only be used with a commercial simulator
+        module_folders.append(tsfpga.TSFPGA_EXAMPLE_MODULES_WITH_IP)
     modules = get_modules(module_folders, default_registers=get_default_registers())
 
     vunit_proj = VUnit.from_args(args=args)
@@ -33,6 +34,8 @@ def main():
     vunit_proj.add_random()
     vunit_proj.enable_location_preprocessing()
     vunit_proj.enable_check_preprocessing()
+
+    create_vhdl_ls_configuration(vunit_proj)
 
     if not args.vivado_skip:
         add_simlib(vunit_proj, args.temp_dir, args.simlib_compile)
@@ -91,6 +94,18 @@ def generate_ip_core_compile_order(modules, temp_dir, force_generate):
         create_compile_order_file(vivado_ip_cores.vivado_project_file, vivado_ip_cores.compile_order_file)
 
     return vivado_ip_cores.compile_order_file
+
+
+def create_vhdl_ls_configuration(vunit_proj):
+    """
+    Create config for vhdl_ls. Granted this might no be the "correct" place for this functionality.
+    But since the call is somewhat quick (~10 ms), and simulate.py is run "often" it seems an
+    appropriate place in order to always have an up-to-date vhdl_ls config.
+    """
+    tsfpga.create_vhdl_ls_config.create_configuration(
+        PATH_TO_TSFPGA,
+        get_modules(tsfpga.ALL_TSFPGA_MODULES_FOLDERS),
+        vunit_proj)
 
 
 if __name__ == "__main__":
