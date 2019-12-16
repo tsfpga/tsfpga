@@ -23,5 +23,6 @@ pytest:
 
 simulate:
   script:
+    - python3 -m pip install toml > /dev/null
     - ghdl --version
     - python3 examples/simulate.py --num-threads 4 --vivado-skip

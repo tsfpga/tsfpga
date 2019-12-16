@@ -6,12 +6,8 @@
 Create a vhdl_ls.toml configuration suitable for usage in VS Code.
 """
 
-import argparse
 from os.path import abspath, dirname, join
 import toml
-
-import tsfpga
-from tsfpga.module import get_modules
 
 
 THIS_DIR = dirname(__file__)

@@ -25,10 +25,11 @@ See e.g. [resync_counter.tcl](modules/resync/scoped_constraints/resync_counter.t
 In order to use the package you will need
 * Python 3.6+
 * [VUnit](https://vunit.github.io/) in your `PYTHONPATH`, with a functioning VHDL simulator in your `PATH`
+* Python package: `toml`
 
 To run the bundled tests you must have
 * Python packages: `pytest`, `pylint`, `pycodestyle`
-* Xilinx Vivado 2019.1+ in your `PATH`
+* Xilinx Vivado 2018.3+ in your `PATH`
 * GCC in your `PATH`
 
 # Main contributors
