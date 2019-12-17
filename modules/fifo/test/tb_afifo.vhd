@@ -27,13 +27,14 @@ architecture tb of tb_afifo is
 
   signal clk_read, clk_write : std_logic := '0';
 
-  signal read_ready, read_valid    : std_logic                            := '0';
-  signal write_ready, write_valid  : std_logic                            := '0';
-  signal almost_empty, almost_full : std_logic                            := '0';
+  signal read_ready, read_valid    : std_logic := '0';
+  signal write_ready, write_valid  : std_logic := '0';
   signal read_data, write_data     : std_logic_vector(width - 1 downto 0) := (others => '0');
 
+  signal read_level, write_level : integer;
+  signal read_almost_empty, write_almost_full : std_logic := '0';
+
   signal start_stimuli, writer_done, reader_done : boolean   := false;
-  signal stop_read_clk, stop_write_clk           : std_logic := '0';
 
   constant num_stimuli : integer := 50 * depth;
   signal write_max_jitter, read_max_jitter : integer := 0;
@@ -46,19 +47,23 @@ architecture tb of tb_afifo is
 begin
 
   test_runner_watchdog(runner, 2 ms);
-  clk_read  <= (not clk_read) or stop_read_clk   after 2 ns;
-  clk_write <= (not clk_write) or stop_write_clk after 3 ns;
+  clk_read  <= not clk_read after 2 ns;
+  clk_write <= not clk_write after 3 ns;
 
 
   ------------------------------------------------------------------------------
   main : process
-    procedure run_test is
+    procedure start is
     begin
       start_stimuli <= true;
       wait until rising_edge(clk_read);
       wait until rising_edge(clk_write);
       start_stimuli <= false;
+    end procedure;
 
+    procedure run_test is
+    begin
+      start;
       wait until writer_done and reader_done;
     end procedure;
 
@@ -85,48 +90,53 @@ begin
       check_relation(has_gone_full_times > 200, "Got " & to_string(has_gone_full_times));
       check_true(is_empty(data_queue));
 
-    elsif run("very_strange_clocks") then
-      start_stimuli <= true;
-      wait until rising_edge(clk_read);
-      wait until rising_edge(clk_write);
-      start_stimuli <= false;
+    elsif run("levels_as_well_as_empty_and_full_flags_are_updated") then
+      -- Check empty status
+      check_equal(write_almost_full, '0');
+      check_equal(write_level, 0);
+      check_equal(read_almost_empty, '1');
+      check_equal(read_level, 0);
 
-      -- Stop read clock and wait until full
-      stop_read_clk <= '1';
-      wait until write_ready = '0';
-      -- Wait one cycle so address is clocked into cdc
-      wait until rising_edge(clk_write);
-      stop_read_clk <= '0';
-      wait until rising_edge(clk_write);
-      wait until rising_edge(clk_read);
-      wait until rising_edge(clk_read);
-      wait until rising_edge(clk_read);
-      check_equal(read_valid, '1');
+      start;
 
-      -- Stop write clock and read all data
-      stop_write_clk <= '1';
-      wait until read_valid = '0';
-      -- Wait one cycle so address is clocked into cdc
-      wait until rising_edge(clk_read);
-      stop_write_clk <= '0';
-      wait until rising_edge(clk_read);
-      wait until rising_edge(clk_write);
-      wait until rising_edge(clk_write);
-      wait until rising_edge(clk_write);
-      check_equal(write_ready, '1');
+      -- Fill the FIFO
+      read_max_jitter <= 5000;
+      write_max_jitter <= 0;
+      for delay in 1 to 5000 loop
+        wait until rising_edge(clk_read);
+        wait until rising_edge(clk_write);
+      end loop;
 
-      wait until writer_done and reader_done;
+      -- Check full status
+      check_equal(write_almost_full, '1');
+      check_equal(write_level, depth);
+      check_equal(read_almost_empty, '0');
+      check_equal(read_level, depth);
+
+      -- Empty the FIFO
+      read_max_jitter <= 0;
+      write_max_jitter <= 5000;
+      for delay in 1 to 5000 loop
+        wait until rising_edge(clk_read);
+        wait until rising_edge(clk_write);
+      end loop;
+
+      -- Check empty status
+      check_equal(write_almost_full, '0');
+      check_equal(write_level, 0);
+      check_equal(read_almost_empty, '1');
+      check_equal(read_level, 0);
 
     elsif run("check_init_state") then
       check_equal(read_valid, '0');
       check_equal(write_ready, '1');
-      check_equal(almost_full, '0');
-      check_equal(almost_empty, '1');
-      wait until read_valid = '1' or write_ready = '0' or almost_full = '1' or almost_empty = '0' for 1 us;
+      check_equal(write_almost_full, '0');
+      check_equal(read_almost_empty, '1');
+      wait until read_valid = '1' or write_ready = '0' or write_almost_full = '1' or read_almost_empty = '0' for 1 us;
       check_equal(read_valid, '0');
       check_equal(write_ready, '1');
-      check_equal(almost_full, '0');
-      check_equal(almost_empty, '1');
+      check_equal(write_almost_full, '0');
+      check_equal(read_almost_empty, '1');
     end if;
 
     test_runner_cleanup(runner);
@@ -219,21 +229,23 @@ begin
       depth              => depth,
       almost_full_level  => depth - 1,
       almost_empty_level => 1
-      )
+    )
     port map (
       clk_read => clk_read,
-
       read_ready   => read_ready,
       read_valid   => read_valid,
       read_data    => read_data,
-      read_almost_empty => almost_empty,
-
+      --
+      read_level => read_level,
+      read_almost_empty => read_almost_empty,
+      --
       clk_write => clk_write,
-
       write_ready => write_ready,
       write_valid => write_valid,
       write_data  => write_data,
-      write_almost_full => almost_full
-      );
+      --
+      write_level => write_level,
+      write_almost_full => write_almost_full
+    );
 
 end architecture;

@@ -55,15 +55,16 @@ end entity;
 architecture a of afifo is
 
   -- Make address one bit wider than is needed to point into the memory.
-  -- This is done to be able to detect if all words where written or read in
-  -- one clock domain since during one cycle in the other domain
-  signal read_addr, next_read_addr_reg, read_addr_reg, write_addr, read_addr_resync, write_addr_resync : integer range 0 to 2*depth - 1 := 0;
+  -- This is done to be able to detect if all words were written or read in
+  -- one clock domain during one cycle in the other domain
+  subtype fifo_addr_t is integer range 0 to 2 * depth - 1;
+  signal read_addr, next_read_addr_reg, read_addr_reg, write_addr, read_addr_resync, write_addr_resync : fifo_addr_t := 0;
   signal read_data_int : std_logic_vector(read_data'range);
 begin
 
   assert is_power_of_two(depth) report "Depth must be a power of two, to make counter synchronization convenient";
 
-  write_ready <= not to_sl(write_level > depth-1);
+  write_ready <= not to_sl(write_level > depth - 1);
   write_almost_full <= to_sl(write_level > almost_full_level - 1);
   read_almost_empty <= to_sl(read_level < almost_empty_level);
 
@@ -74,7 +75,7 @@ begin
     wait until rising_edge(clk_read);
 
     read_addr_reg <= read_addr;
-    next_read_addr_reg <= (read_addr + 1) mod (2*depth);
+    next_read_addr_reg <= (read_addr + 1) mod (2 * depth);
   end process;
 
   read_addr <= next_read_addr_reg when (read_ready and read_valid) = '1' else read_addr_reg;
@@ -82,23 +83,18 @@ begin
 
   ------------------------------------------------------------------------------
   write_status : process
-    variable next_write_addr : integer range 0 to 2*depth-1;
+    variable next_write_addr : fifo_addr_t;
     variable current_write_level : integer range 0 to depth;
   begin
     wait until rising_edge(clk_write);
 
-    next_write_addr := (write_addr + 1) mod (2*depth);
+    next_write_addr := (write_addr + 1) mod (2 * depth);
+    current_write_level := (write_addr - read_addr_resync) mod (2 * depth);
 
-    if read_addr_resync / depth = 1 and write_addr / depth = 0 then
-      -- Write address is below read address
-      current_write_level := (2*depth + write_addr - read_addr_resync);
-    else
-      current_write_level := (write_addr - read_addr_resync);
-    end if;
     if write_ready and write_valid then
       write_level <= current_write_level  + 1;
       write_addr <= next_write_addr;
-    else--if write_addr /= read_addr_resync then
+    else
       write_level <= current_write_level;
     end if;
   end process;
@@ -107,7 +103,7 @@ begin
   ------------------------------------------------------------------------------
   resync_write_addr : entity resync.resync_counter
     generic map (
-      counter_max => 2*depth-1)
+      counter_max => fifo_addr_t'high)
     port map (
       clk_in      => clk_write,
       counter_in  => write_addr,
@@ -127,14 +123,14 @@ begin
       read_valid <= '0';
     end if;
 
-    read_level <= (write_addr_resync - read_addr) mod depth;
+    read_level <= (write_addr_resync - read_addr) mod (2 * depth);
   end process;
 
 
   ------------------------------------------------------------------------------
   resync_read_addr : entity resync.resync_counter
     generic map (
-      counter_max => 2*depth-1)
+      counter_max => fifo_addr_t'high)
     port map (
       clk_in      => clk_read,
       counter_in  => read_addr,
