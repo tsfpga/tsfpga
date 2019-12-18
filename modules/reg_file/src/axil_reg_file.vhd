@@ -50,7 +50,7 @@ begin
 
   ------------------------------------------------------------------------------
   read : block
-    type state_t is (ar, stall, r);
+    type state_t is (ar, r);
     signal state : state_t := ar;
     signal decoded_idx : decoded_idx_t := invalid_addr;
   begin
@@ -63,15 +63,14 @@ begin
           if axil_m2s.read.ar.valid and axil_s2m.read.ar.ready then
             axil_s2m.read.ar.ready <= '0';
             decoded_idx <= decode(axil_m2s.read.ar.addr, addr_and_mask_vec);
-            state <= stall;
+
+            -- Read address decode is pipelined one step, can not set r axil_s2m.read.r.valid
+            -- until next clock cycle.
+            state <= r;
           end if;
 
-        when stall =>
-          -- Read address decode is pipelined one step, so we need to stall one cycle.
-          axil_s2m.read.r.valid <= '1';
-          state <= r;
-
         when r =>
+          axil_s2m.read.r.valid <= '1';
           if axil_m2s.read.r.ready and axil_s2m.read.r.valid then
             axil_s2m.read.ar.ready <= '1';
             axil_s2m.read.r.valid <= '0';
@@ -90,7 +89,6 @@ begin
       else
         axil_s2m.read.r.resp <= axi_resp_okay;
 
-        axil_s2m.read.r.data <= (others => '0');
         if is_fabric_gives_value_type(regs(decoded_idx).reg_type) then
           axil_s2m.read.r.data(reg_values(0)'range) <= regs_up(decoded_idx);
         else
