@@ -59,7 +59,7 @@ class VivadoProject:
         # Lists are imutable. Since we assign and modify this one we have to copy it.
         self.tcl_sources = [] if tcl_sources_from_user is None else tcl_sources_from_user.copy()
         self.tcl_sources += [
-            join(TSFPGA_TCL, "vivado_settings.tcl"),
+            join(TSFPGA_TCL, "vivado_directive_settings.tcl"),
             join(TSFPGA_TCL, "vivado_messages.tcl"),
         ]
 

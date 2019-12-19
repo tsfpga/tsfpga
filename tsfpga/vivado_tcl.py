@@ -15,8 +15,7 @@ class VivadoTcl:
     def __init__(self, name,):
         self.name = name
 
-    @staticmethod
-    def _add_modules(modules):
+    def _add_modules(self, modules):
         tcl = ""
         for module in modules:
             vhdl_files = []
@@ -44,8 +43,7 @@ class VivadoTcl:
             if verilog_source_files:
                 tcl += "read_verilog {%s}\n" % " ".join(verilog_source_files)
 
-            for tcl_source_file in module.get_ip_core_files():
-                tcl += "source -notrace %s\n" % to_tcl_path(tcl_source_file)
+            tcl += self._add_tcl_sources(module.get_ip_core_files())
         return tcl
 
     @staticmethod
@@ -112,8 +110,10 @@ class VivadoTcl:
         tcl += "set_property target_language VHDL [current_project]\n"
         if ip_cache_path is not None:
             tcl += f"config_ip_cache -use_cache_location {to_tcl_path(ip_cache_path)}\n"
-        # Default value for when opening project in GUI. Will be overwritten if using build() function.
+        # Default value for when opening project in GUI.
+        # Will be overwritten if using build() function.
         tcl += "set_param general.maxThreads 4\n"
+        tcl += "set_property STEPS.WRITE_BITSTREAM.ARGS.BIN_FILE true [get_runs impl_1]\n"
         tcl += "\n"
         tcl += self._add_modules(modules)
         tcl += "\n"

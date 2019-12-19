@@ -30,6 +30,7 @@ def test_building_artyz7_project(tmpdir):
     ]
     run_command(cmd)
     assert exists(join(tmpdir, "artyz7.bit"))
+    assert exists(join(tmpdir, "artyz7.bin"))
     assert exists(join(tmpdir, "artyz7.hdf"))
 
 
@@ -140,3 +141,4 @@ create_clock -period 5 -name clk_out [get_ports clk_out]
     def test_build_project(self):
         self.proj.build(self.project_folder, self.project_folder)
         assert exists(join(self.project_folder, self.proj.name + ".bit"))
+        assert exists(join(self.project_folder, self.proj.name + ".bin"))
