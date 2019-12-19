@@ -19,7 +19,7 @@ Focus has been placed on modularization and enabling a high level of scalability
 * Source code centric project structure: Constraints, IP cores, test configurations, build projects, etc. are handled "close" to the source code.
 See e.g. [resync_counter.tcl](modules/resync/scoped_constraints/resync_counter.tcl), [mult_u12_u5.tcl](examples/modules_with_ip/module_with_ip_cores/ip_cores/mult_u12_u5.tcl), [module_math.py](modules/math/module_math.py), [project_artyz7.py](examples/modules/artyz7/project_artyz7.py).
 * Generic AXI-Lite register file, with automatic register generation from JSON: VHDL package, C header, C++ class, HTML documentation. See e.g. [ddr_buffer_regs.json](examples/modules/ddr_buffer/ddr_buffer_regs.json) and [build.py](examples/build.py#L100).
-* Automatic (re)compile of simlib and IP core simulation files. See e.g. [vivado_simlib.py](tsfpga/vivado_simlib.py), [vivado_ip_cores.py](tsfpga/vivado_ip_cores.py) and [simulate.py](examples/simulate.py#L34).
+* Automatic (re)compile of simlib and IP core simulation files. See e.g. [vivado_simlib.py](tsfpga/vivado_simlib.py), [vivado_ip_cores.py](tsfpga/vivado_ip_cores.py) and [simulate.py](examples/simulate.py#L41).
 
 ### Requirements
 In order to use the package you will need
