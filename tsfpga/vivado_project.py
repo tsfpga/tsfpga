@@ -136,11 +136,24 @@ class VivadoProject:
         Override this function in a child class if you wish to do something useful with it.
         """
 
-    def build(self, project_path, output_path=None, generics=None, synth_only=False, num_threads=12):
+    def build(self,
+              project_path,
+              output_path=None,
+              generics=None,
+              synth_only=False,
+              num_threads=12,
+              **pre_and_post_build_parameters):
         """
         Build a Vivado project
 
-        :param generics: Use for run-time generics. Values that can change between each build of this project.
+        :param project_path: A path containing a Vivado project.
+        :param output_path: Results (bit file, ...) will be placed here.
+        :param generics: Use for run-time generics. Values that can change
+                         between each build of this project.
+        :param synth_only: Run synthesis and then stop.
+        :param num_threads: Number of parallell threads to use during run.
+        :param pre_and_post_build_parameters: Additional parameters that will be
+                                              sent to pre- and post build (kwargs).
         """
         if output_path is None and not synth_only:
             raise ValueError("Must specify output_path when doing an implementation run")
@@ -150,11 +163,16 @@ class VivadoProject:
         else:
             print(f"Building Vivado project in {project_path}, placing artifacts in {output_path}")
 
-        self.pre_build(project_path=project_path,
-                       output_path=output_path,
-                       generics=generics,
-                       synth_only=synth_only,
-                       num_threads=num_threads)
+        # Send all available information to pre- and post build
+        pre_and_post_build_parameters.update(
+            project_path=project_path,
+            output_path=output_path,
+            generics=generics,
+            synth_only=synth_only,
+            num_threads=num_threads
+        )
+
+        self.pre_build(**pre_and_post_build_parameters)
 
         build_vivado_project_tcl = self._build_tcl(project_path=project_path,
                                                    output_path=output_path,
@@ -163,11 +181,7 @@ class VivadoProject:
                                                    num_threads=num_threads)
         run_vivado_tcl(self.vivado_path, build_vivado_project_tcl)
 
-        self.post_build(project_path=project_path,
-                        output_path=output_path,
-                        generics=generics,
-                        synth_only=synth_only,
-                        num_threads=num_threads)
+        self.post_build(**pre_and_post_build_parameters)
 
     def __str__(self):
         result = str(self.__class__.__name__)
