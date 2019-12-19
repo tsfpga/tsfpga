@@ -58,6 +58,8 @@ begin
     begin
       wait until rising_edge(clk);
 
+      axil_s2m.read.r.valid <= '0';
+
       case state is
         when ar =>
           if axil_m2s.read.ar.valid and axil_s2m.read.ar.ready then
@@ -72,8 +74,8 @@ begin
         when r =>
           axil_s2m.read.r.valid <= '1';
           if axil_m2s.read.r.ready and axil_s2m.read.r.valid then
-            axil_s2m.read.ar.ready <= '1';
             axil_s2m.read.r.valid <= '0';
+            axil_s2m.read.ar.ready <= '1';
             state <= ar;
           end if;
       end case;
