@@ -6,7 +6,7 @@
 class BuildStepTclHook:
 
     """
-    Represent a TCL file that shall be used a hook in one of the build steps.
+    Represent a TCL file that shall be used as hook in one of the build steps.
     """
 
     def __init__(self, tcl_file, hook_step):
@@ -18,7 +18,7 @@ class BuildStepTclHook:
         self.hook_step = hook_step
 
     @property
-    def is_synth_not_impl(self):
+    def step_is_synth(self):
         return "synth" in self.hook_step.lower()
 
     def __str__(self):

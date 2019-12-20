@@ -15,6 +15,43 @@ class VivadoTcl:
     def __init__(self, name,):
         self.name = name
 
+    # pylint: disable=too-many-arguments
+    def create(self,
+               project_folder,
+               modules,
+               part,
+               top,
+               generics=None,
+               constraints=None,
+               tcl_sources=None,
+               build_step_hooks=None,
+               ip_cache_path=None):
+        tcl = f"create_project {self.name} {to_tcl_path(project_folder)} -part {part}\n"
+        tcl += "set_property target_language VHDL [current_project]\n"
+        if ip_cache_path is not None:
+            tcl += f"config_ip_cache -use_cache_location {to_tcl_path(ip_cache_path)}\n"
+        # Default value for when opening project in GUI.
+        # Will be overwritten if using build() function.
+        tcl += "set_param general.maxThreads 4\n"
+        tcl += "set_property STEPS.WRITE_BITSTREAM.ARGS.BIN_FILE true [get_runs impl_1]\n"
+        tcl += "\n"
+        tcl += self._add_modules(modules)
+        tcl += "\n"
+        tcl += self._add_generics(generics)
+        tcl += "\n"
+        all_constraints = self._iterate_constraints(modules, constraints)
+        tcl += self._add_constraints(all_constraints)
+        tcl += "\n"
+        tcl += self._add_tcl_sources(tcl_sources)
+        tcl += "\n"
+        tcl += self._add_build_step_hooks(build_step_hooks)
+        tcl += "\n"
+        tcl += f"set_property top {top} [current_fileset]\n"
+        tcl += "reorder_files -auto -disable_unused\n"
+        tcl += "\n"
+        tcl += "exit\n"
+        return tcl
+
     def _add_modules(self, modules):
         tcl = ""
         for module in modules:
@@ -73,7 +110,7 @@ class VivadoTcl:
             # Decoding the run name like this is not very nice for the case were the user has defined
             # many runs. But to solve that we would need to make structural changes, which I'm not sure about
             # at the moment. Will solve when there is an actual use case.
-            run = "synth_1" if build_step_hook.is_synth_not_impl else "impl_1"
+            run = "synth_1" if build_step_hook.step_is_synth else "impl_1"
             tcl += f"set_property {build_step_hook.hook_step} {to_tcl_path(build_step_hook.tcl_file)} [get_runs {run}]\n"
         return tcl
 
@@ -121,40 +158,24 @@ class VivadoTcl:
 
         return tcl
 
-    # pylint: disable=too-many-arguments
-    def create(self,
-               project_folder,
-               modules,
-               part,
-               top,
-               generics=None,
-               constraints=None,
-               tcl_sources=None,
-               build_step_hooks=None,
-               ip_cache_path=None):
-        tcl = f"create_project {self.name} {to_tcl_path(project_folder)} -part {part}\n"
-        tcl += "set_property target_language VHDL [current_project]\n"
-        if ip_cache_path is not None:
-            tcl += f"config_ip_cache -use_cache_location {to_tcl_path(ip_cache_path)}\n"
-        # Default value for when opening project in GUI.
-        # Will be overwritten if using build() function.
-        tcl += "set_param general.maxThreads 4\n"
-        tcl += "set_property STEPS.WRITE_BITSTREAM.ARGS.BIN_FILE true [get_runs impl_1]\n"
-        tcl += "\n"
-        tcl += self._add_modules(modules)
+    def build(self, project_file, output_path, num_threads, generics=None, synth_only=False):
+        synth_run = "synth_1"
+        impl_run = "impl_1"
+        num_threads = min(num_threads, 8)  # Max value in Vivado 2017.4. set_param will give an error if higher number.
+
+        tcl = f"open_project {to_tcl_path(project_file)}\n"
+        tcl += f"set_param general.maxThreads {num_threads}\n"
         tcl += "\n"
         tcl += self._add_generics(generics)
         tcl += "\n"
-        all_constraints = self._iterate_constraints(modules, constraints)
-        tcl += self._add_constraints(all_constraints)
+        tcl += self._synthesis(synth_run, num_threads)
         tcl += "\n"
-        tcl += self._add_tcl_sources(tcl_sources)
-        tcl += "\n"
-        tcl += self._add_build_step_hooks(build_step_hooks)
-        tcl += "\n"
-        tcl += f"set_property top {top} [current_fileset]\n"
-        tcl += "reorder_files -auto -disable_unused\n"
-        tcl += "\n"
+        if not synth_only:
+            tcl += self._impl(impl_run, num_threads)
+            tcl += "\n"
+            tcl += self._bitstream(output_path)
+            tcl += self._hwdef(output_path)
+            tcl += "\n"
         tcl += "exit\n"
         return tcl
 
@@ -238,25 +259,4 @@ class VivadoTcl:
         # Vivado will append the wrong file ending (.hwdef) unless specified
         hwdef_file = to_tcl_path(join(output_path, self.name + ".hdf"))
         tcl = "write_hwdef -force %s\n" % hwdef_file
-        return tcl
-
-    def build(self, project_file, generics, output_path, synth_only, num_threads):
-        synth_run = "synth_1"
-        impl_run = "impl_1"
-        num_threads = min(num_threads, 8)  # Max value in Vivado 2017.4. set_param will give an error if higher number.
-
-        tcl = f"open_project {to_tcl_path(project_file)}\n"
-        tcl += f"set_param general.maxThreads {num_threads}\n"
-        tcl += "\n"
-        tcl += self._add_generics(generics)
-        tcl += "\n"
-        tcl += self._synthesis(synth_run, num_threads)
-        tcl += "\n"
-        if not synth_only:
-            tcl += self._impl(impl_run, num_threads)
-            tcl += "\n"
-            tcl += self._bitstream(output_path)
-            tcl += self._hwdef(output_path)
-            tcl += "\n"
-        tcl += "exit\n"
         return tcl

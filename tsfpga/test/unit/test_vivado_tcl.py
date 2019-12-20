@@ -172,8 +172,6 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
         tcl = self.tcl.build(
             project_file="",
             output_path="",
-            generics=None,
-            synth_only=False,
             num_threads=num_threads
         )
         assert "set_param general.maxThreads %d" % num_threads in tcl
@@ -182,11 +180,10 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
 
     def test_runtime_generics(self):
         generics = dict(dummy=True)
-        tcl = self.tcl.create(
-            project_folder="",
-            modules=self.modules,
-            part="part",
-            top="",
+        tcl = self.tcl.build(
+            project_file="",
+            output_path="",
+            num_threads=0,
             generics=generics
         )
         expected = "\nset_property generic {dummy=1'b1} [current_fileset]\n"

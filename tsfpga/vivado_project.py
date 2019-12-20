@@ -127,9 +127,9 @@ class VivadoProject:
             file_handle.write(self.tcl.build(
                 project_file=project_file,
                 output_path=output_path,
+                num_threads=num_threads,
                 generics=all_generics,
-                synth_only=synth_only,
-                num_threads=num_threads))
+                synth_only=synth_only))
 
         return build_vivado_project_tcl
 
