@@ -2,10 +2,12 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import dirname, join
-import unittest
 from collections import OrderedDict
+from os.path import dirname, join
+import pytest
+import unittest
 
+from tsfpga.build_step_tcl_hook import BuildStepTclHook
 from tsfpga.module import get_modules
 from tsfpga.system_utils import create_file, delete
 from tsfpga.vivado_tcl import VivadoTcl
@@ -41,42 +43,30 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
 
     def test_only_synthesis_files_added_to_create_project_tcl(self):
         tcl = self.tcl.create(
-            part="",
-            modules=self.modules,
-            top="",
-            tcl_sources=[],
-            generics=None,
-            constraints=[],
             project_folder="",
-            ip_cache_path="",
+            modules=self.modules,
+            part="",
+            top=""
         )
         assert self.a_vhd in tcl and self.b_v in tcl
         assert self.tb_a_vhd not in tcl and "tb_a.vhd" not in tcl
 
     def test_different_hdl_file_types(self):
         tcl = self.tcl.create(
-            part="",
-            modules=self.modules,
-            top="",
-            tcl_sources=[],
-            generics=None,
-            constraints=[],
             project_folder="",
-            ip_cache_path="",
+            modules=self.modules,
+            part="",
+            top=""
         )
         assert f"read_vhdl -library apa -vhdl2008 {{{self.a_vhd}}}" in tcl
         assert f"read_verilog {{{self.b_v}}}" in tcl
 
     def test_empty_library_not_in_create_project_tcl(self):
         tcl = self.tcl.create(
-            part="",
-            modules=self.modules,
-            top="",
-            tcl_sources=[],
-            generics=None,
-            constraints=[],
             project_folder="",
-            ip_cache_path="",
+            modules=self.modules,
+            part="",
+            top=""
         )
         assert "zebra" not in tcl
 
@@ -86,28 +76,21 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
         generics = OrderedDict(enable=True, disable=False, integer=123, slv="4'b0101")
 
         tcl = self.tcl.create(
-            part="part",
-            modules=self.modules,
-            top="",
-            tcl_sources=[],
-            generics=generics,
-            constraints=[],
             project_folder="",
-            ip_cache_path="",
+            modules=self.modules,
+            part="part",
+            top="",
+            generics=generics
         )
         expected = "\nset_property generic {enable=1'b1 disable=1'b0 integer=123 slv=4'b0101} [current_fileset]\n"
         assert expected in tcl
 
     def test_constraints(self):
         tcl = self.tcl.create(
-            part="part",
-            modules=self.modules,
-            top="",
-            tcl_sources=[],
-            generics=None,
-            constraints=[],
             project_folder="",
-            ip_cache_path="",
+            modules=self.modules,
+            part="part",
+            top=""
         )
 
         expected = "\nread_xdc -ref a %s\n" % self.a_xdc
@@ -118,61 +101,81 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
     def test_multiple_tcl_sources(self):
         extra_tcl_sources = ["dummy.tcl", "files.tcl"]
         tcl = self.tcl.create(
-            part="part",
-            modules=self.modules,
-            top="",
-            tcl_sources=extra_tcl_sources,
-            generics=None,
-            constraints=[],
             project_folder="",
-            ip_cache_path="",
+            modules=self.modules,
+            part="part",
+            top="",
+            tcl_sources=extra_tcl_sources
         )
 
         for filename in extra_tcl_sources:
             assert f"\nsource -notrace {to_tcl_path(filename)}\n" in tcl
 
+    def test_build_step_hooks(self):
+        dummy = BuildStepTclHook("dummy.tcl", "STEPS.SYNTH_DESIGN.TCL.PRE")
+        files = BuildStepTclHook("files.tcl", "STEPS.ROUTE_DESIGN.TCL.PRE")
+        tcl = self.tcl.create(
+            project_folder="",
+            modules=self.modules,
+            part="part",
+            top="",
+            build_step_hooks=[dummy, files]
+        )
+
+        assert f"\nset_property STEPS.SYNTH_DESIGN.TCL.PRE {to_tcl_path(dummy.tcl_file)} [get_runs synth_1]\n" in tcl
+        assert f"\nset_property STEPS.ROUTE_DESIGN.TCL.PRE {to_tcl_path(files.tcl_file)} [get_runs impl_1]\n" in tcl
+
+    def test_build_step_hooks_with_same_hook_step_should_raise_exception(self):
+        dummy = BuildStepTclHook("dummy.tcl", "STEPS.SYNTH_DESIGN.TCL.PRE")
+        files = BuildStepTclHook("files.tcl", "STEPS.SYNTH_DESIGN.TCL.PRE")
+        with pytest.raises(ValueError) as exception_info:
+            self.tcl.create(
+                project_folder="",
+                modules=self.modules,
+                part="part",
+                top="",
+                build_step_hooks=[dummy, files]
+            )
+
+        assert str(exception_info.value).startswith("Multiple TCL sources for hook step STEPS.SYNTH_DESIGN.TCL.PRE")
+
     def test_ip_core_files(self):
         tcl = self.tcl.create(
-            part="part",
-            modules=self.modules,
-            top="",
-            tcl_sources=[],
-            generics=None,
-            constraints=[],
             project_folder="",
-            ip_cache_path="",
+            modules=self.modules,
+            part="part",
+            top=""
         )
         assert "\nsource -notrace %s\n" % self.c_tcl in tcl
 
     def test_ip_cache_location(self):
         tcl = self.tcl.create(
-            part="part",
-            modules=self.modules,
-            top="",
-            tcl_sources=[],
-            generics=None,
-            constraints=[],
             project_folder="",
-            ip_cache_path=None,
+            modules=self.modules,
+            part="part",
+            top="",
         )
         assert "config_ip_cache" not in tcl
 
         ip_cache_location = to_tcl_path(THIS_DIR)
         tcl = self.tcl.create(
-            part="part",
-            modules=self.modules,
-            top="",
-            tcl_sources=[],
-            generics=None,
-            constraints=[],
             project_folder="",
-            ip_cache_path=ip_cache_location,
+            modules=self.modules,
+            part="part",
+            top="",
+            ip_cache_path=ip_cache_location
         )
         assert f"\nconfig_ip_cache -use_cache_location {ip_cache_location}\n" in tcl
 
     def test_set_multiple_threads(self):
         num_threads = 2
-        tcl = self.tcl.build(project_file="", output_path="", generics=None, synth_only=False, num_threads=num_threads)
+        tcl = self.tcl.build(
+            project_file="",
+            output_path="",
+            generics=None,
+            synth_only=False,
+            num_threads=num_threads
+        )
         assert "set_param general.maxThreads %d" % num_threads in tcl
         assert "launch_runs synth_1 -jobs %d" % num_threads in tcl
         assert "launch_runs impl_1 -jobs %d" % num_threads in tcl
@@ -180,14 +183,11 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
     def test_runtime_generics(self):
         generics = dict(dummy=True)
         tcl = self.tcl.create(
-            part="part",
-            modules=self.modules,
-            top="",
-            tcl_sources=[],
-            generics=generics,
-            constraints=[],
             project_folder="",
-            ip_cache_path="",
+            modules=self.modules,
+            part="part",
+            top="",
+            generics=generics
         )
         expected = "\nset_property generic {dummy=1'b1} [current_fileset]\n"
         assert expected in tcl

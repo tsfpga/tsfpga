@@ -22,26 +22,32 @@ class VivadoProject:
             modules,
             part,
             top=None,
-            tcl_sources=None,
             generics=None,
-            vivado_path=None,
             constraints=None,
+            tcl_sources=None,
+            build_step_hooks=None,
+            vivado_path=None,
             defined_at=None,
     ):
         """
-        :param top: Name of top level entity
-        :param tcl_sources: Block design, settings, etc.
+        :param name: Project name string.
+        :param modules: A list of Module objects.
+        :param part: Part identification string.
+        :param top: Name of top level entity.
         :param generics: A dict with generics values. Use for static generics that
                          do not change between multiple builds of this project.
-        :param vivado_path: Default: Whatever version/location is in PATH will be used
-        :param constraints: A list of TCL files
-        :param defined_at: To get a useful --list message
+        :param constraints: A list of Constraint objects.
+        :param tcl_sources: A list of paths to TCL files. Use for e.g. block design, settings, etc.
+        :param build_step_hooks: A list of BuildStepTclHook objects.
+        :param vivado_path: Default: Whatever version/location is in PATH will be used.
+        :param defined_at: Optional string. To get a useful --list message.
         """
         self.name = name
         self.modules = modules
         self.part = part
         self.static_generics = generics
         self.defined_at = defined_at
+        self.build_step_hooks = build_step_hooks
 
         self.top = name + "_top" if top is None else top
         self.vivado_path = "vivado" if vivado_path is None else vivado_path
@@ -53,7 +59,7 @@ class VivadoProject:
 
     def _setup_constraints_list(self, constraints_from_user):
         # Lists are imutable. Since we assign and modify this one we have to copy it.
-        self.constraints = [] if constraints_from_user is None else constraints_from_user.copy()
+        self.constraints = None if constraints_from_user is None else constraints_from_user.copy()
 
     def _setup_tcl_sources_list(self, tcl_sources_from_user):
         # Lists are imutable. Since we assign and modify this one we have to copy it.
@@ -80,13 +86,14 @@ class VivadoProject:
         create_vivado_project_tcl = join(project_path, "create_vivado_project.tcl")
         with open(create_vivado_project_tcl, "w") as file_handle:
             file_handle.write(self.tcl.create(
-                part=self.part,
+                project_folder=project_path,
                 modules=self.modules,
+                part=self.part,
                 top=self.top,
-                tcl_sources=self.tcl_sources,
                 generics=self.static_generics,
                 constraints=self.constraints,
-                project_folder=project_path,
+                tcl_sources=self.tcl_sources,
+                build_step_hooks=self.build_step_hooks,
                 ip_cache_path=ip_cache_path,
             ))
 
@@ -148,8 +155,8 @@ class VivadoProject:
 
         :param project_path: A path containing a Vivado project.
         :param output_path: Results (bit file, ...) will be placed here.
-        :param generics: Use for run-time generics. Values that can change
-                         between each build of this project.
+        :param generics: A dict with generics values. Use for run-time generics.
+                         Values that can change between each build of this project.
         :param synth_only: Run synthesis and then stop.
         :param num_threads: Number of parallell threads to use during run.
         :param pre_and_post_build_parameters: Additional parameters that will be

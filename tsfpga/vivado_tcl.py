@@ -48,9 +48,33 @@ class VivadoTcl:
 
     @staticmethod
     def _add_tcl_sources(tcl_sources):
+        if tcl_sources is None:
+            return ""
+
         tcl = ""
         for tcl_source_file in tcl_sources:
             tcl += "source -notrace %s\n" % to_tcl_path(tcl_source_file)
+        return tcl
+
+    @staticmethod
+    def _add_build_step_hooks(build_step_hooks):
+        if build_step_hooks is None:
+            return ""
+
+        tcl = ""
+        hook_steps_added = set()
+        for build_step_hook in build_step_hooks:
+            if build_step_hook.hook_step in hook_steps_added:
+                message = f"Multiple TCL sources for hook step {build_step_hook.hook_step}: " + \
+                    " ".join(map(str, build_step_hooks))
+                raise ValueError(message)
+            hook_steps_added.add(build_step_hook.hook_step)
+
+            # Decoding the run name like this is not very nice for the case were the user has defined
+            # many runs. But to solve that we would need to make structural changes, which I'm not sure about
+            # at the moment. Will solve when there is an actual use case.
+            run = "synth_1" if build_step_hook.is_synth_not_impl else "impl_1"
+            tcl += f"set_property {build_step_hook.hook_step} {to_tcl_path(build_step_hook.tcl_file)} [get_runs {run}]\n"
         return tcl
 
     @staticmethod
@@ -75,8 +99,9 @@ class VivadoTcl:
             for constraint in module.get_scoped_constraints():
                 yield constraint
 
-        for constraint in constraints:
-            yield constraint
+        if constraints is not None:
+            for constraint in constraints:
+                yield constraint
 
     @staticmethod
     def _add_constraints(constraints):
@@ -98,14 +123,15 @@ class VivadoTcl:
 
     # pylint: disable=too-many-arguments
     def create(self,
-               part,
-               modules,
-               top,
-               tcl_sources,
-               generics,
-               constraints,
                project_folder,
-               ip_cache_path):
+               modules,
+               part,
+               top,
+               generics=None,
+               constraints=None,
+               tcl_sources=None,
+               build_step_hooks=None,
+               ip_cache_path=None):
         tcl = f"create_project {self.name} {to_tcl_path(project_folder)} -part {part}\n"
         tcl += "set_property target_language VHDL [current_project]\n"
         if ip_cache_path is not None:
@@ -117,12 +143,14 @@ class VivadoTcl:
         tcl += "\n"
         tcl += self._add_modules(modules)
         tcl += "\n"
-        tcl += self._add_tcl_sources(tcl_sources)
-        tcl += "\n"
         tcl += self._add_generics(generics)
         tcl += "\n"
         all_constraints = self._iterate_constraints(modules, constraints)
         tcl += self._add_constraints(all_constraints)
+        tcl += "\n"
+        tcl += self._add_tcl_sources(tcl_sources)
+        tcl += "\n"
+        tcl += self._add_build_step_hooks(build_step_hooks)
         tcl += "\n"
         tcl += f"set_property top {top} [current_fileset]\n"
         tcl += "reorder_files -auto -disable_unused\n"
