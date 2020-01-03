@@ -2,23 +2,14 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-"""
-Create a vhdl_ls.toml configuration suitable for usage in VS Code.
-"""
-
 from os.path import abspath, dirname, join
 import toml
 
-
-THIS_DIR = dirname(__file__)
 
 
 def create_configuration(output_path, modules=None, vunit_proj=None):
     """
     Create a configuration file (vhdl_ls.toml) for the rust_hdl VHDL Language Server.
-    Does not include IEEE or STD libraries, which are needed for standalone operation of
-    vhdl_ls. However the main use case is for the Visual Studio Code extension "VHDL LS"
-    which already includes these libraries.
 
     Can be used with modules and an "empty" VUnit project, or with a complete VUnit
     project with all user files added.
