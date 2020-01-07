@@ -55,7 +55,7 @@ def arguments(projects):
                         help="only create release zip from an existing build result")
     args = parser.parse_args()
 
-    if not args.project_name and not (args.list_only or args.create_registers_only):
+    if not args.project_name and not (args.list_only or args.generate_registers_only):
         sys.exit("Need to specify project name")
 
     return args
