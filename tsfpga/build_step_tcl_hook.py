@@ -23,6 +23,4 @@ class BuildStepTclHook:
 
     def __str__(self):
         result = str(self.__class__.__name__) + ":"
-        if self.hook_step is None:
-            return result + self.tcl_file
         return result + f"{self.hook_step}:{self.tcl_file}"
