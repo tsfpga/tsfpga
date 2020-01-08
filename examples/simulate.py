@@ -2,7 +2,8 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import join, dirname, abspath
+from os.path import abspath, dirname, join
+from shutil import which
 import sys
 
 
@@ -102,10 +103,12 @@ def create_vhdl_ls_configuration(vunit_proj):
     But since the call is somewhat quick (~10 ms), and simulate.py is run "often" it seems an
     appropriate place in order to always have an up-to-date vhdl_ls config.
     """
+
     tsfpga.create_vhdl_ls_config.create_configuration(
         PATH_TO_TSFPGA,
-        get_tsfpga_modules(tsfpga.ALL_TSFPGA_MODULES_FOLDERS),
-        vunit_proj)
+        modules=get_tsfpga_modules(tsfpga.ALL_TSFPGA_MODULES_FOLDERS),
+        vunit_proj=vunit_proj,
+        vivado_location=which("vivado"))
 
 
 if __name__ == "__main__":

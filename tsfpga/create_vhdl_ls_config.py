@@ -2,11 +2,11 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import abspath, join
+from os.path import abspath, dirname, exists, join
 import toml
 
 
-def create_configuration(output_path, modules=None, vunit_proj=None):
+def create_configuration(output_path, modules=None, vunit_proj=None, vivado_location=None):
     """
     Create a configuration file (vhdl_ls.toml) for the rust_hdl VHDL Language Server.
 
@@ -19,6 +19,7 @@ def create_configuration(output_path, modules=None, vunit_proj=None):
     :param output_path: Output folder.
     :param modules: A list of Module objects.
     :param vunit_proj: A VUnit project.
+    :param vunit_proj: Vivado binary path. Will add unisim from this Vivado installation.
     """
     toml_data = dict(libraries=dict())
 
@@ -35,6 +36,19 @@ def create_configuration(output_path, modules=None, vunit_proj=None):
                     files=[])
             toml_data["libraries"][source_file.library.name]["files"].append(
                 abspath(source_file.name))
+
+    if vivado_location is not None:
+        vcomponents_package = abspath(join(dirname(vivado_location),
+                                           "..",
+                                           "data",
+                                           "vhdl",
+                                           "src",
+                                           "unisims",
+                                           "unisim_retarget_VCOMP.vhd"))
+        if not exists(vcomponents_package):
+            raise FileNotFoundError("Could not find unisim file " + vcomponents_package)
+
+        toml_data["libraries"]["unisim"] = dict(files=[vcomponents_package])
 
     with open(join(output_path, "vhdl_ls.toml"), "w") as output_file_handle:
         toml.dump(toml_data, output_file_handle)
