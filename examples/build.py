@@ -69,15 +69,15 @@ def main():
         print("Available projects:\n\n%s" % projects)
         return
 
-    project = projects.get(args.project_name)
-    project_path = abspath(join(args.project_path, project.name))
-
     if args.generate_registers_only:
         # Generate register output from all modules. Note that this is not used by the build
         # flow or simulation flow, it is only for the user to inspect the artifacts.
         generate_registers(get_tsfpga_modules(tsfpga.ALL_TSFPGA_MODULES_FOLDERS),
                            join(TSFPGA_EXAMPLES_TEMP_DIR, "registers"))
         return
+
+    project = projects.get(args.project_name)
+    project_path = abspath(join(args.project_path, project.name))
 
     if not args.output_path:
         args.output_path = project_path
