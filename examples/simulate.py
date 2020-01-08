@@ -25,11 +25,13 @@ from vunit.vivado.vivado import create_compile_order_file, add_from_compile_orde
 def main():
     args = arguments()
 
-    module_folders = [tsfpga.TSFPGA_MODULES, tsfpga.TSFPGA_EXAMPLE_MODULES]
-    if not args.vivado_skip:
-        # Can only be used with a commercial simulator
-        module_folders.append(tsfpga.TSFPGA_EXAMPLE_MODULES_WITH_IP)
-    modules = get_tsfpga_modules(module_folders)
+    all_modules = get_tsfpga_modules(tsfpga.ALL_TSFPGA_MODULES_FOLDERS)
+    if args.vivado_skip or not args.ip_simlib_add:
+        # Only modules that do not contain IP cores
+        sim_modules = get_tsfpga_modules([tsfpga.TSFPGA_MODULES, tsfpga.TSFPGA_EXAMPLE_MODULES])
+    else:
+        # Include modules with IP cores as well. Can only be used with a commercial simulator.
+        sim_modules = get_tsfpga_modules(tsfpga.ALL_TSFPGA_MODULES_FOLDERS)
 
     vunit_proj = VUnit.from_args(args=args)
     vunit_proj.add_verification_components()
@@ -37,15 +39,21 @@ def main():
     vunit_proj.enable_location_preprocessing()
     vunit_proj.enable_check_preprocessing()
 
-    create_vhdl_ls_configuration(vunit_proj)
+    if args.vivado_skip:
+        ip_core_vivado_project_sources_directory = None
+    else:
+        ip_core_compile_order_file, ip_core_vivado_project_sources_directory \
+            = generate_ip_core_files(all_modules, args.temp_dir, args.ip_compile)
 
-    if not args.vivado_skip:
-        add_simlib(vunit_proj, args.temp_dir, args.simlib_compile)
+        if args.ip_simlib_add:
+            add_simlib(vunit_proj, args.temp_dir, args.simlib_compile)
+            add_from_compile_order_file(vunit_proj, ip_core_compile_order_file)
 
-        ip_core_compile_order_file = generate_ip_core_compile_order(modules, args.temp_dir, args.ip_compile)
-        add_from_compile_order_file(vunit_proj, ip_core_compile_order_file)
+    create_vhdl_ls_configuration(vunit_proj,
+                                 all_modules,
+                                 ip_core_vivado_project_sources_directory)
 
-    for module in modules:
+    for module in sim_modules:
         vunit_library = vunit_proj.add_library(module.library_name)
         for hdl_file in module.get_simulation_files():
             if hdl_file.is_vhdl or hdl_file.is_verilog_source:
@@ -63,9 +71,19 @@ def arguments():
                             type=str,
                             default=TSFPGA_EXAMPLES_TEMP_DIR,
                             help="where to place files needed for simulation flow")
-    cli.parser.add_argument("--vivado-skip", action="store_true", help="skip all steps that require Vivado")
-    cli.parser.add_argument("--ip-compile", action="store_true", help="force (re)compile of IP cores")
-    cli.parser.add_argument("--simlib-compile", action="store_true", help="force (re)compile of Vivado simlib")
+    cli.parser.add_argument("--vivado-skip",
+                            action="store_true",
+                            help="skip all steps that require Vivado")
+    cli.parser.add_argument("--ip-simlib-add",
+                            action="store_true",
+                            help="add IP cores and simlib to simulation project "
+                            "(must have a commercial simulator)")
+    cli.parser.add_argument("--ip-compile",
+                            action="store_true",
+                            help="force (re)compile of IP cores")
+    cli.parser.add_argument("--simlib-compile",
+                            action="store_true",
+                            help="force (re)compile of Vivado simlib")
 
     args = cli.parse_args()
     args.output_path = join(args.temp_dir, "vunit_out")
@@ -81,34 +99,36 @@ def add_simlib(vunit_proj, temp_dir, force_compile):
     vivado_simlib.add_to_vunit_project()
 
 
-def generate_ip_core_compile_order(modules, temp_dir, force_generate):
+def generate_ip_core_files(modules, temp_dir, force_generate):
     vivado_ip_cores = VivadoIpCores(modules, temp_dir)
 
     if force_generate:
-        vivado_ip_cores.generate_files()
-        ip_cores_generated = True
+        vivado_ip_cores.create_vivado_project()
+        vivado_project_created = True
     else:
-        ip_cores_generated = vivado_ip_cores.generate_files_if_needed()
+        vivado_project_created = vivado_ip_cores.create_vivado_project_if_needed()
 
-    if ip_cores_generated:
-        # If IP cores have been (re)generated we need to create a new compile order file
-        create_compile_order_file(vivado_ip_cores.vivado_project_file, vivado_ip_cores.compile_order_file)
+    if vivado_project_created:
+        # If the IP core Vivado project has been (re)created we need to create
+        # a new compile order file
+        create_compile_order_file(vivado_ip_cores.vivado_project_file,
+                                  vivado_ip_cores.compile_order_file)
 
-    return vivado_ip_cores.compile_order_file
+    return vivado_ip_cores.compile_order_file, vivado_ip_cores.vivado_project_sources_directory
 
 
-def create_vhdl_ls_configuration(vunit_proj):
+def create_vhdl_ls_configuration(vunit_proj, all_modules, ip_core_vivado_project_sources_directory):
     """
     Create config for vhdl_ls. Granted this might no be the "correct" place for this functionality.
     But since the call is somewhat quick (~10 ms), and simulate.py is run "often" it seems an
     appropriate place in order to always have an up-to-date vhdl_ls config.
     """
-
     tsfpga.create_vhdl_ls_config.create_configuration(
         PATH_TO_TSFPGA,
-        modules=get_tsfpga_modules(tsfpga.ALL_TSFPGA_MODULES_FOLDERS),
+        modules=all_modules,
         vunit_proj=vunit_proj,
-        vivado_location=which("vivado"))
+        vivado_location=which("vivado"),
+        ip_core_vivado_project_sources_directory=ip_core_vivado_project_sources_directory)
 
 
 if __name__ == "__main__":

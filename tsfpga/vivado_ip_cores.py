@@ -20,7 +20,49 @@ class VivadoIpCores:
     def __init__(self, modules, project_path, part_name="xc7z020clg400-1"):
         self._project_folder = join(project_path, self._project_name)
         self._part_name = part_name
+        self._hash_file = join(self._project_folder, "ip_files_hash.txt")
+
         self._setup(modules)
+
+    @property
+    def compile_order_file(self):
+        """
+        Path to the generated compile order file.
+        """
+        return join(self._project_folder, "compile_order.txt")
+
+    @property
+    def vivado_project_sources_directory(self):
+        """
+        Path to the "sources" directory of the Vivado project.
+        """
+        return join(self._project_folder, "vivado_ip_project.srcs", "sources_1")
+
+    @property
+    def vivado_project_file(self):
+        """
+        Path to the Vivado project file.
+        """
+        return self._vivado_project.project_file(self._project_folder)
+
+    def create_vivado_project(self):
+        """
+        Create IP core Vivado project.
+        """
+        print(f"Creating IP core project in {self._project_folder}")
+        delete(self._project_folder)
+        self._vivado_project.create(self._project_folder)
+        self._save_hash()
+
+    def create_vivado_project_if_needed(self):
+        """
+        Create IP core Vivado project if anything has changed since last time this was run.
+        """
+        if self._should_create():
+            self.create_vivado_project()
+            return True
+
+        return False
 
     def _setup(self, modules):
         ip_tcl_files = []
@@ -46,30 +88,12 @@ class VivadoIpCores:
 
         return ip_hash.hexdigest()
 
-    @property
-    def compile_order_file(self):
-        return join(self._project_folder, "compile_order.txt")
-
-    @property
-    def vivado_project_file(self):
-        return self._vivado_project.project_file(self._project_folder)
-
-    def generate_files(self):
-        print(f"Generating IP cores in {self._project_folder}")
-        delete(self._project_folder)
-        self._vivado_project.create(self._project_folder)
-        self._save_hash()
-
-    @property
-    def _hash_file(self):
-        return join(self._project_folder, "ip_files_hash.txt")
-
     def _save_hash(self):
         create_file(self._hash_file, self._hash)
 
-    def _generate_needed(self):
+    def _should_create(self):
         """
-        Return True if a generate is needed
+        Return True if a Vivado project create is needed, i.e. if anything has changed.
         """
         if not (exists(self._hash_file) and exists(self.compile_order_file)):
             return True
@@ -77,13 +101,6 @@ class VivadoIpCores:
         with open(self._hash_file) as file_handle:
             saved_hash = file_handle.read()
         if saved_hash != self._hash:
-            return True
-
-        return False
-
-    def generate_files_if_needed(self):
-        if self._generate_needed():
-            self.generate_files()
             return True
 
         return False
