@@ -21,7 +21,7 @@ class TestVivadoSimlib(TestCase):
 
         self.vunit_mock = MagicMock()
         #  pylint: disable=protected-access
-        self.vunit_mock._simulator_class.name = "rivierapro"
+        self.vunit_mock.get_simulator_name.return_value = "rivierapro"
         self.vunit_mock._simulator_class.find_prefix.return_value = \
             "/opt/Aldec/Riviera-PRO-2018.10-x64/bin"
 

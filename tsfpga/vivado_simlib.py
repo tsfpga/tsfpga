@@ -80,9 +80,12 @@ class VivadoSimlib:
         return "vivado_" + vivado_version.replace(".", "_")
 
     def _find_simulator(self):
-        simulator_class = self._vunit_proj._simulator_class  # pylint: disable=protected-access
-        self._simulator_name = "riviera" if simulator_class.name == "rivierapro" else simulator_class.name
-        self._simulator_folder = join(simulator_class.find_prefix())
+        # Update naming for Vivado's convetion
+        vunit_simulator_name = self._vunit_proj.get_simulator_name()
+        self._simulator_name = "riviera" if vunit_simulator_name == "rivierapro" else vunit_simulator_name
+
+        # pylint: disable=protected-access
+        self._simulator_folder = self._vunit_proj._simulator_class.find_prefix()
 
     def _get_simulator_tag(self):
         """
