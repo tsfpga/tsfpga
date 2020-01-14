@@ -20,6 +20,12 @@ class BaseModule:
     """
 
     def __init__(self, path, library_name_has_lib_suffix=False, default_registers=None):
+        """
+        :param path: Path to the module folder.
+        :param library_name_has_lib_suffix: If set, the library name will be <module name>_lib,
+                                            otherwise it is just <module name>.
+        :param default_registers: A dictionary of Register objects.
+        """
         self.path = path
         self.name = basename(self.path)
         self.library_name = self._get_library_name(self.name, library_name_has_lib_suffix)
@@ -107,9 +113,8 @@ class BaseModule:
     @staticmethod
     def _get_library_name(module_name, library_name_has_lib_suffix):
         """
-        Some think library name should be <module_name>_lib.
-        It actually shouldn't since built in VHDL libraries are named e.g. ieee not ieee_lib.
-        But we keep the functionality for legacy reasons.
+        By praxis VHDL libraries should be named e.g. ieee and not ieee_lib.
+        However using <module_name>_lib is very common.
         """
         if library_name_has_lib_suffix:
             return module_name + "_lib"
@@ -176,14 +181,25 @@ def get_module_object(path, name, library_name_has_lib_suffix, default_registers
 
 
 def get_modules(modules_folders,
-                names=None,
+                names_include=None,
+                names_avoid=None,
                 library_name_has_lib_suffix=False,
                 default_registers=None):
+    """
+    Get a list of Module objects based on the source code folders.
+
+    :param modules_folders: A list of paths where your modules are located.
+    :param names_include: If specified, only modules with these names will be included.
+    :param names_avoid: If specified, modules with these names will be discarded.
+    :param library_name_has_lib_suffix: See BaseModule.
+    :param default_registers: See BaseModule.
+    """
     modules = []
 
     for module_folder in iterate_module_folders(modules_folders):
         module_name = basename(module_folder)
-        if names is None or module_name in names:
+        if (names_include is None or module_name in names_include) \
+                and (names_avoid is None or module_name not in names_avoid):
             modules.append(get_module_object(module_folder,
                                              module_name,
                                              library_name_has_lib_suffix,

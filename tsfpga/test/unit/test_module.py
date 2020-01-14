@@ -75,9 +75,19 @@ class TestGetModules(TestCase):
         create_directory(join(self._modules_folder, "b"))
         create_directory(join(self._modules_folder, "c"))
 
-    def test_name_filtering(self):
-        modules = get_modules(self._modules_folders, names=["a", "b"])
+    def test_name_filtering_include(self):
+        modules = get_modules(self._modules_folders, names_include=["a", "b"])
         assert set(module.name for module in modules) == set(["a", "b"])
+
+    def test_name_filtering_avoid(self):
+        modules = get_modules(self._modules_folders, names_avoid=["a", "b"])
+        assert set(module.name for module in modules) == set(["c"])
+
+    def test_name_filtering_include_and_avoid(self):
+        modules = get_modules(self._modules_folders,
+                              names_include=["a", "c"],
+                              names_avoid=["b", "c"])
+        assert set(module.name for module in modules) == set(["a"])
 
     def test_library_name_does_not_have_lib_suffix(self):
         modules = get_modules(self._modules_folders)
@@ -121,7 +131,7 @@ class Module(BaseModule):
     def test_register_object_creation_synthesis(self, from_json):
         json_file = create_file(join(self._modules_folder, "a", "a_regs.json"))
 
-        module = get_modules(self._modules_folders, names=["a"])[0]
+        module = get_modules(self._modules_folders, names_include=["a"])[0]
         module.get_synthesis_files()
         module.get_synthesis_files()
 
@@ -131,7 +141,7 @@ class Module(BaseModule):
     def test_register_object_creation_simulation(self, from_json):
         json_file = create_file(join(self._modules_folder, "a", "a_regs.json"))
 
-        module = get_modules(self._modules_folders, names=["a"])[0]
+        module = get_modules(self._modules_folders, names_include=["a"])[0]
         module.get_simulation_files()
         module.get_simulation_files()
 
@@ -141,7 +151,7 @@ class Module(BaseModule):
     def test_register_object_creation_mixed(self, from_json):
         json_file = create_file(join(self._modules_folder, "a", "a_regs.json"))
 
-        module = get_modules(self._modules_folders, names=["a"])[0]
+        module = get_modules(self._modules_folders, names_include=["a"])[0]
         module.get_synthesis_files()
         module.get_simulation_files()
 
