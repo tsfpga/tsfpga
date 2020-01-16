@@ -8,7 +8,7 @@ from subprocess import CalledProcessError
 import sys
 import unittest
 
-from tsfpga import TSFPGA_MODULES, TSFPGA_EXAMPLES
+import tsfpga
 from tsfpga.constraint import Constraint
 from tsfpga.module import get_modules
 from tsfpga.system_utils import create_file, delete, run_command
@@ -20,7 +20,7 @@ THIS_DIR = dirname(__file__)
 
 
 def test_building_artyz7_project(tmpdir):
-    build_py = join(TSFPGA_EXAMPLES, "build.py")
+    build_py = join(tsfpga.TSFPGA_EXAMPLES, "build.py")
     cmd = [
         sys.executable,
         build_py,
@@ -28,7 +28,7 @@ def test_building_artyz7_project(tmpdir):
         "--project-path", tmpdir,
         "--output-path", tmpdir
     ]
-    run_command(cmd)
+    run_command(cmd, cwd=tsfpga.ROOT)
     assert exists(join(tmpdir, "artyz7.bit"))
     assert exists(join(tmpdir, "artyz7.bin"))
     assert exists(join(tmpdir, "artyz7.hdf"))
@@ -110,7 +110,7 @@ create_clock -period 5 -name clk_out [get_ports clk_out]
         create_file(self.constraint_file, self.constraints)
         constraints = [Constraint(self.constraint_file)]
 
-        self.modules = get_modules([self.modules_folder, TSFPGA_MODULES])
+        self.modules = get_modules([self.modules_folder, tsfpga.TSFPGA_MODULES])
         self.proj = VivadoProject(name="test_proj", modules=self.modules, part=self.part, constraints=constraints)
         self.proj.create(self.project_folder)
 

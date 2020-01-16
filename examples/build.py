@@ -7,13 +7,13 @@ from shutil import copy2, make_archive
 import argparse
 import sys
 
-from tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
-
 PATH_TO_TSFPGA = join(dirname(__file__), "..")
 sys.path.append(PATH_TO_TSFPGA)
 import tsfpga
 from tsfpga.fpga_project_list import FPGAProjectList
 from tsfpga.system_utils import create_directory, delete
+
+from tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
 
 
 def arguments(projects):
