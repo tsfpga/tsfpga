@@ -8,10 +8,6 @@ use ieee.std_logic_1164.all;
 
 package addr_pkg is
 
-  constant reg_width : integer := 32;
-  subtype reg_t is std_logic_vector(reg_width - 1 downto 0);
-  type reg_vec_t is array (integer range <>) of reg_t;
-
   constant addr_width : integer := 32;
   subtype addr_t is std_logic_vector(addr_width - 1 downto 0);
 

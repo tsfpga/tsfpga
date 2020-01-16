@@ -10,9 +10,6 @@ library axi;
 use axi.axi_pkg.all;
 use axi.axil_pkg.all;
 
-library common;
-use common.addr_pkg.all;
-
 library ddr_buffer;
 library fifo;
 library reg_file;

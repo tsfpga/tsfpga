@@ -13,6 +13,9 @@ context vunit_lib.vc_context;
 library common;
 use common.addr_pkg.all;
 
+library reg_file;
+use reg_file.reg_file_pkg.all;
+
 
 package reg_operations_pkg is
 

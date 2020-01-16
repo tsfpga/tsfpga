@@ -22,9 +22,6 @@ use axi.axil_pkg.all;
 
 library bfm;
 
-library common;
-use common.addr_pkg.all;
-
 library reg_file;
 use reg_file.reg_operations_pkg.all;
 
