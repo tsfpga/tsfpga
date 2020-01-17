@@ -79,12 +79,14 @@ def files_to_check_for_copyright_header():
 
 
 def test_copyright_header_of_all_checked_in_files():
+    test_ok = True
     for filename in files_to_check_for_copyright_header():
         copyright_header_checker = CopyrightHeader("Lukas Vik", filename)
         if not copyright_header_checker.check_file():
+            test_ok = False
             expected = copyright_header_checker.get_expected_copyright_header()
-            mesg = f"Fail for {filename}.\nExpected:\n{expected}"
-            assert False, mesg
+            print(f"Fail for {filename}.\nExpected:\n{expected}")
+    assert test_ok
 
 
 class TestCopyright(unittest.TestCase):

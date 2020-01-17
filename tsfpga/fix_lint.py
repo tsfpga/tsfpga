@@ -2,8 +2,14 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-import re
+
 import argparse
+from os.path import abspath, dirname, join
+import re
+import sys
+
+PATH_TO_TSFPGA = abspath(join(dirname(__file__), ".."))
+sys.path.append(PATH_TO_TSFPGA)
 
 from tsfpga.git_utils import find_git_files
 from tsfpga.test.lint.test_copyright import CopyrightHeader, files_to_check_for_copyright_header
