@@ -20,7 +20,8 @@ context vunit_lib.vc_context;
 entity axi_slave is
   generic (
     axi_slave : axi_slave_t;
-    data_width : integer
+    data_width : integer;
+    id_width : integer := 8
   );
   port (
     clk : in std_logic;
@@ -34,7 +35,6 @@ entity axi_slave is
 end entity;
 
 architecture a of axi_slave is
-  signal bid, rid, aid : std_logic_vector(8 - 1 downto 0) := (others => '0'); -- Using "open" not ok in GHDL: unconstrained port "rid" must be connected
 begin
 
   ------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ begin
 
       awvalid => axi_write_m2s.aw.valid,
       awready => axi_write_s2m.aw.ready,
-      awid => aid,
+      awid => axi_write_m2s.aw.id(id_width - 1 downto 0),
       awaddr => axi_write_m2s.aw.addr,
       awlen => axi_write_m2s.aw.len,
       awsize => axi_write_m2s.aw.size,
@@ -61,7 +61,7 @@ begin
 
       bvalid => axi_write_s2m.b.valid,
       bready => axi_write_m2s.b.ready,
-      bid => bid,
+      bid => axi_write_s2m.b.id(id_width - 1 downto 0),
       bresp => axi_write_s2m.b.resp
     );
 
@@ -76,7 +76,7 @@ begin
 
       arvalid => axi_read_m2s.ar.valid,
       arready => axi_read_s2m.ar.ready,
-      arid => aid,
+      arid => axi_read_m2s.ar.id(id_width - 1 downto 0),
       araddr => axi_read_m2s.ar.addr,
       arlen => axi_read_m2s.ar.len,
       arsize => axi_read_m2s.ar.size,
@@ -84,7 +84,7 @@ begin
 
       rvalid => axi_read_s2m.r.valid,
       rready => axi_read_m2s.r.ready,
-      rid => rid,
+      rid => axi_read_s2m.r.id(id_width - 1 downto 0),
       rdata => axi_read_s2m.r.data(data_width - 1 downto 0),
       rresp => axi_read_s2m.r.resp,
       rlast => axi_read_s2m.r.last
