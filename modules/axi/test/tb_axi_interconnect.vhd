@@ -32,19 +32,19 @@ architecture tb of tb_axi_interconnect is
 
   signal clk : std_logic := '0';
 
-  signal inputs_m2s : axi_read_m2s_vec_t(0 to num_inputs - 1) := (others => axi_read_m2s_init);
-  signal inputs_s2m : axi_read_s2m_vec_t(0 to num_inputs - 1) := (others => axi_read_s2m_init);
+  signal inputs_read_m2s : axi_read_m2s_vec_t(0 to num_inputs - 1) := (others => axi_read_m2s_init);
+  signal inputs_read_s2m : axi_read_s2m_vec_t(0 to num_inputs - 1) := (others => axi_read_s2m_init);
 
-  signal output_m2s : axi_read_m2s_t := axi_read_m2s_init;
-  signal output_s2m : axi_read_s2m_t := axi_read_s2m_init;
+  signal output_read_m2s : axi_read_m2s_t := axi_read_m2s_init;
+  signal output_read_s2m : axi_read_s2m_t := axi_read_s2m_init;
 
   constant axi_port_data_width : integer := 32;
   type bus_master_vec_t is array (integer range <>) of bus_master_t;
-  constant axi_masters : bus_master_vec_t(inputs_m2s'range) := (
-    0 => new_bus(data_length => axi_port_data_width, address_length => output_m2s.ar.addr'length),
-    1 => new_bus(data_length => axi_port_data_width, address_length => output_m2s.ar.addr'length),
-    2 => new_bus(data_length => axi_port_data_width, address_length => output_m2s.ar.addr'length),
-    3 => new_bus(data_length => axi_port_data_width, address_length => output_m2s.ar.addr'length)
+  constant axi_masters : bus_master_vec_t(inputs_read_m2s'range) := (
+    0 => new_bus(data_length => axi_port_data_width, address_length => output_read_m2s.ar.addr'length),
+    1 => new_bus(data_length => axi_port_data_width, address_length => output_read_m2s.ar.addr'length),
+    2 => new_bus(data_length => axi_port_data_width, address_length => output_read_m2s.ar.addr'length),
+    3 => new_bus(data_length => axi_port_data_width, address_length => output_read_m2s.ar.addr'length)
   );
 
   constant memory : memory_t := new_memory;
@@ -116,7 +116,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axi_masters_gen : for idx in inputs_m2s'range generate
+  axi_masters_gen : for idx in inputs_read_m2s'range generate
   begin
     axi_master_inst : entity bfm.axi_master
       generic map (
@@ -125,9 +125,9 @@ begin
       port map (
         clk => clk,
         --
-        axi_read_m2s => inputs_m2s(idx),
+        axi_read_m2s => inputs_read_m2s(idx),
         --
-        axi_read_s2m => inputs_s2m(idx)
+        axi_read_s2m => inputs_read_s2m(idx)
       );
   end generate;
 
@@ -141,9 +141,9 @@ begin
     port map (
       clk => clk,
       --
-      axi_read_m2s => output_m2s,
+      axi_read_m2s => output_read_m2s,
       --
-      axi_read_s2m => output_s2m
+      axi_read_s2m => output_read_s2m
     );
 
 
@@ -155,11 +155,11 @@ begin
     port map(
       clk => clk,
       --
-      inputs_m2s => inputs_m2s,
-      inputs_s2m => inputs_s2m,
+      inputs_read_m2s => inputs_read_m2s,
+      inputs_read_s2m => inputs_read_s2m,
       --
-      output_m2s => output_m2s,
-      output_s2m => output_s2m
+      output_read_m2s => output_read_m2s,
+      output_read_s2m => output_read_s2m
     );
 
 end architecture;
