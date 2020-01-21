@@ -15,6 +15,8 @@ package types_pkg is
   function to_int(value : boolean) return integer;
   function to_int(value : std_logic) return integer;
 
+  function swap_bytes(data : std_logic_vector) return std_logic_vector;
+
 end package;
 
 package body types_pkg is
@@ -57,6 +59,25 @@ package body types_pkg is
 
     assert false report "Can not convert value " & to_string(value) severity failure;
     return 0;
+  end function;
+
+  function swap_bytes(data : std_logic_vector) return std_logic_vector is
+    variable result : std_logic_vector(data'range);
+    constant num_bytes : integer := data'length / 8;
+    variable result_byte_idx : integer;
+  begin
+    -- Swap endianness of the input word
+
+    assert data'left > data'right report "Only use with descending range" severity failure;
+    assert data'length mod 8 = 0 report "Must be a whole number of bytes" severity failure;
+
+    for input_byte_idx in 0 to num_bytes - 1 loop
+      result_byte_idx := num_bytes - 1 - input_byte_idx;
+      result(result_byte_idx * 8 + 7 downto result_byte_idx * 8) :=
+        data(input_byte_idx * 8 + 7 downto input_byte_idx * 8);
+    end loop;
+
+    return result;
   end function;
 
 end package body;
