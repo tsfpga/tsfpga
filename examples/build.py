@@ -86,7 +86,7 @@ def main():
     if not args.collect_artifacts_only:
         build(args, project, project_path)
 
-    if args.create_only:
+    if args.create_only or args.synth_only:
         return
 
     collect_artifacts(project, args.output_path)
