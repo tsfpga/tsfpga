@@ -47,14 +47,14 @@ package body math_pkg is
 
   function lt_0(value : signed) return boolean is
   begin
-    -- Vivado synthesis engine has been show to produce a lot of logic (20-30 LUTs) when
+    -- The Vivado synthesis engine has been shown to produce a lot of logic (20-30 LUTs) when
     -- doing simply "if value < 0 then ...", hence this bit operation is used instead.
     return value(value'left) = '1';
   end function;
 
   function geq_0(value : signed) return boolean is
   begin
-    -- Vivado synthesis engine has been show to produce a lot of logic (20-30 LUTs) when
+    -- The Vivado synthesis engine has been shown to produce a lot of logic (20-30 LUTs) when
     -- doing simply "if value < 0 then ...", hence this bit operation is used instead.
     return value(value'left) = '0';
   end function;
