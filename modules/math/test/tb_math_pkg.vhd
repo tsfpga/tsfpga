@@ -46,12 +46,15 @@ begin
       check_equal(log2(64), 6);
       check_equal(log2(128), 7);
     elsif run("num_bits_needed") then
+      check_equal(num_bits_needed(0), 1);
+      check_equal(num_bits_needed(1), 1);
+      check_equal(num_bits_needed(2), 2);
+      check_equal(num_bits_needed(3), 2);
+
       check_equal(num_bits_needed(6), 3);
       check_equal(num_bits_needed(7), 3);
       check_equal(num_bits_needed(8), 4);
       check_equal(num_bits_needed(9), 4);
-
-      check_equal(num_bits_needed(0), 1);
     elsif run("lt_0") then
       value := to_signed(-3, value'length);
       check_true(lt_0(value));
