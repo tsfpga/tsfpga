@@ -33,18 +33,21 @@ architecture tb of tb_axi_interconnect is
   signal clk : std_logic := '0';
 
   signal inputs_read_m2s : axi_read_m2s_vec_t(0 to num_inputs - 1) := (others => axi_read_m2s_init);
-  signal inputs_read_s2m : axi_read_s2m_vec_t(0 to num_inputs - 1) := (others => axi_read_s2m_init);
+  signal inputs_read_s2m : axi_read_s2m_vec_t(inputs_read_m2s'range) := (others => axi_read_s2m_init);
 
-  signal output_read_m2s : axi_read_m2s_t := axi_read_m2s_init;
-  signal output_read_s2m : axi_read_s2m_t := axi_read_s2m_init;
+  signal inputs_write_m2s : axi_write_m2s_vec_t(0 to num_inputs - 1) := (others => axi_write_m2s_init);
+  signal inputs_write_s2m : axi_write_s2m_vec_t(inputs_read_m2s'range) := (others => axi_write_s2m_init);
+
+  signal output_m2s : axi_m2s_t := axi_m2s_init;
+  signal output_s2m : axi_s2m_t := axi_s2m_init;
 
   constant axi_port_data_width : integer := 32;
   type bus_master_vec_t is array (integer range <>) of bus_master_t;
   constant axi_masters : bus_master_vec_t(inputs_read_m2s'range) := (
-    0 => new_bus(data_length => axi_port_data_width, address_length => output_read_m2s.ar.addr'length),
-    1 => new_bus(data_length => axi_port_data_width, address_length => output_read_m2s.ar.addr'length),
-    2 => new_bus(data_length => axi_port_data_width, address_length => output_read_m2s.ar.addr'length),
-    3 => new_bus(data_length => axi_port_data_width, address_length => output_read_m2s.ar.addr'length)
+    0 => new_bus(data_length => axi_port_data_width, address_length => inputs_read_m2s(0).ar.addr'length),
+    1 => new_bus(data_length => axi_port_data_width, address_length => inputs_read_m2s(0).ar.addr'length),
+    2 => new_bus(data_length => axi_port_data_width, address_length => inputs_read_m2s(0).ar.addr'length),
+    3 => new_bus(data_length => axi_port_data_width, address_length => inputs_read_m2s(0).ar.addr'length)
   );
 
   constant memory : memory_t := new_memory;
@@ -83,9 +86,9 @@ begin
     test_runner_setup(runner, runner_cfg);
     rnd.InitSeed(rnd'instance_name);
 
-    if run("read_random_data_from_random_input_master") then
-      buf := allocate(memory, num_words * bytes_per_word);
+    buf := allocate(memory, num_words * bytes_per_word);
 
+    if run("read_random_data_from_random_input_master") then
       -- Set random data in read memory
       for idx in 0 to num_words - 1 loop
         address := idx * bytes_per_word;
@@ -107,9 +110,24 @@ begin
         await_read_bus_reply(net, bus_reference, got);
         check_equal(got, expected, "idx=" & to_string(idx));
       end loop;
-    end if;
 
-    assert is_empty(bus_reference_queue);
+      assert is_empty(bus_reference_queue);
+
+    elsif run("write_random_data_from_random_input_master") then
+      -- Set expected random data and queue up write
+      for idx in 0 to num_words - 1 loop
+        address := idx * bytes_per_word;
+        expected := rnd.RandSlv(expected'length);
+        set_expected_word(memory, address, expected);
+
+        input_select := rnd.RandInt(0, axi_masters'high);
+        write_bus(net, axi_masters(input_select), address, expected);
+      end loop;
+
+      -- Wait until all writes are completed
+      wait for 300 us;
+      check_expected_was_written(memory);
+    end if;
 
     test_runner_cleanup(runner);
   end process;
@@ -126,8 +144,10 @@ begin
         clk => clk,
         --
         axi_read_m2s => inputs_read_m2s(idx),
+        axi_read_s2m => inputs_read_s2m(idx),
         --
-        axi_read_s2m => inputs_read_s2m(idx)
+        axi_write_m2s => inputs_write_m2s(idx),
+        axi_write_s2m => inputs_write_s2m(idx)
       );
   end generate;
 
@@ -141,9 +161,11 @@ begin
     port map (
       clk => clk,
       --
-      axi_read_m2s => output_read_m2s,
+      axi_read_m2s => output_m2s.read,
+      axi_read_s2m => output_s2m.read,
       --
-      axi_read_s2m => output_read_s2m
+      axi_write_m2s => output_m2s.write,
+      axi_write_s2m => output_s2m.write
     );
 
 
@@ -158,8 +180,14 @@ begin
       inputs_read_m2s => inputs_read_m2s,
       inputs_read_s2m => inputs_read_s2m,
       --
-      output_read_m2s => output_read_m2s,
-      output_read_s2m => output_read_s2m
+      inputs_write_m2s => inputs_write_m2s,
+      inputs_write_s2m => inputs_write_s2m,
+      --
+      output_read_m2s => output_m2s.read,
+      output_read_s2m => output_s2m.read,
+      --
+      output_write_m2s => output_m2s.write,
+      output_write_s2m => output_s2m.write
     );
 
 end architecture;
