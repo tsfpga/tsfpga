@@ -24,3 +24,7 @@ class Module(BaseModule):
         tb.add_config(name="master_clk_fast", generics=dict(master_clk_fast=True))
         tb.add_config(name="slave_clk_fast", generics=dict(slave_clk_fast=True))
         tb.add_config(name="same_clocks")
+
+        tb = vunit_proj.library(self.library_name).test_bench("tb_axi_interconnect")
+        tb.add_config(name="axi_lite", generics=dict(test_axi_lite=True))
+        tb.add_config(name="axi", generics=dict(test_axi_lite=False))

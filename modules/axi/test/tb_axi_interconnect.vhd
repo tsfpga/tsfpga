@@ -15,13 +15,15 @@ use osvvm.RandomPkg.all;
 
 library axi;
 use axi.axi_pkg.all;
+use axi.axil_pkg.all;
 
 library bfm;
 
 
 entity tb_axi_interconnect is
   generic(
-    runner_cfg : string
+    runner_cfg : string;
+    test_axi_lite : boolean
   );
 end entity;
 
@@ -32,22 +34,13 @@ architecture tb of tb_axi_interconnect is
 
   signal clk : std_logic := '0';
 
-  signal inputs_read_m2s : axi_read_m2s_vec_t(0 to num_inputs - 1) := (others => axi_read_m2s_init);
-  signal inputs_read_s2m : axi_read_s2m_vec_t(inputs_read_m2s'range) := (others => axi_read_s2m_init);
-
-  signal inputs_write_m2s : axi_write_m2s_vec_t(0 to num_inputs - 1) := (others => axi_write_m2s_init);
-  signal inputs_write_s2m : axi_write_s2m_vec_t(inputs_read_m2s'range) := (others => axi_write_s2m_init);
-
-  signal output_m2s : axi_m2s_t := axi_m2s_init;
-  signal output_s2m : axi_s2m_t := axi_s2m_init;
-
   constant axi_port_data_width : integer := 32;
   type bus_master_vec_t is array (integer range <>) of bus_master_t;
-  constant axi_masters : bus_master_vec_t(inputs_read_m2s'range) := (
-    0 => new_bus(data_length => axi_port_data_width, address_length => inputs_read_m2s(0).ar.addr'length),
-    1 => new_bus(data_length => axi_port_data_width, address_length => inputs_read_m2s(0).ar.addr'length),
-    2 => new_bus(data_length => axi_port_data_width, address_length => inputs_read_m2s(0).ar.addr'length),
-    3 => new_bus(data_length => axi_port_data_width, address_length => inputs_read_m2s(0).ar.addr'length)
+  constant input_masters : bus_master_vec_t(0 to 4 - 1) := (
+    0 => new_bus(data_length => axi_port_data_width, address_length => axi_a_addr_sz),
+    1 => new_bus(data_length => axi_port_data_width, address_length => axi_a_addr_sz),
+    2 => new_bus(data_length => axi_port_data_width, address_length => axi_a_addr_sz),
+    3 => new_bus(data_length => axi_port_data_width, address_length => axi_a_addr_sz)
   );
 
   constant memory : memory_t := new_memory;
@@ -98,8 +91,8 @@ begin
 
       -- Queue up reads from random input master
       for idx in 0 to num_words - 1 loop
-        input_select := rnd.RandInt(0, axi_masters'high);
-        read_bus(net, axi_masters(input_select), address, bus_reference);
+        input_select := rnd.RandInt(0, input_masters'high);
+        read_bus(net, input_masters(input_select), address, bus_reference);
         push(bus_reference_queue, bus_reference);
       end loop;
 
@@ -120,8 +113,8 @@ begin
         expected := rnd.RandSlv(expected'length);
         set_expected_word(memory, address, expected);
 
-        input_select := rnd.RandInt(0, axi_masters'high);
-        write_bus(net, axi_masters(input_select), address, expected);
+        input_select := rnd.RandInt(0, input_masters'high);
+        write_bus(net, input_masters(input_select), address, expected);
       end loop;
 
       -- Wait until all writes are completed
@@ -134,26 +127,36 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axi_masters_gen : for idx in inputs_read_m2s'range generate
+  bfm_generate : if test_axi_lite generate
+    signal inputs_read_m2s : axil_read_m2s_vec_t(0 to num_inputs - 1) := (others => axil_read_m2s_init);
+    signal inputs_read_s2m : axil_read_s2m_vec_t(inputs_read_m2s'range) := (others => axil_read_s2m_init);
+
+    signal inputs_write_m2s : axil_write_m2s_vec_t(0 to num_inputs - 1) := (others => axil_write_m2s_init);
+    signal inputs_write_s2m : axil_write_s2m_vec_t(inputs_read_m2s'range) := (others => axil_write_s2m_init);
+
+    signal output_m2s : axil_m2s_t := axil_m2s_init;
+    signal output_s2m : axil_s2m_t := axil_s2m_init;
   begin
-    axi_master_inst : entity bfm.axi_master
-      generic map (
-        bus_handle => axi_masters(idx)
-      )
-      port map (
-        clk => clk,
-        --
-        axi_read_m2s => inputs_read_m2s(idx),
-        axi_read_s2m => inputs_read_s2m(idx),
-        --
-        axi_write_m2s => inputs_write_m2s(idx),
-        axi_write_s2m => inputs_write_s2m(idx)
-      );
-  end generate;
 
+    ------------------------------------------------------------------------------
+    input_masters_gen : for idx in inputs_read_m2s'range generate
+    begin
+      axil_master_inst : entity bfm.axil_master
+        generic map (
+          bus_handle => input_masters(idx)
+        )
+        port map (
+          clk => clk,
+          --
+          axil_m2s.read => inputs_read_m2s(idx),
+          axil_m2s.write => inputs_write_m2s(idx),
+          axil_s2m.read => inputs_read_s2m(idx),
+          axil_s2m.write => inputs_write_s2m(idx)
+        );
+    end generate;
 
-  ------------------------------------------------------------------------------
-  axi_slave_inst : entity bfm.axi_slave
+    ------------------------------------------------------------------------------
+    axi_slave_inst : entity bfm.axil_slave
     generic map (
       axi_slave => axi_slave,
       data_width => axi_port_data_width
@@ -161,33 +164,96 @@ begin
     port map (
       clk => clk,
       --
-      axi_read_m2s => output_m2s.read,
-      axi_read_s2m => output_s2m.read,
-      --
-      axi_write_m2s => output_m2s.write,
-      axi_write_s2m => output_s2m.write
+      axil_m2s => output_m2s,
+      axil_s2m => output_s2m
     );
 
+    ------------------------------------------------------------------------------
+    dut : entity work.axil_interconnect
+      generic map(
+        num_inputs => num_inputs
+      )
+      port map(
+        clk => clk,
+        --
+        inputs_read_m2s => inputs_read_m2s,
+        inputs_read_s2m => inputs_read_s2m,
+        --
+        inputs_write_m2s => inputs_write_m2s,
+        inputs_write_s2m => inputs_write_s2m,
+        --
+        output_read_m2s => output_m2s.read,
+        output_read_s2m => output_s2m.read,
+        --
+        output_write_m2s => output_m2s.write,
+        output_write_s2m => output_s2m.write
+      );
 
-  ------------------------------------------------------------------------------
-  dut : entity work.axi_interconnect
-    generic map(
-      num_inputs => num_inputs
-    )
-    port map(
-      clk => clk,
-      --
-      inputs_read_m2s => inputs_read_m2s,
-      inputs_read_s2m => inputs_read_s2m,
-      --
-      inputs_write_m2s => inputs_write_m2s,
-      inputs_write_s2m => inputs_write_s2m,
-      --
-      output_read_m2s => output_m2s.read,
-      output_read_s2m => output_s2m.read,
-      --
-      output_write_m2s => output_m2s.write,
-      output_write_s2m => output_s2m.write
-    );
+  else generate
+    signal inputs_read_m2s : axi_read_m2s_vec_t(0 to num_inputs - 1) := (others => axi_read_m2s_init);
+    signal inputs_read_s2m : axi_read_s2m_vec_t(inputs_read_m2s'range) := (others => axi_read_s2m_init);
+
+    signal inputs_write_m2s : axi_write_m2s_vec_t(0 to num_inputs - 1) := (others => axi_write_m2s_init);
+    signal inputs_write_s2m : axi_write_s2m_vec_t(inputs_read_m2s'range) := (others => axi_write_s2m_init);
+
+    signal output_m2s : axi_m2s_t := axi_m2s_init;
+    signal output_s2m : axi_s2m_t := axi_s2m_init;
+  begin
+
+    ------------------------------------------------------------------------------
+    input_masters_gen : for idx in inputs_read_m2s'range generate
+    begin
+      axi_master_inst : entity bfm.axi_master
+        generic map (
+          bus_handle => input_masters(idx)
+        )
+        port map (
+          clk => clk,
+          --
+          axi_read_m2s => inputs_read_m2s(idx),
+          axi_read_s2m => inputs_read_s2m(idx),
+          --
+          axi_write_m2s => inputs_write_m2s(idx),
+          axi_write_s2m => inputs_write_s2m(idx)
+        );
+    end generate;
+
+    ------------------------------------------------------------------------------
+    axi_slave_inst : entity bfm.axi_slave
+      generic map (
+        axi_slave => axi_slave,
+        data_width => axi_port_data_width
+      )
+      port map (
+        clk => clk,
+        --
+        axi_read_m2s => output_m2s.read,
+        axi_read_s2m => output_s2m.read,
+        --
+        axi_write_m2s => output_m2s.write,
+        axi_write_s2m => output_s2m.write
+      );
+
+    ------------------------------------------------------------------------------
+    dut : entity work.axi_interconnect
+      generic map(
+        num_inputs => num_inputs
+      )
+      port map(
+        clk => clk,
+        --
+        inputs_read_m2s => inputs_read_m2s,
+        inputs_read_s2m => inputs_read_s2m,
+        --
+        inputs_write_m2s => inputs_write_m2s,
+        inputs_write_s2m => inputs_write_s2m,
+        --
+        output_read_m2s => output_m2s.read,
+        output_read_s2m => output_s2m.read,
+        --
+        output_write_m2s => output_m2s.write,
+        output_write_s2m => output_s2m.write
+      );
+  end generate;
 
 end architecture;
