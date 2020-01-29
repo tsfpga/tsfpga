@@ -95,9 +95,10 @@ begin
 
     inputs_write_s2m(input_idx).w.ready <= inputs_write_axi_s2m(input_idx).w.ready;
 
-    inputs_write_axi_m2s(input_idx).b <= inputs_write_m2s(input_idx).b;
+    inputs_write_axi_m2s(input_idx).b.ready <= inputs_write_m2s(input_idx).b.ready;
 
-    inputs_write_s2m(input_idx).b <= inputs_write_axi_s2m(input_idx).b;
+    inputs_write_s2m(input_idx).b.valid <= inputs_write_axi_s2m(input_idx).b.valid;
+    inputs_write_s2m(input_idx).b.resp <= inputs_write_axi_s2m(input_idx).b.resp;
   end generate;
 
   output_write_m2s.aw.valid <= output_write_axi_m2s.aw.valid;
@@ -111,9 +112,10 @@ begin
 
   output_write_axi_s2m.w.ready <= output_write_s2m.w.ready;
 
-  output_write_m2s.b <= output_write_axi_m2s.b;
+  output_write_m2s.b.ready <= output_write_axi_m2s.b.ready;
 
-  output_write_axi_s2m.b <= output_write_s2m.b;
+  output_write_axi_s2m.b.valid <= output_write_s2m.b.valid;
+  output_write_axi_s2m.b.resp <= output_write_s2m.b.resp;
 
 
   ------------------------------------------------------------------------------

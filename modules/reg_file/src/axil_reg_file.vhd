@@ -26,7 +26,14 @@ entity axil_reg_file is
     clk : in std_logic;
 
     axil_m2s : in axil_m2s_t;
-    axil_s2m : out axil_s2m_t := (read => (ar => (ready => '1'), r => axil_s2m_r_init), write => (aw => (ready => '1'), w => axil_s2m_w_init, b => axi_s2m_b_init));
+    axil_s2m : out axil_s2m_t := (read => (
+                                    ar => (ready => '1'),
+                                    r => axil_s2m_r_init),
+                                  write => (
+                                    aw => (ready => '1'),
+                                    w => axil_s2m_w_init,
+                                    b => axil_s2m_b_init)
+                                 );
 
     regs_up : in reg_vec_t(regs'range) := (others => (others => '0'));
     regs_down : out reg_vec_t(regs'range);

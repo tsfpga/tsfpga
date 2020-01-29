@@ -40,15 +40,8 @@ begin
     test_runner_setup(runner, runner_cfg);
     rnd.InitSeed(rnd'instance_name);
 
+    -- Loop a couple of times to get good random coverage
     for i in 0 to 1000 loop
-      -- Loop a couple of times to get good random coverage
-
-      data_a_slv := rnd.RandSLV(data_a_slv'length);
-      data_a := to_axil_m2s_a(data_a_slv);
-      data_a_converted := to_slv(data_a);
-
-      check_equal(data_a_converted, data_a_slv);
-
       data_w_slv := rnd.RandSLV(data_w_slv'length);
       data_w := to_axil_m2s_w(data_w_slv, data_width);
       data_w_converted := to_slv(data_w, data_width);

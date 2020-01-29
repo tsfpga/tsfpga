@@ -86,7 +86,7 @@ begin
   ------------------------------------------------------------------------------
   b_afifo_inst : entity fifo.afifo
     generic map (
-      width => axi_s2m_b_sz,
+      width => axil_s2m_b_sz,
       depth => fifo_depth
     )
     port map(

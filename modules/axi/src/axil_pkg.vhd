@@ -28,9 +28,6 @@ package axil_pkg is
   constant axil_m2s_a_init : axil_m2s_a_t := (valid => '0', others => (others => '0'));
   constant axil_m2s_a_sz : integer := axi_a_addr_sz; -- Exluded member: valid
 
-  function to_slv(data : axil_m2s_a_t) return std_logic_vector;
-  function to_axil_m2s_a(data : std_logic_vector) return axil_m2s_a_t;
-
   type axil_s2m_a_t is record
     ready : std_logic;
   end record;
@@ -62,6 +59,25 @@ package axil_pkg is
   end record;
 
   constant axil_s2m_w_init : axil_s2m_w_t := (ready => '0');
+
+
+  ------------------------------------------------------------------------------
+  -- B (Write Response) channels
+  ------------------------------------------------------------------------------
+
+  type axil_m2s_b_t is record
+    ready : std_logic;
+  end record;
+
+  constant axil_m2s_b_init : axil_m2s_b_t := (ready => '0');
+
+  type axil_s2m_b_t is record
+    valid : std_logic;
+    resp : std_logic_vector(axi_resp_sz - 1 downto 0);
+  end record;
+
+  constant axil_s2m_b_init : axil_s2m_b_t := (valid => '0', others => (others => '0'));
+  constant axil_s2m_b_sz : integer := axi_resp_sz; -- Exluded member: valid
 
 
   ------------------------------------------------------------------------------
@@ -109,20 +125,20 @@ package axil_pkg is
   type axil_write_m2s_t is record
     aw : axil_m2s_a_t;
     w : axil_m2s_w_t;
-    b : axi_m2s_b_t;
+    b : axil_m2s_b_t;
   end record;
   type axil_write_m2s_vec_t is array (integer range <>) of axil_write_m2s_t;
 
-  constant axil_write_m2s_init : axil_write_m2s_t := (aw => axil_m2s_a_init, w => axil_m2s_w_init, b => axi_m2s_b_init);
+  constant axil_write_m2s_init : axil_write_m2s_t := (aw => axil_m2s_a_init, w => axil_m2s_w_init, b => axil_m2s_b_init);
 
   type axil_write_s2m_t is record
     aw : axil_s2m_a_t;
     w : axil_s2m_w_t;
-    b : axi_s2m_b_t;
+    b : axil_s2m_b_t;
   end record;
   type axil_write_s2m_vec_t is array (integer range <>) of axil_write_s2m_t;
 
-  constant axil_write_s2m_init : axil_write_s2m_t := (aw => axil_s2m_a_init, w => axil_s2m_w_init, b => axi_s2m_b_init);
+  constant axil_write_s2m_init : axil_write_s2m_t := (aw => axil_s2m_a_init, w => axil_s2m_w_init, b => axil_s2m_b_init);
 
   type axil_m2s_t is record
     read : axil_read_m2s_t;
@@ -143,28 +159,6 @@ package axil_pkg is
 end;
 
 package body axil_pkg is
-
-  function to_slv(data : axil_m2s_a_t) return std_logic_vector is
-    variable result : std_logic_vector(axil_m2s_a_sz - 1 downto 0);
-    variable lo, hi : integer := 0;
-  begin
-    lo := 0;
-    hi := lo + data.addr'length - 1;
-    result(hi downto lo) := data.addr;
-    assert hi = result'high;
-    return result;
-  end function;
-
-  function to_axil_m2s_a(data : std_logic_vector) return axil_m2s_a_t is
-    variable result : axil_m2s_a_t := axil_m2s_a_init;
-    variable lo, hi : integer := 0;
-  begin
-    lo := 0;
-    hi := lo + result.addr'length - 1;
-    result.addr := data(hi downto lo);
-    assert hi = data'high;
-    return result;
-  end function;
 
   function axil_m2s_w_sz(data_width : integer) return integer is
   begin
