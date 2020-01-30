@@ -27,7 +27,7 @@ class CopyrightHeader:
         Copyright comments should be correct. It should be followed by a blank line or another comment.
         """
         copyright_header_re = self.get_expected_copyright_header().replace("(", "\\(").replace(")", "\\)")
-        regexp = re.compile(copyright_header_re + rf"(\n|{self._comment_character})")
+        regexp = re.compile(copyright_header_re + rf"($|\n|{self._comment_character})")
         with open(self._filename) as file_handle:
             data = file_handle.read()
         return regexp.match(data) is not None
@@ -101,13 +101,17 @@ class TestCopyright(unittest.TestCase):
         header += "-- Copyright (c) Apa. All rights reserved.\n"
         header += "-- " + "-" * 77 + "\n"
 
-        # Needs something on line after
         data = header
+        create_file(self.file, data)
+        copyright_header = CopyrightHeader("Apa", self.file)
+        assert copyright_header.check_file()
+
+        data = header + "non-comment on line after"
         create_file(self.file, data)
         copyright_header = CopyrightHeader("Apa", self.file)
         assert not copyright_header.check_file()
 
-        data = header + "\n"
+        data = header + "\nEmpty line and then non-comment"
         create_file(self.file, data)
         copyright_header = CopyrightHeader("Apa", self.file)
         assert copyright_header.check_file()

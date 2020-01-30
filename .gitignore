@@ -9,3 +9,5 @@
 generated
 
 vhdl_ls.toml
+
+*.code-workspace
