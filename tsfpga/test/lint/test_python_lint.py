@@ -8,6 +8,7 @@ import subprocess
 import sys
 import unittest
 
+from tsfpga import TSFPGA_DOC
 from tsfpga.git_utils import find_git_files
 from tsfpga.system_utils import create_file, delete
 
@@ -23,7 +24,8 @@ def run_pylint(files):
 
 
 def test_pylint():
-    files = list(find_git_files(file_ending="py"))
+    # Exclude doc folder, since conf.py used by sphinx does not conform
+    files = list(find_git_files(file_ending="py", exclude_directories=[TSFPGA_DOC]))
     run_pylint(files)
 
 

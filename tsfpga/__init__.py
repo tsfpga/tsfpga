@@ -14,6 +14,7 @@ from tsfpga.about import get_version
 THIS_DIR = dirname(__file__)
 ROOT = abspath(join(THIS_DIR, ".."))  # Root of the git repo
 
+TSFPGA_DOC = join(ROOT, "doc")
 TSFPGA_MODULES = join(ROOT, "modules")
 TSFPGA_TCL = join(THIS_DIR, "tcl")
 

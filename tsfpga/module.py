@@ -16,15 +16,17 @@ class BaseModule:
     """
     Base class for handling a HDL module with RTL code, constraints, etc.
 
-    Files are gathered from a lot of different subfolders, to accomodate for projects having different catalog structure.
+    Files are gathered from a lot of different subfolders, to accomodate for projects having
+    different catalog structure.
     """
 
     def __init__(self, path, library_name_has_lib_suffix=False, default_registers=None):
         """
-        :param path: Path to the module folder.
-        :param library_name_has_lib_suffix: If set, the library name will be <module name>_lib,
-                                            otherwise it is just <module name>.
-        :param default_registers: A dictionary of Register objects.
+        Args:
+            path: Path to the module folder.
+            library_name_has_lib_suffix: If set, the library name will be <module name>_lib,
+                                         otherwise it is just <module name>.
+            default_registers: A dictionary of :class:`.Register` objects.
         """
         self.path = path
         self.name = basename(self.path)
@@ -72,7 +74,8 @@ class BaseModule:
 
     def get_synthesis_files(self):
         """
-        List of files that should be included in a synthesis project.
+        Return:
+            List of files (:class:`.HdlFile` objects) that should be included in a synthesis project.
         """
         self.create_regs_vhdl_package()
 
@@ -87,16 +90,19 @@ class BaseModule:
 
     def get_simulation_files(self, include_tests=True):
         """
-        List of files that should be included in a simulation project.
+        Args:
+            include_tests: When False the test folder is not included.
+                The use case of include_tests is when testing a primary module
+                that depends on other secondary modules we may want to compile
+                the simulation files (``sim`` folder) of the secondary modules but not their
+                test files (``test`` folder).
 
-        When include_tests is False the test folder is not included.
-        The use case of include_tests is when testing a primary module
-        that depends on other secondary modules we may want to compile
-        the simulation files of the secondary modules but not their
-        test files.
+                Note: `test` files are considered private to the module and should never be used by
+                other modules.
 
-        Note: test-files are considered private to the module and
-        should never be used by other modules.
+        Return:
+            List of files (:class:`.HdlFile` objects) that should be included in a
+            simulation project.
         """
         self.create_regs_vhdl_package()
 
@@ -188,11 +194,18 @@ def get_modules(modules_folders,
     """
     Get a list of Module objects based on the source code folders.
 
-    :param modules_folders: A list of paths where your modules are located.
-    :param names_include: If specified, only modules with these names will be included.
-    :param names_avoid: If specified, modules with these names will be discarded.
-    :param library_name_has_lib_suffix: See BaseModule.
-    :param default_registers: See BaseModule.
+    Args:
+        modules_folders: A list of paths where your modules are located.
+        names_include: A list of module names. If specified, only modules with these names
+                       will be included.
+        names_avoid: A list of module names. If specified, modules with these names will
+                     be discarded.
+        library_name_has_lib_suffix: See :class:`BaseModule`.
+        default_registers: See :class:`BaseModule`.
+
+    Return:
+        List of module objects (:class:`BaseModule` or child classes thereof) created from
+        the specified folders.
     """
     modules = []
 

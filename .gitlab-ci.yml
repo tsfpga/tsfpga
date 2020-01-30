@@ -49,3 +49,15 @@ deploy_pypi:
     - python3 tools/verify_release.py
     - python3 setup.py sdist
     - python3 -m twine upload dist/*
+
+pages:
+  stage: deploy
+  only:
+    - master
+  script:
+    - python3 -m pip install sphinx > /dev/null
+    - python3 tools/build_sphinx_docs.py
+    - mv generated/sphinx_html public
+  artifacts:
+    paths:
+      - public
