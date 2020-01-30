@@ -27,7 +27,7 @@ def verify_release_version(version):
     git_tags = subprocess.check_output(
         ["git", "tag", "--list", "--points-at", "HEAD"]).decode().splitlines()
     if git_tag not in git_tags:
-        sys.exit("Could not find correspoing git tag: " + git_tag)
+        sys.exit("Could not find git tag: " + git_tag)
 
     with urlopen("https://pypi.python.org/pypi/tsfpga/json") as file_handle:
         json_data = json.load(file_handle)

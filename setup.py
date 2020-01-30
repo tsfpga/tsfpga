@@ -2,6 +2,7 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
+import os
 from os.path import dirname, join, relpath
 from setuptools import setup, find_packages
 import sys
@@ -9,7 +10,10 @@ import sys
 ROOT = join(dirname(__file__))
 sys.path.append(ROOT)
 from tsfpga.about import get_version
-from tsfpga.git_utils import find_git_files
+
+
+README_MD = join(ROOT, "readme.md")
+REQUIREMENTS_TXT = join(ROOT, "requirements.txt")
 
 
 def main():
@@ -43,13 +47,13 @@ def main():
 
 
 def get_readme_description():
-    with open(join(ROOT, "readme.md")) as file_handle:
+    with open(README_MD) as file_handle:
         return file_handle.read()
 
 
 def get_package_requirements():
     requirements = []
-    with open(join(ROOT, "requirements.txt")) as file_handle:
+    with open(REQUIREMENTS_TXT) as file_handle:
         # Requirements file contains one package name per line
         for line_data in file_handle.readlines():
             if line_data:
@@ -62,13 +66,25 @@ def get_package_data():
     """
     Additional files that shall be included in the release, apart from the python packages
     """
-    package_data = []
-    package_data += list(find_git_files(directory=join(ROOT, "tsfpga", "tcl")))
-    package_data += list(find_git_files(directory=join(ROOT, "modules")))
+    package_data = [README_MD, REQUIREMENTS_TXT]
+    package_data += list(find_package_files(join(ROOT, "tsfpga", "tcl")))
+    package_data += list(find_package_files(join(ROOT, "modules")))
 
     # Specify path relative to the tsfpga python package folder
     package_data = [relpath(file_name, join(ROOT, "tsfpga")) for file_name in package_data]
     return package_data
+
+
+def find_package_files(directory):
+    """
+    Find files to include in the package, ingoring temporary files.
+    """
+    files = []
+    for root, _, filenames in os.walk(directory):
+        for filename in filenames:
+            if not filename.endswith("pyc"):
+                files.append(join(root, filename))
+    return files
 
 
 if __name__ == "__main__":
