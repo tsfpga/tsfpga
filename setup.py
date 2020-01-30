@@ -67,8 +67,8 @@ def get_package_data():
     Additional files that shall be included in the release, apart from the python packages
     """
     package_data = [README_MD, REQUIREMENTS_TXT]
-    package_data += list(find_package_files(join(ROOT, "tsfpga", "tcl")))
-    package_data += list(find_package_files(join(ROOT, "modules")))
+    package_data += find_package_files(join(ROOT, "tsfpga", "tcl"))
+    package_data += find_package_files(join(ROOT, "modules"))
 
     # Specify path relative to the tsfpga python package folder
     package_data = [relpath(file_name, join(ROOT, "tsfpga")) for file_name in package_data]
