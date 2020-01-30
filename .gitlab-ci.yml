@@ -8,10 +8,9 @@ stages:
 default:
   # docker image with python3 and apt-get
   image: python:3.8-slim-buster
-
-before_script:
-  - python3 --version
-  - export PYTHONPATH=$(pwd)/tsfpga
+  before_script:
+    - python3 --version
+    - export PYTHONPATH=$(pwd)/tsfpga
 
 pytest:
   stage: test
@@ -47,5 +46,6 @@ deploy_pypi:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git > /dev/null
     - python3 -m pip install twine > /dev/null
+    - python3 tools/verify_release.py
     - python3 setup.py sdist
     - python3 -m twine upload dist/*

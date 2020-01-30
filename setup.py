@@ -2,23 +2,23 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import dirname, exists, join, relpath
+from os.path import dirname, join, relpath
 from setuptools import setup, find_packages
-import subprocess
 import sys
 
 ROOT = join(dirname(__file__))
 sys.path.append(ROOT)
 from tsfpga.about import get_version
-from tsfpga.git_utils import find_git_files, git_local_changes_are_present
+from tsfpga.git_utils import find_git_files
 
 
 def main():
     setup(
         name="tsfpga",
-        version=get_release_version(),
+        version=get_version(),
         description="A project platform for modern FPGA development",
         long_description=get_readme_description(),
+        long_description_content_type="text/markdown",
         license="BSD 3-Clause License",
         author="Lukas Vik",
         author_email="2767848-LukasVik@users.noreply.gitlab.com",
@@ -32,9 +32,6 @@ def main():
             "License :: OSI Approved :: BSD License",
             "Natural Language :: English",
             "Intended Audience :: Developers",
-            "Programming Language :: Python :: 3.6",
-            "Programming Language :: Python :: 3.7",
-            "Programming Language :: Python :: 3.8",
             "Operating System :: Microsoft :: Windows",
             "Operating System :: MacOS :: MacOS X",
             "Operating System :: POSIX :: Linux",
@@ -43,30 +40,6 @@ def main():
         ],
         zip_safe=False
     )
-
-
-def get_release_version():
-    python_package_version = get_version()
-    verify_release_version(python_package_version)
-    return python_package_version
-
-
-def verify_release_version(version):
-    if git_local_changes_are_present():
-        sys.exit("Must make release from clean repo")
-
-    release_notes_file = join(ROOT, "doc", "release_notes", version + ".md")
-    if not exists(release_notes_file):
-        sys.exit("Could not find release notes file: " + release_notes_file)
-
-    git_tag = "v" + version
-    git_tags = subprocess.check_output(
-        ["git", "tag", "--list", "--points-at", "HEAD"]).decode().splitlines()
-
-    if git_tag not in git_tags:
-        sys.exit("Could not find correspoing git tag: " + git_tag)
-
-    # TO DO Check that version does not exist in PyPI
 
 
 def get_readme_description():
