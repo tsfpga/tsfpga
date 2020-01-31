@@ -6,6 +6,7 @@ from os.path import join, dirname
 import pytest
 import unittest
 
+import tsfpga
 from tsfpga.git_utils import find_git_files
 from tsfpga.system_utils import create_file, delete
 
@@ -23,8 +24,10 @@ def test_all_checked_in_files_are_properly_encoded():
     """
     To avoid problems with different editors and different file encodings, all checked in files should
     contain only ASCII characters.
+
+    Avoid one of the documentation files that uses wonky characters to illustrate a directory tree.
     """
-    for file in find_git_files():
+    for file in find_git_files(exclude_directories=join(tsfpga.TSFPGA_DOC, "folder_structure.rst")):
         open_file_with_encoding(file)
 
 

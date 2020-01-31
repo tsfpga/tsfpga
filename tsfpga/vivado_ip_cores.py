@@ -17,8 +17,14 @@ class VivadoIpCores:
 
     _project_name = "vivado_ip_project"
 
-    def __init__(self, modules, project_path, part_name="xc7z020clg400-1"):
-        self._project_folder = join(project_path, self._project_name)
+    def __init__(self, modules, output_path, part_name):
+        """
+        Args:
+            modules: A list of module objects.
+            output_path: The Vivado project will be placed here.
+            part_name: Vivado part name to be used for the project.
+        """
+        self._project_folder = join(output_path, self._project_name)
         self._part_name = part_name
         self._hash_file = join(self._project_folder, "ip_files_hash.txt")
 
@@ -57,6 +63,16 @@ class VivadoIpCores:
     def create_vivado_project_if_needed(self):
         """
         Create IP core Vivado project if anything has changed since last time this was run.
+        If
+
+        * List of TCL files that create IP cores,
+        * and contents of these files,
+
+        is the same then it will not create. But if anything is added or removed from the list,
+        or the contents of a TCL file is changed, there will be a recreation.
+
+        Return:
+            True of Vivado project was created. False otherwise.
         """
         if self._should_create():
             self.create_vivado_project()

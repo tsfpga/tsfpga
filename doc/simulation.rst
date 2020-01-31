@@ -131,15 +131,34 @@ This can be used for example to point out the location of test data.
 Or maybe select some test mode with a parameter to your ``simulate.py``.
 This is pure Python so you can get as fancy as you want to.
 
+
+
 .. _vivado_simlib:
 
-Simulating with Vivado simlib
------------------------------
+Vivado simulation libraries
+---------------------------
+
+Compiled Vivado simulation libraries (unisim, xpm, etc.) are often need in the simulation project.
+The ``VivadoSimlib`` class provides an easy interface for handling simlib.
+It will run Vivado with a TCL script that compiles simlib, and will only do a recompile when necessary (new Vivado or simulator version, etc.).
 
 .. autoclass:: tsfpga.vivado_simlib.VivadoSimlib()
     :members:
 
     .. automethod:: __init__
+
+Adding simlib to you simulation project using this class is achieved by simply doing:
+
+.. code-block:: python
+    :caption: Adding simlib to your simulation project in ``simulate.py``.
+
+    from tsfpga.vivado_simlib import VivadoSimlib
+
+    ...
+
+    vivado_simlib = VivadoSimlib(vunit_proj, temp_dir)
+    vivado_simlib.compile_if_needed()
+    vivado_simlib.add_to_vunit_project()
 
 
 
@@ -148,10 +167,39 @@ Simulating with Vivado simlib
 Simulating with Vivado IP cores
 -------------------------------
 
+There is a class available in tsfpga for handling the IP cores that shall be included in the simulation project.
+From your list of modules it will create a Vivado project with all the IP cores.
+This project shall then be used to generate the simulation models for the IP cores, which shall then be added to the simulation project.
+
 .. autoclass:: tsfpga.vivado_ip_cores.VivadoIpCores()
     :members:
 
     .. automethod:: __init__
+
+Adding this to your simulation project can be done like this:
+
+.. code-block:: python
+    :caption: Adding Vivado IP cores to your simulation project in ``simulate.py``.
+
+    from tsfpga.vivado_ip_cores import VivadoIpCores
+    from vunit.vivado.vivado import create_compile_order_file, add_from_compile_order_file
+
+    ...
+
+    vivado_ip_cores = VivadoIpCores(modules, temp_dir, "xc7z020clg400-1")
+    vivado_project_created = vivado_ip_cores.create_vivado_project_if_needed()
+
+    if vivado_project_created:
+        # If the IP core Vivado project has been (re)created we need to create
+        # a new compile order file
+        create_compile_order_file(vivado_ip_cores.vivado_project_file,
+                                  vivado_ip_cores.compile_order_file)
+
+    add_from_compile_order_file(vunit_proj, vivado_ip_cores.compile_order_file)
+
+Note that we use functions from VUnit to handle parts of this.
+The ``create_compile_order_file()`` function will run a TCL script on the project that generates simulation models and saves a compile order to file.
+The ``add_from_compile_order_file()`` function will then add the files in said compile order to the VUnit project.
 
 
 

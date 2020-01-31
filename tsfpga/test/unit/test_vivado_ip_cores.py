@@ -26,7 +26,7 @@ class TestVivadoIpCores(TestCase):
         self.hest_tcl = create_file(join(self.modules_folder, "hest", "ip_cores", "hest.tcl"), "hest")
 
         modules = get_modules([self.modules_folder])
-        self.vivado_ip_cores = VivadoIpCores(modules, self.project_folder)
+        self.vivado_ip_cores = VivadoIpCores(modules, self.project_folder, part_name="-")
 
         # Create inital hash and (empty) compile order file
         self.vivado_ip_cores._save_hash()  # pylint: disable=protected-access
@@ -55,7 +55,7 @@ class TestVivadoIpCores(TestCase):
         #   change something -> get modules -> create new VivadoIpCores object
         # should not result in a recreate unless we actually change something.
         modules = get_modules([self.modules_folder])
-        vivado_ip_cores = VivadoIpCores(modules, self.project_folder)
+        vivado_ip_cores = VivadoIpCores(modules, self.project_folder, part_name="-")
 
         assert not vivado_ip_cores.create_vivado_project_if_needed()
         create.assert_not_called()
@@ -64,7 +64,7 @@ class TestVivadoIpCores(TestCase):
     def test_should_recreate_if_ip_core_file_is_added(self, create):
         create_file(join(self.modules_folder, "zebra", "ip_cores", "zebra.tcl"), "zebra")
         modules = get_modules([self.modules_folder])
-        vivado_ip_cores = VivadoIpCores(modules, self.project_folder)
+        vivado_ip_cores = VivadoIpCores(modules, self.project_folder, part_name="-")
 
         assert vivado_ip_cores.create_vivado_project_if_needed()
         create.assert_called_once()
@@ -73,7 +73,7 @@ class TestVivadoIpCores(TestCase):
     def test_should_recreate_if_ip_core_file_is_removed(self, create):
         delete(self.hest_tcl)
         modules = get_modules([self.modules_folder])
-        vivado_ip_cores = VivadoIpCores(modules, self.project_folder)
+        vivado_ip_cores = VivadoIpCores(modules, self.project_folder, part_name="-")
 
         assert vivado_ip_cores.create_vivado_project_if_needed()
         create.assert_called_once()
@@ -82,7 +82,7 @@ class TestVivadoIpCores(TestCase):
     def test_should_recreate_if_ip_core_file_is_changed(self, create):
         create_file(self.apa_tcl, "blaha blaha")
         modules = get_modules([self.modules_folder])
-        vivado_ip_cores = VivadoIpCores(modules, self.project_folder)
+        vivado_ip_cores = VivadoIpCores(modules, self.project_folder, part_name="-")
 
         assert vivado_ip_cores.create_vivado_project_if_needed()
         create.assert_called_once()

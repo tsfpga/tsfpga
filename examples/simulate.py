@@ -100,7 +100,7 @@ def add_simlib(vunit_proj, temp_dir, force_compile):
 
 
 def generate_ip_core_files(modules, temp_dir, force_generate):
-    vivado_ip_cores = VivadoIpCores(modules, temp_dir)
+    vivado_ip_cores = VivadoIpCores(modules, temp_dir, "xc7z020clg400-1")
 
     if force_generate:
         vivado_ip_cores.create_vivado_project()

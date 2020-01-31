@@ -13,6 +13,11 @@ from tsfpga.system_utils import create_file, delete
 
 class VivadoSimlib:
 
+    """
+    Class for handling Vivado simlib used for simulation. Keeps track of when a
+    (re)compile is needed.
+    """
+
     _libraries = ["unisim", "secureip", "unimacro", "unifast", "xpm"]
 
     _tcl = "set_param general.maxthreads 4\n" \
@@ -20,6 +25,12 @@ class VivadoSimlib:
         "-family all -language all -library all -no_ip_compile -dir {{{output_path}}} -force"
 
     def __init__(self, vunit_proj, output_path, vivado_path="vivado"):
+        """
+        Args:
+            vunit_proj: The VUnit project that is used to run simulation.
+            output_path: The compiled simlib will be placed here.
+            vivado_path: Path to Vivado executable.
+        """
         self._vunit_proj = vunit_proj
         self._vivado_path = vivado_path
 
@@ -28,12 +39,27 @@ class VivadoSimlib:
         self._done_token = join(self.output_path, "done.txt")
 
     def compile_if_needed(self):
+        """
+        Compile if needed. If there is compiled simlib available that matches
+         * Operating system
+         * The Vivado TCL code used to compile simlib
+         * Vivado version
+         * Simulator version
+
+        then there will not be a recompile.
+
+        Return:
+            True if simlib was compiled. Otherwise False.
+        """
         if exists(self._done_token):
             return False
         self.compile()
         return True
 
     def compile(self):
+        """
+        Compile simlib.
+        """
         delete(self._done_token)
         print(f"Compiling Vivado simlib in {self.output_path}")
         tcl_file = join(self.output_path, "compile_simlib.tcl")
@@ -45,6 +71,9 @@ class VivadoSimlib:
         create_file(self._done_token, "Done!")
 
     def add_to_vunit_project(self):
+        """
+        Add the compiled simlib to your VUnit project.
+        """
         for library in self._libraries:
             library_path = join(self.output_path, library)
             assert exists(library_path)
