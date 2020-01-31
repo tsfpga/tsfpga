@@ -12,5 +12,5 @@ class Module(BaseModule):
             tb = vunit_proj.library(self.library_name).test_bench(tb_name)
             for width in [8, 24]:
                 for depth in [16, 1024]:
-                    name = "width_%i.depth_%i" % (width, depth)
+                    name = f"width_{width}.depth_{depth}"
                     tb.add_config(name=name, generics=dict(width=width, depth=depth))

@@ -93,12 +93,13 @@ class BaseModule:
         Args:
             include_tests: When False the test folder is not included.
                 The use case of include_tests is when testing a primary module
-                that depends on other secondary modules we may want to compile
+                that depends on other secondary modules, we may want to compile
                 the simulation files (``sim`` folder) of the secondary modules but not their
                 test files (``test`` folder).
 
-                Note: `test` files are considered private to the module and should never be used by
-                other modules.
+                .. Note::
+                    `test` files are considered private to the module and should never be used by
+                    other modules.
 
         Return:
             List of files (:class:`.HdlFile` objects) that should be included in a
@@ -130,6 +131,12 @@ class BaseModule:
         """
         Setup local configuration of this module's test benches.
         Should be overriden by modules that have any test benches that operate via generics.
+
+        Args:
+            vunit_proj: The VUnit project that is used to run simulation.
+            kwargs: Use this to pass an arbitrary list of arguments from your ``simulate.py``
+                to the module where you set up your tests. This could be, e.g., data dimensions,
+                location of test files, etc.
         """
 
     def get_ip_core_files(self):
