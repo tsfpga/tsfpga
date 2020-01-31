@@ -6,7 +6,7 @@ Simulation flow
 This page how to run simulations using tsfpga and VUnit.
 
 As far as simulations go tsfpga can be seen as layer on top of VUnit.
-tsfpga helps manage the inuts to your simulation project: source files, test benches, :ref:`test configurations <local_configuration>`, :ref:`register code generation <registers>`, :ref:`IP cores <vivado_ip_cores>`, :ref:`simlib <vivado_simlib>`,...
+tsfpga helps manage the inputs to your simulation project: source files, test benches, :ref:`test configurations <local_configuration>`, :ref:`register code generation <registers>`, :ref:`IP cores <vivado_ip_cores>`, :ref:`simlib <vivado_simlib>`,...
 As such all features of VUnit are available as they are, and all simulators are supported (ghdl as well as commercial).
 
 
@@ -36,7 +36,7 @@ The library name is deduced from the name of each module folder.
 Source files, packages and testbenches are collected from a few standard locations within the module folder.
 
 .. note::
-    If you use a diffrent folder structure within the modules then what is currenctly supported by tsfpga, feel free to create an `issue <https://gitlab.com/truestream/tsfpga/issues>`__ or a merge request.
+    If you use a different folder structure within the modules then what is currently supported by tsfpga, feel free to create an `issue <https://gitlab.com/truestream/tsfpga/issues>`__ or a merge request.
 
 
 The ``module.get_simulation_files()`` call returns a list of files (:ref:`HdlFile objects <hdl_file>`) that are to be included in the simulation project.
@@ -52,7 +52,7 @@ Realistic example
 -----------------
 
 If you want to dive into a more realistic example have a look at `examples/simulate.py <https://gitlab.com/truestream/tsfpga/blob/master/examples/simulate.py>`__ in the repo.
-Or continue reading this document for an exaplanation of the mechanisms.
+Or continue reading this document for an explanation of the mechanisms.
 
 This file handles things like
 
@@ -119,7 +119,7 @@ This will result in the tests
 
 So what happens here is that we created a class ``Module`` that inherits from :ref:`BaseModule <module_objects>`.
 In this class we overloaded the ``setup_simulations()`` method, which does nothing in the parent class, to set up our simulation configurations.
-The :ref:`get_modules() <get_modules>` call used in our ``simulate.py`` will recognise that this module has a Python file to set up it's own class.
+The :ref:`get_modules() <get_modules>` call used in our ``simulate.py`` will recognize that this module has a Python file to set up it's own class.
 When creating module objects the function will then use the user-specified class for this module.
 Later in ``simulate.py`` when ``setup_simulations()`` is run, the code we specified above will be run.
 

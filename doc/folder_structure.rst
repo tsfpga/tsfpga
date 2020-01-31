@@ -7,7 +7,7 @@ Some functions in tsfpga requires that your modules use a certain folder structu
 For example, if you want to set up :ref:`local test configurations <local_configuration>` use
 must use a file called ``module_<module_name>.py`` in the root of your module.
 
-Additionaly the :meth:`get_modules() <tsfpga.module.get_modules>` function in tsfpga, which creates
+Additionally the :meth:`get_modules() <tsfpga.module.get_modules>` function in tsfpga, which creates
 :meth:`module objects <tsfpga.module.BaseModule>` from a source tree, will look for source files only in certain sub-directories.
 
 Below is a recommended folder structure.
@@ -53,7 +53,7 @@ Source code and packages are recommended to be placed in the ``src`` folder.
 There is no distinction made between source files and packages in tsfpga.
 The corresponding test benches are recommended to use the ``test`` folder.
 
-You don't have to use these exact folders; :meth:`BaseModule <tsfpga.module.BaseModule>` will look for files in many folder, to accomodate for different projects using different structures.
+You don't have to use these exact folders; :meth:`BaseModule <tsfpga.module.BaseModule>` will look for files in many folder, to accommodate for different projects using different structures.
 For example, at the moment :meth:`BaseModule.get_synthesis_files() <tsfpga.module.BaseModule.get_synthesis_files>` will look for source files in
 
 * ``src``
@@ -62,7 +62,7 @@ For example, at the moment :meth:`BaseModule.get_synthesis_files() <tsfpga.modul
 * ``hdl/package``
 
 .. note::
-    If your project uses a different folder structure, and is locked into using that, tsfpga can be updated to accomodate that as well.
+    If your project uses a different folder structure, and is locked into using that, tsfpga can be updated to accommodate that as well.
     This goes for most of the folders within the module, described below.
     Feel free to create and `issue <https://gitlab.com/truestream/tsfpga/issues>`__ or a merge request.
 
