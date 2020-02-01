@@ -31,18 +31,18 @@ pytest:
     - python3 -m pytest -v --ignore=tsfpga/test/vivado/ tsfpga/
 
 
-# simulate:
-#   stage: test
-#   rules:
-#     - when: always
-#   # Use docker image from ghdl project
-#   # Available at https://hub.docker.com/r/ghdl/ext/
-#   # Configured at https://github.com/ghdl/docker/tree/master/dockerfiles
-#   image: ghdl/ext:ls-vunit
-#   script:
-#     - python3 -m pip install toml > /dev/null
-#     - ghdl --version
-#     - python3 examples/simulate.py --num-threads 4 --vivado-skip
+simulate:
+  stage: test
+  rules:
+    - when: always
+  # Use docker image from ghdl project
+  # Available at https://hub.docker.com/r/ghdl/ext/
+  # Configured at https://github.com/ghdl/docker/tree/master/dockerfiles
+  image: ghdl/ext:ls-vunit
+  script:
+    - python3 -m pip install toml > /dev/null
+    - ghdl --version
+    - python3 examples/simulate.py --num-threads 4 --vivado-skip
 
 
 build_pypi:
