@@ -17,7 +17,7 @@
 from os.path import abspath, dirname, join
 import sys
 
-REPO_ROOT = abspath(join(dirname(__file__), ".."))
+REPO_ROOT = abspath(join(dirname(__file__), "..", ".."))
 sys.path.append(REPO_ROOT)
 
 

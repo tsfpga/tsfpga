@@ -13,7 +13,7 @@ def main():
     cmd = [
         "sphinx-build",
         "-EanWT",
-        join(ROOT, "doc"),
+        join(ROOT, "doc", "sphinx"),
         join(ROOT, "generated", "sphinx_html"),
     ]
     check_call(cmd)

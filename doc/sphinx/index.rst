@@ -8,3 +8,4 @@ Note that the documentation is at this stage very much a Work In Progress.
    folder_structure
    build
    registers
+   contributing
