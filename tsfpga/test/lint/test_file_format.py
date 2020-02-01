@@ -27,7 +27,7 @@ def test_all_checked_in_files_are_properly_encoded():
 
     Avoid one of the documentation files that uses wonky characters to illustrate a directory tree.
     """
-    for file in find_git_files(exclude_directories=join(tsfpga.TSFPGA_DOC, "folder_structure.rst")):
+    for file in files_to_test(exclude_directories=[join(tsfpga.TSFPGA_DOC, "sphinx", "folder_structure.rst")]):
         open_file_with_encoding(file)
 
 
@@ -47,7 +47,7 @@ def test_no_checked_in_files_contain_tabs():
     contain TAB characters.
     """
     test_ok = True
-    for file in find_git_files():
+    for file in files_to_test():
         test_ok &= check_file_for_tab_character(file)
     assert test_ok
 
@@ -67,7 +67,7 @@ def test_no_checked_in_files_contain_carriage_return():
     Some Linux editors and tools will display or interpret the \r as something other than a line break.
     """
     test_ok = True
-    for file in find_git_files():
+    for file in files_to_test():
         test_ok &= check_file_for_carriage_return(file)
     assert test_ok
 
@@ -88,9 +88,14 @@ def test_no_checked_in_files_contain_trailing_whitespace():
     Some motivation here: https://softwareengineering.stackexchange.com/questions/121555/why-is-trailing-whitespace-a-big-deal
     """
     test_ok = True
-    for file in find_git_files():
+    for file in files_to_test():
         test_ok &= check_file_for_trailing_whitespace(file)
     assert test_ok
+
+
+def files_to_test(exclude_directories=None):
+    # Do not test binary image files
+    return find_git_files(exclude_directories=exclude_directories, file_endings_avoid="png")
 
 
 class TestFileFormat(unittest.TestCase):

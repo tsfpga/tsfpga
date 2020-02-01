@@ -58,7 +58,17 @@ def check_that_git_commands_are_available(cwd=None):
         raise RuntimeError(mesg)
 
 
-def find_git_files(file_ending=None, directory=ROOT, exclude_directories=None):
+def find_git_files(file_endings_include=None,
+                   file_endings_avoid=None,
+                   directory=ROOT,
+                   exclude_directories=None):
+    """
+    Args:
+        file_endings_include: String or tuple of strings. Only files with these endings will be included.
+        file_endings_avoid: String or tuple of strings. Files with these endings will not be included.
+        directory: Search in this directory.
+        exclude_directories: Files in these directories will not be included.
+    """
     exclude_directories = [] if exclude_directories is None else \
         [normpath(abspath(exclude_directory)) for exclude_directory in exclude_directories]
 
@@ -77,7 +87,8 @@ def find_git_files(file_ending=None, directory=ROOT, exclude_directories=None):
         assert exists(file)  # Make sure concatenation of relative path worked
 
         if isfile(file):  # "git ls-files" also lists submodule folders
-            if file_ending is None or file.endswith(file_ending):
+            if (file_endings_include is None or file.endswith(file_endings_include)) \
+                    and (file_endings_avoid is None or not file.endswith(file_endings_avoid)):
                 if not _file_is_in_directory(file, exclude_directories):
                     yield normpath(file)
 

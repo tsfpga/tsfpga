@@ -20,12 +20,23 @@ def test_this_file_is_listed_by_find_git_files_without_argument():
 
 
 def test_this_file_is_listed_by_find_git_files_with_argument():
-    git_files = find_git_files(file_ending="py")
+    # Test with string as well as tuple
+    git_files = find_git_files(file_endings_include="py")
+    assert THIS_FILE in git_files
+    git_files = find_git_files(file_endings_include=("py", ))
     assert THIS_FILE in git_files
 
 
 def test_this_file_is_not_listed_by_find_git_files_with_bad_argument():
-    git_files = find_git_files(file_ending="vhd")
+    git_files = find_git_files(file_endings_include="vhd")
+    assert THIS_FILE not in git_files
+
+
+def test_this_file_is_not_listed_by_find_git_files_with_file_endings_avoid():
+    # Test with string as well as tuple
+    git_files = find_git_files(file_endings_avoid="py")
+    assert THIS_FILE not in git_files
+    git_files = find_git_files(file_endings_avoid=("py", ))
     assert THIS_FILE not in git_files
 
 

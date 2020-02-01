@@ -74,7 +74,7 @@ def files_to_check_for_copyright_header():
     file_endings = [".py", ".vhd", ".tcl"]
     exclude_directories = [join(TSFPGA_EXAMPLES, "modules", "artyz7", "tcl")]
     for file_ending in file_endings:
-        for filename in find_git_files(file_ending=file_ending, exclude_directories=exclude_directories):
+        for filename in find_git_files(file_endings_include=file_ending, exclude_directories=exclude_directories):
             yield filename
 
 
