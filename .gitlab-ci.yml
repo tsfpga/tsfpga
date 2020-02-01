@@ -15,6 +15,7 @@ default:
     - echo $CI_COMMIT_TAG
     - echo $CI_COMMIT_BRANCH
     - echo $CI_PIPELINE_SOURCE
+    - echo $CI_COMMIT_REF_NAME
 
 
 pytest:
@@ -29,7 +30,7 @@ pytest:
     - python3 -m pycodestyle --version
     - python3 -m pytest -v --ignore=tsfpga/test/vivado/ tsfpga/
 
-#
+
 # simulate:
 #   stage: test
 #   rules:
@@ -47,13 +48,10 @@ pytest:
 build_pypi:
   stage: test
   rules:
-    - if: '$CI_COMMIT_TAG != null'
-      when: always
+      - when: always
   script:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git > /dev/null
-    - python3 -m pip install twine > /dev/null
-    - python3 tools/verify_release.py
     - python3 setup.py sdist
   artifacts:
     paths:
@@ -76,12 +74,16 @@ deploy_pypi:
   # Deploy artifacts from the build_pypi job run in the previous stage
   stage: deploy
   rules:
-    - if: '$CI_COMMIT_BRANCH != "master" && $CI_COMMIT_TAG != null && $CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_COMMIT_TAG != null'
       when: on_success
   variables:
     TWINE_USERNAME: __token__
     TWINE_PASSWORD: $PYPI_API_TOKEN
   script:
+    - apt-get update -qq > /dev/null
+    - apt-get install -y -qq git > /dev/null
+    - python3 -m pip install twine > /dev/null
+    - python3 tools/verify_release.py
     - python3 -m twine upload dist/*
 
 
