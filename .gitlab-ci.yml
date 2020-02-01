@@ -76,7 +76,6 @@ deploy_pypi:
   # Deploy artifacts from the build_pypi job run in the previous stage
   stage: deploy
   rules:
-    # Run only on master builds triggered manually in the web GUI
     - if: '$CI_COMMIT_BRANCH != "master" && $CI_COMMIT_TAG != null && $CI_PIPELINE_SOURCE == "web"'
       when: on_success
   variables:
