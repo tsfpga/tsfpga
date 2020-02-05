@@ -38,6 +38,7 @@ begin
 
   main : process
     variable value : signed(5 - 1 downto 0);
+    variable slv : std_logic_vector(5 - 1 downto 0);
   begin
     test_runner_setup(runner, runner_cfg);
 
@@ -45,7 +46,8 @@ begin
       check_equal(log2(32), 5);
       check_equal(log2(64), 6);
       check_equal(log2(128), 7);
-    elsif run("num_bits_needed") then
+
+    elsif run("num_bits_needed_int") then
       check_equal(num_bits_needed(0), 1);
       check_equal(num_bits_needed(1), 1);
       check_equal(num_bits_needed(2), 2);
@@ -55,6 +57,23 @@ begin
       check_equal(num_bits_needed(7), 3);
       check_equal(num_bits_needed(8), 4);
       check_equal(num_bits_needed(9), 4);
+
+    elsif run("num_bits_needed_slv") then
+      slv := "00000";
+      check_equal(num_bits_needed(slv), 1);
+
+      slv := "00001";
+      check_equal(num_bits_needed(slv), 1);
+
+      slv := "00010";
+      check_equal(num_bits_needed(slv), 2);
+
+      slv := "00011";
+      check_equal(num_bits_needed(slv), 2);
+
+      slv := "00100";
+      check_equal(num_bits_needed(slv), 3);
+
     elsif run("lt_0") then
       value := to_signed(-3, value'length);
       check_true(lt_0(value));
@@ -62,6 +81,7 @@ begin
       check_false(lt_0(value));
       value := to_signed(3, value'length);
       check_false(lt_0(value));
+
     elsif run("geq_0") then
       value := to_signed(-3, value'length);
       check_false(geq_0(value));
@@ -69,6 +89,7 @@ begin
       check_true(geq_0(value));
       value := to_signed(3, value'length);
       check_true(geq_0(value));
+
     elsif run("to_and_from_gray") then
       for i in 1 to 2**8-2 loop
         check_equal(from_gray(to_gray(i, 8)), i);

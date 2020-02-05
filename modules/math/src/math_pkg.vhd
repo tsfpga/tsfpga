@@ -11,8 +11,10 @@ use ieee.math_real.all;
 package math_pkg is
 
   function log2(value            : integer) return integer;
-  function num_bits_needed(value : integer) return integer;
   function is_power_of_two(value : integer) return boolean;
+
+  function num_bits_needed(value : integer) return integer;
+  function num_bits_needed(value : std_logic_vector) return integer;
 
   function lt_0(value  : signed) return boolean;
   function geq_0(value : signed) return boolean;
@@ -31,18 +33,33 @@ package body math_pkg is
     return result;
   end function;
 
+  function is_power_of_two(value : integer) return boolean is
+  begin
+    return 2**log2(value) = value;
+  end function;
+
+  function num_bits_needed(value : std_logic_vector) return integer is
+    variable result : integer;
+  begin
+    -- The number of bits needed to express the given value.
+    assert value'high > value'low report "Use only with descending range" severity failure;
+    assert value'low = 0 report "Use vector that starts at zero" severity failure;
+
+    for bit_idx in value'high downto value'low loop
+      if value(bit_idx) = '1' then
+        return bit_idx + 1;
+      end if;
+    end loop;
+    return 1;
+  end function;
+
   function num_bits_needed(value : integer) return integer is
-    constant clog2_result : integer := integer(ceil(log2(real(value + 1))));
-    constant result       : integer := maximum(1, clog2_result);  -- Special case: value 1 needs one bit.
+    constant value_slv : std_logic_vector(64 - 1 downto 0) := std_logic_vector(to_unsigned(value, 64));
+    constant result : integer := num_bits_needed(value_slv);
   begin
     -- The number of bits needed to express the given value in an unsigned vector.
     assert value <= 2**result - 1 report "Calculated value not correct: " & to_string(value) & " " & to_string(result) severity failure;
     return result;
-  end function;
-
-  function is_power_of_two(value : integer) return boolean is
-  begin
-    return 2**log2(value) = value;
   end function;
 
   function lt_0(value : signed) return boolean is
