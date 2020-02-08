@@ -10,7 +10,15 @@ from tsfpga.module import iterate_module_folders
 
 class FPGAProjectList:
 
+    """
+    Represent a list of FPGA build projects.
+    """
+
     def __init__(self, modules_folders):
+        """
+        Args:
+            modules_folders: A list of paths to folders that contain modules.
+        """
         self._get_projects(modules_folders)
 
     @staticmethod
@@ -29,11 +37,24 @@ class FPGAProjectList:
             self.projects += self._get_project_objects(module_folder, module_name)
 
     def get(self, project_name):
+        """
+        Get the project with the specified name.
+
+        Args:
+            project_name: Project name string.
+
+        Returns:
+            A :class:`FPGA build project <.VivadoProject>` object.
+        """
         for project in self.projects:
             if project.name == project_name:
                 return project
 
     def names(self):
+        """
+        Returns:
+            A list of names of the projects that are available.
+        """
         names = []
         for project in self.projects:
             names.append(project.name)

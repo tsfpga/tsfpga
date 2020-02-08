@@ -16,7 +16,7 @@ class BaseModule:
     """
     Base class for handling a HDL module with RTL code, constraints, etc.
 
-    Files are gathered from a lot of different subfolders, to accomodate for projects having
+    Files are gathered from a lot of different subfolders, to accommodate for projects having
     different catalog structure.
     """
 
@@ -130,7 +130,7 @@ class BaseModule:
     def setup_simulations(self, vunit_proj, **kwargs):
         """
         Setup local configuration of this module's test benches.
-        Should be overriden by modules that have any test benches that operate via generics.
+        Should be overridden by modules that have any test benches that operate via generics.
 
         Args:
             vunit_proj: The VUnit project that is used to run simulation.

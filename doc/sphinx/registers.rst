@@ -9,3 +9,9 @@ TBC
     :members:
 
     .. automethod:: __init__
+
+
+.. _default_registers:
+
+Default registers
+-----------------

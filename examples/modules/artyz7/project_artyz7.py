@@ -21,8 +21,8 @@ def get_projects():
     part = "xc7z020clg400-1"
 
     tcl_dir = join(THIS_DIR, "tcl")
-    block_design = join(tcl_dir, "block_design.tcl")
     pinning = Constraint(join(tcl_dir, "artyz7_pinning.tcl"))
+    block_design = join(tcl_dir, "block_design.tcl")
 
     projects.append(VivadoProject(
         name="artyz7",
@@ -34,13 +34,13 @@ def get_projects():
     ))
 
     projects.append(SpecialVivadoProject(
-        name="artyz7_hest",
+        name="artyz7_dummy",
         modules=modules,
         part=part,
         top="artyz7_top",
-        tcl_sources=[block_design],
         generics=dict(dummy=True, values=123),
         constraints=[pinning],
+        tcl_sources=[block_design]
     ))
 
     return projects
@@ -49,4 +49,4 @@ def get_projects():
 class SpecialVivadoProject(VivadoProject):
 
     def post_build(self, output_path, **kwargs):
-        print("Here we can do useful things in the output path: " + output_path)
+        print(f"We can do useful things here. In the output path {output_path} for example")

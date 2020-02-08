@@ -31,38 +31,42 @@ class VivadoProject:
     ):
         """
         :param name: Project name string.
-        :param modules: A list of Module objects.
+        :param modules: A list of :class:`Module <.BaseModule>` objects.
         :param part: Part identification string.
-        :param top: Name of top level entity.
-        :param generics: A dict with generics values. Use for static generics that
-                         do not change between multiple builds of this project.
-        :param constraints: A list of Constraint objects.
-        :param tcl_sources: A list of paths to TCL files. Use for e.g. block design, settings, etc.
-        :param build_step_hooks: A list of BuildStepTclHook objects.
-        :param vivado_path: Default: Whatever version/location is in PATH will be used.
-        :param defined_at: Optional string. To get a useful --list message.
+        :param top: Name of top level entity. If left out, the top level name will be
+            inferred from the ``name``.
+        :param generics: A dict with generics values. Use this parameter for "static" generics
+            that do not change between multiple builds of this project. These will be set in
+            the project when it is created.
+
+            Compare to the build-time generic argument in :meth:`build`.
+        :param constraints: A list of :class:`.Constraint` objects.
+        :param tcl_sources: A list of paths to TCL files. Use for e.g. block design,
+            pinning, settings, etc.
+        :param build_step_hooks: A list of :class:`.BuildStepTclHook` objects.
+        :param vivado_path: A path to the Vivado executable. If omitted, the default location
+            from the system PATH will be used.
+        :param defined_at: Optional path string to the file where you defined your project.
+            To get a useful build.py --list message. Is useful when you have many projects
+            set up.
         """
         self.name = name
         self.modules = modules
         self.part = part
         self.static_generics = generics
+        self.constraints = constraints
         self.defined_at = defined_at
         self.build_step_hooks = build_step_hooks
 
         self.top = name + "_top" if top is None else top
         self.vivado_path = "vivado" if vivado_path is None else vivado_path
 
-        self._setup_constraints_list(constraints)
         self._setup_tcl_sources_list(tcl_sources)
 
         self.tcl = VivadoTcl(name=self.name)
 
-    def _setup_constraints_list(self, constraints_from_user):
-        # Lists are imutable. Since we assign and modify this one we have to copy it.
-        self.constraints = None if constraints_from_user is None else constraints_from_user.copy()
-
     def _setup_tcl_sources_list(self, tcl_sources_from_user):
-        # Lists are imutable. Since we assign and modify this one we have to copy it.
+        # Lists are immutable. Since we assign and modify this one we have to copy it.
         self.tcl_sources = [] if tcl_sources_from_user is None else tcl_sources_from_user.copy()
         self.tcl_sources += [
             join(TSFPGA_TCL, "vivado_directive_settings.tcl"),
@@ -71,7 +75,7 @@ class VivadoProject:
 
     def project_file(self, project_path):
         """
-        Return the project file path of this project, in the given folder
+        Return the path of the project file of this project, in the given folder
         """
         return join(project_path, self.name + ".xpr")
 
@@ -102,6 +106,10 @@ class VivadoProject:
     def create(self, project_path, ip_cache_path=None):
         """
         Create a Vivado project
+
+        Args:
+            project_path: Path where the project shall be placed.
+            ip_cache_path: Path to a folder where the Vivado IP cache can be placed.
         """
         print("Creating Vivado project in " + project_path)
         create_vivado_project_tcl = self._create_tcl(project_path, ip_cache_path)
@@ -136,11 +144,21 @@ class VivadoProject:
     def pre_build(self, **kwargs):
         """
         Override this function in a child class if you wish to do something useful with it.
+        Will be called from :meth:`.build` right before the call to Vivado.
+
+        Args:
+            kwargs: Will have all the build parameters in it. Including additional parameters
+                from the user.
         """
 
     def post_build(self, **kwargs):
         """
         Override this function in a child class if you wish to do something useful with it.
+        Will be called from :meth:`.build` right after the call to Vivado.
+
+        Args:
+            kwargs: Will have all the build parameters in it. Including additional parameters
+                from the user.
         """
 
     def build(self,
@@ -153,14 +171,18 @@ class VivadoProject:
         """
         Build a Vivado project
 
-        :param project_path: A path containing a Vivado project.
-        :param output_path: Results (bit file, ...) will be placed here.
-        :param generics: A dict with generics values. Use for run-time generics.
-                         Values that can change between each build of this project.
-        :param synth_only: Run synthesis and then stop.
-        :param num_threads: Number of parallell threads to use during run.
-        :param pre_and_post_build_parameters: Additional parameters that will be
-                                              sent to pre- and post build (kwargs).
+        Args:
+            project_path: A path containing a Vivado project.
+            output_path: Results (bit file, ...) will be placed here.
+            generics: A dict with generics values. Use for run-time generics, i.e.
+                Values that can change between each build of this project.
+
+                Compare to the create-time generics argument in :meth:`.__init__`.
+            synth_only: Run synthesis and then stop.
+            num_threads: Number of parallell threads to use during run.
+            pre_and_post_build_parameters: Additional parameters that will be
+                sent to pre- and post build functions. Note that this is a "kwargs" style
+                argument; you can pass any number of named arguments.
         """
         if output_path is None and not synth_only:
             raise ValueError("Must specify output_path when doing an implementation run")

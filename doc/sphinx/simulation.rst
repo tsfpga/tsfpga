@@ -1,13 +1,14 @@
-.. _simulation_flow:
+.. _simulation:
 
 Simulation flow
 ===============
 
-This page how to run simulations using tsfpga and VUnit.
+This page shows how to run simulations using tsfpga and VUnit.
 
 As far as simulations go tsfpga can be seen as layer on top of VUnit.
 tsfpga helps manage the inputs to your simulation project: source files, test benches, :ref:`test configurations <local_configuration>`, :ref:`register code generation <registers>`, :ref:`IP cores <vivado_ip_cores>`, :ref:`simlib <vivado_simlib>`,...
 As such all features of VUnit are available as they are, and all simulators are supported (ghdl as well as commercial).
+
 
 
 Minimal example
@@ -58,27 +59,6 @@ This file handles things like
 
 * Only a subset of sources available when using a non-commercial simulator
 * Compile :ref:`Vivado simlib <vivado_simlib>` and :ref:`Vivado IP cores <vivado_ip_cores>`
-
-
-
-.. _get_modules:
-
-The get_modules() method
-------------------------
-
-.. autofunction:: tsfpga.module.get_modules
-
-
-
-.. _module_objects:
-
-Module objects
---------------
-
-.. autoclass:: tsfpga.module.BaseModule()
-    :members:
-
-    .. automethod:: __init__
 
 
 
@@ -171,12 +151,14 @@ There is a class available in tsfpga for handling the IP cores that shall be inc
 From your list of modules it will create a Vivado project with all the IP cores.
 This project shall then be used to generate the simulation models for the IP cores, which shall then be added to the simulation project.
 
+Note that you must follow the :ref:`folder structure <ip_cores_folder>` for this to work.
+
 .. autoclass:: tsfpga.vivado_ip_cores.VivadoIpCores()
     :members:
 
     .. automethod:: __init__
 
-Adding this to your simulation project can be done like this:
+Adding IP cores to your simulation project can be done like this:
 
 .. code-block:: python
     :caption: Adding Vivado IP cores to your simulation project in ``simulate.py``.
@@ -200,16 +182,3 @@ Adding this to your simulation project can be done like this:
 Note that we use functions from VUnit to handle parts of this.
 The ``create_compile_order_file()`` function will run a TCL script on the project that generates simulation models and saves a compile order to file.
 The ``add_from_compile_order_file()`` function will then add the files in said compile order to the VUnit project.
-
-
-
-.. _hdl_file:
-
-HdlFile objects
----------------
-
-.. autoclass:: tsfpga.hdl_file.HdlFile()
-    :members:
-
-    .. automethod:: __init__
-

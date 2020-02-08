@@ -11,14 +11,18 @@ class BuildStepTclHook:
 
     def __init__(self, tcl_file, hook_step):
         """
-        :param tcl_file: Path to a TCL file.
-        :param tcl_file: Name of a build step, e.g. "STEPS.ROUTE_DESIGN.TCL.PRE".
+        Args:
+            tcl_file: Path to a TCL file.
+            tcl_file: Name of a build step, e.g. "STEPS.ROUTE_DESIGN.TCL.PRE".
         """
         self.tcl_file = tcl_file
         self.hook_step = hook_step
 
     @property
     def step_is_synth(self):
+        """
+        True if the build step is in synthesis. False otherwise.
+        """
         return "synth" in self.hook_step.lower()
 
     def __str__(self):

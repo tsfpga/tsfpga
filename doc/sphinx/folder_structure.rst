@@ -77,6 +77,7 @@ The Python file shall contain a class definition called ``Module``.
 If you do this it is recommended to inherit the class from :meth:`BaseModule <tsfpga.module.BaseModule>` and override any method you want to change the behavior of.
 
 
+.. _folder_structure_project:
 
 project_foo.py
 --------------
@@ -90,6 +91,8 @@ For example for your TCL scripts you might place them in a sub-directory called 
 This folder will not have any significance for tsfpga.
 For things like TCL sources it is up to the user to point to them when creating the :meth:`FPGA project <tsfpga.vivado_project.VivadoProject>`.
 
+There is an example of a project file that sets up project classes :ref:`here <example_project_class>`.
+
 
 
 foo_regs.json
@@ -101,10 +104,20 @@ See :ref:`here <registers>` for more information.
 
 
 
+.. _ip_cores_folder:
+
 IP cores
 --------
 
 In tsfpga, IP cores are handled using TCL files that contain the code snippets that generate the core.
+This TCL snippet can be found in the Vivado TCL console when creating or modifying your IP.
+It typically looks something like this:
+
+.. literalinclude:: ../../examples/modules_with_ip/module_with_ip_cores/ip_cores/mult_u12_u5.tcl
+   :caption: Example TCL that creates an IP core
+   :language: none
+   :lines: 5-
+
 These TCL files shall be place in the ``ip_cores`` folder within your module.
 The IP cores will be included in all build projects that include the module, and in the simulation project.
 
