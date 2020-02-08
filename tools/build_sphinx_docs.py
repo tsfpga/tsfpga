@@ -28,7 +28,9 @@ def generate_registers():
 
 def build_documentation():
     cmd = [
-        "sphinx-build",
+        sys.executable,
+        "-m",
+        "sphinx",
         "-EanWT",
         join(REPO_ROOT, "doc", "sphinx"),
         join(REPO_ROOT, "generated", "sphinx_html"),
