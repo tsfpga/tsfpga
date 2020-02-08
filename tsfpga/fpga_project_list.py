@@ -8,7 +8,7 @@ from tsfpga.system_utils import load_python_module
 from tsfpga.module import iterate_module_folders
 
 
-class FPGAProjectList:
+class FpgaProjectList:
 
     """
     Represent a list of FPGA build projects.
