@@ -117,6 +117,8 @@ def generate_registers(modules, output_path):
             vhdl_path = create_directory(join(output_path, "vhdl"), empty=False)
             module.registers.create_vhdl_package(vhdl_path)
 
+            module.registers.copy_source_definition(join(output_path, "json"))
+
             module.registers.create_c_header(join(output_path, "c"))
             module.registers.create_cpp_interface(join(output_path, "cpp", "include"))
             module.registers.create_cpp_header(join(output_path, "cpp", "include"))

@@ -5,13 +5,14 @@
 from collections import OrderedDict
 import json
 from os.path import join
+from shutil import copy2
 
 from tsfpga.register_c_generator import RegisterCGenerator
 from tsfpga.register_cpp_generator import RegisterCppGenerator
 from tsfpga.register_html_generator import RegisterHtmlGenerator
 from tsfpga.register_list import RegisterList, Register
 from tsfpga.register_vhdl_generator import RegisterVhdlGenerator
-from tsfpga.system_utils import create_file
+from tsfpga.system_utils import create_directory, create_file
 
 
 def get_default_registers():
@@ -35,8 +36,9 @@ def get_default_registers():
 
 class Registers:
 
-    def __init__(self, register_list):
+    def __init__(self, register_list, source_definition_file):
         self.register_list = register_list
+        self.source_definition_file = source_definition_file
 
     def create_vhdl_package(self, output_path):
         """
@@ -71,6 +73,10 @@ class Registers:
     def create_html_table(self, output_path):
         output_file = join(output_path, self.register_list.name + "_regs_table.html")
         create_file(output_file, RegisterHtmlGenerator(self.register_list).get_table())
+
+    def copy_source_definition(self, output_path):
+        create_directory(output_path, empty=False)
+        copy2(self.source_definition_file, output_path)
 
 
 def load_json_file(file_name):
@@ -124,4 +130,4 @@ def from_json(module_name, json_file, default_registers=None):
             for bit_name, bit_description in register_fields["bits"].items():
                 register.append_bit(bit_name, bit_description)
 
-    return Registers(register_list)
+    return Registers(register_list, json_file)

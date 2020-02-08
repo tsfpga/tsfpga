@@ -2,19 +2,36 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from subprocess import check_call
 from os.path import abspath, dirname, join
+from subprocess import check_call
+import sys
 
 
-ROOT = abspath(join(dirname(__file__), ".."))
+REPO_ROOT = abspath(join(dirname(__file__), ".."))
+sys.path.append(REPO_ROOT)
+import tsfpga
 
 
 def main():
+    generate_registers()
+    build_documentation()
+
+
+def build_documentation():
     cmd = [
         "sphinx-build",
         "-EanWT",
-        join(ROOT, "doc", "sphinx"),
-        join(ROOT, "generated", "sphinx_html"),
+        join(REPO_ROOT, "doc", "sphinx"),
+        join(REPO_ROOT, "generated", "sphinx_html"),
+    ]
+    check_call(cmd)
+
+
+def generate_registers():
+    cmd = [
+        sys.executable,
+        join(tsfpga.TSFPGA_EXAMPLES, "build.py"),
+        "--generate-registers-only",
     ]
     check_call(cmd)
 

@@ -63,6 +63,8 @@ build_pages:
   rules:
     - when: always
   script:
+    - apt-get update -qq > /dev/null
+    - apt-get install -y -qq git > /dev/null
     - python3 -m pip install sphinx > /dev/null
     - python3 tools/build_sphinx_docs.py
   artifacts:
