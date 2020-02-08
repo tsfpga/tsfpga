@@ -17,21 +17,21 @@ def main():
     build_documentation()
 
 
+def generate_registers():
+    cmd = [
+        sys.executable,
+        join(tsfpga.TSFPGA_EXAMPLES, "build.py"),
+        "--generate-registers-only",
+    ]
+    check_call(cmd)
+
+
 def build_documentation():
     cmd = [
         "sphinx-build",
         "-EanWT",
         join(REPO_ROOT, "doc", "sphinx"),
         join(REPO_ROOT, "generated", "sphinx_html"),
-    ]
-    check_call(cmd)
-
-
-def generate_registers():
-    cmd = [
-        sys.executable,
-        join(tsfpga.TSFPGA_EXAMPLES, "build.py"),
-        "--generate-registers-only",
     ]
     check_call(cmd)
 

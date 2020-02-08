@@ -24,7 +24,7 @@ If your source code is roughly organized along the :ref:`folder structure <folde
 
     vunit_proj = VUnit.from_argv()
     my_modules_folders = [
-        join("path", "to", "my", "modules")
+        "path/to/my/modules"
     ]
     for module in get_modules(my_modules_folders):
         vunit_library = vunit_proj.add_library(module.library_name)

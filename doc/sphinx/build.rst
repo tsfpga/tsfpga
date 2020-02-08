@@ -83,7 +83,11 @@ This is used to get a useful ``--list`` result in your :ref:`build.py <example_b
 
 The second project is created using a child class that inherits :class:`.VivadoProject`.
 It showcases how to use :ref:`pre and post build hook functions <pre_post_build>`.
+The ``post_build()`` function does nothing in this example, but the mechanism can be very useful in real-world cases.
 
+The second project also showcases how to set some generic values.
+For the second project we additionally have to specify the ``top`` name.
+In the first one it is inferred from the project name to be ``artyz7_top``, whereas in the second one we have to specify it explicitly.
 
 
 .. _example_build_py:
@@ -91,17 +95,44 @@ It showcases how to use :ref:`pre and post build hook functions <pre_post_build>
 Example build.py
 ----------------
 
-.. literalinclude:: ../../examples/build.py
-   :caption: Example project file
-   :language: python
-   :lines: 5-
+A ``build.py`` in a simplified and hard-coded fashion could look something like this:
+
+.. code-block:: python
+    :caption: Minimal ``build.py`` file.
+
+    import tsfpga
+    from tsfpga.fpga_project_list import FpgaProjectList
+
+    my_modules_folders = [
+        "path/to/my/modules"
+    ]
+    projects = FpgaProjectList(my_modules_folders)
+    project = projects.get("artyz7")
+
+    project.create(project_path="build_projects/artyz7")
+    project.build(project_path="build_projects/artyz7", output_path="build_projects/artyz7/artifacts")
+
+Of course this is incredibly simplified, but it does show the interface to the tsfpga classes.
+The :class:`.FpgaProjectList` function :meth:`.FpgaProjectList.get` will return a :class:`build project object <.VivadoProject>`.
+With this objects the ``create()`` and ``build()`` functions are available.
+
+Note that when a project is created a :ref:`register generation <registers>` is run, so that the project is built using up-to-date register definitions.
+
+Of course a more realistic ``build.py`` would be a little more verbose.
+It would probably feature command line arguments that control the behavior, output paths, etc.
+And example of this, which also features release artifact packaging, is available in the `repo <https://gitlab.com/truestream/tsfpga/-/blob/master/examples/build.py>`__.
 
 
 
 .. _pre_post_build:
 
-Pre- and post- build function hook
-----------------------------------
+Pre- and post- build function hooks
+-----------------------------------
+
+The :class:`.VivadoProject` functions :meth:`pre_build() <.VivadoProject.pre_build>` and :meth:`post_build() <.VivadoProject.post_build>` can be convenient in certain use cases.
+They will receive all the arguments that are passed to :meth:`.VivadoProject.build`, such as project path and output path.
+Additional named arguments sent to :meth:`.VivadoProject.build` will also be available in :meth:`pre_build() <.VivadoProject.pre_build>` and :meth:`post_build() <.VivadoProject.post_build>`.
+So in our :ref:`example build.py <example_build_py>` above we could have passed further arguments on the line that says ``project.build(...)``.
 
 
 
@@ -115,9 +146,11 @@ Constraint files
 
 
 
-
 Build step TCL hooks
 --------------------
+
+TCL scripts can be addded as hooks to certain build steps in Vivado.
+Scripts like these are passed to the :class:`.VivadoProject` using this class.
 
 .. autoclass:: tsfpga.build_step_tcl_hook.BuildStepTclHook()
     :members:
@@ -131,7 +164,7 @@ Build step TCL hooks
 FPGA project list class
 -----------------------
 
-.. autoclass:: tsfpga.fpga_project_list.FPGAProjectList()
+.. autoclass:: tsfpga.fpga_project_list.FpgaProjectList()
     :members:
 
     .. automethod:: __init__
