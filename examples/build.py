@@ -12,6 +12,7 @@ sys.path.append(PATH_TO_TSFPGA)
 import tsfpga
 from tsfpga.fpga_project_list import FpgaProjectList
 from tsfpga.system_utils import create_directory, delete
+from tsfpga.vivado_utils import run_vivado_gui
 
 from tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
 
@@ -22,9 +23,12 @@ def arguments(projects):
     parser.add_argument("--list-only",
                         action="store_true",
                         help="list the available projects")
+    parser.add_argument("--open",
+                        action="store_true",
+                        help="open an existing project in the GUI")
     parser.add_argument("--use-existing-project",
                         action="store_true",
-                        help="build an existing project")
+                        help="build an existing project (do not create)")
     parser.add_argument("--generate-registers-only",
                         action="store_true",
                         help="only generate the register artifacts (C/C++ code, HTML, ...) for inspection")
@@ -78,6 +82,10 @@ def main():
 
     project = projects.get(args.project_name)
     project_path = abspath(join(args.project_path, project.name))
+
+    if args.open:
+        run_vivado_gui(project.vivado_path, project.project_file(project_path))
+        return
 
     if not args.output_path:
         args.output_path = project_path
