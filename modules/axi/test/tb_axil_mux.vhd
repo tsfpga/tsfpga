@@ -19,13 +19,13 @@ library bfm;
 library common;
 use common.addr_pkg.all;
 
-use work.axi_pkg.all;
 use work.axil_pkg.all;
 
 
 entity tb_axil_mux is
   generic (
-    runner_cfg : string
+    runner_cfg : string;
+    use_axil_bfm : boolean := true
   );
 end entity;
 
@@ -40,17 +40,17 @@ architecture tb of tb_axil_mux is
   constant addr_offset : integer := 4096; -- Corresponding to the base addresses below
 
   constant slave_addrs : addr_and_mask_vec_t(slaves_rng) := (
-    (addr => x"0000_0000", mask => x"0000_3000"),
-    (addr => x"0000_1000", mask => x"0000_3000"),
-    (addr => x"0000_2000", mask => x"0000_3000"),
-    (addr => x"0000_3000", mask => x"0000_3000")
+    (addr => x"0000_0000", mask => x"0000_7000"),
+    (addr => x"0000_1000", mask => x"0000_7000"),
+    (addr => x"0000_2000", mask => x"0000_7000"),
+    (addr => x"0000_3000", mask => x"0000_7000")
   );
 
   constant clk_period : time := 10 ns;
   signal clk : std_logic := '0';
 
-  signal axil_m2s : axil_m2s_t;
-  signal axil_s2m : axil_s2m_t;
+  signal axil_m2s, bfm_m2s, hard_coded_m2s : axil_m2s_t;
+  signal axil_s2m, bfm_s2m, hard_coded_s2m : axil_s2m_t;
 
   signal axil_m2s_vec : axil_m2s_vec_t(slaves_rng);
   signal axil_s2m_vec : axil_s2m_vec_t(slaves_rng);
@@ -81,15 +81,48 @@ begin
 
   ------------------------------------------------------------------------------
   main : process
+
+  function bank_address(slave, word : integer) return integer is
+    begin
+      return slave * addr_offset + word * bytes_per_word;
+    end function;
+
+    procedure hard_coded_read_data(addr : in std_logic_vector(slave_addrs(0).addr'range)) is
+    begin
+      hard_coded_m2s.read.ar.valid <= '1';
+      hard_coded_m2s.read.ar.addr <= x"0000_0000" & addr;
+      wait until (axil_s2m.read.ar.ready and axil_m2s.read.ar.valid) = '1' and rising_edge(clk);
+      hard_coded_m2s.read.ar.valid <= '0';
+
+      hard_coded_m2s.read.r.ready <= '1';
+      wait until (axil_m2s.read.r.ready and axil_s2m.read.r.valid) = '1' and rising_edge(clk);
+      hard_coded_m2s.read.r.ready <= '0';
+    end procedure;
+
+    procedure hard_coded_write_data(addr : in std_logic_vector(slave_addrs(0).addr'range);
+                                    data : in std_logic_vector(data_width - 1 downto 0)) is
+    begin
+      hard_coded_m2s.write.aw.valid <= '1';
+      hard_coded_m2s.write.aw.addr <= x"0000_0000" & addr;
+      wait until (axil_s2m.write.aw.ready and axil_m2s.write.aw.valid) = '1' and rising_edge(clk);
+      hard_coded_m2s.write.aw.valid <= '0';
+
+      hard_coded_m2s.write.w.valid <= '1';
+      hard_coded_m2s.write.w.data <= x"0000_0000" & data;
+      hard_coded_m2s.write.w.strb <= x"0f";
+      wait until (axil_s2m.write.w.ready and axil_m2s.write.w.valid) = '1' and rising_edge(clk);
+      hard_coded_m2s.write.w.valid <= '0';
+
+      hard_coded_m2s.write.b.ready <= '1';
+      wait until (axil_m2s.write.b.ready and axil_s2m.write.b.valid) = '1' and rising_edge(clk);
+      hard_coded_m2s.write.b.ready <= '0';
+    end procedure;
+
     variable rnd : RandomPType;
     variable data : std_logic_vector(data_width - 1 downto 0);
     variable address : integer;
     variable buf : buffer_t;
 
-    function bank_address(slave, word : integer) return integer is
-    begin
-      return slave * addr_offset + word * bytes_per_word;
-    end function;
   begin
     test_runner_setup(runner, runner_cfg);
     rnd.InitSeed(rnd'instance_name);
@@ -98,49 +131,99 @@ begin
       buf := allocate(memory(slave), bank_address(slave, num_words));
     end loop;
 
-    for slave in axi_slave'range loop
-      for word in 0 to num_words - 1 loop
-        address := bank_address(slave, word);
-        data := rnd.RandSLV(data'length);
-        set_expected_word(memory(slave), address, data);
+    if run("read_and_write_to_buffer") then
+      for slave in axi_slave'range loop
+        for word in 0 to num_words - 1 loop
+          address := bank_address(slave, word);
+          data := rnd.RandSLV(data'length);
+          set_expected_word(memory(slave), address, data);
 
-        -- Call is non-blocking. I.e. we will build up a queue of writes.
-        write_bus(net, axi_master, address, data);
-        wait until rising_edge(clk);
+          -- Call is non-blocking. I.e. we will build up a queue of writes.
+          write_bus(net, axi_master, address, data);
+          wait until rising_edge(clk);
+        end loop;
       end loop;
-    end loop;
-    wait for 30 us; -- Wait until all writes are finished
+      wait for 30 us; -- Wait until all writes are finished
 
-    -- Test that everything was written correctly to memory
-    for slave in memory'range loop
-      check_expected_was_written(memory(slave));
-    end loop;
-
-    -- Test reading back data
-    for slave in axi_slave'range loop
-      for word in 0 to num_words - 1 loop
-        address := bank_address(slave, word);
-        data := read_word(memory(slave), address, 4);
-
-        check_bus(net, axi_master, address, data);
+      -- Test that everything was written correctly to memory
+      for slave in memory'range loop
+        check_expected_was_written(memory(slave));
       end loop;
-    end loop;
+
+      -- Test reading back data
+      for slave in axi_slave'range loop
+        for word in 0 to num_words - 1 loop
+          address := bank_address(slave, word);
+          data := read_word(memory(slave), address, 4);
+
+          check_bus(net, axi_master, address, data);
+        end loop;
+      end loop;
+
+    elsif run("read_from_non_existent_slave_base_adress") then
+      hard_coded_read_data(x"0000_4000");
+      check_equal(axil_s2m.read.r.resp, axi_resp_decerr);
+
+      data := rnd.RandSLV(data'length);
+      write_word(memory(0), bank_address(0, 0), data);
+      hard_coded_read_data(slave_addrs(0).addr);
+      check_equal(axil_s2m.read.r.resp, axi_resp_okay);
+      check_equal(axil_s2m.read.r.data(data'range), data);
+
+      hard_coded_read_data(x"0000_5000");
+      check_equal(axil_s2m.read.r.resp, axi_resp_decerr);
+
+      data := rnd.RandSLV(data'length);
+      write_word(memory(1), bank_address(1, 0), data);
+      hard_coded_read_data(slave_addrs(1).addr);
+      check_equal(axil_s2m.read.r.resp, axi_resp_okay);
+      check_equal(axil_s2m.read.r.data(data'range), data);
+
+    elsif run("write_to_non_existent_slave_base_adress") then
+      hard_coded_write_data(x"0000_4000", x"0102_0304");
+      check_equal(axil_s2m.write.b.resp, axi_resp_decerr);
+
+      data := rnd.RandSLV(data'length);
+      set_expected_word(memory(0), bank_address(0, 0), data);
+      hard_coded_write_data(slave_addrs(0).addr, data);
+      check_equal(axil_s2m.write.b.resp, axi_resp_okay);
+      check_expected_was_written(memory(0));
+
+      hard_coded_write_data(x"0000_5000", x"0102_0304");
+      check_equal(axil_s2m.write.b.resp, axi_resp_decerr);
+
+      data := rnd.RandSLV(data'length);
+      set_expected_word(memory(1), bank_address(1, 0), data);
+      hard_coded_write_data(slave_addrs(1).addr, data);
+      check_equal(axil_s2m.write.b.resp, axi_resp_okay);
+      check_expected_was_written(memory(1));
+    end if;
 
     test_runner_cleanup(runner);
   end process;
 
 
   ------------------------------------------------------------------------------
-  axil_master_inst : entity bfm.axil_master
-    generic map (
-      bus_handle => axi_master
-    )
-    port map (
-      clk => clk,
+  axil_master_generate : if use_axil_bfm generate
+    axil_master_inst : entity bfm.axil_master
+      generic map (
+        bus_handle => axi_master
+      )
+      port map (
+        clk => clk,
 
-      axil_m2s => axil_m2s,
-      axil_s2m => axil_s2m
-    );
+        axil_m2s => bfm_m2s,
+        axil_s2m => bfm_s2m
+      );
+
+      axil_m2s <= bfm_m2s;
+      bfm_s2m <= axil_s2m;
+
+  else generate
+
+    axil_m2s <= hard_coded_m2s;
+    hard_coded_s2m <= axil_s2m;
+  end generate;
 
 
   ------------------------------------------------------------------------------
