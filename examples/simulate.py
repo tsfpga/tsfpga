@@ -8,17 +8,18 @@ import sys
 
 PATH_TO_TSFPGA = abspath(join(dirname(__file__), ".."))
 sys.path.append(PATH_TO_TSFPGA)
+PATH_TO_VUNIT = abspath(join(PATH_TO_TSFPGA, "..", "vunit"))
+sys.path.append(PATH_TO_VUNIT)
+
+from vunit import VUnitCLI, VUnit
+from vunit.vivado.vivado import create_compile_order_file, add_from_compile_order_file
+
 import tsfpga
 import tsfpga.create_vhdl_ls_config
 from tsfpga.vivado_ip_cores import VivadoIpCores
 from tsfpga.vivado_simlib import VivadoSimlib
 
 from tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
-
-PATH_TO_VUNIT = abspath(join(tsfpga.ROOT, "..", "vunit"))
-sys.path.append(PATH_TO_VUNIT)
-from vunit import VUnitCLI, VUnit
-from vunit.vivado.vivado import create_compile_order_file, add_from_compile_order_file
 
 
 def main():
@@ -43,14 +44,13 @@ def main():
     if args.vivado_skip:
         ip_core_vivado_project_sources_directory = None
     else:
+        add_simlib(vunit_proj, args.temp_dir, args.simlib_compile)
+
         # Generate IP core simulation files. Will be used for the vhdl_ls config,
         # even if they are not added to the simulation project.
         ip_core_compile_order_file, ip_core_vivado_project_sources_directory \
             = generate_ip_core_files(all_modules, args.temp_dir, args.ip_compile)
-
         if has_commercial_simulator:
-            # Add simlib and IP cores to simulation project
-            add_simlib(vunit_proj, args.temp_dir, args.simlib_compile)
             add_from_compile_order_file(vunit_proj, ip_core_compile_order_file)
 
     create_vhdl_ls_configuration(vunit_proj,
@@ -91,7 +91,7 @@ def arguments():
 
 
 def add_simlib(vunit_proj, temp_dir, force_compile):
-    vivado_simlib = VivadoSimlib(vunit_proj, temp_dir)
+    vivado_simlib = VivadoSimlib.init(temp_dir, vunit_proj)
     if force_compile:
         vivado_simlib.compile()
     else:

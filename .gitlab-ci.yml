@@ -7,8 +7,10 @@ stages:
 
 
 default:
-  # docker image with python3 and apt-get
-  image: python:3.8-slim-buster
+  # Use docker image from ghdl project
+  # Available at https://hub.docker.com/r/ghdl/ext/
+  # Configured at https://github.com/ghdl/docker/tree/master/dockerfiles
+  image: ghdl/ext:ls-vunit
   before_script:
     - python3 --version
     - export PYTHONPATH=$(pwd)/tsfpga
@@ -35,10 +37,6 @@ simulate:
   stage: test
   rules:
     - when: always
-  # Use docker image from ghdl project
-  # Available at https://hub.docker.com/r/ghdl/ext/
-  # Configured at https://github.com/ghdl/docker/tree/master/dockerfiles
-  image: ghdl/ext:ls-vunit
   script:
     - python3 -m pip install toml > /dev/null
     - ghdl --version

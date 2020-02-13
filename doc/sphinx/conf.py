@@ -8,11 +8,11 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-from os.path import abspath, dirname, join
+from pathlib import Path
 import sys
 
-REPO_ROOT = abspath(join(dirname(__file__), "..", ".."))
-sys.path.append(REPO_ROOT)
+TSFPGA_ROOT = Path(__file__).parent.parent.parent
+sys.path.append(str(TSFPGA_ROOT))
 
 
 # -- Project information -----------------------------------------------------

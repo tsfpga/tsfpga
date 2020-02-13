@@ -120,12 +120,19 @@ Vivado simulation libraries
 
 Compiled Vivado simulation libraries (unisim, xpm, etc.) are often need in the simulation project.
 The ``VivadoSimlib`` class provides an easy interface for handling simlib.
-It will run Vivado with a TCL script that compiles simlib, and will only do a recompile when necessary (new Vivado or simulator version, etc.).
 
 .. autoclass:: tsfpga.vivado_simlib.VivadoSimlib()
     :members:
 
-    .. automethod:: __init__
+There are different implementations depending on the simulator currently in use.
+The implementation for commercial simulators will compile simlib by calling Vivado with a TCL script containing a ``compile_simlib ...`` call.
+For GHDL the implementation contains hard coded ghdl compile calls of the needed files.
+
+All implementations are interface compatible with the :class:`.VivadoSimlibCommon` class.
+They will only do a recompile when necessary (new Vivado or simulator version, etc.).
+
+.. autoclass:: tsfpga.vivado_simlib_common.VivadoSimlibCommon()
+    :members:
 
 Adding simlib to you simulation project using this class is achieved by simply doing:
 
@@ -136,10 +143,21 @@ Adding simlib to you simulation project using this class is achieved by simply d
 
     ...
 
-    vivado_simlib = VivadoSimlib(vunit_proj, temp_dir)
+    vivado_simlib = VivadoSimlib.init(temp_dir, vunit_proj)
     vivado_simlib.compile_if_needed()
     vivado_simlib.add_to_vunit_project()
 
+
+Versioning of simlib artifacts
+______________________________
+
+Compiling simlib takes quite a while.
+It might not be convenient to recompile on each workstation and in each CI run.
+Instead storing compiled simlib in, e.g., Artifactory or on a network drive is a good idea.
+
+In ``simulate.py`` we can query :meth:`compile_is_needed <.VivadoSimlibCommon.compile_is_needed>` and :meth:`artifact_name <.VivadoSimlibCommon.artifact_name>` to see if simlib will be compiled and with what version tag.
+If compile is needed, i.e. compiled simlib does not exist, they could instead be fetched from a server somewhere.
+The :meth:`from_archive <.VivadoSimlibCommon.from_archive>` and :meth:`to_archive <.VivadoSimlibCommon.to_archive>` are useful for this.
 
 
 .. _vivado_ip_cores:
@@ -151,7 +169,8 @@ There is a class available in tsfpga for handling the IP cores that shall be inc
 From your list of modules it will create a Vivado project with all the IP cores.
 This project shall then be used to generate the simulation models for the IP cores, which shall then be added to the simulation project.
 
-Note that you must follow the :ref:`folder structure <ip_cores_folder>` for this to work.
+.. note::
+    You must follow the :ref:`folder structure <ip_cores_folder>` for this to work.
 
 .. autoclass:: tsfpga.vivado_ip_cores.VivadoIpCores()
     :members:
