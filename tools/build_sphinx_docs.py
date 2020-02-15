@@ -2,14 +2,13 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from glob import glob
-from os.path import abspath, basename, dirname, exists, join, splitext
+from pathlib import Path
 from subprocess import check_call, check_output
 import sys
 
 
-REPO_ROOT = abspath(join(dirname(__file__), ".."))
-sys.path.append(REPO_ROOT)
+REPO_ROOT = Path(__file__).parent.parent
+sys.path.append(str(REPO_ROOT))
 import tsfpga
 from tsfpga.system_utils import create_file, read_file
 
@@ -23,7 +22,7 @@ def main():
 def generate_registers():
     cmd = [
         sys.executable,
-        join(tsfpga.TSFPGA_EXAMPLES, "build.py"),
+        Path(tsfpga.TSFPGA_EXAMPLES) / "build.py",
         "--generate-registers-only",
     ]
     check_call(cmd)
@@ -52,13 +51,13 @@ Release notes
 
 
 def get_release_notes_files():
-    release_notes_dir = join(tsfpga.TSFPGA_DOC, "release_notes")
-    unreleased_notes_file = join(release_notes_dir, "unreleased.rst")
+    release_notes_dir = Path(tsfpga.TSFPGA_DOC) / "release_notes"
+    unreleased_notes_file = release_notes_dir / "unreleased.rst"
 
     release_notes = []
 
     # Get all versioned release notes files and sort them in order newest -> oldest
-    for release_notes_file in glob(join(release_notes_dir, "*.rst")):
+    for release_notes_file in release_notes_dir.glob("*.rst"):
         if not release_notes_file == unreleased_notes_file:
             release_notes.append(release_notes_file)
     release_notes.sort(reverse=True)
@@ -82,7 +81,7 @@ class Release:
     def __init__(self, release_notes_file):
         self.release_notes_file = release_notes_file
 
-        version = splitext(basename(release_notes_file))[0]
+        version = release_notes_file.stem
         if version == "unreleased":
             self.version = "Unreleased"
             self.git_tag = "master"
@@ -111,8 +110,8 @@ def build_documentation():
         "-m",
         "sphinx",
         "-EanWT",
-        join(tsfpga.TSFPGA_DOC, "sphinx"),
-        join(REPO_ROOT, "generated", "sphinx_html"),
+        Path(tsfpga.TSFPGA_DOC) / "sphinx",
+        REPO_ROOT / "generated" / "sphinx_html",
     ]
     check_call(cmd)
 
