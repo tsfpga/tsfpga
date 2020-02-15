@@ -48,7 +48,7 @@ Release notes
         rst += read_file(release.release_notes_file)
         rst += "\n"
 
-    create_file(join(tsfpga.TSFPGA_DOC, "sphinx", "release_notes.rst"), rst)
+    create_file(tsfpga.TSFPGA_GENERATED / "sphinx" / "release_notes.rst", rst)
 
 
 def get_release_notes_files():
