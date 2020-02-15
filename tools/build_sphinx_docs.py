@@ -36,12 +36,16 @@ Release notes
 
 """
 
-    for version, date, release_notes_file in get_release_notes_files():
-        heading = f"[{version}] - {date}"
+    for release, previous_release_git_tag in get_release_notes_files():
+        heading = f"[{release.version}] - {release.date}"
         rst += heading + "\n"
         rst += "-" * len(heading) + "\n"
         rst += "\n"
-        rst += read_file(release_notes_file)
+        if previous_release_git_tag is not None:
+            diff_url = f"https://gitlab.com/truestream/tsfpga/-/compare/{previous_release_git_tag}...{release.git_tag}"
+            rst += f"`Changes since previous release <{diff_url}>`__\n"
+        rst += "\n"
+        rst += read_file(release.release_notes_file)
         rst += "\n"
 
     create_file(join(tsfpga.TSFPGA_DOC, "sphinx", "release_notes.rst"), rst)
@@ -60,30 +64,45 @@ def get_release_notes_files():
     release_notes.sort(reverse=True)
 
     # The "Unreleased" shall be first
-    if exists(unreleased_notes_file):
-        release_notes.insert(0, unreleased_notes_file)
+    release_notes.insert(0, unreleased_notes_file)
 
-    for release_notes_file in release_notes:
-        if release_notes_file == unreleased_notes_file:
-            version = "Unreleased"
-            date = "YYYY-MM-DD"
+    releases = [Release(release_notes_file) for release_notes_file in release_notes]
+
+    for idx, release in enumerate(releases):
+        if idx == len(releases) - 1:
+            previous_release_git_tag = None
         else:
-            version = splitext(basename(release_notes_file))[0]
-            date = get_git_date_from_tag("v" + version)
+            previous_release_git_tag = releases[idx + 1].git_tag
 
-        yield version, date, release_notes_file
+        yield release, previous_release_git_tag
 
 
-def get_git_date_from_tag(tag):
-    cmd = [
-        "git",
-        "show",
-        "-s",
-        "--format=%cd",
-        "--date=short",
-        tag
-    ]
-    return check_output(cmd).decode().strip()
+class Release:
+
+    def __init__(self, release_notes_file):
+        self.release_notes_file = release_notes_file
+
+        version = splitext(basename(release_notes_file))[0]
+        if version == "unreleased":
+            self.version = "Unreleased"
+            self.git_tag = "master"
+            self.date = "YYYY-MM-DD"
+        else:
+            self.version = version
+            self.git_tag = "v" + self.version
+            self.date = self.get_git_date_from_tag(self.git_tag)
+
+    @staticmethod
+    def get_git_date_from_tag(tag):
+        cmd = [
+            "git",
+            "show",
+            "-s",
+            "--format=%cd",
+            "--date=short",
+            tag
+        ]
+        return check_output(cmd).decode().strip()
 
 
 def build_documentation():

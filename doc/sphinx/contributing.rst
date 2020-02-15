@@ -44,8 +44,9 @@ Read the **Summary** at the top of that page and decide the new version number a
 Create release notes
 ____________________
 
-Fill in changelog according to :ref:`Maintaining changelog <maintain_changelog>`.
-If the ``unreleased.rst`` file exists, rename it to ``X.Y.Z.rst`` (with ``git mv``) according to your new release version.
+Create and ``git add`` a new file ``doc/release_notes/X.Y.Z.rst`` according to your new release version.
+Move the contents of ``unreleased.rst`` to your newly created file.
+Fill in anything that is missing according to :ref:`Maintaining changelog <maintain_changelog>`.
 
 
 Update python package version number
