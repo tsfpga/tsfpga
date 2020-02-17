@@ -92,10 +92,9 @@ def arguments():
 
 def add_simlib(vunit_proj, temp_dir, force_compile):
     vivado_simlib = VivadoSimlib.init(temp_dir, vunit_proj)
-    if force_compile:
+    if force_compile or vivado_simlib.compile_is_needed:
         vivado_simlib.compile()
-    else:
-        vivado_simlib.compile_if_needed()
+        vivado_simlib.to_archive()
     vivado_simlib.add_to_vunit_project()
 
 
