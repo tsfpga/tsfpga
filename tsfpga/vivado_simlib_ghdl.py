@@ -108,12 +108,17 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
         cmd = [self.ghdl_binary, "--version"]
         output = subprocess.check_output(cmd).decode()
 
-        regexp = re.compile(r"^GHDL (\S+) .*")
-        match = regexp.search(output)
-        if match is None:
-            raise ValueError("Could not find GHDL version string: " + output)
+        regexp_with_tag = re.compile(r"^GHDL (\S+) \((\S+)\).*")
+        match = regexp_with_tag.search(output)
+        if match is not None:
+            return self._format_version(f"ghdl_{match.group(1)}_{match.group(2)}")
 
-        return self._format_version("ghdl_" + match.group(1))
+        regexp_without_tag = re.compile(r"^GHDL (\S+).*")
+        match = regexp_without_tag.search(output)
+        if match is not None:
+            return self._format_version("ghdl_" + match.group(1))
+
+        raise ValueError("Could not find GHDL version string: " + output)
 
     def _add_to_vunit_project(self):
         """

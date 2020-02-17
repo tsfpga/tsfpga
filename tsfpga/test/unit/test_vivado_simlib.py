@@ -102,10 +102,19 @@ class TestVivadoSimlibGhdl(TestCase):
         self.assert_should_not_compile(self.vivado_simlib)
 
     def test_ghdl_version_string(self):
-        assert self.get_vivado_simlib(ghdl_version_string="GHDL 0.36 ..."). \
+        assert self.get_vivado_simlib(ghdl_version_string="GHDL 0.36 (v0.36) [Dunoon edition]"). \
+            artifact_name.endswith(".ghdl_0_36_v0_36")
+        assert self.get_vivado_simlib(ghdl_version_string="GHDL 0.36 [Dunoon edition]"). \
             artifact_name.endswith(".ghdl_0_36")
-        assert self.get_vivado_simlib(ghdl_version_string="GHDL 0.37-dev (v0.36-114..."). \
-            artifact_name.endswith(".ghdl_0_37_dev")
+        assert self.get_vivado_simlib(ghdl_version_string="GHDL 0.36 (v0.36)"). \
+            artifact_name.endswith(".ghdl_0_36_v0_36")
+        assert self.get_vivado_simlib(ghdl_version_string="GHDL 0.36"). \
+            artifact_name.endswith(".ghdl_0_36")
+
+        assert self.get_vivado_simlib(ghdl_version_string="GHDL 0.37-dev (v0.36-1605-ge4aa89cd) [Dunoon edition]"). \
+            artifact_name.endswith(".ghdl_0_37_dev_v0_36_1605_ge4aa89cd")
+        assert self.get_vivado_simlib(ghdl_version_string="GHDL 0.37-dev (v0.36-1605-ge4aa89cd)"). \
+            artifact_name.endswith(".ghdl_0_37_dev_v0_36_1605_ge4aa89cd")
 
     @staticmethod
     def assert_should_compile(vivado_simlib):
