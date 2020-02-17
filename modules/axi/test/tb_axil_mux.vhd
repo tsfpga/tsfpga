@@ -24,8 +24,8 @@ use work.axil_pkg.all;
 
 entity tb_axil_mux is
   generic (
-    runner_cfg : string;
-    use_axil_bfm : boolean := true
+    use_axil_bfm : boolean := true;
+    runner_cfg : string
   );
 end entity;
 
@@ -49,8 +49,8 @@ architecture tb of tb_axil_mux is
   constant clk_period : time := 10 ns;
   signal clk : std_logic := '0';
 
-  signal axil_m2s, bfm_m2s, hard_coded_m2s : axil_m2s_t;
-  signal axil_s2m, bfm_s2m, hard_coded_s2m : axil_s2m_t;
+  signal axil_m2s, hard_coded_m2s : axil_m2s_t;
+  signal axil_s2m : axil_s2m_t;
 
   signal axil_m2s_vec : axil_m2s_vec_t(slaves_rng);
   signal axil_s2m_vec : axil_s2m_vec_t(slaves_rng);
@@ -212,17 +212,13 @@ begin
       port map (
         clk => clk,
 
-        axil_m2s => bfm_m2s,
-        axil_s2m => bfm_s2m
+        axil_m2s => axil_m2s,
+        axil_s2m => axil_s2m
       );
-
-      axil_m2s <= bfm_m2s;
-      bfm_s2m <= axil_s2m;
 
   else generate
 
     axil_m2s <= hard_coded_m2s;
-    hard_coded_s2m <= axil_s2m;
   end generate;
 
 
