@@ -7,7 +7,7 @@ This page shows how to run simulations using tsfpga and VUnit.
 
 As far as simulations go tsfpga can be seen as layer on top of VUnit.
 tsfpga helps manage the inputs to your simulation project: source files, test benches, :ref:`test configurations <local_configuration>`, :ref:`register code generation <registers>`, :ref:`IP cores <vivado_ip_cores>`, :ref:`simlib <vivado_simlib>`,...
-As such all features of VUnit are available as they are, and all simulators are supported (ghdl as well as commercial).
+All features of VUnit are available as they are, and all simulators are supported (ghdl as well as commercial).
 
 
 
@@ -68,7 +68,7 @@ Local configuration of test cases
 ---------------------------------
 
 Running test cases in a few different configurations via generics is a common design pattern.
-This can be achieved in tsfpga by creating a file ``module_<module_name>.py`` in the root of the module folder.
+This can be achieved in tsfpga by creating a file ``module_<name>.py`` in the root of the module folder.
 
 Say for example if we want to set some generics for a FIFO testbench, located in a module called ``fifo``, which is located under ``modules``.
 We would create the file ``modules/fifo/module_fifo.py``, and fill it with something like this.

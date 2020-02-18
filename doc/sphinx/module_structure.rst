@@ -1,11 +1,19 @@
 .. _folder_structure:
 
-Folder structure
+Module structure
 ================
 
+Source code management in tsfpga is centered around modules.
+This page describes how modules must be structured in the file system.
+It also shows how modules and files are abstracted in python classes and methods.
+
+
+Folder structure
+________________
+
 Some functions in tsfpga requires that your modules use a certain folder structure.
-For example, if you want to set up :ref:`local test configurations <local_configuration>` use
-must use a file called ``module_<module_name>.py`` in the root of your module.
+For example, if we want to set up :ref:`local test configurations <local_configuration>` we
+must use a file called ``module_<name>.py`` in the root of your module.
 
 Additionally the :meth:`get_modules() <tsfpga.module.get_modules>` function in tsfpga, which creates
 :meth:`module objects <tsfpga.module.BaseModule>` from a source tree, will look for source files only in certain sub-directories.
@@ -13,7 +21,7 @@ Additionally the :meth:`get_modules() <tsfpga.module.get_modules>` function in t
 Below is a recommended folder structure.
 The different files and folders are explained further down.
 
-.. code-block:: shell
+.. code-block:: none
 
     modules/
     ├── foo
@@ -72,7 +80,7 @@ module_foo.py
 -------------
 
 If you want to do :ref:`local test configurations <local_configuration>`, or overload any other
-thing in the :meth:`BaseModule <tsfpga.module.BaseModule>` class, you can use a file called ``module_<module_name>.py``.
+thing in the :meth:`BaseModule <tsfpga.module.BaseModule>` class, you can use a file called ``module_<name>.py``.
 The Python file shall contain a class definition called ``Module``.
 If you do this it is recommended to inherit the class from :meth:`BaseModule <tsfpga.module.BaseModule>` and override any method you want to change the behavior of.
 
@@ -82,7 +90,7 @@ If you do this it is recommended to inherit the class from :meth:`BaseModule <ts
 project_foo.py
 --------------
 
-Modules that define FPGA build projects shall have a Python file name ``project_<module_name>.py`` in their root.
+Modules that define FPGA build projects shall have a Python file name ``project_<name>.py`` in their root.
 The file must contain a function ``get_projects()`` that returns a list of :meth:`FPGA build projects <tsfpga.vivado_project.VivadoProject>`.
 
 An FPGA project like this might need a lot extra files, such as TCL scripts for pinning, block design, etc.
@@ -132,6 +140,45 @@ The constraint files shall be placed in the ``scoped_constraints`` directory wit
 
 The name of scoped constraint file must be the same as the entity name and source file name.
 In the example tree above there is a scoped constraint file ``sample_data.tcl`` that will be applied to ``sample_data.vhd``, which presumably contains an entity called ``sample_data``.
+
+
+
+
+
+.. _get_modules:
+
+The get_modules() method
+________________________
+
+A call to :ref:`get_modules() <get_modules>` creates :ref:`module objects <module_objects>` from the directory structure of the folders listed in the argument.
+The library name is deduced from the name of each module folder.
+Source files, packages and testbenches are collected from a few standard locations within the module folder.
+
+.. autofunction:: tsfpga.module.get_modules
+
+
+
+.. _module_objects:
+
+Module objects
+______________
+
+.. autoclass:: tsfpga.module.BaseModule()
+    :members:
+
+    .. automethod:: __init__
+
+
+
+.. _hdl_file:
+
+HdlFile objects
+_______________
+
+.. autoclass:: tsfpga.hdl_file.HdlFile()
+    :members:
+
+    .. automethod:: __init__
 
 
 

@@ -27,7 +27,7 @@ def test_all_checked_in_files_are_properly_encoded():
 
     Avoid one of the documentation files that uses wonky characters to illustrate a directory tree.
     """
-    for file in files_to_test(exclude_directories=[join(tsfpga.TSFPGA_DOC, "sphinx", "folder_structure.rst")]):
+    for file in files_to_test(exclude_directories=[join(tsfpga.TSFPGA_DOC, "sphinx", "module_structure.rst")]):
         open_file_with_encoding(file)
 
 

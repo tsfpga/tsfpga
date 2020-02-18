@@ -8,8 +8,7 @@ Note that the documentation is at this stage very much a Work In Progress.
 
     simulation
     build
-    modules
-    folder_structure
+    module_structure
     registers
     contributing
     release_notes
