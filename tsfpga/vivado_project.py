@@ -115,7 +115,7 @@ class VivadoProject:
         create_vivado_project_tcl = self._create_tcl(project_path, ip_cache_path)
         run_vivado_tcl(self.vivado_path, create_vivado_project_tcl)
 
-    def _build_tcl(self, project_path, output_path, generics, synth_only, num_threads):
+    def _build_tcl(self, project_path, output_path, num_threads, run_index, generics, synth_only):
         """
         Make a TCL file that builds a Vivado project
         """
@@ -136,6 +136,7 @@ class VivadoProject:
                 project_file=project_file,
                 output_path=output_path,
                 num_threads=num_threads,
+                run_index=run_index,
                 generics=all_generics,
                 synth_only=synth_only))
 
@@ -164,6 +165,7 @@ class VivadoProject:
     def build(self,
               project_path,
               output_path=None,
+              run_index=1,
               generics=None,
               synth_only=False,
               num_threads=12,
@@ -174,6 +176,7 @@ class VivadoProject:
         Args:
             project_path: A path containing a Vivado project.
             output_path: Results (bit file, ...) will be placed here.
+            run_index: Select Vivado run (synth_X and impl_X).
             generics: A dict with generics values. Use for run-time generics, i.e.
                 Values that can change between each build of this project.
 
@@ -196,6 +199,7 @@ class VivadoProject:
         pre_and_post_build_parameters.update(
             project_path=project_path,
             output_path=output_path,
+            run_index=run_index,
             generics=generics,
             synth_only=synth_only,
             num_threads=num_threads
@@ -205,9 +209,10 @@ class VivadoProject:
 
         build_vivado_project_tcl = self._build_tcl(project_path=project_path,
                                                    output_path=output_path,
-                                                   synth_only=synth_only,
+                                                   num_threads=num_threads,
+                                                   run_index=run_index,
                                                    generics=generics,
-                                                   num_threads=num_threads)
+                                                   synth_only=synth_only)
         run_vivado_tcl(self.vivado_path, build_vivado_project_tcl)
 
         self.post_build(**pre_and_post_build_parameters)

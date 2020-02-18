@@ -33,18 +33,18 @@ class VivadoTcl:
         # Default value for when opening project in GUI.
         # Will be overwritten if using build() function.
         tcl += "set_param general.maxThreads 4\n"
-        tcl += "set_property STEPS.WRITE_BITSTREAM.ARGS.BIN_FILE true [get_runs impl_1]\n"
         tcl += "\n"
         tcl += self._add_modules(modules)
         tcl += "\n"
         tcl += self._add_generics(generics)
         tcl += "\n"
-        all_constraints = self._iterate_constraints(modules, constraints)
-        tcl += self._add_constraints(all_constraints)
+        tcl += self._add_constraints(self._iterate_constraints(modules, constraints))
         tcl += "\n"
         tcl += self._add_tcl_sources(tcl_sources)
         tcl += "\n"
         tcl += self._add_build_step_hooks(build_step_hooks)
+        tcl += "\n"
+        tcl += self._add_binary_bitstream()
         tcl += "\n"
         tcl += f"set_property top {top} [current_fileset]\n"
         tcl += "reorder_files -auto -disable_unused\n"
@@ -93,8 +93,7 @@ class VivadoTcl:
             tcl += "source -notrace %s\n" % to_tcl_path(tcl_source_file)
         return tcl
 
-    @staticmethod
-    def _add_build_step_hooks(build_step_hooks):
+    def _add_build_step_hooks(self, build_step_hooks):
         if build_step_hooks is None:
             return ""
 
@@ -107,11 +106,28 @@ class VivadoTcl:
                 raise ValueError(message)
             hook_steps_added.add(build_step_hook.hook_step)
 
-            # Decoding the run name like this is not very nice for the case were the user has defined
-            # many runs. But to solve that we would need to make structural changes, which I'm not sure about
-            # at the moment. Will solve when there is an actual use case.
-            run = "synth_1" if build_step_hook.step_is_synth else "impl_1"
-            tcl += f"set_property {build_step_hook.hook_step} {to_tcl_path(build_step_hook.tcl_file)} [get_runs {run}]\n"
+            # Build step hook us applied to a run (e.g. impl_1), not on a project basis
+            run_wildcard = "synth_*" if build_step_hook.step_is_synth else "impl_*"
+            tcl_block = f"set_property {build_step_hook.hook_step} {to_tcl_path(build_step_hook.tcl_file)} ${{run}}"
+            tcl += self._tcl_for_each_run(run_wildcard, tcl_block)
+        return tcl
+
+    def _add_binary_bitstream(self):
+        """
+        Enable binary bitstream. Is set for a run, not on project basis.
+        """
+        tcl_block = "set_property STEPS.WRITE_BITSTREAM.ARGS.BIN_FILE true ${run}"
+        return self._tcl_for_each_run("impl_*", tcl_block)
+
+    @staticmethod
+    def _tcl_for_each_run(run_wildcard, tcl_block):
+        """
+        Apply TCL block for each defined run. Use ${run} for run variable in TCL.
+        """
+        tcl = ""
+        tcl += f"foreach run [get_runs {run_wildcard}] {{\n"
+        tcl += tcl_block + "\n"
+        tcl += "}\n"
         return tcl
 
     @staticmethod
@@ -158,10 +174,12 @@ class VivadoTcl:
 
         return tcl
 
-    def build(self, project_file, output_path, num_threads, generics=None, synth_only=False):
-        synth_run = "synth_1"
-        impl_run = "impl_1"
-        num_threads = min(num_threads, 8)  # Max value in Vivado 2017.4. set_param will give an error if higher number.
+    def build(self, project_file, output_path, num_threads, run_index, generics=None, synth_only=False):
+        # Max value in Vivado 2017.4. set_param will give an error if higher number.
+        num_threads = min(num_threads, 8)
+
+        synth_run = f"synth_{run_index}"
+        impl_run = f"impl_{run_index}"
 
         tcl = f"open_project {to_tcl_path(project_file)}\n"
         tcl += f"set_param general.maxThreads {num_threads}\n"

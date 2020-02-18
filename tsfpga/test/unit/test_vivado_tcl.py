@@ -122,8 +122,8 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
             build_step_hooks=[dummy, files]
         )
 
-        assert f"\nset_property STEPS.SYNTH_DESIGN.TCL.PRE {to_tcl_path(dummy.tcl_file)} [get_runs synth_1]\n" in tcl
-        assert f"\nset_property STEPS.ROUTE_DESIGN.TCL.PRE {to_tcl_path(files.tcl_file)} [get_runs impl_1]\n" in tcl
+        assert f"\nset_property STEPS.SYNTH_DESIGN.TCL.PRE {to_tcl_path(dummy.tcl_file)} ${{run}}\n" in tcl
+        assert f"\nset_property STEPS.ROUTE_DESIGN.TCL.PRE {to_tcl_path(files.tcl_file)} ${{run}}\n" in tcl
 
     def test_build_step_hooks_with_same_hook_step_should_raise_exception(self):
         dummy = BuildStepTclHook("dummy.tcl", "STEPS.SYNTH_DESIGN.TCL.PRE")
@@ -172,11 +172,35 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
         tcl = self.tcl.build(
             project_file="",
             output_path="",
-            num_threads=num_threads
+            num_threads=num_threads,
+            run_index=1
         )
         assert "set_param general.maxThreads %d" % num_threads in tcl
         assert "launch_runs synth_1 -jobs %d" % num_threads in tcl
         assert "launch_runs impl_1 -jobs %d" % num_threads in tcl
+
+    def test_set_run_index(self):
+        tcl = self.tcl.build(
+            project_file="",
+            output_path="",
+            num_threads=0,
+            run_index=1
+        )
+        assert "impl_1" in tcl
+        assert "synth_1" in tcl
+        assert "impl_2" not in tcl
+        assert "synth_2" not in tcl
+
+        tcl = self.tcl.build(
+            project_file="",
+            output_path="",
+            num_threads=0,
+            run_index=2
+        )
+        assert "impl_2" in tcl
+        assert "synth_2" in tcl
+        assert "impl_1" not in tcl
+        assert "synth_1" not in tcl
 
     def test_runtime_generics(self):
         generics = dict(dummy=True)
@@ -184,6 +208,7 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
             project_file="",
             output_path="",
             num_threads=0,
+            run_index=0,
             generics=generics
         )
         expected = "\nset_property generic {dummy=1'b1} [current_fileset]\n"
