@@ -9,7 +9,7 @@ Maintaining changelog
 
 We maintain a changelog according to the `keep a changelog <https://keepachangelog.com/>`__ format.
 The unreleased changelog in ``doc/release_notes/unreleased.rst`` shall be updated continuously, not just at release.
-The release note files are in the ``rst`` format and shall be formatted with dashes (``_``) for the headings as such:
+The release note files are in the ``rst`` format and shall be formatted with underscores (``_``) for the headings as such:
 
 .. code-block:: rst
 
