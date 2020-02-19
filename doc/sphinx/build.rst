@@ -151,6 +151,7 @@ Build step TCL hooks
 
 TCL scripts can be addded as hooks to certain build steps in Vivado.
 Scripts like these are passed to the :class:`.VivadoProject` using this class.
+It is possible to add more than one hook per step.
 
 .. autoclass:: tsfpga.build_step_tcl_hook.BuildStepTclHook()
     :members:

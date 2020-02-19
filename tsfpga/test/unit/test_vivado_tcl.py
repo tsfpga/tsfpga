@@ -4,7 +4,6 @@
 
 from collections import OrderedDict
 from os.path import dirname, join
-import pytest
 import unittest
 
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
@@ -12,6 +11,7 @@ from tsfpga.module import get_modules
 from tsfpga.system_utils import create_file, delete
 from tsfpga.vivado_tcl import VivadoTcl
 from tsfpga.vivado_utils import to_tcl_path
+from tsfpga.test.test_utils import file_contains_string
 
 
 THIS_DIR = dirname(__file__)
@@ -125,19 +125,23 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
         assert f"\nset_property STEPS.SYNTH_DESIGN.TCL.PRE {to_tcl_path(dummy.tcl_file)} ${{run}}\n" in tcl
         assert f"\nset_property STEPS.ROUTE_DESIGN.TCL.PRE {to_tcl_path(files.tcl_file)} ${{run}}\n" in tcl
 
-    def test_build_step_hooks_with_same_hook_step_should_raise_exception(self):
+    def test_build_step_hooks_with_same_hook_step(self):
         dummy = BuildStepTclHook("dummy.tcl", "STEPS.SYNTH_DESIGN.TCL.PRE")
         files = BuildStepTclHook("files.tcl", "STEPS.SYNTH_DESIGN.TCL.PRE")
-        with pytest.raises(ValueError) as exception_info:
-            self.tcl.create(
-                project_folder="",
-                modules=self.modules,
-                part="part",
-                top="",
-                build_step_hooks=[dummy, files]
-            )
+        tcl = self.tcl.create(
+            project_folder=join(THIS_DIR, "dummy_project_folder"),
+            modules=self.modules,
+            part="part",
+            top="",
+            build_step_hooks=[dummy, files]
+        )
 
-        assert str(exception_info.value).startswith("Multiple TCL sources for hook step STEPS.SYNTH_DESIGN.TCL.PRE")
+        hook_file = join(THIS_DIR, "dummy_project_folder", "hook_STEPS_SYNTH_DESIGN_TCL_PRE.tcl")
+
+        assert file_contains_string(hook_file, f"source {to_tcl_path(dummy.tcl_file)}")
+        assert file_contains_string(hook_file, f"source {to_tcl_path(files.tcl_file)}")
+
+        assert f"\nset_property STEPS.SYNTH_DESIGN.TCL.PRE {to_tcl_path(hook_file)} ${{run}}\n" in tcl
 
     def test_ip_core_files(self):
         tcl = self.tcl.create(

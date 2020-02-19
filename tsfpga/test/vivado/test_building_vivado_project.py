@@ -44,6 +44,7 @@ class TestBasicProject(unittest.TestCase):
     top_template = """
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 library resync;
 
@@ -95,9 +96,9 @@ set_property -dict {package_pin P14 iostandard lvcmos33} [get_ports input]
 set_property -dict {package_pin K17 iostandard lvcmos33} [get_ports clk_out]
 set_property -dict {package_pin T16 iostandard lvcmos33} [get_ports output]
 
-# 200 MHz
-create_clock -period 5 -name clk_in [get_ports clk_in]
-create_clock -period 5 -name clk_out [get_ports clk_out]
+# 250 MHz
+create_clock -period 4 -name clk_in [get_ports clk_in]
+create_clock -period 4 -name clk_out [get_ports clk_out]
 """
 
     def setUp(self):
@@ -116,11 +117,14 @@ create_clock -period 5 -name clk_out [get_ports clk_out]
 
         self.log_file = join(self.project_folder, "vivado.log")
 
+        self.runs_folder = join(self.project_folder, "test_proj.runs")
+
     def test_create_project(self):
         pass
 
     def test_synth_project(self):
         self.proj.build(self.project_folder, synth_only=True)
+        assert exists(join(self.runs_folder, "synth_1", "hierarchical_utilization.rpt"))
 
     def test_synth_should_fail_if_source_code_does_not_compile(self):
         with open(self.top_file, "a") as file_handle:
@@ -138,7 +142,49 @@ create_clock -period 5 -name clk_out [get_ports clk_out]
             self.proj.build(self.project_folder, synth_only=True)
         assert file_contains_string(self.log_file, "\nERROR: Unhandled clock crossing in synth_1 run.")
 
+        assert exists(join(self.runs_folder, "synth_1", "clock_interaction.rpt"))
+        assert exists(join(self.runs_folder, "synth_1", "timing_summary.rpt"))
+
     def test_build_project(self):
         self.proj.build(self.project_folder, self.project_folder)
         assert exists(join(self.project_folder, self.proj.name + ".bit"))
         assert exists(join(self.project_folder, self.proj.name + ".bin"))
+        assert exists(join(self.runs_folder, "impl_1", "hierarchical_utilization.rpt"))
+
+    def test_build_with_bad_timing_should_fail(self):
+        # Do a ridiculously wide multiplication, which Vivado can't optimize away
+        bad_timing = """
+  mult_block : block
+    signal resynced_input : std_logic;
+  begin
+    resync_level_inst : entity resync.resync_level
+    port map (
+      data_in => input_p1,
+
+      clk_out => clk_out,
+      data_out => resynced_input
+    );
+
+    mult : process
+      constant bit_pattern : std_logic_vector(32 -1 downto 0) := x"deadbeef";
+      variable term1, term2, term3 : unsigned(bit_pattern'range);
+    begin
+      wait until rising_edge(clk_out);
+      term1 := unsigned(bit_pattern);
+      term1(28) := resynced_input;
+
+      term2 := unsigned(not bit_pattern);
+      term2(22) := resynced_input;
+
+      output <= xor (term1 * term2);
+    end process;
+  end block;"""
+
+        top = self.top_template.format(assign_output=bad_timing)
+        create_file(self.top_file, top)
+
+        with pytest.raises(CalledProcessError):
+            self.proj.build(self.project_folder, self.project_folder)
+        assert file_contains_string(self.log_file, "\nERROR: Timing not OK after implementation run.")
+
+        assert exists(join(self.runs_folder, "impl_1", "timing_summary.rpt"))

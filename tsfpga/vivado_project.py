@@ -4,10 +4,12 @@
 
 from os import makedirs
 from os.path import join, exists
+import shutil
 
 from tsfpga import TSFPGA_TCL
 from tsfpga.vivado_tcl import VivadoTcl
 from tsfpga.vivado_utils import run_vivado_tcl
+from tsfpga.build_step_tcl_hook import BuildStepTclHook
 
 
 class VivadoProject:
@@ -56,12 +58,12 @@ class VivadoProject:
         self.static_generics = generics
         self.constraints = constraints
         self.defined_at = defined_at
-        self.build_step_hooks = build_step_hooks
 
         self.top = name + "_top" if top is None else top
         self.vivado_path = "vivado" if vivado_path is None else vivado_path
 
         self._setup_tcl_sources_list(tcl_sources)
+        self._setup_build_step_hooks(build_step_hooks)
 
         self.tcl = VivadoTcl(name=self.name)
 
@@ -72,6 +74,12 @@ class VivadoProject:
             join(TSFPGA_TCL, "vivado_directive_settings.tcl"),
             join(TSFPGA_TCL, "vivado_messages.tcl"),
         ]
+
+    def _setup_build_step_hooks(self, build_step_hooks_from_user):
+        # Lists are immutable. Since we assign and modify this one we have to copy it.
+        self.build_step_hooks = [] if build_step_hooks_from_user is None else build_step_hooks_from_user.copy()
+        self.build_step_hooks.append(BuildStepTclHook(join(TSFPGA_TCL, "vivado_impl_post.tcl"),
+                                                      "STEPS.WRITE_BITSTREAM.TCL.PRE"))
 
     def project_file(self, project_path):
         """
@@ -214,6 +222,11 @@ class VivadoProject:
                                                    generics=generics,
                                                    synth_only=synth_only)
         run_vivado_tcl(self.vivado_path, build_vivado_project_tcl)
+
+        if not synth_only:
+            impl_folder = join(project_path, self.name + ".runs", f"impl_{run_index}")
+            shutil.copy2(join(impl_folder, self.top + ".bit"), join(output_path, self.name + ".bit"))
+            shutil.copy2(join(impl_folder, self.top + ".bin"), join(output_path, self.name + ".bin"))
 
         self.post_build(**pre_and_post_build_parameters)
 

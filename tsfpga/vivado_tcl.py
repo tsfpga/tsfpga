@@ -5,6 +5,7 @@
 from os.path import join
 
 from tsfpga.vivado_utils import to_tcl_path
+from tsfpga.system_utils import create_file
 
 
 class VivadoTcl:
@@ -42,7 +43,7 @@ class VivadoTcl:
         tcl += "\n"
         tcl += self._add_tcl_sources(tcl_sources)
         tcl += "\n"
-        tcl += self._add_build_step_hooks(build_step_hooks)
+        tcl += self._add_build_step_hooks(build_step_hooks, project_folder)
         tcl += "\n"
         tcl += self._add_binary_bitstream()
         tcl += "\n"
@@ -93,22 +94,34 @@ class VivadoTcl:
             tcl += "source -notrace %s\n" % to_tcl_path(tcl_source_file)
         return tcl
 
-    def _add_build_step_hooks(self, build_step_hooks):
+    def _add_build_step_hooks(self, build_step_hooks, project_folder):
         if build_step_hooks is None:
             return ""
 
-        tcl = ""
-        hook_steps_added = set()
+        # There can be many hooks for the same step. Reorganize them into a dict, according
+        # to the format step_name: [list of hooks]
+        hook_steps = dict()
         for build_step_hook in build_step_hooks:
-            if build_step_hook.hook_step in hook_steps_added:
-                message = f"Multiple TCL sources for hook step {build_step_hook.hook_step}: " + \
-                    " ".join(map(str, build_step_hooks))
-                raise ValueError(message)
-            hook_steps_added.add(build_step_hook.hook_step)
+            if build_step_hook.hook_step in hook_steps:
+                hook_steps[build_step_hook.hook_step].append(build_step_hook)
+            else:
+                hook_steps[build_step_hook.hook_step] = [build_step_hook]
 
-            # Build step hook us applied to a run (e.g. impl_1), not on a project basis
-            run_wildcard = "synth_*" if build_step_hook.step_is_synth else "impl_*"
-            tcl_block = f"set_property {build_step_hook.hook_step} {to_tcl_path(build_step_hook.tcl_file)} ${{run}}"
+        tcl = ""
+        for step, hooks in hook_steps.items():
+            # Vivado will only accept one TCL script as hook for each step. So if we want
+            # to add more we have to create a new TCL file, that sources the other files,
+            # and add that as the hook to Vivado.
+            if len(hooks) == 1:
+                tcl_file = hooks[0].tcl_file
+            else:
+                tcl_file = join(project_folder, "hook_" + step.replace(".", "_") + ".tcl")
+                source_hooks_tcl = "".join([f"source {to_tcl_path(hook.tcl_file)}\n" for hook in hooks])
+                create_file(tcl_file, source_hooks_tcl)
+
+            # Build step hook is applied to a run (e.g. impl_1), not on a project basis
+            run_wildcard = "synth_*" if hooks[0].step_is_synth else "impl_*"
+            tcl_block = f"set_property {step} {to_tcl_path(tcl_file)} ${{run}}"
             tcl += self._tcl_for_each_run(run_wildcard, tcl_block)
         return tcl
 
@@ -189,88 +202,48 @@ class VivadoTcl:
         tcl += self._synthesis(synth_run, num_threads)
         tcl += "\n"
         if not synth_only:
-            tcl += self._impl(impl_run, num_threads)
+            tcl += self._run(impl_run, num_threads, to_step="write_bitstream")
             tcl += "\n"
-            tcl += self._bitstream(output_path)
             tcl += self._hwdef(output_path)
             tcl += "\n"
         tcl += "exit\n"
         return tcl
 
+    def _synthesis(self, run, num_threads):
+        tcl = self._run(run, num_threads)
+        tcl += "\n"
+        tcl += f"open_run {run}\n"
+        tcl += f"set run_directory [get_property DIRECTORY [get_runs {run}]]\n"
+        tcl += "\n"
+        tcl += "set output_file [file join ${run_directory} \"hierarchical_utilization.rpt\"]\n"
+        tcl += "report_utilization -hierarchical -hierarchical_depth 4 -file ${output_file}\n"
+        tcl += "\n"
+        tcl += r"if {[regexp {\(unsafe\)} [report_clock_interaction -delay_type min_max -return_string]]} "
+        tcl += "{\n"
+        tcl += f"  puts \"ERROR: Unhandled clock crossing in {run} run. See reports in ${{run_directory}}\"\n"
+        tcl += "\n"
+        tcl += "  set output_file [file join ${run_directory} \"clock_interaction.rpt\"]\n"
+        tcl += "  report_clock_interaction -delay_type min_max -file ${output_file}\n"
+        tcl += "\n"
+        tcl += "  set output_file [file join ${run_directory} \"timing_summary.rpt\"]\n"
+        tcl += "  report_timing_summary -file ${output_file}\n"
+        tcl += "\n"
+        tcl += "  exit 1\n"
+        tcl += "}\n"
+        return tcl
+
     @staticmethod
-    def _run(run, num_threads):
+    def _run(run, num_threads, to_step=None):
+        to_step = "" if to_step is None else " -to_step " + to_step
+
         tcl = f"reset_run {run}\n"
-        tcl += f"launch_runs {run} -jobs {num_threads}\n"
+        tcl += f"launch_runs {run} -jobs {num_threads}{to_step}\n"
         tcl += "wait_on_run %s\n" % run
         tcl += "\n"
         tcl += "if {[get_property PROGRESS [get_runs %s]] != \"100%%\"} {\n" % run
         tcl += f"  puts \"ERROR: Run {run} failed.\"\n"
         tcl += "  exit 1\n"
         tcl += "}\n"
-        tcl += "\n"
-        tcl += f"open_run {run}\n"
-        tcl += f"set run_directory [get_property DIRECTORY [get_runs {run}]]\n"
-        return tcl
-
-    def _check_clock_interaction(self, run):
-        tcl = r"if {[regexp {\(unsafe\)} [report_clock_interaction -delay_type min_max -return_string]]} "
-        tcl += "{\n"
-        tcl += f"  puts \"ERROR: Unhandled clock crossing in {run} run. See reports in ${{run_directory}}\"\n"
-        tcl += "\n"
-        tcl += self._save_clock_interaction_report()
-        tcl += self._save_timing_report()
-        tcl += "\n"
-        tcl += "  exit 1\n"
-        tcl += "}\n"
-        return tcl
-
-    @staticmethod
-    def _save_clock_interaction_report():
-        tcl = "set output_file [file join ${run_directory} \"clock_interaction.rpt\"]\n"
-        tcl += "report_clock_interaction -delay_type min_max -file ${output_file}\n"
-        return tcl
-
-    @staticmethod
-    def _save_timing_report():
-        tcl = "set output_file [file join ${run_directory} \"timing_summary.rpt\"]\n"
-        tcl += "report_timing_summary -file ${output_file}\n"
-        return tcl
-
-    def _check_timing(self, run):
-        tcl = "if {[expr {[get_property SLACK [get_timing_paths -delay_type min_max]] < 0}]} {\n"
-        tcl += f"  puts \"ERROR: Timing not OK after {run} run. See reports in ${{run_directory}}\"\n"
-        tcl += "\n"
-        tcl += self._save_timing_report()
-        tcl += "\n"
-        tcl += "  exit 1\n"
-        tcl += "}\n"
-        return tcl
-
-    @staticmethod
-    def _report_utilization():
-        tcl = "set output_file [file join ${run_directory} \"hierarchical_utilization.rpt\"]\n"
-        tcl += "report_utilization -hierarchical -hierarchical_depth 4 -file ${output_file}\n"
-        return tcl
-
-    def _synthesis(self, run, num_threads):
-        tcl = self._run(run, num_threads)
-        tcl += "\n"
-        tcl += self._report_utilization()
-        tcl += "\n"
-        tcl += self._check_clock_interaction(run)
-        return tcl
-
-    def _impl(self, run, num_threads):
-        tcl = self._run(run, num_threads)
-        tcl += "\n"
-        tcl += self._report_utilization()
-        tcl += "\n"
-        tcl += self._check_timing(run)
-        return tcl
-
-    def _bitstream(self, output_path):
-        bit_file = to_tcl_path(join(output_path, self.name))  # Vivado will append the appropriate file ending
-        tcl = f"write_bitstream -force -bin {bit_file}\n"
         return tcl
 
     def _hwdef(self, output_path):
