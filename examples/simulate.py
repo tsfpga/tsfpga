@@ -4,6 +4,7 @@
 
 from pathlib import Path
 from shutil import which
+import subprocess
 import sys
 
 PATH_TO_TSFPGA = Path(__file__).parent.parent.resolve()
@@ -18,6 +19,7 @@ import tsfpga
 import tsfpga.create_vhdl_ls_config
 from tsfpga.vivado_ip_cores import VivadoIpCores
 from tsfpga.vivado_simlib import VivadoSimlib
+from tsfpga.system_utils import create_directory
 
 from tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
 
@@ -66,7 +68,13 @@ def main():
                 assert False, f"Can not handle this file: {hdl_file}"
         module.setup_simulations(vunit_proj)
 
-    vunit_proj.main()
+    vunit_proj.set_compile_option("ghdl.a_flags", ["-fpsl"])
+    if vunit_proj.simulator_supports_coverage():
+        vunit_proj.set_compile_option("enable_coverage", True)
+        vunit_proj.set_sim_option("enable_coverage", True)
+        vunit_proj.main(post_run=merge_ghdl_coverage)
+    else:
+        vunit_proj.main()
 
 
 def arguments():
@@ -129,6 +137,34 @@ def create_vhdl_ls_configuration(vunit_proj, all_modules, ip_core_vivado_project
         vunit_proj=vunit_proj,
         vivado_location=vivado_location,
         ip_core_vivado_project_sources_directory=ip_core_vivado_project_sources_directory)
+
+
+def merge_ghdl_coverage(results):
+    if not results.get_report().tests:
+        print("No test results to merge coverage on")
+        return
+
+    merged_coverage_output = TSFPGA_EXAMPLES_TEMP_DIR / "vunit_coverage_database"
+    results.merge_coverage(merged_coverage_output)
+
+    report_html_path = TSFPGA_EXAMPLES_TEMP_DIR / "vhdl_coverage_html"
+    create_directory(report_html_path, empty=True)
+    gcovr_cmd = ["gcovr",
+                 "--xml",
+                 TSFPGA_EXAMPLES_TEMP_DIR / "vhdl_coverage.xml",
+                 "--xml-pretty",
+                 "--html",
+                 "--html-details",
+                 report_html_path / "index.html",
+                 "--html-title",
+                 "tsfpga VHDL coverage",
+                 "--exclude-unreachable-branches",
+                 "--exclude-throw-branches",
+                 merged_coverage_output,
+                 ]
+    subprocess.call(gcovr_cmd)
+
+    print(f"Coverage HTML report saved in {report_html_path}")
 
 
 if __name__ == "__main__":

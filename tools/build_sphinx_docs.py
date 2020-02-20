@@ -2,11 +2,12 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
+import argparse
+from datetime import datetime
 from pathlib import Path
 import shutil
 from subprocess import check_call, check_output
 import sys
-from datetime import datetime
 from xml.etree import ElementTree
 
 from pybadges import badge
@@ -21,11 +22,32 @@ SPHINX_HTML = tsfpga.TSFPGA_GENERATED / "sphinx_html"
 
 
 def main():
+    args = arguments()
+    delete(SPHINX_HTML)
+
     generate_registers()
     generate_release_notes()
     build_sphinx()
-    build_coverage_badge()
-    copy_coverage_to_html_output()
+
+    if args.skip_coverage:
+        return
+
+    badges_path = create_directory(SPHINX_HTML / "badges")
+    build_python_coverage_badge(badges_path)
+    build_vhdl_coverage_badges(badges_path)
+
+    copy_python_coverage_to_html_output()
+    copy_vhdl_coverage_to_html_output()
+
+
+def arguments():
+    parser = argparse.ArgumentParser("Build sphinx documentation",
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    parser.add_argument("--skip-coverage",
+                        action="store_true",
+                        help="skip handling of coverage reports")
+    return parser.parse_args()
 
 
 def generate_registers():
@@ -115,25 +137,68 @@ class Release:
         return f"{timestamp.day} {timestamp:%B} {timestamp.year}".lower()
 
 
-def build_coverage_badge():
-    pytest_coverage_xml = tsfpga.TSFPGA_GENERATED / "pytest_coverage.xml"
-    assert pytest_coverage_xml.exists(), "Run pytest with coverage before building documentation"
+def build_python_coverage_badge(output_path):
+    coverage_xml = tsfpga.TSFPGA_GENERATED / "python_coverage.xml"
+    assert coverage_xml.exists(), "Run pytest with coverage before building documentation"
 
-    xml_root = ElementTree.parse(pytest_coverage_xml).getroot()
-    line_coverage = int(float(xml_root.attrib["line-rate"]) * 100)
+    xml_root = ElementTree.parse(coverage_xml).getroot()
+    line_coverage = int(round(float(xml_root.attrib["line-rate"]) * 100))
+    assert line_coverage > 50, "Coverage is way low: {line_coverage}. Something is wrong."
     color = "green" if line_coverage > 80 else "red"
 
     badge_svg = badge(
-        left_text="Pytest coverage",
-        right_text=str(line_coverage) + "%",
+        left_text="Line coverage",
+        right_text=f"{line_coverage}%",
         right_color=color,
         logo="https://upload.wikimedia.org/wikipedia/commons/0/0a/Python.svg",
         embed_logo=True,
-        left_link="https://tsfpga.com/pytest_coverage_html",
-        right_link="https://tsfpga.com/pytest_coverage_html"
+        left_link="https://tsfpga.com/python_coverage_html",
+        right_link="https://tsfpga.com/python_coverage_html"
     )
-    output_path = create_directory(SPHINX_HTML / "badges")
-    create_file(output_path / "pytest_coverage.svg", badge_svg)
+    create_file(output_path / "python_coverage.svg", badge_svg)
+
+
+def build_vhdl_coverage_badges(output_path):
+    coverage_xml = tsfpga.TSFPGA_GENERATED / "vhdl_coverage.xml"
+    assert coverage_xml.exists(), "Run simulate.py with GHDL coverage before building documentation"
+    xml_root = ElementTree.parse(coverage_xml).getroot()
+
+    build_vhdl_line_coverage_badge(xml_root, output_path)
+    build_vhdl_branch_coverage_badge(xml_root, output_path)
+
+
+def build_vhdl_line_coverage_badge(xml_root, output_path):
+    line_coverage = int(round(float(xml_root.attrib["line-rate"]) * 100))
+    assert line_coverage > 50, "Coverage is way low: {line_coverage}. Something is wrong."
+    color = "green" if line_coverage > 80 else "red"
+
+    badge_svg = badge(
+        left_text="Line coverage",
+        right_text=f"{line_coverage}%",
+        right_color=color,
+        logo="http://vunit.github.io/_static/VUnit_logo_420x420.png",
+        embed_logo=True,
+        left_link="https://tsfpga.com/vhdl_coverage_html",
+        right_link="https://tsfpga.com/vhdl_coverage_html"
+    )
+    create_file(output_path / "vhdl_line_coverage.svg", badge_svg)
+
+
+def build_vhdl_branch_coverage_badge(xml_root, output_path):
+    branch_coverage = int(round(float(xml_root.attrib["branch-rate"]) * 100))
+    assert branch_coverage > 50, "Coverage is way low: {line_coverage}. Something is wrong."
+    color = "green" if branch_coverage > 80 else "orange"
+
+    badge_svg = badge(
+        left_text="Branch coverage",
+        right_text=f"{branch_coverage}%",
+        right_color=color,
+        logo="http://vunit.github.io/_static/VUnit_logo_420x420.png",
+        embed_logo=True,
+        left_link="https://tsfpga.com/vhdl_coverage_html",
+        right_link="https://tsfpga.com/vhdl_coverage_html"
+    )
+    create_file(output_path / "vhdl_branch_coverage.svg", badge_svg)
 
 
 def build_sphinx():
@@ -151,12 +216,18 @@ def build_sphinx():
     print(f"Open with:\nfirefox {index_html} &")
 
 
-def copy_coverage_to_html_output():
-    pytest_coverage_html = tsfpga.TSFPGA_GENERATED / "pytest_coverage_html"
-    assert (pytest_coverage_html / "index.html").exists(), "Run pytest with coverage before building documentation"
+def copy_python_coverage_to_html_output():
+    coverage_html = tsfpga.TSFPGA_GENERATED / "python_coverage_html"
+    assert (coverage_html / "index.html").exists(), "Run pytest with coverage before building documentation"
 
-    output_path = delete(SPHINX_HTML / "pytest_coverage_html")
-    shutil.copytree(pytest_coverage_html, output_path)
+    shutil.copytree(coverage_html, SPHINX_HTML / "python_coverage_html")
+
+
+def copy_vhdl_coverage_to_html_output():
+    coverage_html = tsfpga.TSFPGA_GENERATED / "vhdl_coverage_html"
+    assert (coverage_html / "index.html").exists(), "Run simulate.py with GHDL coverage before building documentation"
+
+    shutil.copytree(coverage_html, SPHINX_HTML / "vhdl_coverage_html")
 
 
 if __name__ == "__main__":

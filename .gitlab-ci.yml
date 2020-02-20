@@ -9,9 +9,9 @@ stages:
 
 default:
   # Use docker image from ghdl project
-  # Available at https://hub.docker.com/r/ghdl/ext/
+  # Available at https://hub.docker.com/r/ghdl/vunit/
   # Configured at https://github.com/ghdl/docker/tree/master/dockerfiles
-  image: ghdl/ext:ls-vunit
+  image: ghdl/vunit:gcc-master
   before_script:
     - python3 --version
     - export PYTHONPATH=$(pwd)/tsfpga
@@ -31,11 +31,11 @@ pytest:
     - python3 -m pip install --requirement requirements_develop.txt > /dev/null
     - python3 -m pylint --version
     - python3 -m pycodestyle --version
-    - python3 -m pytest -v --cov tsfpga --cov-report xml:generated/pytest_coverage.xml --cov-report html:generated/pytest_coverage_html --ignore=tsfpga/test/vivado/ tsfpga/
+    - python3 -m pytest -v --cov tsfpga --cov-report xml:generated/python_coverage.xml --cov-report html:generated/python_coverage_html --ignore=tsfpga/test/vivado/ tsfpga/
   artifacts:
     paths:
-      - generated/pytest_coverage.xml
-      - generated/pytest_coverage_html
+      - generated/python_coverage.xml
+      - generated/python_coverage_html
 
 
 simulate:
@@ -46,6 +46,10 @@ simulate:
     - python3 -m pip install --requirement requirements_develop.txt > /dev/null
     - ghdl --version
     - python3 examples/simulate.py --num-threads 4 --vivado-skip
+  artifacts:
+    paths:
+      - generated/vhdl_coverage.xml
+      - generated/vhdl_coverage_html
 
 
 build_pypi:
