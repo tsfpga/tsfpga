@@ -32,6 +32,9 @@ begin
       input_data := x"01_23_45_67";
       expected := x"67_45_23_01";
       check_equal(swap_bytes(input_data), expected);
+    elsif run("test_to_bool") then
+      check_equal(to_bool('0'), false);
+      check_equal(to_bool('1'), true);
     end if;
 
     test_runner_cleanup(runner);
