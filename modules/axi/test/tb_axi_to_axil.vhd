@@ -29,6 +29,7 @@ end entity;
 
 architecture tb of tb_axi_to_axil is
   signal clk : std_logic := '0';
+  constant clk_period : time := 10 ns;
 
   signal axi_m2s : axi_m2s_t;
   signal axi_s2m : axi_s2m_t;
@@ -37,13 +38,23 @@ architecture tb of tb_axi_to_axil is
   signal axil_s2m : axil_s2m_t := axil_s2m_init;
 
   constant memory : memory_t := new_memory;
-  constant axi_slave : axi_slave_t := new_axi_slave(address_fifo_depth => 1, memory => memory);
+  constant axi_slave : axi_slave_t := new_axi_slave(
+    memory => memory,
+    address_fifo_depth => 8,
+    write_response_fifo_depth => 8,
+    address_stall_probability => 0.3,
+    data_stall_probability => 0.3,
+    write_response_stall_probability => 0.3,
+    min_response_latency => 8 * clk_period,
+    max_response_latency => 16 * clk_period,
+    logger => get_logger("axi_slave")
+  );
   constant axi_master : bus_master_t := new_bus(data_length => data_width, address_length => axi_m2s.read.ar.addr'length);
 
 begin
 
   test_runner_watchdog(runner, 10 ms);
-  clk <= not clk after 2 ns;
+  clk <= not clk after clk_period / 2;
 
 
   ------------------------------------------------------------------------------

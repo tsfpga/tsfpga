@@ -44,7 +44,17 @@ architecture tb of tb_axil_cdc is
   constant axil_master_master : bus_master_t := new_bus(data_length => data_width, address_length => master_m2s.read.ar.addr'length);
 
   constant memory : memory_t := new_memory;
-  constant axil_slave_slave : axi_slave_t := new_axi_slave(address_fifo_depth => 1, memory => memory);
+  constant axil_slave_slave : axi_slave_t := new_axi_slave(
+    memory => memory,
+    address_fifo_depth => 8,
+    write_response_fifo_depth => 8,
+    address_stall_probability => 0.3,
+    data_stall_probability => 0.3,
+    write_response_stall_probability => 0.3,
+    min_response_latency => 8 * clk_fast_period,
+    max_response_latency => 16 * clk_slow_period,
+    logger => get_logger("axil_slave_slave")
+  );
 
 begin
 

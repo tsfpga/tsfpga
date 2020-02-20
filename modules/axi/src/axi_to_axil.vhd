@@ -3,7 +3,14 @@
 -- -----------------------------------------------------------------------------
 -- @brief Convert AXI transfers to AXI-Lite transfers.
 --
--- This module does not handle splitting of AXI bursts. If the length is greater than one, an error will be returned.
+-- This module does not handle conversion of non-well behaved AXI transfers.
+-- Burst length has to be one and size must be the width of the bus. If these
+-- conditions are not met, the read/write response will signal SLVERR.
+--
+-- This module will throttle the AXI bus so that there is never more that one
+-- outstanding transaction (read and write separate). While the AXI-Lite standard
+-- does allow for outstanding bursts, some Xilinx cores, namely the PCIe DMA bridge
+-- does not play well with it.
 -- -----------------------------------------------------------------------------
 
 library ieee;
@@ -47,13 +54,15 @@ architecture a of axi_to_axil is
 
   signal read_error, write_error : boolean := false;
 
+  signal ar_done, aw_done, w_done : std_logic := '0';
+
 begin
 
   ------------------------------------------------------------------------------
-  axil_m2s.read.ar.valid <= axi_m2s.read.ar.valid;
+  axil_m2s.read.ar.valid <= axi_m2s.read.ar.valid and not ar_done;
   axil_m2s.read.ar.addr <= axi_m2s.read.ar.addr;
 
-  axi_s2m.read.ar.ready <= axil_s2m.read.ar.ready;
+  axi_s2m.read.ar.ready <= axil_s2m.read.ar.ready and not ar_done;
 
   axil_m2s.read.r.ready <= axi_m2s.read.r.ready;
 
@@ -65,16 +74,16 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axil_m2s.write.aw.valid <= axi_m2s.write.aw.valid;
+  axil_m2s.write.aw.valid <= axi_m2s.write.aw.valid and not aw_done;
   axil_m2s.write.aw.addr <= axi_m2s.write.aw.addr;
 
-  axi_s2m.write.aw.ready <= axil_s2m.write.aw.ready;
+  axi_s2m.write.aw.ready <= axil_s2m.write.aw.ready and not aw_done;
 
-  axil_m2s.write.w.valid <= axi_m2s.write.w.valid;
+  axil_m2s.write.w.valid <= axi_m2s.write.w.valid and not w_done;
   axil_m2s.write.w.data(data_rng) <= axi_m2s.write.w.data(data_rng);
   axil_m2s.write.w.strb(strb_rng) <= axi_m2s.write.w.strb(strb_rng);
 
-  axi_s2m.write.w.ready <= axil_s2m.write.w.ready;
+  axi_s2m.write.w.ready <= axil_s2m.write.w.ready and not w_done;
 
 
   ------------------------------------------------------------------------------
@@ -90,14 +99,29 @@ begin
   begin
     wait until rising_edge(clk);
 
-    -- Save the ID's used by PS so that they can be returned in the read/write response transactions.
+    -- Save the ID's so they can be returned in the read/write response transaction.
 
-    if axi_m2s.read.ar.valid and axi_s2m.read.ar.ready then
+    if axi_s2m.read.ar.ready and axi_m2s.read.ar.valid then
       read_id <= axi_m2s.read.ar.id;
+      ar_done <= '1';
     end if;
 
-    if axi_m2s.write.aw.valid and axi_s2m.write.aw.ready then
+    if axi_m2s.read.r.ready and axi_s2m.read.r.valid then
+      ar_done <= '0';
+    end if;
+
+    if axi_s2m.write.aw.ready and axi_m2s.write.aw.valid then
       write_id <= axi_m2s.write.aw.id;
+      aw_done <= '1';
+    end if;
+
+    if axi_s2m.write.w.ready and axi_m2s.write.w.valid then
+      w_done <= '1';
+    end if;
+
+    if axi_m2s.write.b.ready and axi_s2m.write.b.valid then
+      aw_done <= '0';
+      w_done <= '0';
     end if;
   end process;
 
