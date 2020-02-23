@@ -8,6 +8,7 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+import builtins
 from pathlib import Path
 import sys
 
@@ -38,6 +39,12 @@ extensions = [
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+
+
+# Remove warning that built-in types cannot be referenced.
+nitpick_ignore = []
+for name in dir(builtins):
+    nitpick_ignore.append(('py:class', name))
 
 
 # -- Options for HTML output -------------------------------------------------

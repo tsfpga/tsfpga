@@ -2,24 +2,24 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-import os
-from os.path import dirname, join, relpath
+from os.path import relpath
+from pathlib import Path
 from setuptools import setup, find_packages
 import sys
 
-ROOT = join(dirname(__file__))
-sys.path.append(ROOT)
-from tsfpga.about import get_version
+REPO_ROOT = Path(__file__).parent
+sys.path.append(str(REPO_ROOT))
+import tsfpga
 
 
-README_MD = join(ROOT, "readme.md")
-REQUIREMENTS_TXT = join(ROOT, "requirements.txt")
+README_MD = REPO_ROOT / "readme.md"
+REQUIREMENTS_TXT = REPO_ROOT / "requirements.txt"
 
 
 def main():
     setup(
         name="tsfpga",
-        version=get_version(),
+        version=tsfpga.__version__,
         description="A project platform for modern FPGA development",
         long_description=get_readme_description(),
         long_description_content_type="text/markdown",
@@ -67,23 +67,31 @@ def get_package_data():
     Additional files that shall be included in the release, apart from the python packages
     """
     package_data = [README_MD, REQUIREMENTS_TXT]
-    package_data += find_package_files(join(ROOT, "tsfpga", "tcl"))
-    package_data += find_package_files(join(ROOT, "modules"))
+    package_data += find_package_files(tsfpga.TSFPGA_TCL)
+    package_data += find_package_files(tsfpga.TSFPGA_MODULES)
 
     # Specify path relative to the tsfpga python package folder
-    package_data = [relpath(file_name, join(ROOT, "tsfpga")) for file_name in package_data]
+    tsfpga_root = Path(REPO_ROOT, "tsfpga")
+    package_data = [path_relative_to_str(file, tsfpga_root) for file in package_data]
     return package_data
+
+
+def path_relative_to_str(path, other):
+    """
+    Note Path.relative_to() does not support the use case where e.g. readme.md should get
+    relative path "../readme.md". Hence we have to use os.path.
+    """
+    return relpath(str(path), str(other))
 
 
 def find_package_files(directory):
     """
-    Find files to include in the package, ingoring temporary files.
+    Find files to include in the package, ignoring temporary files.
     """
     files = []
-    for root, _, filenames in os.walk(directory):
-        for filename in filenames:
-            if not filename.endswith("pyc"):
-                files.append(join(root, filename))
+    for file in directory.glob("**/*"):
+        if not file.suffix.endswith("pyc"):
+            files.append(file)
     return files
 
 

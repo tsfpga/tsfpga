@@ -3,10 +3,11 @@
 # ------------------------------------------------------------------------------
 
 import os
-from os.path import join, exists, normpath, abspath, isfile, commonpath
+from os.path import commonpath
+from pathlib import Path
 import subprocess
 
-from tsfpga import ROOT
+from tsfpga import REPO_ROOT
 
 
 def get_git_commit(cwd=None):
@@ -60,17 +61,17 @@ def check_that_git_commands_are_available(cwd=None):
 
 def find_git_files(file_endings_include=None,
                    file_endings_avoid=None,
-                   directory=ROOT,
+                   directory=REPO_ROOT,
                    exclude_directories=None):
     """
     Args:
-        file_endings_include: String or tuple of strings. Only files with these endings will be included.
-        file_endings_avoid: String or tuple of strings. Files with these endings will not be included.
-        directory: Search in this directory.
-        exclude_directories: Files in these directories will not be included.
+        file_endings_include (str or tuple(str)). Only files with these endings will be included.
+        file_endings_avoid (str or tuple(str)): String or tuple of strings. Files with these endings will not be included.
+        directory (`pathlib.Path`): Search in this directory.
+        exclude_directories (list(`pathlib.Path`)): Files in these directories will not be included.
     """
     exclude_directories = [] if exclude_directories is None else \
-        [normpath(abspath(exclude_directory)) for exclude_directory in exclude_directories]
+        [exclude_directory.resolve() for exclude_directory in exclude_directories]
 
     command = ["git", "ls-files"]
     output = subprocess.check_output(command, cwd=directory, universal_newlines=True)
@@ -83,18 +84,18 @@ def find_git_files(file_endings_include=None,
         # git ls-files returns paths relative to the working directory where it's called. Hence we prepend the cwd used.
         # Normpath is necessary in windows where you can get a mix of slashes and backslashes which makes
         # path comparisons sketchy
-        file = normpath(join(directory, file))
-        assert exists(file)  # Make sure concatenation of relative path worked
+        file = directory.joinpath(Path(file))
+        assert file.exists()  # Make sure concatenation of relative path worked
 
-        if isfile(file):  # "git ls-files" also lists submodule folders
-            if (file_endings_include is None or file.endswith(file_endings_include)) \
-                    and (file_endings_avoid is None or not file.endswith(file_endings_avoid)):
+        if file.is_file():  # "git ls-files" also lists submodule folders
+            if (file_endings_include is None or file.name.endswith(file_endings_include)) \
+                    and (file_endings_avoid is None or not file.name.endswith(file_endings_avoid)):
                 if not _file_is_in_directory(file, exclude_directories):
-                    yield normpath(file)
+                    yield file
 
 
 def _file_is_in_directory(filename, directories):
     for directory in directories:
-        if commonpath([filename, directory]) == directory:
+        if commonpath([str(filename), str(directory)]) == str(directory):
             return True
     return False

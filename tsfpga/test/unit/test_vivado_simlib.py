@@ -17,7 +17,7 @@ class TestVivadoSimlibCommercial(TestCase):
         delete(self.output_path)
 
         self.simulator_prefix = "/opt/Aldec/Riviera-PRO-2018.10-x64/bin"
-        self.vivado_path = "/tools/xilinx/Vivado/2019.1/bin/vivado"
+        self.vivado_path = Path("/tools/xilinx/Vivado/2019.1/bin/vivado")
 
         self.vivado_simlib = self.get_vivado_simlib(self.simulator_prefix, self.vivado_path)
 
@@ -49,7 +49,7 @@ class TestVivadoSimlibCommercial(TestCase):
         self.assert_should_not_compile(self.vivado_simlib)
 
         vivado_simlib = self.get_vivado_simlib(self.simulator_prefix,
-                                               "/tools/xilinx/Vivado/1337.2/bin/vivado")
+                                               Path("/tools/xilinx/Vivado/1337.2/bin/vivado"))
         self.assert_should_compile(vivado_simlib)
         self.assert_should_not_compile(vivado_simlib)
 
@@ -93,7 +93,7 @@ class TestVivadoSimlibGhdl(TestCase):
             vunit_proj._simulator_class = simulator_class  # pylint: disable=protected-access
 
             vivado_simlib = VivadoSimlib.init(
-                self.output_path, vunit_proj, "/tools/xilinx/Vivado/2019.1/bin/vivado")
+                self.output_path, vunit_proj, Path("/tools/xilinx/Vivado/2019.1/bin/vivado"))
 
             return vivado_simlib
 

@@ -2,14 +2,14 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import abspath, dirname, join
+from pathlib import Path
 from shutil import which
 import sys
 
-PATH_TO_TSFPGA = abspath(join(dirname(__file__), ".."))
-sys.path.append(PATH_TO_TSFPGA)
-PATH_TO_VUNIT = abspath(join(PATH_TO_TSFPGA, "..", "vunit"))
-sys.path.append(PATH_TO_VUNIT)
+PATH_TO_TSFPGA = Path(__file__).parent.parent.resolve()
+sys.path.append(str(PATH_TO_TSFPGA))
+PATH_TO_VUNIT = PATH_TO_TSFPGA.parent / "vunit"
+sys.path.append(str(PATH_TO_VUNIT))
 
 from vunit import VUnitCLI, VUnit
 from vunit.vivado.vivado import create_compile_order_file, add_from_compile_order_file
@@ -33,7 +33,7 @@ def main():
 
     has_commercial_simulator = vunit_proj.get_simulator_name() != "ghdl"
 
-    all_modules = get_tsfpga_modules(tsfpga.ALL_TSFPGA_MODULES_FOLDERS)
+    all_modules = get_tsfpga_modules()
     if has_commercial_simulator and not args.vivado_skip:
         # Includes modules with IP cores. Can only be used with a commercial simulator.
         sim_modules = all_modules
@@ -61,9 +61,9 @@ def main():
         vunit_library = vunit_proj.add_library(module.library_name)
         for hdl_file in module.get_simulation_files():
             if hdl_file.is_vhdl or hdl_file.is_verilog_source:
-                vunit_library.add_source_file(hdl_file.filename)
+                vunit_library.add_source_file(hdl_file.path)
             else:
-                assert False, "Can not handle this file: " + hdl_file.filename
+                assert False, f"Can not handle this file: {hdl_file}"
         module.setup_simulations(vunit_proj)
 
     vunit_proj.main()
@@ -72,7 +72,7 @@ def main():
 def arguments():
     cli = VUnitCLI()
     cli.parser.add_argument("--temp-dir",
-                            type=str,
+                            type=Path,
                             default=TSFPGA_EXAMPLES_TEMP_DIR,
                             help="where to place files needed for simulation flow")
     cli.parser.add_argument("--vivado-skip",
@@ -86,7 +86,7 @@ def arguments():
                             help="force (re)compile of Vivado simlib")
 
     args = cli.parse_args()
-    args.output_path = join(args.temp_dir, "vunit_out")
+    args.output_path = args.temp_dir / "vunit_out"
     return args
 
 
@@ -122,11 +122,12 @@ def create_vhdl_ls_configuration(vunit_proj, all_modules, ip_core_vivado_project
     But since the call is somewhat quick (~10 ms), and simulate.py is run "often" it seems an
     appropriate place in order to always have an up-to-date vhdl_ls config.
     """
+    vivado_location = None if which("vivado") is None else Path(which("vivado"))
     tsfpga.create_vhdl_ls_config.create_configuration(
         PATH_TO_TSFPGA,
         modules=all_modules,
         vunit_proj=vunit_proj,
-        vivado_location=which("vivado"),
+        vivado_location=vivado_location,
         ip_core_vivado_project_sources_directory=ip_core_vivado_project_sources_directory)
 
 

@@ -19,12 +19,13 @@ If your source code is roughly organized along the :ref:`folder structure <folde
 .. code-block:: python
     :caption: Minimal ``simulate.py`` file.
 
-    from vunit import VUnit
+    from pathlib import Path
     from tsfpga.module import get_modules
+    from vunit import VUnit
 
     vunit_proj = VUnit.from_argv()
     my_modules_folders = [
-        "path/to/my/modules"
+        Path("path/to/my/modules")
     ]
     for module in get_modules(my_modules_folders):
         vunit_library = vunit_proj.add_library(module.library_name)

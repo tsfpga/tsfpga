@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------
 
 from collections import OrderedDict
-from os.path import dirname, join
+from pathlib import Path
 import unittest
 
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
@@ -14,28 +14,28 @@ from tsfpga.vivado_utils import to_tcl_path
 from tsfpga.test.test_utils import file_contains_string
 
 
-THIS_DIR = dirname(__file__)
+THIS_DIR = Path(__file__).parent
 
 
 class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-attributes
 
-    modules_folder = join(THIS_DIR, "modules")
+    modules_folder = THIS_DIR / "modules"
 
     def setUp(self):
         delete(self.modules_folder)
 
         # A library with some synth files and some test files
-        self.a_vhd = to_tcl_path(create_file(join(self.modules_folder, "apa", "a.vhd")))
-        self.tb_a_vhd = to_tcl_path(create_file(join(self.modules_folder, "apa", "test", "tb_a.vhd")))
-        self.a_xdc = to_tcl_path(create_file(join(self.modules_folder, "apa", "scoped_constraints", "a.xdc")))
+        self.a_vhd = to_tcl_path(create_file(self.modules_folder / "apa" / "a.vhd"))
+        self.tb_a_vhd = to_tcl_path(create_file(self.modules_folder / "apa" / "test" / "tb_a.vhd"))
+        self.a_xdc = to_tcl_path(create_file(self.modules_folder / "apa" / "scoped_constraints" / "a.xdc"))
 
-        self.b_v = to_tcl_path(create_file(join(self.modules_folder, "apa", "b.v")))
-        self.b_tcl = to_tcl_path(create_file(join(self.modules_folder, "apa", "scoped_constraints", "b.tcl")))
+        self.b_v = to_tcl_path(create_file(self.modules_folder / "apa" / "b.v"))
+        self.b_tcl = to_tcl_path(create_file(self.modules_folder / "apa" / "scoped_constraints" / "b.tcl"))
 
-        self.c_tcl = to_tcl_path(create_file(join(self.modules_folder, "apa", "ip_cores", "c.tcl")))
+        self.c_tcl = to_tcl_path(create_file(self.modules_folder / "apa" / "ip_cores" / "c.tcl"))
 
         # A library with only test files
-        self.c_vhd = to_tcl_path(create_file(join(self.modules_folder, "zebra", "test", "c.vhd")))
+        self.c_vhd = to_tcl_path(create_file(self.modules_folder / "zebra" / "test" / "c.vhd"))
 
         self.modules = get_modules([self.modules_folder])
 
@@ -43,7 +43,7 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
 
     def test_only_synthesis_files_added_to_create_project_tcl(self):
         tcl = self.tcl.create(
-            project_folder="",
+            project_folder=Path(),
             modules=self.modules,
             part="",
             top=""
@@ -53,7 +53,7 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
 
     def test_different_hdl_file_types(self):
         tcl = self.tcl.create(
-            project_folder="",
+            project_folder=Path(),
             modules=self.modules,
             part="",
             top=""
@@ -63,7 +63,7 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
 
     def test_empty_library_not_in_create_project_tcl(self):
         tcl = self.tcl.create(
-            project_folder="",
+            project_folder=Path(),
             modules=self.modules,
             part="",
             top=""
@@ -76,7 +76,7 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
         generics = OrderedDict(enable=True, disable=False, integer=123, slv="4'b0101")
 
         tcl = self.tcl.create(
-            project_folder="",
+            project_folder=Path(),
             modules=self.modules,
             part="part",
             top="",
@@ -87,7 +87,7 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
 
     def test_constraints(self):
         tcl = self.tcl.create(
-            project_folder="",
+            project_folder=Path(),
             modules=self.modules,
             part="part",
             top=""
@@ -99,9 +99,9 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
         assert expected in tcl
 
     def test_multiple_tcl_sources(self):
-        extra_tcl_sources = ["dummy.tcl", "files.tcl"]
+        extra_tcl_sources = [Path("dummy.tcl"), Path("files.tcl")]
         tcl = self.tcl.create(
-            project_folder="",
+            project_folder=Path(),
             modules=self.modules,
             part="part",
             top="",
@@ -112,10 +112,10 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
             assert f"\nsource -notrace {to_tcl_path(filename)}\n" in tcl
 
     def test_build_step_hooks(self):
-        dummy = BuildStepTclHook("dummy.tcl", "STEPS.SYNTH_DESIGN.TCL.PRE")
-        files = BuildStepTclHook("files.tcl", "STEPS.ROUTE_DESIGN.TCL.PRE")
+        dummy = BuildStepTclHook(Path("dummy.tcl"), "STEPS.SYNTH_DESIGN.TCL.PRE")
+        files = BuildStepTclHook(Path("files.tcl"), "STEPS.ROUTE_DESIGN.TCL.PRE")
         tcl = self.tcl.create(
-            project_folder="",
+            project_folder=Path(),
             modules=self.modules,
             part="part",
             top="",
@@ -126,26 +126,26 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
         assert f"\nset_property STEPS.ROUTE_DESIGN.TCL.PRE {to_tcl_path(files.tcl_file)} ${{run}}\n" in tcl
 
     def test_build_step_hooks_with_same_hook_step(self):
-        dummy = BuildStepTclHook("dummy.tcl", "STEPS.SYNTH_DESIGN.TCL.PRE")
-        files = BuildStepTclHook("files.tcl", "STEPS.SYNTH_DESIGN.TCL.PRE")
+        dummy = BuildStepTclHook(Path("dummy.tcl"), "STEPS.SYNTH_DESIGN.TCL.PRE")
+        files = BuildStepTclHook(Path("files.tcl"), "STEPS.SYNTH_DESIGN.TCL.PRE")
         tcl = self.tcl.create(
-            project_folder=join(THIS_DIR, "dummy_project_folder"),
+            project_folder=THIS_DIR / "dummy_project_folder",
             modules=self.modules,
             part="part",
             top="",
             build_step_hooks=[dummy, files]
         )
 
-        hook_file = join(THIS_DIR, "dummy_project_folder", "hook_STEPS_SYNTH_DESIGN_TCL_PRE.tcl")
+        hook_file = THIS_DIR / "dummy_project_folder" / "hook_STEPS_SYNTH_DESIGN_TCL_PRE.tcl"
 
-        assert file_contains_string(hook_file, f"source {to_tcl_path(dummy.tcl_file)}")
-        assert file_contains_string(hook_file, f"source {to_tcl_path(files.tcl_file)}")
+        assert file_contains_string(str(hook_file), f"source {to_tcl_path(dummy.tcl_file)}")
+        assert file_contains_string(str(hook_file), f"source {to_tcl_path(files.tcl_file)}")
 
         assert f"\nset_property STEPS.SYNTH_DESIGN.TCL.PRE {to_tcl_path(hook_file)} ${{run}}\n" in tcl
 
     def test_ip_core_files(self):
         tcl = self.tcl.create(
-            project_folder="",
+            project_folder=Path(),
             modules=self.modules,
             part="part",
             top=""
@@ -154,28 +154,27 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
 
     def test_ip_cache_location(self):
         tcl = self.tcl.create(
-            project_folder="",
+            project_folder=Path(),
             modules=self.modules,
             part="part",
             top="",
         )
         assert "config_ip_cache" not in tcl
 
-        ip_cache_location = to_tcl_path(THIS_DIR)
         tcl = self.tcl.create(
-            project_folder="",
+            project_folder=Path(),
             modules=self.modules,
             part="part",
             top="",
-            ip_cache_path=ip_cache_location
+            ip_cache_path=THIS_DIR
         )
-        assert f"\nconfig_ip_cache -use_cache_location {ip_cache_location}\n" in tcl
+        assert f"\nconfig_ip_cache -use_cache_location {to_tcl_path(THIS_DIR)}\n" in tcl
 
     def test_set_multiple_threads(self):
         num_threads = 2
         tcl = self.tcl.build(
-            project_file="",
-            output_path="",
+            project_file=Path(),
+            output_path=Path(),
             num_threads=num_threads,
             run_index=1
         )
@@ -185,8 +184,8 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
 
     def test_set_run_index(self):
         tcl = self.tcl.build(
-            project_file="",
-            output_path="",
+            project_file=Path(),
+            output_path=Path(),
             num_threads=0,
             run_index=1
         )
@@ -196,8 +195,8 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
         assert "synth_2" not in tcl
 
         tcl = self.tcl.build(
-            project_file="",
-            output_path="",
+            project_file=Path(),
+            output_path=Path(),
             num_threads=0,
             run_index=2
         )
@@ -209,8 +208,8 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
     def test_runtime_generics(self):
         generics = dict(dummy=True)
         tcl = self.tcl.build(
-            project_file="",
-            output_path="",
+            project_file=Path(),
+            output_path=Path(),
             num_threads=0,
             run_index=0,
             generics=generics

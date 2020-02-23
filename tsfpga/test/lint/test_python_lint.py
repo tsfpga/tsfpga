@@ -2,7 +2,7 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import join, dirname
+from pathlib import Path
 import pytest
 import subprocess
 import sys
@@ -13,12 +13,12 @@ from tsfpga.git_utils import find_git_files
 from tsfpga.system_utils import create_file, delete
 
 
-THIS_DIR = dirname(__file__)
+THIS_DIR = Path(__file__).parent
 
 
 def run_pylint(files):
-    config = join(THIS_DIR, "pylintrc")
-    command = [sys.executable, "-m", "pylint", "--rcfile=" + config] + files
+    config = THIS_DIR / "pylintrc"
+    command = [sys.executable, "-m", "pylint", f"--rcfile={config}"] + files
 
     subprocess.check_call(command)
 
@@ -30,8 +30,8 @@ def test_pylint():
 
 
 def run_pycodestyle(files):
-    config = join(THIS_DIR, "pycodestylerc")
-    command = [sys.executable, "-m", "pycodestyle", "--config=" + config] + files
+    config = THIS_DIR / "pycodestylerc"
+    command = [sys.executable, "-m", "pycodestyle", f"--config={config}"] + files
 
     subprocess.check_call(command)
 
@@ -43,7 +43,7 @@ def test_pycodestyle():
 
 class TestPythonLintFunctions(unittest.TestCase):
 
-    file = join(THIS_DIR, "dummy_python_file.py")
+    file = THIS_DIR / "dummy_python_file.py"
     ugly_code = """
 aa  =
 def bb:

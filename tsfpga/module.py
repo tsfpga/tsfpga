@@ -3,8 +3,6 @@
 # ------------------------------------------------------------------------------
 
 import copy
-from glob import glob
-from os.path import basename, isfile, join, exists, isdir
 
 from tsfpga.constraint import Constraint
 from tsfpga.hdl_file import HdlFile
@@ -23,13 +21,13 @@ class BaseModule:
     def __init__(self, path, library_name_has_lib_suffix=False, default_registers=None):
         """
         Args:
-            path: Path to the module folder.
-            library_name_has_lib_suffix: If set, the library name will be <module name>_lib,
-                                         otherwise it is just <module name>.
-            default_registers: A dictionary of :class:`.Register` objects.
+            path (`pathlib.Path`): Path to the module folder.
+            library_name_has_lib_suffix (bool): If set, the library name will be
+                <module name>_lib, otherwise it is just <module name>.
+            default_registers (dict[str, Register]): Default registers.
         """
         self.path = path
-        self.name = basename(self.path)
+        self.name = path.name
         self.library_name = self._get_library_name(self.name, library_name_has_lib_suffix)
 
         # Note: Likely mutable object, need to create deep copy before using.
@@ -43,9 +41,9 @@ class BaseModule:
         """
         files = []
         for folder in folders:
-            for filename in glob(join(folder, "*")):
-                if isfile(filename) and filename.lower().endswith(file_endings):
-                    files.append(filename)
+            for file in folder.glob("*"):
+                if file.is_file() and file.name.lower().endswith(file_endings):
+                    files.append(file)
         return files
 
     def _get_hdl_file_list(self, folders):
@@ -56,12 +54,15 @@ class BaseModule:
 
     @property
     def registers(self):
+        """
+        Get the :class:`.Registers` for this module.
+        """
         if self._registers is not None:
             # Only create object once
             return self._registers
 
-        json_file = join(self.path, self.name + "_regs.json")
-        if exists(json_file):
+        json_file = self.path / (self.name + "_regs.json")
+        if json_file.exists():
             self._registers = from_json(self.name, json_file, copy.deepcopy(self._default_registers))
             return self._registers
 
@@ -81,17 +82,17 @@ class BaseModule:
 
         folders = [
             self.path,
-            join(self.path, "src"),
-            join(self.path, "rtl"),
-            join(self.path, "hdl", "rtl"),
-            join(self.path, "hdl", "package"),
+            self.path / "src",
+            self.path / "rtl",
+            self.path / "hdl" / "rtl",
+            self.path / "hdl" / "package",
         ]
         return self._get_hdl_file_list(folders)
 
     def get_simulation_files(self, include_tests=True):
         """
         Args:
-            include_tests: When False the test folder is not included.
+            include_tests (bool): When False the test folder is not included.
                 The use case of include_tests is when testing a primary module
                 that depends on other secondary modules, we may want to compile
                 the simulation files (``sim`` folder) of the secondary modules but not their
@@ -108,12 +109,12 @@ class BaseModule:
         self.create_regs_vhdl_package()
 
         test_folders = [
-            join(self.path, "sim"),
+            self.path / "sim",
         ]
 
         if include_tests:
-            test_folders += [join(self.path, "rtl", "tb"),
-                             join(self.path, "test")]
+            test_folders += [self.path / "rtl" / "tb",
+                             self.path / "test"]
 
         return self.get_synthesis_files() + self._get_hdl_file_list(test_folders)
 
@@ -144,7 +145,7 @@ class BaseModule:
         Get a list of TCL files that set up the IP cores from this module.
         """
         folders = [
-            join(self.path, "ip_cores"),
+            self.path / "ip_cores",
         ]
         file_endings = ("tcl")
         return self._get_file_list(folders, file_endings)
@@ -154,9 +155,9 @@ class BaseModule:
         Get a list of constraints that will be applied to a certain entity within the module.
         """
         scoped_constraints_folders = [
-            join(self.path, "scoped_constraints"),
-            join(self.path, "entity_constraints"),
-            join(self.path, "hdl", "constraints"),
+            self.path / "scoped_constraints",
+            self.path / "entity_constraints",
+            self.path / "hdl" / "constraints",
         ]
         constraints_file_endings = ("tcl", "xdc")
         constraint_files = self._get_file_list(scoped_constraints_folders, constraints_file_endings)
@@ -178,15 +179,15 @@ class BaseModule:
 
 def iterate_module_folders(modules_folders):
     for modules_folder in modules_folders:
-        for module_folder in glob(join(modules_folder, "*")):
-            if isdir(module_folder):
+        for module_folder in modules_folder.glob("*"):
+            if module_folder.is_dir():
                 yield module_folder
 
 
 def get_module_object(path, name, library_name_has_lib_suffix, default_registers):
-    module_file = join(path, "module_" + name + ".py")
+    module_file = path / ("module_" + name + ".py")
 
-    if exists(module_file):
+    if module_file.exists():
         return load_python_module(module_file).Module(path,
                                                       library_name_has_lib_suffix,
                                                       default_registers)
@@ -202,12 +203,10 @@ def get_modules(modules_folders,
     Get a list of Module objects based on the source code folders.
 
     Args:
-        modules_folders: A list of paths where your modules are located.
-        names_include: A list of module names. If specified, only modules with these names
-                       will be included.
-        names_avoid: A list of module names. If specified, modules with these names will
-                     be discarded.
-        library_name_has_lib_suffix: See :class:`BaseModule`.
+        modules_folders (list(`pathlib.Path`)): A list of paths where your modules are located.
+        names_include (list(str)): If specified, only modules with these names will be included.
+        names_avoid (list(str)): If specified, modules with these names will be discarded.
+        library_name_has_lib_suffix (bool): See :class:`BaseModule`.
         default_registers: See :class:`BaseModule`.
 
     Return:
@@ -217,7 +216,7 @@ def get_modules(modules_folders,
     modules = []
 
     for module_folder in iterate_module_folders(modules_folders):
-        module_name = basename(module_folder)
+        module_name = module_folder.name
         if (names_include is None or module_name in names_include) \
                 and (names_avoid is None or module_name not in names_avoid):
             modules.append(get_module_object(module_folder,

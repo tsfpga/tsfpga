@@ -143,8 +143,6 @@ In the example tree above there is a scoped constraint file ``sample_data.tcl`` 
 
 
 
-
-
 .. _get_modules:
 
 The get_modules() method
@@ -179,6 +177,3 @@ _______________
     :members:
 
     .. automethod:: __init__
-
-
-

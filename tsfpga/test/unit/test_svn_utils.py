@@ -3,13 +3,8 @@
 # ------------------------------------------------------------------------------
 
 from unittest import mock
-from os.path import abspath, dirname
 
 from tsfpga.svn_utils import svn_local_changes_are_present
-
-
-THIS_FILE = abspath(__file__)
-THIS_DIR = dirname(__file__)
 
 # SVN is pretty much impossible to work with. Most of the functions are untested.
 

@@ -22,7 +22,7 @@ def main():
 def generate_registers():
     cmd = [
         sys.executable,
-        Path(tsfpga.TSFPGA_EXAMPLES) / "build.py",
+        tsfpga.TSFPGA_EXAMPLES / "build.py",
         "--generate-registers-only",
     ]
     check_call(cmd)
@@ -51,7 +51,7 @@ Release notes
 
 
 def get_release_notes_files():
-    release_notes_dir = Path(tsfpga.TSFPGA_DOC) / "release_notes"
+    release_notes_dir = tsfpga.TSFPGA_DOC / "release_notes"
     unreleased_notes_file = release_notes_dir / "unreleased.rst"
 
     release_notes = []
@@ -110,7 +110,7 @@ def build_documentation():
         "-m",
         "sphinx",
         "-EanWT",
-        Path(tsfpga.TSFPGA_DOC) / "sphinx",
+        tsfpga.TSFPGA_DOC / "sphinx",
         REPO_ROOT / "generated" / "sphinx_html",
     ]
     check_call(cmd)

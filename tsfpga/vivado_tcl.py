@@ -2,8 +2,6 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import join
-
 from tsfpga.vivado_utils import to_tcl_path
 from tsfpga.system_utils import create_file
 
@@ -60,11 +58,11 @@ class VivadoTcl:
             verilog_source_files = []
             for hdl_file in module.get_synthesis_files():
                 if hdl_file.is_vhdl:
-                    vhdl_files.append(to_tcl_path(hdl_file.filename))
+                    vhdl_files.append(to_tcl_path(hdl_file.path))
                 elif hdl_file.is_verilog_source:
-                    verilog_source_files.append(to_tcl_path(hdl_file.filename))
+                    verilog_source_files.append(to_tcl_path(hdl_file.path))
                 else:
-                    raise NotImplementedError("Can not handle file: " + hdl_file.filename)
+                    raise NotImplementedError(f"Can not handle file: {hdl_file}")
                     # Verilog headers do not need to be handled at all if the
                     # source file that uses them is in the same directory. If
                     # it is not, the path needs to be added to include_dirs with
@@ -115,7 +113,7 @@ class VivadoTcl:
             if len(hooks) == 1:
                 tcl_file = hooks[0].tcl_file
             else:
-                tcl_file = join(project_folder, "hook_" + step.replace(".", "_") + ".tcl")
+                tcl_file = project_folder / ("hook_" + step.replace(".", "_") + ".tcl")
                 source_hooks_tcl = "".join([f"source {to_tcl_path(hook.tcl_file)}\n" for hook in hooks])
                 create_file(tcl_file, source_hooks_tcl)
 
@@ -248,6 +246,6 @@ class VivadoTcl:
 
     def _hwdef(self, output_path):
         # Vivado will append the wrong file ending (.hwdef) unless specified
-        hwdef_file = to_tcl_path(join(output_path, self.name + ".hdf"))
+        hwdef_file = to_tcl_path(output_path / (self.name + ".hdf"))
         tcl = "write_hwdef -force %s\n" % hwdef_file
         return tcl

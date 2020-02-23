@@ -7,22 +7,21 @@ A set of reusable functions for working with HDL projects.
 """
 
 
-from os.path import dirname, abspath, join
 from pathlib import Path
 from tsfpga.about import get_version
 
 
-THIS_DIR = dirname(__file__)
-ROOT = abspath(join(THIS_DIR, ".."))  # Root of the git repo
+THIS_DIR = Path(__file__).parent
+REPO_ROOT = (THIS_DIR / "..").resolve()
 
-TSFPGA_DOC = join(ROOT, "doc")
-TSFPGA_MODULES = join(ROOT, "modules")
-TSFPGA_TCL = join(THIS_DIR, "tcl")
-TSFPGA_GENERATED = Path(ROOT) / "generated"
+TSFPGA_DOC = REPO_ROOT / "doc"
+TSFPGA_MODULES = REPO_ROOT / "modules"
+TSFPGA_TCL = THIS_DIR / "tcl"
+TSFPGA_GENERATED = REPO_ROOT / "generated"
 
-TSFPGA_EXAMPLES = join(ROOT, "examples")
-TSFPGA_EXAMPLE_MODULES = join(TSFPGA_EXAMPLES, "modules")
-TSFPGA_EXAMPLE_MODULES_WITH_IP = join(TSFPGA_EXAMPLES, "modules_with_ip")
+TSFPGA_EXAMPLES = REPO_ROOT / "examples"
+TSFPGA_EXAMPLE_MODULES = TSFPGA_EXAMPLES / "modules"
+TSFPGA_EXAMPLE_MODULES_WITH_IP = TSFPGA_EXAMPLES / "modules_with_ip"
 
 ALL_TSFPGA_MODULES_FOLDERS = [TSFPGA_MODULES, TSFPGA_EXAMPLE_MODULES, TSFPGA_EXAMPLE_MODULES_WITH_IP]
 

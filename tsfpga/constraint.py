@@ -2,8 +2,6 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import basename, splitext
-
 
 class Constraint:
     """
@@ -17,15 +15,15 @@ class Constraint:
     def __init__(self, file, used_in="all", scoped_constraint=False, processing_order="normal"):
         """
         Args:
-            file: Path to the constraint file. Typically ends in .xdc or .tcl.
-            used_in: Optionally the constraint can be enabled only for "synth" or "impl".
-            scoped_constraint: If enabled the constraint file will be loaded with the "-ref"
+            file (`pathlib.Path`): Path to the constraint file. Typically ends in .xdc or .tcl.
+            used_in (str): Optionally the constraint can be enabled only for "synth" or "impl".
+            scoped_constraint (bool): If enabled the constraint file will be loaded with the "-ref"
                 argument in Vivado. An entity with the same name must exist.
-            processing_order: Optionally the processing order can be changed to "early" or "late".
+            processing_order (str): Optionally the processing order can be changed to "early" or "late".
         """
         self.file = file
         self.used_in = used_in
-        self.ref = splitext(basename(file))[0] if scoped_constraint else None
+        self.ref = file.stem if scoped_constraint else None
         self.processing_order = processing_order.lower()
 
         assert self.used_in in ["all", "synth", "impl"], self.used_in
@@ -38,10 +36,9 @@ class Constraint:
         constraint belongs to.
         """
         if self.ref is not None:
-            entity_file_name = self.ref + ".vhd"
-            if not any([source_file.filename.endswith(entity_file_name)] for source_file in source_files):
-                raise FileNotFoundError(f"Could not find a matching entity file {entity_file_name} for constraint file {self.file}")
+            if not any([source_file.path.stem == self.ref] for source_file in source_files):
+                raise FileNotFoundError(f"Could not find a matching entity file for scoped constraint file {self.file}")
         return True
 
     def __str__(self):
-        return self.file
+        return str(self.file)

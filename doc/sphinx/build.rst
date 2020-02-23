@@ -54,7 +54,7 @@ ___________
 Firstly we need to get a list of modules that shall be included in the build projects.
 
 In this case we use a wrapper ``get_tsfpga_modules()`` around the :ref:`get_modules() <get_modules>` function.
-The wrapper sets the correct :ref:`get_modules() <get_modules>` flags (:ref:`default registers <default_registers>` and `library_name_has_lib_suffix`).
+The wrapper sets the correct :ref:`get_modules() <get_modules>` flags (all modules paths, :ref:`default registers <default_registers>` and ``library_name_has_lib_suffix``).
 It is recommended that you also create a function like this so the arguments don't have to be repeated in many places.
 
 It can also be a good idea to filter what modules are included here.
@@ -100,11 +100,12 @@ A ``build.py`` in a simplified and hard-coded fashion could look something like 
 .. code-block:: python
     :caption: Minimal ``build.py`` file.
 
+    from pathlib import Path
     import tsfpga
     from tsfpga.fpga_project_list import FpgaProjectList
 
     my_modules_folders = [
-        "path/to/my/modules"
+        Path("path/to/my/modules")
     ]
     projects = FpgaProjectList(my_modules_folders)
     project = projects.get("artyz7")

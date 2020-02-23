@@ -11,6 +11,12 @@ TBC WIP
     .. automethod:: __init__
 
 
+.. autoclass:: tsfpga.registers.Registers()
+    :members:
+
+    .. automethod:: __init__
+
+
 .. _default_registers:
 
 Default registers

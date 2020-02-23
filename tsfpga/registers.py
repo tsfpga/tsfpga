@@ -4,7 +4,6 @@
 
 from collections import OrderedDict
 import json
-from os.path import join
 from shutil import copy2
 
 from tsfpga.register_c_generator import RegisterCGenerator
@@ -46,32 +45,47 @@ class Registers:
         This assumption makes it slightly faster than the other functions that use create_file().
         Necessary since this one is often used in real time (before simulations, etc..) and not in
         one-off scenarios like the others (when making a release).
+
+        Args:
+            output_path (`pathlib.Path`): Result will be placed here.
         """
-        with open(join(output_path, self.register_list.name + "_regs_pkg.vhd"), "w") as file_handle:
+        with open(output_path / (self.register_list.name + "_regs_pkg.vhd"), "w") as file_handle:
             file_handle.write(RegisterVhdlGenerator(self.register_list).get_package())
 
     def create_c_header(self, output_path):
-        output_file = join(output_path, self.register_list.name + "_regs.h")
+        """
+        Args:
+            output_path (`pathlib.Path`): Result will be placed here.
+        """
+        output_file = output_path / (self.register_list.name + "_regs.h")
         create_file(output_file, RegisterCGenerator(self.register_list).get_header())
 
     def create_cpp_interface(self, output_path):
-        output_file = join(output_path, "i_" + self.register_list.name + ".h")
+        """
+        Args:
+            output_path (`pathlib.Path`): Result will be placed here.
+        """
+        output_file = output_path / ("i_" + self.register_list.name + ".h")
         create_file(output_file, RegisterCppGenerator(self.register_list).get_interface())
 
     def create_cpp_header(self, output_path):
-        output_file = join(output_path, self.register_list.name + ".h")
+        """
+        Args:
+            output_path (`pathlib.Path`): Result will be placed here.
+        """
+        output_file = output_path / (self.register_list.name + ".h")
         create_file(output_file, RegisterCppGenerator(self.register_list).get_header())
 
     def create_cpp_implementation(self, output_path):
-        output_file = join(output_path, self.register_list.name + ".cpp")
+        output_file = output_path / (self.register_list.name + ".cpp")
         create_file(output_file, RegisterCppGenerator(self.register_list).get_implementation())
 
     def create_html_page(self, output_path):
-        output_file = join(output_path, self.register_list.name + "_regs.html")
+        output_file = output_path / (self.register_list.name + "_regs.html")
         create_file(output_file, RegisterHtmlGenerator(self.register_list).get_page())
 
     def create_html_table(self, output_path):
-        output_file = join(output_path, self.register_list.name + "_regs_table.html")
+        output_file = output_path / (self.register_list.name + "_regs_table.html")
         create_file(output_file, RegisterHtmlGenerator(self.register_list).get_table())
 
     def copy_source_definition(self, output_path):

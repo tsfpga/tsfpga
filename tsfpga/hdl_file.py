@@ -14,33 +14,36 @@ class HdlFile:
     verilog_header_file_ending = ".vh"
     file_endings = (vhdl_file_ending, verilog_source_file_ending, verilog_header_file_ending)
 
-    def __init__(self, filename):
+    def __init__(self, path):
         """
         Args:
-            filename: Path to a HDL source file.
+            path (`pathlib.Path`): Path to a HDL source code  file.
         """
-        self.filename = filename
+        self.path = path
 
     @property
     def is_vhdl(self):
         """
         Returns:
-            True of the file is a VHDL file. Otherwise False.
+            True if the file is a VHDL file. Otherwise False.
         """
-        return self.filename.endswith(self.vhdl_file_ending)
+        return self.path.name.endswith(self.vhdl_file_ending)
 
     @property
     def is_verilog_source(self):
         """
         Returns:
-            True of the file is a Verilog source file. Otherwise False.
+            True if the file is a Verilog source file. Otherwise False.
         """
-        return self.filename.endswith(self.verilog_source_file_ending)
+        return self.path.name.endswith(self.verilog_source_file_ending)
 
     @property
     def is_verilog_header(self):
         """
         Returns:
-            True of the file is a Verilog header file. Otherwise False.
+            True if the file is a Verilog header file. Otherwise False.
         """
-        return self.filename.endswith(self.verilog_header_file_ending)
+        return self.path.name.endswith(self.verilog_header_file_ending)
+
+    def __str__(self):
+        return str(self.path)

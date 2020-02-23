@@ -2,7 +2,7 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import join, dirname
+from pathlib import Path
 import pytest
 import unittest
 
@@ -11,7 +11,7 @@ from tsfpga.git_utils import find_git_files
 from tsfpga.system_utils import create_file, delete
 
 
-THIS_DIR = dirname(__file__)
+THIS_DIR = Path(__file__).parent
 
 
 def open_file_with_encoding(file):
@@ -27,7 +27,7 @@ def test_all_checked_in_files_are_properly_encoded():
 
     Avoid one of the documentation files that uses wonky characters to illustrate a directory tree.
     """
-    for file in files_to_test(exclude_directories=[join(tsfpga.TSFPGA_DOC, "sphinx", "module_structure.rst")]):
+    for file in files_to_test(exclude_directories=[tsfpga.TSFPGA_DOC / "sphinx" / "module_structure.rst"]):
         open_file_with_encoding(file)
 
 
@@ -57,7 +57,7 @@ def check_file_for_carriage_return(file):
     with open(file, newline="") as file_handle:
         if "\r" in file_handle.read():
             test_ok = False
-            print("Windows style line breaks (\\r\\n aka CR/LF) in " + file)
+            print(f"Windows style line breaks (\\r\\n aka CR/LF) in {file}")
     return test_ok
 
 
@@ -100,7 +100,7 @@ def files_to_test(exclude_directories=None):
 
 class TestFileFormat(unittest.TestCase):
 
-    file = join(THIS_DIR, "temp_file_for_test.txt")
+    file = THIS_DIR / "temp_file_for_test.txt"
 
     def setUp(self):
         delete(self.file)

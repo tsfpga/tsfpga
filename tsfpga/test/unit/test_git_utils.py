@@ -2,7 +2,7 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import abspath, dirname
+from pathlib import Path
 import pytest
 import unittest
 
@@ -10,8 +10,8 @@ from tsfpga.git_utils import *  # pylint: disable=wildcard-import,unused-wildcar
 from tsfpga.system_utils import create_file, delete, run_command, system_is_windows
 
 
-THIS_FILE = abspath(__file__)
-THIS_DIR = dirname(__file__)
+THIS_FILE = Path(__file__)
+THIS_DIR = THIS_FILE.parent
 
 
 def test_this_file_is_listed_by_find_git_files_without_argument():
@@ -44,15 +44,18 @@ def test_this_file_is_not_listed_by_find_git_files_with_exclude_directory():
     git_files = find_git_files(exclude_directories=[THIS_DIR])
     assert THIS_FILE not in git_files
 
-    git_files = find_git_files(exclude_directories=[join(THIS_DIR, "..")])
+    git_files = find_git_files(exclude_directories=[THIS_DIR.parent])
     assert THIS_FILE not in git_files
 
-    git_files = find_git_files(exclude_directories=[join(THIS_DIR, ".."), THIS_DIR])
+    git_files = find_git_files(exclude_directories=[THIS_DIR.parent, THIS_DIR])
+    assert THIS_FILE not in git_files
+
+    git_files = find_git_files(exclude_directories=[THIS_FILE])
     assert THIS_FILE not in git_files
 
 
 def test_this_file_is_listed_by_find_git_files_with_bad_exclude_directory():
-    git_files = find_git_files(exclude_directories=[join(THIS_DIR, "..", "apa")])
+    git_files = find_git_files(exclude_directories=[THIS_DIR.parent / "apa"])
     assert THIS_FILE in git_files
 
 
@@ -80,7 +83,7 @@ def test_get_git_commit_without_local_changes():
 class TestGitCommitWithLocalChanges(unittest.TestCase):
 
     _trash_file = "local_file_for_git_test.apa"
-    _trash_file_path = join(THIS_DIR, _trash_file)
+    _trash_file_path = THIS_DIR / _trash_file
 
     def setUp(self):
         check_that_git_commands_are_available(cwd=THIS_DIR)

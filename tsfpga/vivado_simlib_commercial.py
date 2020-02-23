@@ -7,7 +7,7 @@ from pathlib import Path
 
 from tsfpga.system_utils import create_file
 from tsfpga.vivado_simlib_common import VivadoSimlibCommon
-from tsfpga.vivado_utils import to_tcl_path, run_vivado_tcl
+from tsfpga.vivado_utils import get_vivado_path, run_vivado_tcl, to_tcl_path
 
 
 class VivadoSimlibCommercial(VivadoSimlibCommon):
@@ -25,20 +25,20 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
     def __init__(self, output_path, vunit_proj, simulator_interface, vivado_path):
         """
         Args:
-            output_path: The compiled simlib will be placed here.
+            output_path (`pathlib.Path`): The compiled simlib will be placed here.
             vunit_proj: The VUnit project that is used to run simulation.
             simulator_interface: A VUnit SimulatorInterface class.
-            vivado_path: Path to Vivado executable.
+            vivado_path (`pathlib.Path`): Path to Vivado executable.
         """
         self._vunit_proj = vunit_proj
-        self._vivado_path = vivado_path
+        self._vivado_path = get_vivado_path(vivado_path)
 
         # Vivado uses a different name for Riviera-PRO
         self._simulator_name = "riviera" if simulator_interface.name == "rivierapro" \
             else simulator_interface.name
         self._simulator_folder = Path(simulator_interface.find_prefix())
 
-        self._output_path = Path(output_path) / self._get_version_tag()
+        self._output_path = output_path / self._get_version_tag()
 
     def _compile(self):
         tcl_file = self._output_path / "compile_simlib.tcl"

@@ -2,7 +2,6 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import join, exists
 import hashlib
 
 from tsfpga.system_utils import create_file, delete
@@ -20,13 +19,13 @@ class VivadoIpCores:
     def __init__(self, modules, output_path, part_name):
         """
         Args:
-            modules: A list of module objects.
-            output_path: The Vivado project will be placed here.
-            part_name: Vivado part name to be used for the project.
+            modules (list(:class:`Module <.BaseModule>`)): IP cores from  these modules will be included.
+            output_path (`pathlib.Path`): The Vivado project will be placed here.
+            part_name (str): Vivado part name to be used for the project.
         """
-        self._project_folder = join(output_path, self._project_name)
+        self._project_folder = output_path / self._project_name
         self._part_name = part_name
-        self._hash_file = join(self._project_folder, "ip_files_hash.txt")
+        self._hash_file = self._project_folder / "ip_files_hash.txt"
 
         self._setup(modules)
 
@@ -35,14 +34,14 @@ class VivadoIpCores:
         """
         Path to the generated compile order file.
         """
-        return join(self._project_folder, "compile_order.txt")
+        return self._project_folder / "compile_order.txt"
 
     @property
     def vivado_project_sources_directory(self):
         """
         Path to the "sources" directory of the Vivado project.
         """
-        return join(self._project_folder, "vivado_ip_project.srcs", "sources_1")
+        return self._project_folder / "vivado_ip_project.srcs" / "sources_1"
 
     @property
     def vivado_project_file(self):
@@ -98,7 +97,7 @@ class VivadoIpCores:
     def _calculate_hash(files):
         ip_hash = hashlib.md5()
         for file in files:
-            ip_hash.update(file.encode())
+            ip_hash.update(str(file).encode())
             with open(file) as file_handle:
                 ip_hash.update(file_handle.read().encode())
 
@@ -111,7 +110,7 @@ class VivadoIpCores:
         """
         Return True if a Vivado project create is needed, i.e. if anything has changed.
         """
-        if not (exists(self._hash_file) and exists(self.compile_order_file)):
+        if not (self._hash_file.exists() and self.compile_order_file.exists()):
             return True
 
         with open(self._hash_file) as file_handle:

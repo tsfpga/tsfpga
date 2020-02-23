@@ -2,8 +2,6 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os import makedirs, remove
-from os.path import basename, splitext, dirname, isdir, exists, abspath
 import subprocess
 import importlib.util
 from shutil import rmtree
@@ -11,7 +9,7 @@ from platform import system
 
 
 def create_file(file, contents=None):
-    create_directory(dirname(file), empty=False)
+    create_directory(file.parent, empty=False)
 
     contents = "" if contents is None else contents
     with open(file, "w") as file_handle:
@@ -26,20 +24,20 @@ def read_file(file):
 
 
 def delete(path):
-    if exists(path):
-        if isdir(path):
+    if path.exists():
+        if path.is_dir():
             rmtree(path)
         else:
-            remove(path)
+            path.unlink()
 
 
 def create_directory(directory, empty=True):
     if empty:
         delete(directory)
-    elif exists(directory):
+    elif directory.exists():
         return directory
 
-    makedirs(abspath(directory))
+    directory.mkdir(parents=True)
     return directory
 
 
@@ -51,7 +49,7 @@ def run_command(cmd, cwd=None):
 
 
 def load_python_module(file):
-    python_module_name = splitext(basename(file))[0]
+    python_module_name = file.stem
 
     spec = importlib.util.spec_from_file_location(python_module_name, file)
     module = importlib.util.module_from_spec(spec)

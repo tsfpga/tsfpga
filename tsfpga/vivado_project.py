@@ -2,13 +2,11 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os import makedirs
-from os.path import join, exists
 import shutil
 
 from tsfpga import TSFPGA_TCL
 from tsfpga.vivado_tcl import VivadoTcl
-from tsfpga.vivado_utils import run_vivado_tcl
+from tsfpga.vivado_utils import run_vivado_tcl, run_vivado_gui
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
 
 
@@ -32,25 +30,26 @@ class VivadoProject:
             defined_at=None,
     ):
         """
-        :param name: Project name string.
-        :param modules: A list of :class:`Module <.BaseModule>` objects.
-        :param part: Part identification string.
-        :param top: Name of top level entity. If left out, the top level name will be
-            inferred from the ``name``.
-        :param generics: A dict with generics values. Use this parameter for "static" generics
-            that do not change between multiple builds of this project. These will be set in
-            the project when it is created.
+        Args:
+            name (str): Project name.
+            modules (list(:class:`Module <.BaseModule>`)): Modules that shall be included in the project.
+            part (str): Part identification.
+            top (str): Name of top level entity. If left out, the top level name will be
+                inferred from the ``name``.
+            generics: A dict with generics values (`dict(name: value)`). Use this parameter
+                for "static" generics that do not change between multiple builds of this
+                project. These will be set in the project when it is created.
 
-            Compare to the build-time generic argument in :meth:`build`.
-        :param constraints: A list of :class:`.Constraint` objects.
-        :param tcl_sources: A list of paths to TCL files. Use for e.g. block design,
-            pinning, settings, etc.
-        :param build_step_hooks: A list of :class:`.BuildStepTclHook` objects.
-        :param vivado_path: A path to the Vivado executable. If omitted, the default location
-            from the system PATH will be used.
-        :param defined_at: Optional path string to the file where you defined your project.
-            To get a useful build.py --list message. Is useful when you have many projects
-            set up.
+                Compare to the build-time generic argument in :meth:`build`.
+            constraints (list(Constraint)): Constraints that will be applied to the project.
+            tcl_sources (list(`pathlib.Path`)): A list of TCL files. Use for e.g. block design,
+                pinning, settings, etc.
+            build_step_hooks (list(BuildStepTclHook)): Build step hooks that will be applied to the project.
+            vivado_path (`pathlib.Path`): A path to the Vivado executable. If omitted,
+                the default location from the system PATH will be used.
+            defined_at (`pathlib.Path`): Optional path to the file where you defined your
+                project. To get a useful build.py --list message. Is useful when you have many
+                projects set up.
         """
         self.name = name
         self.modules = modules
@@ -60,7 +59,7 @@ class VivadoProject:
         self.defined_at = defined_at
 
         self.top = name + "_top" if top is None else top
-        self.vivado_path = "vivado" if vivado_path is None else vivado_path
+        self._vivado_path = vivado_path
 
         self._setup_tcl_sources_list(tcl_sources)
         self._setup_build_step_hooks(build_step_hooks)
@@ -71,31 +70,34 @@ class VivadoProject:
         # Lists are immutable. Since we assign and modify this one we have to copy it.
         self.tcl_sources = [] if tcl_sources_from_user is None else tcl_sources_from_user.copy()
         self.tcl_sources += [
-            join(TSFPGA_TCL, "vivado_directive_settings.tcl"),
-            join(TSFPGA_TCL, "vivado_messages.tcl"),
+            TSFPGA_TCL / "vivado_directive_settings.tcl",
+            TSFPGA_TCL / "vivado_messages.tcl",
         ]
 
     def _setup_build_step_hooks(self, build_step_hooks_from_user):
         # Lists are immutable. Since we assign and modify this one we have to copy it.
         self.build_step_hooks = [] if build_step_hooks_from_user is None else build_step_hooks_from_user.copy()
-        self.build_step_hooks.append(BuildStepTclHook(join(TSFPGA_TCL, "vivado_impl_post.tcl"),
+        self.build_step_hooks.append(BuildStepTclHook(TSFPGA_TCL / "vivado_impl_post.tcl",
                                                       "STEPS.WRITE_BITSTREAM.TCL.PRE"))
 
     def project_file(self, project_path):
         """
         Return the path of the project file of this project, in the given folder
+
+        Args:
+            project_path (`pathlib.Path`): A path containing a Vivado project.
         """
-        return join(project_path, self.name + ".xpr")
+        return project_path / (self.name + ".xpr")
 
     def _create_tcl(self, project_path, ip_cache_path):
         """
         Make a TCL file that creates a Vivado project
         """
-        if exists(project_path):
-            raise ValueError("Folder already exists: " + project_path)
-        makedirs(project_path)
+        if project_path.exists():
+            raise ValueError(f"Folder already exists: {project_path}")
+        project_path.mkdir(parents=True)
 
-        create_vivado_project_tcl = join(project_path, "create_vivado_project.tcl")
+        create_vivado_project_tcl = project_path / "create_vivado_project.tcl"
         with open(create_vivado_project_tcl, "w") as file_handle:
             file_handle.write(self.tcl.create(
                 project_folder=project_path,
@@ -116,20 +118,20 @@ class VivadoProject:
         Create a Vivado project
 
         Args:
-            project_path: Path where the project shall be placed.
-            ip_cache_path: Path to a folder where the Vivado IP cache can be placed.
+            project_path (`pathlib.Path`): Path where the project shall be placed.
+            ip_cache_path (`pathlib.Path`): Path to a folder where the Vivado IP cache can be placed.
         """
-        print("Creating Vivado project in " + project_path)
+        print(f"Creating Vivado project in {project_path}")
         create_vivado_project_tcl = self._create_tcl(project_path, ip_cache_path)
-        run_vivado_tcl(self.vivado_path, create_vivado_project_tcl)
+        run_vivado_tcl(self._vivado_path, create_vivado_project_tcl)
 
     def _build_tcl(self, project_path, output_path, num_threads, run_index, generics, synth_only):
         """
         Make a TCL file that builds a Vivado project
         """
         project_file = self.project_file(project_path)
-        if not exists(project_file):
-            raise ValueError("Project file does not exist in the specified location: " + project_file)
+        if not project_file.exists():
+            raise ValueError(f"Project file does not exist in the specified location: {project_file}")
 
         if self.static_generics is None:
             all_generics = generics
@@ -138,7 +140,7 @@ class VivadoProject:
             all_generics = self.static_generics.copy()
             all_generics.update(generics)
 
-        build_vivado_project_tcl = join(project_path, "build_vivado_project.tcl")
+        build_vivado_project_tcl = project_path / "build_vivado_project.tcl"
         with open(build_vivado_project_tcl, "w") as file_handle:
             file_handle.write(self.tcl.build(
                 project_file=project_file,
@@ -182,15 +184,15 @@ class VivadoProject:
         Build a Vivado project
 
         Args:
-            project_path: A path containing a Vivado project.
-            output_path: Results (bit file, ...) will be placed here.
-            run_index: Select Vivado run (synth_X and impl_X).
-            generics: A dict with generics values. Use for run-time generics, i.e.
-                Values that can change between each build of this project.
+            project_path (`pathlib.Path`): A path containing a Vivado project.
+            output_path (`pathlib.Path`): Results (bit file, ...) will be placed here.
+            run_index (int): Select Vivado run (synth_X and impl_X).
+            generics: A dict with generics values (`dict(name: value)`). Use for run-time
+                generics, i.e. Values that can change between each build of this project.
 
                 Compare to the create-time generics argument in :meth:`.__init__`.
-            synth_only: Run synthesis and then stop.
-            num_threads: Number of parallell threads to use during run.
+            synth_only (bool): Run synthesis and then stop.
+            num_threads (int): Number of parallell threads to use during run.
             pre_and_post_build_parameters: Additional parameters that will be
                 sent to pre- and post build functions. Note that this is a "kwargs" style
                 argument; you can pass any number of named arguments.
@@ -199,7 +201,7 @@ class VivadoProject:
             raise ValueError("Must specify output_path when doing an implementation run")
 
         if synth_only:
-            print("Synthesizing Vivado project in " + project_path)
+            print(f"Synthesizing Vivado project in {project_path}")
         else:
             print(f"Building Vivado project in {project_path}, placing artifacts in {output_path}")
 
@@ -221,19 +223,28 @@ class VivadoProject:
                                                    run_index=run_index,
                                                    generics=generics,
                                                    synth_only=synth_only)
-        run_vivado_tcl(self.vivado_path, build_vivado_project_tcl)
+        run_vivado_tcl(self._vivado_path, build_vivado_project_tcl)
 
         if not synth_only:
-            impl_folder = join(project_path, self.name + ".runs", f"impl_{run_index}")
-            shutil.copy2(join(impl_folder, self.top + ".bit"), join(output_path, self.name + ".bit"))
-            shutil.copy2(join(impl_folder, self.top + ".bin"), join(output_path, self.name + ".bin"))
+            impl_folder = project_path / (self.name + ".runs") / f"impl_{run_index}"
+            shutil.copy2(impl_folder / (self.top + ".bit"), output_path / (self.name + ".bit"))
+            shutil.copy2(impl_folder / (self.top + ".bin"), output_path / (self.name + ".bin"))
 
         self.post_build(**pre_and_post_build_parameters)
+
+    def open(self, project_path):
+        """
+        Open the project in Vivado GUI.
+
+        Args:
+            project_path (`pathlib.Path`): A path containing a Vivado project.
+        """
+        run_vivado_gui(self._vivado_path, self.project_file(project_path))
 
     def __str__(self):
         result = str(self.__class__.__name__)
         if self.defined_at is not None:
-            result += " defined at: " + self.defined_at
+            result += f" defined at: {self.defined_at.resolve()}"
         result += "\nName:      " + self.name
         result += "\nTop level: " + self.top
         if self.static_generics is None:

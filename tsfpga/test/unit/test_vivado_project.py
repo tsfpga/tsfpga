@@ -2,7 +2,7 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import dirname, join
+from pathlib import Path
 import pytest
 import unittest
 
@@ -11,19 +11,19 @@ from tsfpga.system_utils import create_file, create_directory, delete
 from tsfpga.vivado_project import VivadoProject
 
 
-THIS_DIR = dirname(__file__)
+THIS_DIR = Path(__file__).parent
 
 
 class TestBasicProject(unittest.TestCase):
 
-    project_folder = join(THIS_DIR, "vivado")
-    modules_folder = join(THIS_DIR, "modules")
+    project_folder = THIS_DIR / "vivado"
+    modules_folder = THIS_DIR / "modules"
 
     def setUp(self):
         delete(self.modules_folder)
         delete(self.project_folder)
 
-        self.b_vhd = create_file(join(self.modules_folder, "apa", "b.vhd"))
+        self.b_vhd = create_file(self.modules_folder / "apa" / "b.vhd")
 
         self.modules = get_modules([self.modules_folder])
         self.proj = VivadoProject(name="name", modules=self.modules, part="part")

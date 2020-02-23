@@ -2,8 +2,6 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import join, exists, basename
-
 from tsfpga.system_utils import load_python_module
 from tsfpga.module import iterate_module_folders
 
@@ -22,19 +20,19 @@ class FpgaProjectList:
         self._get_projects(modules_folders)
 
     @staticmethod
-    def _get_project_objects(folder, module_name):
-        project_file = join(folder, "project_" + module_name + ".py")
+    def _get_project_objects(path, module_name):
+        project_file = path / ("project_" + module_name + ".py")
 
-        if exists(project_file):
+        if project_file.exists():
             return load_python_module(project_file).get_projects()
         return []
 
     def _get_projects(self, modules_folders):
         self.projects = []
 
-        for module_folder in iterate_module_folders(modules_folders):
-            module_name = basename(module_folder)
-            self.projects += self._get_project_objects(module_folder, module_name)
+        for module_path in iterate_module_folders(modules_folders):
+            module_name = module_path.name
+            self.projects += self._get_project_objects(module_path, module_name)
 
     def get(self, project_name):
         """

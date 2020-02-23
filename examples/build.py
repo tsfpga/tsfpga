@@ -2,17 +2,16 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import join, dirname, abspath
-from shutil import copy2, make_archive
 import argparse
+from pathlib import Path
+from shutil import copy2, make_archive
 import sys
 
-PATH_TO_TSFPGA = join(dirname(__file__), "..")
-sys.path.append(PATH_TO_TSFPGA)
+PATH_TO_TSFPGA = Path(__file__).parent.parent
+sys.path.append(str(PATH_TO_TSFPGA))
 import tsfpga
 from tsfpga.fpga_project_list import FpgaProjectList
 from tsfpga.system_utils import create_directory, delete
-from tsfpga.vivado_utils import run_vivado_gui
 
 from tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
 
@@ -39,12 +38,15 @@ def arguments(projects):
                         action="store_true",
                         help="only synthesize a project")
     parser.add_argument("--project-path",
-                        default=join(TSFPGA_EXAMPLES_TEMP_DIR, "projects"),
+                        type=Path,
+                        default=TSFPGA_EXAMPLES_TEMP_DIR / "projects",
                         help="the FPGA build project will be placed here")
     parser.add_argument("--ip-cache-path",
-                        default=join(TSFPGA_EXAMPLES_TEMP_DIR, "vivado_ip_cache"),
+                        type=Path,
+                        default=TSFPGA_EXAMPLES_TEMP_DIR / "vivado_ip_cache",
                         help="location of Vivado IP cache")
     parser.add_argument("--output-path",
+                        type=Path,
                         required=False,
                         help="the output products (bit file, ...) will be placed here")
     parser.add_argument("--num-threads",
@@ -77,14 +79,14 @@ def main():
         # Generate register output from all modules. Note that this is not used by the build
         # flow or simulation flow, it is only for the user to inspect the artifacts.
         generate_registers(get_tsfpga_modules(tsfpga.ALL_TSFPGA_MODULES_FOLDERS),
-                           join(TSFPGA_EXAMPLES_TEMP_DIR, "registers"))
+                           TSFPGA_EXAMPLES_TEMP_DIR / "registers")
         return
 
     project = projects.get(args.project_name)
-    project_path = abspath(join(args.project_path, project.name))
+    project_path = args.project_path / project.name
 
     if args.open:
-        run_vivado_gui(project.vivado_path, project.project_file(project_path))
+        project.open(project_path)
         return
 
     if not args.output_path:
@@ -115,35 +117,35 @@ def build(args, project, project_path):
 
 
 def generate_registers(modules, output_path):
-    print("Generating registers in " + abspath(output_path))
+    print(f"Generating registers in {output_path.resolve()}")
 
     for module in modules:
         # Create the package in the modules' folder as well, for completeness sake
         module.create_regs_vhdl_package()
 
         if module.registers is not None:
-            vhdl_path = create_directory(join(output_path, "vhdl"), empty=False)
+            vhdl_path = create_directory(output_path / "vhdl", empty=False)
             module.registers.create_vhdl_package(vhdl_path)
 
-            module.registers.copy_source_definition(join(output_path, "json"))
+            module.registers.copy_source_definition(output_path / "json")
 
-            module.registers.create_c_header(join(output_path, "c"))
-            module.registers.create_cpp_interface(join(output_path, "cpp", "include"))
-            module.registers.create_cpp_header(join(output_path, "cpp", "include"))
-            module.registers.create_cpp_implementation(join(output_path, "cpp"))
-            module.registers.create_html_page(join(output_path, "doc"))
-            module.registers.create_html_table(join(output_path, "doc", "tables"))
+            module.registers.create_c_header(output_path / "c")
+            module.registers.create_cpp_interface(output_path / "cpp" / "include")
+            module.registers.create_cpp_header(output_path / "cpp" / "include")
+            module.registers.create_cpp_implementation(output_path / "cpp")
+            module.registers.create_html_page(output_path / "doc")
+            module.registers.create_html_table(output_path / "doc" / "tables")
 
 
 def collect_artifacts(project, output_path):
     version = "0.0.0.0"
-    release_dir = create_directory(join(output_path, project.name + "-" + version), empty=True)
-    print("Creating release in " + abspath(release_dir) + ".zip")
+    release_dir = create_directory(output_path / (project.name + "-" + version), empty=True)
+    print(f"Creating release in {release_dir.resolve()}.zip")
 
-    generate_registers(project.modules, join(release_dir, "registers"))
-    copy2(join(output_path, project.name + ".bit"), release_dir)
-    copy2(join(output_path, project.name + ".bin"), release_dir)
-    copy2(join(output_path, project.name + ".hdf"), release_dir)
+    generate_registers(project.modules, release_dir / "registers")
+    copy2(output_path / (project.name + ".bit"), release_dir)
+    copy2(output_path / (project.name + ".bin"), release_dir)
+    copy2(output_path / (project.name + ".hdf"), release_dir)
 
     make_archive(release_dir, "zip", release_dir)
 

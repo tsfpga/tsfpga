@@ -2,14 +2,13 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-
 import argparse
-from os.path import abspath, dirname, join
+from pathlib import Path
 import re
 import sys
 
-PATH_TO_TSFPGA = abspath(join(dirname(__file__), ".."))
-sys.path.append(PATH_TO_TSFPGA)
+PATH_TO_TSFPGA = Path(__file__).parent.parent
+sys.path.append(str(PATH_TO_TSFPGA.resolve()))
 
 from tsfpga.git_utils import find_git_files
 from tsfpga.test.lint.test_copyright import CopyrightHeader, files_to_check_for_copyright_header
@@ -24,7 +23,7 @@ def fix_trailing_whitespace(file):
         contents = file_handle.read()
 
     if RE_TRAILING_WHITESPACE.search(contents):
-        print("Fixing trailing whitespace in " + file)
+        print(f"Fixing trailing whitespace in {file}")
         with open(file, "w") as file_handle:
             file_handle.write(RE_TRAILING_WHITESPACE.sub("\n", contents))
 
@@ -34,7 +33,7 @@ def fix_tabs(file, tab_width):
         contents = file_handle.read()
 
     if RE_TAB.search(contents):
-        print("Fixing tabs in " + file)
+        print(f"Fixing tabs in {file}")
         replacement = " " * tab_width
         with open(file, "w") as file_handle:
             file_handle.write(RE_TAB.sub(replacement, contents))
@@ -56,7 +55,7 @@ def arguments():
 def main():
     args = arguments()
 
-    files = args.files if args.files else list(find_git_files())
+    files = args.files if args.files else list(find_git_files(file_endings_avoid=(".png")))
     fix_lint(files, args.tab_width)
 
     files = args.files if args.files else list(files_to_check_for_copyright_header())

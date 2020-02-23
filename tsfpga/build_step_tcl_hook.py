@@ -12,8 +12,8 @@ class BuildStepTclHook:
     def __init__(self, tcl_file, hook_step):
         """
         Args:
-            tcl_file: Path to a TCL file.
-            tcl_file: Name of a build step, e.g. "STEPS.ROUTE_DESIGN.TCL.PRE".
+            tcl_file (`pathlib.Path`): Path to a TCL file.
+            hook_step (str): Name of a build step, e.g. "STEPS.ROUTE_DESIGN.TCL.PRE".
         """
         self.tcl_file = tcl_file
         self.hook_step = hook_step

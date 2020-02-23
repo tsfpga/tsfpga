@@ -3,15 +3,15 @@
 # ------------------------------------------------------------------------------
 
 import copy
-from os.path import dirname, join
-import unittest
+from pathlib import Path
 import pytest
+import unittest
 
 from tsfpga.system_utils import create_file
 from tsfpga.registers import load_json_file, from_json, get_default_registers
 
 
-THIS_DIR = dirname(__file__)
+THIS_DIR = Path(__file__).parent
 
 
 def test_deep_copy_of_register_actually_copies_everything():
@@ -28,7 +28,7 @@ def test_deep_copy_of_register_actually_copies_everything():
 class TestRegisters(unittest.TestCase):
 
     module_name = "sensor"
-    json_file = join(THIS_DIR, "sensor_regs.json")
+    json_file = THIS_DIR / "sensor_regs.json"
     json_data = """\
 {
   "conf": {
@@ -81,10 +81,10 @@ class TestRegisters(unittest.TestCase):
         assert json_registers.register_list.registers["irq"].idx == num_default_registers + 2
 
     def test_load_nonexistent_json_file_should_raise_exception(self):
-        filename = self.json_file + "apa"
+        file = self.json_file.with_name("apa.json")
         with pytest.raises(FileNotFoundError) as exception_info:
-            load_json_file(self.json_file + "apa")
-        assert str(exception_info.value) == f"Requested json file does not exist: {filename}"
+            load_json_file(file)
+        assert str(exception_info.value) == f"Requested json file does not exist: {file}"
 
     def test_load_dirty_json_file_should_raise_exception(self):
         data = self.json_data % "apa"

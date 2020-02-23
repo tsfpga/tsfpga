@@ -2,7 +2,7 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import dirname, join, exists
+from pathlib import Path
 import pytest
 from subprocess import CalledProcessError
 import sys
@@ -16,31 +16,31 @@ from tsfpga.test import file_contains_string
 from tsfpga.vivado_project import VivadoProject
 
 
-THIS_DIR = dirname(__file__)
+THIS_DIR = Path(__file__).parent
 
 
-def test_building_artyz7_project(tmpdir):
-    build_py = join(tsfpga.TSFPGA_EXAMPLES, "build.py")
+def test_building_artyz7_project(tmp_path):
+    build_py = tsfpga.TSFPGA_EXAMPLES / "build.py"
     cmd = [
         sys.executable,
         build_py,
         "artyz7",
-        "--project-path", tmpdir,
-        "--output-path", tmpdir
+        "--project-path", tmp_path,
+        "--output-path", tmp_path
     ]
-    run_command(cmd, cwd=tsfpga.ROOT)
-    assert exists(join(tmpdir, "artyz7.bit"))
-    assert exists(join(tmpdir, "artyz7.bin"))
-    assert exists(join(tmpdir, "artyz7.hdf"))
+    run_command(cmd, cwd=tsfpga.REPO_ROOT)
+    assert (tmp_path / "artyz7.bit").exists()
+    assert (tmp_path / "artyz7.bin").exists()
+    assert (tmp_path / "artyz7.hdf").exists()
 
 
 class TestBasicProject(unittest.TestCase):
 
     part = "xc7z020clg400-1"
-    modules_folder = join(THIS_DIR, "modules")
-    project_folder = join(THIS_DIR, "vivado")
+    modules_folder = THIS_DIR / "modules"
+    project_folder = THIS_DIR / "vivado"
 
-    top_file = join(modules_folder, "apa", "test_proj_top.vhd")
+    top_file = modules_folder / "apa" / "test_proj_top.vhd"
     top_template = """
 library ieee;
 use ieee.std_logic_1164.all;
@@ -89,7 +89,7 @@ end architecture;
     output <= input_p1;
   end process;"""
 
-    constraint_file = join(modules_folder, "apa", "test_proj_pinning.tcl")
+    constraint_file = modules_folder / "apa" / "test_proj_pinning.tcl"
     constraints = """
 set_property -dict {package_pin H16 iostandard lvcmos33} [get_ports clk_in]
 set_property -dict {package_pin P14 iostandard lvcmos33} [get_ports input]
@@ -115,16 +115,16 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         self.proj = VivadoProject(name="test_proj", modules=self.modules, part=self.part, constraints=constraints)
         self.proj.create(self.project_folder)
 
-        self.log_file = join(self.project_folder, "vivado.log")
+        self.log_file = self.project_folder / "vivado.log"
 
-        self.runs_folder = join(self.project_folder, "test_proj.runs")
+        self.runs_folder = self.project_folder / "test_proj.runs"
 
     def test_create_project(self):
         pass
 
     def test_synth_project(self):
         self.proj.build(self.project_folder, synth_only=True)
-        assert exists(join(self.runs_folder, "synth_1", "hierarchical_utilization.rpt"))
+        assert (self.runs_folder / "synth_1" / "hierarchical_utilization.rpt").exists()
 
     def test_synth_should_fail_if_source_code_does_not_compile(self):
         with open(self.top_file, "a") as file_handle:
@@ -142,14 +142,14 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
             self.proj.build(self.project_folder, synth_only=True)
         assert file_contains_string(self.log_file, "\nERROR: Unhandled clock crossing in synth_1 run.")
 
-        assert exists(join(self.runs_folder, "synth_1", "clock_interaction.rpt"))
-        assert exists(join(self.runs_folder, "synth_1", "timing_summary.rpt"))
+        assert (self.runs_folder / "synth_1" / "clock_interaction.rpt").exists()
+        assert (self.runs_folder / "synth_1" / "timing_summary.rpt").exists()
 
     def test_build_project(self):
         self.proj.build(self.project_folder, self.project_folder)
-        assert exists(join(self.project_folder, self.proj.name + ".bit"))
-        assert exists(join(self.project_folder, self.proj.name + ".bin"))
-        assert exists(join(self.runs_folder, "impl_1", "hierarchical_utilization.rpt"))
+        assert (self.project_folder / (self.proj.name + ".bit")).exists()
+        assert (self.project_folder / (self.proj.name + ".bin")).exists()
+        assert (self.runs_folder / "impl_1" / "hierarchical_utilization.rpt").exists()
 
     def test_build_with_bad_timing_should_fail(self):
         # Do a ridiculously wide multiplication, which Vivado can't optimize away
@@ -187,4 +187,4 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
             self.proj.build(self.project_folder, self.project_folder)
         assert file_contains_string(self.log_file, "\nERROR: Timing not OK after implementation run.")
 
-        assert exists(join(self.runs_folder, "impl_1", "timing_summary.rpt"))
+        assert (self.runs_folder / "impl_1" / "timing_summary.rpt").exists()

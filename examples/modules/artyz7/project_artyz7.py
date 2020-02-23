@@ -2,27 +2,26 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import abspath, dirname, join
+from pathlib import Path
 
-import tsfpga
 from tsfpga.constraint import Constraint
 from tsfpga.vivado_project import VivadoProject
 
 from tsfpga_example_env import get_tsfpga_modules
 
-THIS_DIR = abspath(dirname(__file__))
-THIS_FILE = abspath(__file__)
+THIS_FILE = Path(__file__)
+THIS_DIR = THIS_FILE.parent
 
 
 def get_projects():
     projects = []
 
-    modules = get_tsfpga_modules(tsfpga.ALL_TSFPGA_MODULES_FOLDERS)
+    modules = get_tsfpga_modules()
     part = "xc7z020clg400-1"
 
-    tcl_dir = join(THIS_DIR, "tcl")
-    pinning = Constraint(join(tcl_dir, "artyz7_pinning.tcl"))
-    block_design = join(tcl_dir, "block_design.tcl")
+    tcl_dir = THIS_DIR / "tcl"
+    pinning = Constraint(tcl_dir / "artyz7_pinning.tcl")
+    block_design = tcl_dir / "block_design.tcl"
 
     projects.append(VivadoProject(
         name="artyz7",

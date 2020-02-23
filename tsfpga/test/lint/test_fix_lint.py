@@ -2,7 +2,7 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import join, dirname
+from pathlib import Path
 import unittest
 
 from tsfpga.system_utils import create_file, delete
@@ -10,12 +10,12 @@ from tsfpga.test import file_equals
 from tsfpga.fix_lint import fix_trailing_whitespace, fix_tabs
 
 
-THIS_DIR = dirname(__file__)
+THIS_DIR = Path(__file__).parent
 
 
 class TestFixLint(unittest.TestCase):
 
-    file = join(THIS_DIR, "temp_file_for_test.txt")
+    file = THIS_DIR / "temp_file_for_test.txt"
 
     def setUp(self):
         delete(self.file)

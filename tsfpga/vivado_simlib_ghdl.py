@@ -4,11 +4,11 @@
 
 import re
 import subprocess
-from shutil import which
 from pathlib import Path
 
-from tsfpga.vivado_simlib_common import VivadoSimlibCommon
+from tsfpga.vivado_utils import get_vivado_path
 from tsfpga.system_utils import create_directory
+from tsfpga.vivado_simlib_common import VivadoSimlibCommon
 
 
 class VivadoSimlibGhdl(VivadoSimlibCommon):
@@ -22,20 +22,20 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
     def __init__(self, output_path, vunit_proj, simulator_interface, vivado_path):
         """
         Args:
-            output_path: The compiled simlib will be placed here.
+            output_path (`pathlib.Path`): The compiled simlib will be placed here.
             vunit_proj: The VUnit project that is used to run simulation.
             simulator_interface: A VUnit SimulatorInterface class.
-            vivado_path: Path to Vivado executable.
+            vivado_path (`pathlib.Path`): Path to Vivado executable.
         """
         self._vunit_proj = vunit_proj
-        self._vivado_path = vivado_path
+        self._vivado_path = get_vivado_path(vivado_path)
 
         self.ghdl_binary = Path(simulator_interface.find_prefix()) / "ghdl"
 
-        self._output_path = Path(output_path) / self._get_version_tag()
+        self._output_path = output_path / self._get_version_tag()
 
     def _compile(self):
-        vivado_libraries_path = Path(which(self._vivado_path)).parent.parent / "data" / "vhdl" / "src"
+        vivado_libraries_path = self._vivado_path.parent.parent / "data" / "vhdl" / "src"
 
         self._compile_unisim(vivado_libraries_path / "unisims")
         self._compile_secureip(vivado_libraries_path / "unisims" / "secureip")

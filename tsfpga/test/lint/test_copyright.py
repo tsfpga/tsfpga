@@ -2,25 +2,25 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from os.path import join, dirname
+from pathlib import Path
 import pytest
 import re
 import unittest
 
-from tsfpga import TSFPGA_EXAMPLES
+from tsfpga import TSFPGA_EXAMPLE_MODULES
 
 from tsfpga.system_utils import create_file, read_file, delete
 from tsfpga.git_utils import find_git_files
 
 
-THIS_DIR = dirname(__file__)
+THIS_DIR = Path(__file__).parent
 
 
 class CopyrightHeader:
 
-    def __init__(self, copyright_holder, filename):
+    def __init__(self, copyright_holder, file):
         self._copyright_holder = copyright_holder
-        self._filename = filename
+        self._file = file
 
     def check_file(self):
         """
@@ -28,7 +28,7 @@ class CopyrightHeader:
         """
         copyright_header_re = self.get_expected_copyright_header().replace("(", "\\(").replace(")", "\\)")
         regexp = re.compile(copyright_header_re + rf"($|\n|{self._comment_character})")
-        with open(self._filename) as file_handle:
+        with open(self._file) as file_handle:
             data = file_handle.read()
         return regexp.match(data) is not None
 
@@ -43,55 +43,55 @@ class CopyrightHeader:
         if self._is_suitable_for_insertion():
             self._insert_copyright_header()
         else:
-            raise ValueError(f"Can not fix copyright header in file {self._filename}")
+            raise ValueError(f"Can not fix copyright header in file {self._file}")
 
     @property
     def _comment_character(self):
-        if self._filename.endswith(".py"):
+        if self._file.name.endswith(".py"):
             return "#"
-        if self._filename.endswith(".vhd"):
+        if self._file.name.endswith(".vhd"):
             return "--"
-        if self._filename.endswith(".tcl"):
+        if self._file.name.endswith(".tcl"):
             return "#"
-        raise RuntimeError(f"Could not decide file ending of {self._filename}")
+        raise RuntimeError(f"Could not decide file ending of {self._file}")
 
     def _is_suitable_for_insertion(self):
         """
         If the file does not begin with a comment, we consired it suitable to insert a new copyright header comment.
         """
-        with open(self._filename) as file_handle:
+        with open(self._file) as file_handle:
             return not file_handle.readline().startswith(self._comment_character)
 
     def _insert_copyright_header(self):
-        with open(self._filename) as file_handle:
+        with open(self._file) as file_handle:
             data = file_handle.read()
         data = self.get_expected_copyright_header() + "\n" + data
-        with open(self._filename, "w") as file_handle:
+        with open(self._file, "w") as file_handle:
             file_handle.write(data)
 
 
 def files_to_check_for_copyright_header():
-    file_endings = [".py", ".vhd", ".tcl"]
-    exclude_directories = [join(TSFPGA_EXAMPLES, "modules", "artyz7", "tcl")]
+    file_endings = (".py", ".vhd", ".tcl")
+    exclude_directories = [TSFPGA_EXAMPLE_MODULES / "artyz7" / "tcl"]
     for file_ending in file_endings:
-        for filename in find_git_files(file_endings_include=file_ending, exclude_directories=exclude_directories):
-            yield filename
+        for file in find_git_files(file_endings_include=file_ending, exclude_directories=exclude_directories):
+            yield file
 
 
 def test_copyright_header_of_all_checked_in_files():
     test_ok = True
-    for filename in files_to_check_for_copyright_header():
-        copyright_header_checker = CopyrightHeader("Lukas Vik", filename)
+    for file in files_to_check_for_copyright_header():
+        copyright_header_checker = CopyrightHeader("Lukas Vik", file)
         if not copyright_header_checker.check_file():
             test_ok = False
             expected = copyright_header_checker.get_expected_copyright_header()
-            print(f"Fail for {filename}.\nExpected:\n{expected}")
+            print(f"Fail for {file}.\nExpected:\n{expected}")
     assert test_ok
 
 
 class TestCopyright(unittest.TestCase):
 
-    file = join(THIS_DIR, "temp_file_for_test.vhd")
+    file = THIS_DIR / "temp_file_for_test.vhd"
 
     def setUp(self):
         delete(self.file)
