@@ -28,8 +28,7 @@ class CopyrightHeader:
         """
         copyright_header_re = self.get_expected_copyright_header().replace("(", "\\(").replace(")", "\\)")
         regexp = re.compile(copyright_header_re + rf"($|\n|{self._comment_character})")
-        with open(self._file) as file_handle:
-            data = file_handle.read()
+        data = read_file(self._file)
         return regexp.match(data) is not None
 
     def get_expected_copyright_header(self):
@@ -59,15 +58,12 @@ class CopyrightHeader:
         """
         If the file does not begin with a comment, we consired it suitable to insert a new copyright header comment.
         """
-        with open(self._file) as file_handle:
-            return not file_handle.readline().startswith(self._comment_character)
+        return not read_file(self._file).startswith(self._comment_character)
 
     def _insert_copyright_header(self):
-        with open(self._file) as file_handle:
-            data = file_handle.read()
+        data = read_file(self._file)
         data = self.get_expected_copyright_header() + "\n" + data
-        with open(self._file, "w") as file_handle:
-            file_handle.write(data)
+        create_file(self._file, data)
 
 
 def files_to_check_for_copyright_header():

@@ -127,8 +127,7 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         assert (self.runs_folder / "synth_1" / "hierarchical_utilization.rpt").exists()
 
     def test_synth_should_fail_if_source_code_does_not_compile(self):
-        with open(self.top_file, "a") as file_handle:
-            file_handle.write("garbage\napa\nhest")
+        create_file(self.top_file, "garbage\napa\nhest")
 
         with pytest.raises(CalledProcessError):
             self.proj.build(self.project_folder, synth_only=True)

@@ -10,6 +10,7 @@ import sys
 REPO_ROOT = Path(__file__).parent
 sys.path.append(str(REPO_ROOT))
 import tsfpga
+from tsfpga.system_utils import read_file
 
 
 README_MD = REPO_ROOT / "readme.md"
@@ -21,7 +22,7 @@ def main():
         name="tsfpga",
         version=tsfpga.__version__,
         description="A project platform for modern FPGA development",
-        long_description=get_readme_description(),
+        long_description=read_file(README_MD),
         long_description_content_type="text/markdown",
         license="BSD 3-Clause License",
         author="Lukas Vik",
@@ -46,14 +47,9 @@ def main():
     )
 
 
-def get_readme_description():
-    with open(README_MD) as file_handle:
-        return file_handle.read()
-
-
 def get_package_requirements():
     requirements = []
-    with open(REQUIREMENTS_TXT) as file_handle:
+    with REQUIREMENTS_TXT.open() as file_handle:
         # Requirements file contains one package name per line
         for line_data in file_handle.readlines():
             if line_data:

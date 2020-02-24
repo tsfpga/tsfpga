@@ -12,14 +12,14 @@ def create_file(file, contents=None):
     create_directory(file.parent, empty=False)
 
     contents = "" if contents is None else contents
-    with open(file, "w") as file_handle:
+    with file.open("w") as file_handle:
         file_handle.write(contents)
 
     return file
 
 
 def read_file(file):
-    with open(file) as file_handle:
+    with file.open() as file_handle:
         return file_handle.read()
 
 

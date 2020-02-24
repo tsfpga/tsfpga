@@ -49,11 +49,8 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
             self._compile_ghdl_file(vhd_file, "unisim")
 
         primitive_dir = library_path / "primitive"
-        with open(primitive_dir / "vhdl_analyze_order", "r") as file_handle:
-            for vhd_file_base in file_handle.readlines():
-                vhd_file = primitive_dir / vhd_file_base.strip()
-                assert vhd_file.exists(), vhd_file
-                self._compile_ghdl_file(vhd_file, "unisim")
+        for vhd_file in self._iterate_compile_order(primitive_dir):
+            self._compile_ghdl_file(vhd_file, "unisim")
 
         retarget_dir = library_path / "retarget"
         for vhd_file in retarget_dir.glob("*.vhd"):
@@ -68,18 +65,20 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
         assert vhd_file.exists, vhd_file
         self._compile_ghdl_file(vhd_file, "unimacro")
 
-        with open(library_path / "vhdl_analyze_order", "r") as file_handle:
-            for vhd_file_base in file_handle.readlines():
-                vhd_file = library_path / vhd_file_base.strip()
-                assert vhd_file.exists(), vhd_file
-                self._compile_ghdl_file(vhd_file, "unimacro")
+        for vhd_file in self._iterate_compile_order(library_path):
+            self._compile_ghdl_file(vhd_file, "unimacro")
 
     def _compile_unifast(self, library_path):
-        with open(library_path / "vhdl_analyze_order", "r") as file_handle:
+        for vhd_file in self._iterate_compile_order(library_path):
+            self._compile_ghdl_file(vhd_file, "unifast")
+
+    @staticmethod
+    def _iterate_compile_order(library_path):
+        with (library_path / "vhdl_analyze_order").open() as file_handle:
             for vhd_file_base in file_handle.readlines():
                 vhd_file = library_path / vhd_file_base.strip()
                 assert vhd_file.exists(), vhd_file
-                self._compile_ghdl_file(vhd_file, "unifast")
+                yield vhd_file
 
     def _compile_ghdl_file(self, vhd_file, library_name):
         workdir = self._output_path / library_name / "v08"

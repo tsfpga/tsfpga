@@ -63,5 +63,5 @@ def create_configuration(output_path,
         vhd_file_wildcard = ip_sources_dir.resolve() / "*" / "synth" / "*.vhd"
         toml_data["libraries"]["xil_defaultlib"] = dict(files=[str(vhd_file_wildcard)])
 
-    with open(output_path / "vhdl_ls.toml", "w") as output_file_handle:
+    with (output_path / "vhdl_ls.toml").open("w") as output_file_handle:
         toml.dump(toml_data, output_file_handle)

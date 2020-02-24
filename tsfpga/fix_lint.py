@@ -11,6 +11,7 @@ PATH_TO_TSFPGA = Path(__file__).parent.parent
 sys.path.append(str(PATH_TO_TSFPGA.resolve()))
 
 from tsfpga.git_utils import find_git_files
+from tsfpga.system_utils import create_file, read_file
 from tsfpga.test.lint.test_copyright import CopyrightHeader, files_to_check_for_copyright_header
 
 
@@ -19,24 +20,20 @@ RE_TAB = re.compile("\t", re.DOTALL)
 
 
 def fix_trailing_whitespace(file):
-    with open(file) as file_handle:
-        contents = file_handle.read()
+    contents = read_file(file)
 
     if RE_TRAILING_WHITESPACE.search(contents):
         print(f"Fixing trailing whitespace in {file}")
-        with open(file, "w") as file_handle:
-            file_handle.write(RE_TRAILING_WHITESPACE.sub("\n", contents))
+        create_file(file, RE_TRAILING_WHITESPACE.sub("\n", contents))
 
 
 def fix_tabs(file, tab_width):
-    with open(file) as file_handle:
-        contents = file_handle.read()
+    contents = read_file(file)
 
     if RE_TAB.search(contents):
         print(f"Fixing tabs in {file}")
         replacement = " " * tab_width
-        with open(file, "w") as file_handle:
-            file_handle.write(RE_TAB.sub(replacement, contents))
+        create_file(file, RE_TAB.sub(replacement, contents))
 
 
 def fix_lint(files, tab_width):

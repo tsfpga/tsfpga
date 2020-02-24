@@ -138,8 +138,8 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
 
         hook_file = THIS_DIR / "dummy_project_folder" / "hook_STEPS_SYNTH_DESIGN_TCL_PRE.tcl"
 
-        assert file_contains_string(str(hook_file), f"source {to_tcl_path(dummy.tcl_file)}")
-        assert file_contains_string(str(hook_file), f"source {to_tcl_path(files.tcl_file)}")
+        assert file_contains_string(hook_file, f"source {to_tcl_path(dummy.tcl_file)}")
+        assert file_contains_string(hook_file, f"source {to_tcl_path(files.tcl_file)}")
 
         assert f"\nset_property STEPS.SYNTH_DESIGN.TCL.PRE {to_tcl_path(hook_file)} ${{run}}\n" in tcl
 

@@ -49,7 +49,7 @@ class Registers:
         Args:
             output_path (`pathlib.Path`): Result will be placed here.
         """
-        with open(output_path / (self.register_list.name + "_regs_pkg.vhd"), "w") as file_handle:
+        with (output_path / (self.register_list.name + "_regs_pkg.vhd")).open("w") as file_handle:
             file_handle.write(RegisterVhdlGenerator(self.register_list).get_package())
 
     def create_c_header(self, output_path):
@@ -77,18 +77,34 @@ class Registers:
         create_file(output_file, RegisterCppGenerator(self.register_list).get_header())
 
     def create_cpp_implementation(self, output_path):
+        """
+        Args:
+            output_path (`pathlib.Path`): Result will be placed here.
+        """
         output_file = output_path / (self.register_list.name + ".cpp")
         create_file(output_file, RegisterCppGenerator(self.register_list).get_implementation())
 
     def create_html_page(self, output_path):
+        """
+        Args:
+            output_path (`pathlib.Path`): Result will be placed here.
+        """
         output_file = output_path / (self.register_list.name + "_regs.html")
         create_file(output_file, RegisterHtmlGenerator(self.register_list).get_page())
 
     def create_html_table(self, output_path):
+        """
+        Args:
+            output_path (`pathlib.Path`): Result will be placed here.
+        """
         output_file = output_path / (self.register_list.name + "_regs_table.html")
         create_file(output_file, RegisterHtmlGenerator(self.register_list).get_table())
 
     def copy_source_definition(self, output_path):
+        """
+        Args:
+            output_path (`pathlib.Path`): Result will be placed here.
+        """
         create_directory(output_path, empty=False)
         copy2(self.source_definition_file, output_path)
 
@@ -107,7 +123,7 @@ def load_json_file(file_name):
         return result
 
     try:
-        with open(file_name) as file_handle:
+        with file_name.open() as file_handle:
             return json.load(file_handle, object_pairs_hook=check_for_duplicate_keys)
     except ValueError as exception_info:
         message = f"Error while parsing JSON file {file_name}:\n{exception_info}"

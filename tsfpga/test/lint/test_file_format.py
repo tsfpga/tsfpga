@@ -16,7 +16,7 @@ THIS_DIR = Path(__file__).parent
 
 def open_file_with_encoding(file):
     print(file)
-    with open(file, "r", encoding="ascii") as file_handle:
+    with file.open(encoding="ascii") as file_handle:
         file_handle.read()
 
 
@@ -33,7 +33,7 @@ def test_all_checked_in_files_are_properly_encoded():
 
 def check_file_for_tab_character(file):
     test_ok = True
-    with open(file) as file_handle:
+    with file.open() as file_handle:
         for idx, line in enumerate(file_handle.readlines()):
             if "\t" in line:
                 test_ok = False
@@ -54,7 +54,7 @@ def test_no_checked_in_files_contain_tabs():
 
 def check_file_for_carriage_return(file):
     test_ok = True
-    with open(file, newline="") as file_handle:
+    with file.open(newline="") as file_handle:
         if "\r" in file_handle.read():
             test_ok = False
             print(f"Windows style line breaks (\\r\\n aka CR/LF) in {file}")
@@ -74,7 +74,7 @@ def test_no_checked_in_files_contain_carriage_return():
 
 def check_file_for_trailing_whitespace(file):
     test_ok = True
-    with open(file) as file_handle:
+    with file.open() as file_handle:
         for idx, line in enumerate(file_handle.readlines()):
             if " \n" in line:
                 test_ok = False
@@ -109,7 +109,7 @@ class TestFileFormat(unittest.TestCase):
         """
         Sanity check that the function we use actually triggers on bad files.
         """
-        with open(self.file, "w", encoding="utf-8") as file_handle:
+        with self.file.open("w", encoding="utf-8") as file_handle:
             data = "\N{LATIN CAPITAL LETTER O WITH DIAERESIS}"  # Swedish word for island = non-ASCII character
             file_handle.write(data)
 
@@ -129,7 +129,7 @@ class TestFileFormat(unittest.TestCase):
         Sanity check that the function we use actually triggers on bad files.
         """
         data = b"Apa\r\nhest"
-        with open(self.file, "wb") as file_handle:
+        with self.file.open("wb") as file_handle:
             file_handle.write(data)
         assert not check_file_for_carriage_return(self.file)
 

@@ -5,6 +5,7 @@
 import shutil
 
 from tsfpga import TSFPGA_TCL
+from tsfpga.system_utils import create_file
 from tsfpga.vivado_tcl import VivadoTcl
 from tsfpga.vivado_utils import run_vivado_tcl, run_vivado_gui
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
@@ -98,18 +99,18 @@ class VivadoProject:
         project_path.mkdir(parents=True)
 
         create_vivado_project_tcl = project_path / "create_vivado_project.tcl"
-        with open(create_vivado_project_tcl, "w") as file_handle:
-            file_handle.write(self.tcl.create(
-                project_folder=project_path,
-                modules=self.modules,
-                part=self.part,
-                top=self.top,
-                generics=self.static_generics,
-                constraints=self.constraints,
-                tcl_sources=self.tcl_sources,
-                build_step_hooks=self.build_step_hooks,
-                ip_cache_path=ip_cache_path,
-            ))
+        tcl = self.tcl.create(
+            project_folder=project_path,
+            modules=self.modules,
+            part=self.part,
+            top=self.top,
+            generics=self.static_generics,
+            constraints=self.constraints,
+            tcl_sources=self.tcl_sources,
+            build_step_hooks=self.build_step_hooks,
+            ip_cache_path=ip_cache_path,
+        )
+        create_file(create_vivado_project_tcl, tcl)
 
         return create_vivado_project_tcl
 
@@ -141,14 +142,15 @@ class VivadoProject:
             all_generics.update(generics)
 
         build_vivado_project_tcl = project_path / "build_vivado_project.tcl"
-        with open(build_vivado_project_tcl, "w") as file_handle:
-            file_handle.write(self.tcl.build(
-                project_file=project_file,
-                output_path=output_path,
-                num_threads=num_threads,
-                run_index=run_index,
-                generics=all_generics,
-                synth_only=synth_only))
+        tcl = self.tcl.build(
+            project_file=project_file,
+            output_path=output_path,
+            num_threads=num_threads,
+            run_index=run_index,
+            generics=all_generics,
+            synth_only=synth_only
+        )
+        create_file(build_vivado_project_tcl, tcl)
 
         return build_vivado_project_tcl
 

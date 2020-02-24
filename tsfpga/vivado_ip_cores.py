@@ -4,7 +4,7 @@
 
 import hashlib
 
-from tsfpga.system_utils import create_file, delete
+from tsfpga.system_utils import create_file, delete, read_file
 from tsfpga.vivado_project import VivadoProject
 
 
@@ -98,8 +98,7 @@ class VivadoIpCores:
         ip_hash = hashlib.md5()
         for file in files:
             ip_hash.update(str(file).encode())
-            with open(file) as file_handle:
-                ip_hash.update(file_handle.read().encode())
+            ip_hash.update(read_file(file).encode())
 
         return ip_hash.hexdigest()
 
@@ -113,9 +112,4 @@ class VivadoIpCores:
         if not (self._hash_file.exists() and self.compile_order_file.exists()):
             return True
 
-        with open(self._hash_file) as file_handle:
-            saved_hash = file_handle.read()
-        if saved_hash != self._hash:
-            return True
-
-        return False
+        return read_file(self._hash_file) != self._hash
