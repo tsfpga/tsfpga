@@ -2,43 +2,33 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from pathlib import Path
-import unittest
-
 import pytest
 
 from tsfpga.constraint import Constraint
 from tsfpga.hdl_file import HdlFile
-from tsfpga.system_utils import create_file, delete
 
 
-class TestConstraint(unittest.TestCase):
+def test_constraint():
+    constraint = Constraint("dummy.tcl")
+    constraint.validate_scoped_entity([])
 
-    _modules_folder = Path(__file__).parent / "modules_for_test"
+    assert constraint.ref is None
+    assert constraint.used_in == "all"
 
-    def setUp(self):
-        delete(self._modules_folder)
-        self.file = create_file(self._modules_folder / "a" / "scoped_constraints" / "apa.tcl")
+    constraint = Constraint("dummy.tcl", used_in="impl")
+    assert constraint.used_in == "impl"
 
-    def test_constraint(self):
-        constraint = Constraint(self.file)
+
+def test_scoped_constraint(tmp_path):
+    constraint = Constraint(tmp_path / "a" / "scoped_constraints" / "apa.tcl", scoped_constraint=True)
+    assert constraint.ref == "apa"
+
+    source_files = [HdlFile(tmp_path / "a" / "apa.vhd")]
+    constraint.validate_scoped_entity(source_files)
+
+
+def test_matching_entity_not_existing_should_raise_exception(tmp_path):
+    constraint = Constraint(tmp_path / "a" / "scoped_constraints" / "dummy.tcl", scoped_constraint=True)
+    with pytest.raises(FileNotFoundError) as exception_info:
         constraint.validate_scoped_entity([])
-
-        assert constraint.ref is None
-        assert constraint.used_in == "all"
-
-        constraint = Constraint(self.file, used_in="impl")
-        assert constraint.used_in == "impl"
-
-    def test_scoped_constraint(self):
-        constraint = Constraint(self.file, scoped_constraint=True)
-        assert constraint.ref == "apa"
-
-        source_files = [HdlFile(self._modules_folder / "a" / "apa.vhd")]
-        constraint.validate_scoped_entity(source_files)
-
-    def test_matching_entity_not_existing_should_raise_exception(self):
-        constraint = Constraint(self.file, scoped_constraint=True)
-        with pytest.raises(FileNotFoundError) as exception_info:
-            constraint.validate_scoped_entity([])
-        assert str(exception_info.value).startswith("Could not find a matching entity file")
+    assert str(exception_info.value).startswith("Could not find a matching entity file")

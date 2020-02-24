@@ -2,23 +2,26 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from pathlib import Path
 import unittest
 
-from tsfpga.system_utils import create_file, delete, run_command
+import pytest
+
+from tsfpga.system_utils import create_file, run_command
 from tsfpga.registers import from_json
 
 
+@pytest.mark.usefixtures("fixture_tmp_path")
 class TestRegisterCompilation(unittest.TestCase):
     """
     Functional test: JSON -> registers -> Code generation -> compilation
     """
 
-    working_dir = Path(__file__).parent / "compilation"
-    include_dir = working_dir / "include"
+    tmp_path = None
 
     def setUp(self):
-        delete(self.working_dir)
+        self.working_dir = self.tmp_path
+        self.include_dir = self.working_dir / "include"
+
         module_name = "sensor"
         json_file = self.working_dir / "sensor_regs.json"
         json_data = """\

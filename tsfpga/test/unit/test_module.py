@@ -2,16 +2,12 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from pathlib import Path
 from unittest import mock, TestCase
 
 import pytest
 
 from tsfpga.module import BaseModule, get_modules
-from tsfpga.system_utils import create_file, create_directory, delete
-
-
-THIS_DIR = Path(__file__).parent
+from tsfpga.system_utils import create_file, create_directory
 
 
 def test_file_list_filtering(tmp_path):
@@ -65,42 +61,43 @@ def test_scoped_constraint_entity_not_existing_should_raise_error(tmp_path):
     assert str(exception_info.value).startswith("Could not find a matching entity file")
 
 
+@pytest.mark.usefixtures("fixture_tmp_path")
 class TestGetModules(TestCase):
 
-    _modules_folder = THIS_DIR / "modules_for_test"
-    _modules_folders = [_modules_folder]
+    tmp_path = None
 
     def setUp(self):
-        delete(self._modules_folder)
-        create_directory(self._modules_folder / "a")
-        create_directory(self._modules_folder / "b")
-        create_directory(self._modules_folder / "c")
+        create_directory(self.tmp_path / "a")
+        create_directory(self.tmp_path / "b")
+        create_directory(self.tmp_path / "c")
+
+        self.modules_folders = [self.tmp_path]
 
     def test_name_filtering_include(self):
-        modules = get_modules(self._modules_folders, names_include=["a", "b"])
+        modules = get_modules(self.modules_folders, names_include=["a", "b"])
         assert set(module.name for module in modules) == set(["a", "b"])
 
     def test_name_filtering_avoid(self):
-        modules = get_modules(self._modules_folders, names_avoid=["a", "b"])
+        modules = get_modules(self.modules_folders, names_avoid=["a", "b"])
         assert set(module.name for module in modules) == set(["c"])
 
     def test_name_filtering_include_and_avoid(self):
-        modules = get_modules(self._modules_folders,
+        modules = get_modules(self.modules_folders,
                               names_include=["a", "c"],
                               names_avoid=["b", "c"])
         assert set(module.name for module in modules) == set(["a"])
 
     def test_library_name_does_not_have_lib_suffix(self):
-        modules = get_modules(self._modules_folders)
+        modules = get_modules(self.modules_folders)
         assert set(module.library_name for module in modules) == set(["a", "b", "c"])
 
     def test_library_name_has_lib_suffix(self):
-        modules = get_modules(self._modules_folders, library_name_has_lib_suffix=True)
+        modules = get_modules(self.modules_folders, library_name_has_lib_suffix=True)
         assert set(module.library_name for module in modules) == set(["a_lib", "b_lib", "c_lib"])
 
     def test_stray_file_can_exist_in_modules_folder_without_error(self):
-        create_file(self._modules_folder / "text_file.txt")
-        modules = get_modules(self._modules_folders)
+        create_file(self.tmp_path / "text_file.txt")
+        modules = get_modules(self.modules_folders)
         assert len(modules) == 3
 
     def test_local_override_of_module_type(self):
@@ -112,10 +109,10 @@ class Module(BaseModule):
     def id(self):
         return """
 
-        create_file(self._modules_folder / "a" / "module_a.py", module_file_content + "\"a\"")
-        create_file(self._modules_folder / "b" / "module_b.py", module_file_content + "\"b\"")
+        create_file(self.tmp_path / "a" / "module_a.py", module_file_content + "\"a\"")
+        create_file(self.tmp_path / "b" / "module_b.py", module_file_content + "\"b\"")
 
-        modules = get_modules(self._modules_folders)
+        modules = get_modules(self.modules_folders)
 
         assert len(modules) == 3
         for module in modules:
@@ -130,9 +127,9 @@ class Module(BaseModule):
 
     @mock.patch("tsfpga.module.from_json", autospec=True)
     def test_register_object_creation_synthesis(self, from_json):
-        json_file = create_file(self._modules_folder / "a" / "a_regs.json")
+        json_file = create_file(self.tmp_path / "a" / "a_regs.json")
 
-        module = get_modules(self._modules_folders, names_include=["a"])[0]
+        module = get_modules(self.modules_folders, names_include=["a"])[0]
         module.get_synthesis_files()
         module.get_synthesis_files()
 
@@ -140,9 +137,9 @@ class Module(BaseModule):
 
     @mock.patch("tsfpga.module.from_json", autospec=True)
     def test_register_object_creation_simulation(self, from_json):
-        json_file = create_file(self._modules_folder / "a" / "a_regs.json")
+        json_file = create_file(self.tmp_path / "a" / "a_regs.json")
 
-        module = get_modules(self._modules_folders, names_include=["a"])[0]
+        module = get_modules(self.modules_folders, names_include=["a"])[0]
         module.get_simulation_files()
         module.get_simulation_files()
 
@@ -150,9 +147,9 @@ class Module(BaseModule):
 
     @mock.patch("tsfpga.module.from_json", autospec=True)
     def test_register_object_creation_mixed(self, from_json):
-        json_file = create_file(self._modules_folder / "a" / "a_regs.json")
+        json_file = create_file(self.tmp_path / "a" / "a_regs.json")
 
-        module = get_modules(self._modules_folders, names_include=["a"])[0]
+        module = get_modules(self.modules_folders, names_include=["a"])[0]
         module.get_synthesis_files()
         module.get_simulation_files()
 

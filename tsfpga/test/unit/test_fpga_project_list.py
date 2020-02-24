@@ -2,28 +2,20 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from pathlib import Path
 import unittest
 
-from tsfpga.system_utils import create_file, create_directory, delete
+import pytest
+
+from tsfpga.system_utils import create_file, create_directory
 from tsfpga.fpga_project_list import FpgaProjectList
 
 
-THIS_DIR = Path(__file__).parent
-
-
+@pytest.mark.usefixtures("fixture_tmp_path")
 class TestFpgaProjectList(unittest.TestCase):
 
-    _modules_folder = THIS_DIR / "modules_for_test"
-    _modules_folders = [_modules_folder]
+    tmp_path = None
 
     def setUp(self):
-        delete(self._modules_folder)
-        create_directory(self._modules_folder / "a")
-        create_directory(self._modules_folder / "b")
-        create_directory(self._modules_folder / "c")
-
-    def test_get_projects(self):
         module_file_content = """
 class Dummy:
 
@@ -34,11 +26,19 @@ def get_projects():
     return [Dummy()]
 """
 
-        create_file(self._modules_folder / "a" / "project_a.py", module_file_content.format(name="a"))
-        create_file(self._modules_folder / "b" / "project_b.py", module_file_content.format(name="b"))
+        create_file(self.tmp_path / "a" / "project_a.py", module_file_content.format(name="a"))
+        create_file(self.tmp_path / "b" / "project_b.py", module_file_content.format(name="b"))
 
-        projects = FpgaProjectList(self._modules_folders)
+        create_directory(self.tmp_path / "c")
 
-        assert len(projects.names()) == 2
-        assert projects.get("a").name == "a"
-        assert projects.get("b").name == "b"
+        self.projects = FpgaProjectList([self.tmp_path])
+        assert len(self.projects.names()) == 2
+
+    def test_get_project(self):
+        assert self.projects.get("a").name == "a"
+        assert self.projects.get("b").name == "b"
+
+    def test_get_project_with_name_that_does_not_exist(self):
+        with pytest.raises(ValueError) as exception_info:
+            self.projects.get("c")
+        assert str(exception_info.value) == "Could not find project: c"

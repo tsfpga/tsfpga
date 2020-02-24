@@ -2,17 +2,11 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-import unittest
-from pathlib import Path
-
 import pytest
 
 import tsfpga
 from tsfpga.git_utils import find_git_files
-from tsfpga.system_utils import create_file, delete
-
-
-THIS_DIR = Path(__file__).parent
+from tsfpga.system_utils import create_file
 
 
 def open_file_with_encoding(file):
@@ -99,45 +93,43 @@ def files_to_test(exclude_directories=None):
     return find_git_files(exclude_directories=exclude_directories, file_endings_avoid="png")
 
 
-class TestFileFormat(unittest.TestCase):
+def test_open_file_with_encoding_should_raise_exception_on_bad_file(tmp_path):
+    """
+    Sanity check that the function we use actually triggers on bad files.
+    """
+    file = tmp_path / "temp_file_for_test.txt"
+    with file.open("w", encoding="utf-8") as file_handle:
+        data = "\N{LATIN CAPITAL LETTER O WITH DIAERESIS}"  # Swedish word for island = non-ASCII character
+        file_handle.write(data)
 
-    file = THIS_DIR / "temp_file_for_test.txt"
+    with pytest.raises(UnicodeDecodeError):
+        open_file_with_encoding(file)
 
-    def setUp(self):
-        delete(self.file)
 
-    def test_open_file_with_encoding_should_raise_exception_on_bad_file(self):
-        """
-        Sanity check that the function we use actually triggers on bad files.
-        """
-        with self.file.open("w", encoding="utf-8") as file_handle:
-            data = "\N{LATIN CAPITAL LETTER O WITH DIAERESIS}"  # Swedish word for island = non-ASCII character
-            file_handle.write(data)
+def test_check_file_for_tab_character_should_fail_on_bad_file(tmp_path):
+    """
+    Sanity check that the function we use actually triggers on bad files.
+    """
+    data = "Apa\thest"
+    file = create_file(tmp_path / "temp_file_for_test.txt", data)
+    assert not check_file_for_tab_character(file)
 
-        with pytest.raises(UnicodeDecodeError):
-            open_file_with_encoding(self.file)
 
-    def test_check_file_for_tab_character_should_fail_on_bad_file(self):
-        """
-        Sanity check that the function we use actually triggers on bad files.
-        """
-        data = "Apa\thest"
-        create_file(self.file, data)
-        assert not check_file_for_tab_character(self.file)
+def test_check_file_for_carriage_return_should_fail_on_bad_file(tmp_path):
+    """
+    Sanity check that the function we use actually triggers on bad files.
+    """
+    file = tmp_path / "temp_file_for_test.txt"
+    data = b"Apa\r\nhest"
+    with file.open("wb") as file_handle:
+        file_handle.write(data)
+    assert not check_file_for_carriage_return(file)
 
-    def test_check_file_for_carriage_return_should_fail_on_bad_file(self):
-        """
-        Sanity check that the function we use actually triggers on bad files.
-        """
-        data = b"Apa\r\nhest"
-        with self.file.open("wb") as file_handle:
-            file_handle.write(data)
-        assert not check_file_for_carriage_return(self.file)
 
-    def test_check_file_for_trailing_whitespace(self):
-        """
-        Sanity check that the function we use actually triggers on bad files.
-        """
-        data = "Apa \nhest    \nzebra"
-        create_file(self.file, data)
-        assert not check_file_for_trailing_whitespace(self.file)
+def test_check_file_for_trailing_whitespace(tmp_path):
+    """
+    Sanity check that the function we use actually triggers on bad files.
+    """
+    data = "Apa \nhest    \nzebra"
+    file = create_file(tmp_path / "temp_file_for_test.txt", data)
+    assert not check_file_for_trailing_whitespace(file)

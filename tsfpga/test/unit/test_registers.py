@@ -3,16 +3,12 @@
 # ------------------------------------------------------------------------------
 
 import copy
-from pathlib import Path
 import unittest
 
 import pytest
 
 from tsfpga.system_utils import create_file
 from tsfpga.registers import load_json_file, from_json, get_default_registers
-
-
-THIS_DIR = Path(__file__).parent
 
 
 def test_deep_copy_of_register_actually_copies_everything():
@@ -26,10 +22,12 @@ def test_deep_copy_of_register_actually_copies_everything():
     assert len(registers["config"].bits) == 0
 
 
+@pytest.mark.usefixtures("fixture_tmp_path")
 class TestRegisters(unittest.TestCase):
 
+    tmp_path = None
+
     module_name = "sensor"
-    json_file = THIS_DIR / "sensor_regs.json"
     json_data = """\
 {
   "conf": {
@@ -55,7 +53,7 @@ class TestRegisters(unittest.TestCase):
 """
 
     def setUp(self):
-        create_file(self.json_file, self.json_data % "")
+        self.json_file = create_file(self.tmp_path / "sensor_regs.json", self.json_data % "")
 
     def test_order_of_registers_and_bits(self):
         json_registers = from_json(self.module_name, self.json_file)

@@ -2,25 +2,23 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from pathlib import Path
 from unittest import mock, TestCase
+
+import pytest
 
 from tsfpga.module import get_modules
 from tsfpga.system_utils import create_file, delete
 from tsfpga.vivado_ip_cores import VivadoIpCores
 
 
-THIS_DIR = Path(__file__).parent
-
-
+@pytest.mark.usefixtures("fixture_tmp_path")
 class TestVivadoIpCores(TestCase):
 
-    project_folder = THIS_DIR / "ip_project"
-    modules_folder = THIS_DIR / "modules"
+    tmp_path = None
 
     def setUp(self):
-        delete(self.project_folder)
-        delete(self.modules_folder)
+        self.project_folder = self.tmp_path / "ip_project"
+        self.modules_folder = self.tmp_path / "modules"
 
         self.apa_tcl = create_file(self.modules_folder / "apa" / "ip_cores" / "apa.tcl", "apa")
         self.hest_tcl = create_file(self.modules_folder / "hest" / "ip_cores" / "hest.tcl", "hest")

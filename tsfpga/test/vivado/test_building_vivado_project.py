@@ -2,7 +2,6 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from pathlib import Path
 from subprocess import CalledProcessError
 import sys
 import unittest
@@ -12,12 +11,9 @@ import pytest
 import tsfpga
 from tsfpga.constraint import Constraint
 from tsfpga.module import get_modules
-from tsfpga.system_utils import create_file, delete, run_command
+from tsfpga.system_utils import create_file, run_command
 from tsfpga.test import file_contains_string
 from tsfpga.vivado_project import VivadoProject
-
-
-THIS_DIR = Path(__file__).parent
 
 
 def test_building_artyz7_project(tmp_path):
@@ -35,13 +31,11 @@ def test_building_artyz7_project(tmp_path):
     assert (tmp_path / "artyz7.hdf").exists()
 
 
+@pytest.mark.usefixtures("fixture_tmp_path")
 class TestBasicProject(unittest.TestCase):
 
-    part = "xc7z020clg400-1"
-    modules_folder = THIS_DIR / "modules"
-    project_folder = THIS_DIR / "vivado"
+    tmp_path = None
 
-    top_file = modules_folder / "apa" / "test_proj_top.vhd"
     top_template = """
 library ieee;
 use ieee.std_logic_1164.all;
@@ -74,7 +68,12 @@ begin
 end architecture;
 """
 
-    resync = """
+    def setUp(self):
+        modules_folder = self.tmp_path / "modules"
+        self.project_folder = self.tmp_path / "vivado"
+
+        # Default top level
+        resync = """
   assign_output : entity resync.resync_level
   port map (
     data_in => input_p1,
@@ -82,16 +81,10 @@ end architecture;
     clk_out => clk_out,
     data_out => output
   );"""
+        top = self.top_template.format(assign_output=resync)
+        self.top_file = create_file(modules_folder / "apa" / "test_proj_top.vhd", top)
 
-    unhandled_clock_crossing = """
-  assign_output : process
-  begin
-    wait until rising_edge(clk_out);
-    output <= input_p1;
-  end process;"""
-
-    constraint_file = modules_folder / "apa" / "test_proj_pinning.tcl"
-    constraints = """
+        constraint = """
 set_property -dict {package_pin H16 iostandard lvcmos33} [get_ports clk_in]
 set_property -dict {package_pin P14 iostandard lvcmos33} [get_ports input]
 set_property -dict {package_pin K17 iostandard lvcmos33} [get_ports clk_out]
@@ -101,19 +94,12 @@ set_property -dict {package_pin T16 iostandard lvcmos33} [get_ports output]
 create_clock -period 4 -name clk_in [get_ports clk_in]
 create_clock -period 4 -name clk_out [get_ports clk_out]
 """
+        constraint_file = \
+            create_file(modules_folder / "apa" / "test_proj_pinning.tcl", constraint)
+        constraints = [Constraint(constraint_file)]
 
-    def setUp(self):
-        delete(self.modules_folder)
-        delete(self.project_folder)
-
-        self.top = self.top_template.format(assign_output=self.resync)  # Default top level
-
-        create_file(self.top_file, self.top)
-        create_file(self.constraint_file, self.constraints)
-        constraints = [Constraint(self.constraint_file)]
-
-        self.modules = get_modules([self.modules_folder, tsfpga.TSFPGA_MODULES])
-        self.proj = VivadoProject(name="test_proj", modules=self.modules, part=self.part, constraints=constraints)
+        modules = get_modules([modules_folder, tsfpga.TSFPGA_MODULES])
+        self.proj = VivadoProject(name="test_proj", modules=modules, part="xc7z020clg400-1", constraints=constraints)
         self.proj.create(self.project_folder)
 
         self.log_file = self.project_folder / "vivado.log"
@@ -135,7 +121,14 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         assert file_contains_string(self.log_file, "\nERROR: Run synth_1 failed.")
 
     def test_synth_with_unhandled_clock_crossing_should_fail(self):
-        top = self.top_template.format(assign_output=self.unhandled_clock_crossing)
+        unhandled_clock_crossing = """
+  assign_output : process
+  begin
+    wait until rising_edge(clk_out);
+    output <= input_p1;
+  end process;"""
+
+        top = self.top_template.format(assign_output=unhandled_clock_crossing)
         create_file(self.top_file, top)
 
         with pytest.raises(CalledProcessError):

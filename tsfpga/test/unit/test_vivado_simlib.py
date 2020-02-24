@@ -6,15 +6,18 @@ from pathlib import Path
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
-from tsfpga.system_utils import delete
+import pytest
+
 from tsfpga.vivado_simlib import VivadoSimlib
 
 
+@pytest.mark.usefixtures("fixture_tmp_path")
 class TestVivadoSimlibCommercial(TestCase):
 
+    tmp_path = None
+
     def setUp(self):
-        self.output_path = Path(__file__).parent / "simlib"
-        delete(self.output_path)
+        self.output_path = self.tmp_path / "simlib"
 
         self.simulator_prefix = "/opt/Aldec/Riviera-PRO-2018.10-x64/bin"
         self.vivado_path = Path("/tools/xilinx/Vivado/2019.1/bin/vivado")
@@ -68,6 +71,7 @@ class TestVivadoSimlibCommercial(TestCase):
             mock.assert_not_called()
 
 
+@pytest.mark.usefixtures("fixture_tmp_path")
 class TestVivadoSimlibGhdl(TestCase):
 
     """
@@ -75,9 +79,10 @@ class TestVivadoSimlibGhdl(TestCase):
     from the common class.
     """
 
+    tmp_path = None
+
     def setUp(self):
-        self.output_path = Path(__file__).parent / "simlib"
-        delete(self.output_path)
+        self.output_path = self.tmp_path / "simlib"
 
         self.vivado_simlib = self.get_vivado_simlib()
 

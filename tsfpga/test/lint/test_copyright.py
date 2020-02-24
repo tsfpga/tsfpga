@@ -3,17 +3,12 @@
 # ------------------------------------------------------------------------------
 
 import re
-import unittest
-from pathlib import Path
 
 import pytest
 
 from tsfpga import TSFPGA_EXAMPLE_MODULES
-from tsfpga.system_utils import create_file, read_file, delete
+from tsfpga.system_utils import create_file, read_file
 from tsfpga.git_utils import find_git_files
-
-
-THIS_DIR = Path(__file__).parent
 
 
 class CopyrightHeader:
@@ -85,57 +80,48 @@ def test_copyright_header_of_all_checked_in_files():
     assert test_ok
 
 
-class TestCopyright(unittest.TestCase):
+def test_check_file(tmp_path):
+    header = "-- " + "-" * 77 + "\n"
+    header += "-- Copyright (c) Apa. All rights reserved.\n"
+    header += "-- " + "-" * 77 + "\n"
 
-    file = THIS_DIR / "temp_file_for_test.vhd"
+    file = create_file(tmp_path / "header.vhd", header)
+    copyright_header = CopyrightHeader("Apa", file)
+    assert copyright_header.check_file()
 
-    def setUp(self):
-        delete(self.file)
+    file = create_file(tmp_path / "non_comment.vhd", header + "non-comment on line after")
+    copyright_header = CopyrightHeader("Apa", file)
+    assert not copyright_header.check_file()
 
-    def test_check_file(self):
-        header = "-- " + "-" * 77 + "\n"
-        header += "-- Copyright (c) Apa. All rights reserved.\n"
-        header += "-- " + "-" * 77 + "\n"
+    file = create_file(tmp_path / "empty_line.vhd", header + "\nEmpty line and then non-comment")
+    copyright_header = CopyrightHeader("Apa", file)
+    assert copyright_header.check_file()
 
-        data = header
-        create_file(self.file, data)
-        copyright_header = CopyrightHeader("Apa", self.file)
-        assert copyright_header.check_file()
+    file = create_file(tmp_path / "further_comment.vhd", header + "-- Further comment\n")
+    copyright_header = CopyrightHeader("Apa", file)
+    assert copyright_header.check_file()
 
-        data = header + "non-comment on line after"
-        create_file(self.file, data)
-        copyright_header = CopyrightHeader("Apa", self.file)
-        assert not copyright_header.check_file()
 
-        data = header + "\nEmpty line and then non-comment"
-        create_file(self.file, data)
-        copyright_header = CopyrightHeader("Apa", self.file)
-        assert copyright_header.check_file()
+def test_fix_file_comment_insertion(tmp_path):
+    data = "Apa\n"
+    file = create_file(tmp_path / "file_for_test.vhd", data)
 
-        data = header + "-- Further comment\n"
-        create_file(self.file, data)
-        copyright_header = CopyrightHeader("Apa", self.file)
-        assert copyright_header.check_file()
+    copyright_header = CopyrightHeader("Hest Hestsson", file)
+    copyright_header.fix_file()
 
-    def test_fix_file_comment_insertion(self):
-        data = "Apa\n"
-        create_file(self.file, data)
+    data = read_file(file).split("\n")
+    assert data[0] == "-- " + "-" * 77
+    assert data[1] == "-- Copyright (c) Hest Hestsson. All rights reserved."
+    assert data[2] == "-- " + "-" * 77
+    assert data[3] == ""
+    assert data[4] == "Apa"
 
-        copyright_header = CopyrightHeader("Hest Hestsson", self.file)
+
+def test_fix_file_should_not_run_on_dirty_file(tmp_path):
+    data = "-- Custom comment line\n\nApa\n"
+    file = create_file(tmp_path / "file_for_test.vhd", data)
+    copyright_header = CopyrightHeader("A", file)
+
+    with pytest.raises(ValueError) as exception_info:
         copyright_header.fix_file()
-
-        data = read_file(self.file).split("\n")
-        assert data[0] == "-- " + "-" * 77
-        assert data[1] == "-- Copyright (c) Hest Hestsson. All rights reserved."
-        assert data[2] == "-- " + "-" * 77
-        assert data[3] == ""
-        assert data[4] == "Apa"
-
-    def test_fix_file_should_not_run_on_dirty_file(self):
-        data = "-- Custom comment line\n\nApa\n"
-        create_file(self.file, data)
-        copyright_header = CopyrightHeader("A", self.file)
-
-        with pytest.raises(ValueError) as exception_info:
-            copyright_header.fix_file()
-        assert str(exception_info.value) == f"Can not fix copyright header in file {self.file}"
+    assert str(exception_info.value) == f"Can not fix copyright header in file {file}"

@@ -3,11 +3,15 @@
 # ------------------------------------------------------------------------------
 
 from pathlib import Path
+import os
 import unittest
 
 import pytest
 
-from tsfpga.git_utils import *  # pylint: disable=wildcard-import,unused-wildcard-import
+from tsfpga.git_utils import (check_that_git_commands_are_available,
+                              find_git_files,
+                              get_git_commit,
+                              git_local_changes_are_present)
 from tsfpga.system_utils import create_file, delete, run_command, system_is_windows
 
 

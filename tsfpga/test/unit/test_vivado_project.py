@@ -2,45 +2,30 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-import unittest
-from pathlib import Path
-
 import pytest
 
-from tsfpga.module import get_modules
-from tsfpga.system_utils import create_file, create_directory, delete
+from tsfpga.system_utils import create_directory
 from tsfpga.vivado_project import VivadoProject
 
 
-THIS_DIR = Path(__file__).parent
+def test_create_should_raise_exception_if_project_path_already_exists(tmp_path):
+    create_directory(tmp_path / "projects" / "name")
+    proj = VivadoProject(name="name", modules=[], part="part")
+    with pytest.raises(ValueError) as exception_info:
+        proj.create(tmp_path / "projects")
+    assert str(exception_info.value).startswith("Folder already exists")
 
 
-class TestBasicProject(unittest.TestCase):
+def test_build_should_raise_exception_if_project_does_not_exists(tmp_path):
+    create_directory(tmp_path / "projects")
+    proj = VivadoProject(name="name", modules=[], part="part")
+    with pytest.raises(ValueError) as exception_info:
+        proj.build(tmp_path / "projects", synth_only=True)
+    assert str(exception_info.value).startswith("Project file does not exist")
 
-    project_folder = THIS_DIR / "vivado"
-    modules_folder = THIS_DIR / "modules"
 
-    def setUp(self):
-        delete(self.modules_folder)
-        delete(self.project_folder)
-
-        self.b_vhd = create_file(self.modules_folder / "apa" / "b.vhd")
-
-        self.modules = get_modules([self.modules_folder])
-        self.proj = VivadoProject(name="name", modules=self.modules, part="part")
-
-    def test_create_should_raise_exception_if_project_path_already_exists(self):
-        create_directory(self.project_folder)
-        with pytest.raises(ValueError) as exception_info:
-            self.proj.create(self.project_folder)
-        assert str(exception_info.value).startswith("Folder already exists")
-
-    def test_build_should_raise_exception_if_project_does_not_exists(self):
-        with pytest.raises(ValueError) as exception_info:
-            self.proj.build(self.project_folder, synth_only=True)
-        assert str(exception_info.value).startswith("Project file does not exist")
-
-    def test_build_with_impl_run_should_raise_exception_if_no_output_path_is_given(self):
-        with pytest.raises(ValueError) as exception_info:
-            self.proj.build(self.project_folder)
-        assert str(exception_info.value).startswith("Must specify output_path")
+def test_build_with_impl_run_should_raise_exception_if_no_output_path_is_given():
+    proj = VivadoProject(name="name", modules=[], part="part")
+    with pytest.raises(ValueError) as exception_info:
+        proj.build("None")
+    assert str(exception_info.value).startswith("Must specify output_path")

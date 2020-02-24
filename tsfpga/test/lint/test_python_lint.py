@@ -9,9 +9,9 @@ import unittest
 from pathlib import Path
 import pytest
 
-from tsfpga import TSFPGA_DOC
+import tsfpga
 from tsfpga.git_utils import find_git_files
-from tsfpga.system_utils import create_file, delete
+from tsfpga.system_utils import create_file
 
 
 THIS_DIR = Path(__file__).parent
@@ -26,7 +26,7 @@ def run_pylint(files):
 
 def test_pylint():
     # Exclude doc folder, since conf.py used by sphinx does not conform
-    files = list(find_git_files(file_endings_include="py", exclude_directories=[TSFPGA_DOC]))
+    files = list(find_git_files(file_endings_include="py", exclude_directories=[tsfpga.TSFPGA_DOC]))
     run_pylint(files)
 
 
@@ -42,18 +42,15 @@ def test_pycodestyle():
     run_pycodestyle(files)
 
 
+@pytest.mark.usefixtures("fixture_tmp_path")
 class TestPythonLintFunctions(unittest.TestCase):
 
-    file = THIS_DIR / "dummy_python_file.py"
-    ugly_code = """
-aa  =
-def bb:
-cc  = 3
-"""
+    tmp_path = None
 
     def setUp(self):
-        delete(self.file)
-        create_file(self.file, self.ugly_code)
+        self.file = self.tmp_path / "dummy_python_file.py"
+        ugly_code = "aa  =\ndef bb:\ncc  = 3"
+        create_file(self.file, ugly_code)
 
     def test_pylint_should_raise_exception_if_there_are_ugly_files(self):
         with pytest.raises(subprocess.CalledProcessError):

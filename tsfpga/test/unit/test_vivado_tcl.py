@@ -6,23 +6,24 @@ from collections import OrderedDict
 from pathlib import Path
 import unittest
 
+import pytest
+
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
 from tsfpga.module import get_modules
-from tsfpga.system_utils import create_file, delete
+from tsfpga.system_utils import create_file
 from tsfpga.vivado_tcl import VivadoTcl
 from tsfpga.vivado_utils import to_tcl_path
 from tsfpga.test.test_utils import file_contains_string
 
 
-THIS_DIR = Path(__file__).parent
+# pylint: disable=too-many-instance-attributes
+@pytest.mark.usefixtures("fixture_tmp_path")
+class TestVivadoTcl(unittest.TestCase):
 
-
-class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-attributes
-
-    modules_folder = THIS_DIR / "modules"
+    tmp_path = None
 
     def setUp(self):
-        delete(self.modules_folder)
+        self.modules_folder = self.tmp_path / "modules"
 
         # A library with some synth files and some test files
         self.a_vhd = to_tcl_path(create_file(self.modules_folder / "apa" / "a.vhd"))
@@ -129,14 +130,14 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
         dummy = BuildStepTclHook(Path("dummy.tcl"), "STEPS.SYNTH_DESIGN.TCL.PRE")
         files = BuildStepTclHook(Path("files.tcl"), "STEPS.SYNTH_DESIGN.TCL.PRE")
         tcl = self.tcl.create(
-            project_folder=THIS_DIR / "dummy_project_folder",
+            project_folder=self.tmp_path / "dummy_project_folder",
             modules=self.modules,
             part="part",
             top="",
             build_step_hooks=[dummy, files]
         )
 
-        hook_file = THIS_DIR / "dummy_project_folder" / "hook_STEPS_SYNTH_DESIGN_TCL_PRE.tcl"
+        hook_file = self.tmp_path / "dummy_project_folder" / "hook_STEPS_SYNTH_DESIGN_TCL_PRE.tcl"
 
         assert file_contains_string(hook_file, f"source {to_tcl_path(dummy.tcl_file)}")
         assert file_contains_string(hook_file, f"source {to_tcl_path(files.tcl_file)}")
@@ -166,9 +167,9 @@ class TestVivadoTcl(unittest.TestCase):  # pylint: disable=too-many-instance-att
             modules=self.modules,
             part="part",
             top="",
-            ip_cache_path=THIS_DIR
+            ip_cache_path=self.tmp_path
         )
-        assert f"\nconfig_ip_cache -use_cache_location {to_tcl_path(THIS_DIR)}\n" in tcl
+        assert f"\nconfig_ip_cache -use_cache_location {to_tcl_path(self.tmp_path)}\n" in tcl
 
     def test_set_multiple_threads(self):
         num_threads = 2
