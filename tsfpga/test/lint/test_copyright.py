@@ -2,13 +2,13 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from pathlib import Path
-import pytest
 import re
 import unittest
+from pathlib import Path
+
+import pytest
 
 from tsfpga import TSFPGA_EXAMPLE_MODULES
-
 from tsfpga.system_utils import create_file, read_file, delete
 from tsfpga.git_utils import find_git_files
 

@@ -55,21 +55,14 @@ confidence=
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
 
-# docstring: Currently this requires all methods to have a docstring, which is silly
-# wrong-import-order: Pylint does not agree with autopep8.py in Eclipse on what order is correct
+# docstring: Requires everything to have a docstring. A lot of functions/methods/modules are
+#     small and self-explaining, so it does not make sense to add docstring.
 # wrong-import-position: We want to do sys.path.append(...) before import in some cases
 # import-error: Pylint does not recognise the sys.path.append(...) we do before import
-# inconsistent-return-statements: False positive when one branch does sys.exit() and another does return
-# arguments-differ: Common design pattern where a parent class method has kwargs** arguments, while a child class uses whatever arguments they want
-# unsubscriptable-object: False positive when slicing output from subprocess.check_output
 
 disable=missing-docstring,
-        wrong-import-order,
         wrong-import-position,
-        import-error,
-        inconsistent-return-statements,
-        arguments-differ,
-        unsubscriptable-object
+        import-error
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -333,7 +326,7 @@ ignore-docstrings=yes
 ignore-imports=no
 
 # Minimum lines number of a similarity.
-# This triggers for classes that have the same interface, so I upped i a bit.
+# This triggers for classes that have the same interface, so I upped it a bit.
 # Not sure how to handle this properly. Probably disable it if it starts to get annoying.
 min-similarity-lines=7
 

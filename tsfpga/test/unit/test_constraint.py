@@ -3,8 +3,9 @@
 # ------------------------------------------------------------------------------
 
 from pathlib import Path
-import pytest
 import unittest
+
+import pytest
 
 from tsfpga.constraint import Constraint
 from tsfpga.hdl_file import HdlFile

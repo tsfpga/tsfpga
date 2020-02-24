@@ -2,9 +2,10 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from pathlib import Path
-import pytest
 import unittest
+from pathlib import Path
+
+import pytest
 
 from tsfpga.module import get_modules
 from tsfpga.system_utils import create_file, create_directory, delete

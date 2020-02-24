@@ -2,9 +2,10 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from pathlib import Path
-import pytest
 import unittest
+from pathlib import Path
+
+import pytest
 
 import tsfpga
 from tsfpga.git_utils import find_git_files

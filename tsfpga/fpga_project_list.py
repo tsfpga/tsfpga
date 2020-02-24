@@ -47,6 +47,7 @@ class FpgaProjectList:
         for project in self.projects:
             if project.name == project_name:
                 return project
+        raise ValueError(f"Could not find project: {project_name}")
 
     def names(self):
         """

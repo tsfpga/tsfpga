@@ -2,8 +2,9 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-import pytest
 import subprocess
+
+import pytest
 
 from tsfpga.system_utils import run_command
 

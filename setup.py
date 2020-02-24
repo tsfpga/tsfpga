@@ -4,8 +4,9 @@
 
 from os.path import relpath
 from pathlib import Path
-from setuptools import setup, find_packages
 import sys
+
+from setuptools import setup, find_packages
 
 REPO_ROOT = Path(__file__).parent
 sys.path.append(str(REPO_ROOT))

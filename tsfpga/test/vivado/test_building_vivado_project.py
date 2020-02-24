@@ -3,10 +3,11 @@
 # ------------------------------------------------------------------------------
 
 from pathlib import Path
-import pytest
 from subprocess import CalledProcessError
 import sys
 import unittest
+
+import pytest
 
 import tsfpga
 from tsfpga.constraint import Constraint

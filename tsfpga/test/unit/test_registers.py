@@ -4,8 +4,9 @@
 
 import copy
 from pathlib import Path
-import pytest
 import unittest
+
+import pytest
 
 from tsfpga.system_utils import create_file
 from tsfpga.registers import load_json_file, from_json, get_default_registers

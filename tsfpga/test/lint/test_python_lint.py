@@ -2,11 +2,12 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from pathlib import Path
-import pytest
 import subprocess
 import sys
 import unittest
+
+from pathlib import Path
+import pytest
 
 from tsfpga import TSFPGA_DOC
 from tsfpga.git_utils import find_git_files

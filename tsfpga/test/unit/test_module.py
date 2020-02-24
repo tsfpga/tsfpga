@@ -3,8 +3,9 @@
 # ------------------------------------------------------------------------------
 
 from pathlib import Path
-import pytest
 from unittest import mock, TestCase
+
+import pytest
 
 from tsfpga.module import BaseModule, get_modules
 from tsfpga.system_utils import create_file, create_directory, delete

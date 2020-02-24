@@ -66,6 +66,8 @@ class BaseModule:
             self._registers = from_json(self.name, json_file, copy.deepcopy(self._default_registers))
             return self._registers
 
+        return None
+
     def create_regs_vhdl_package(self):
         """
         Create a VHDL package in this module with register definitions.
