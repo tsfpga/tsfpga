@@ -19,6 +19,7 @@ def run_vivado_tcl(vivado_path, tcl_file, no_log_file=False):
             to use whatever version is in PATH.
         tcl_file (`pathlib.Path`): Path to TCL file.
     """
+    tcl_file = tcl_file.resolve()
     cmd = f"{get_vivado_path(vivado_path)} -mode batch -notrace -source {tcl_file}"
     if no_log_file:
         cmd += " -nojournal -nolog"
@@ -37,6 +38,7 @@ def run_vivado_gui(vivado_path, project_file):
             to use whatever version is in PATH.
         project_file (`pathlib.Path`): Path to a project .xpr file.
     """
+    project_file = project_file.resolve()
     cmd = f"{get_vivado_path(vivado_path)} -mode gui {project_file}"
     if not project_file.exists():
         raise FileNotFoundError(f"Project does not exist: {project_file}")
@@ -52,13 +54,13 @@ def get_vivado_path(vivado_path=None):
             is available in PATH.
     """
     if vivado_path is not None:
-        return vivado_path
+        return vivado_path.resolve()
 
     which_vivado = which("vivado")
     if which_vivado is None:
         raise FileNotFoundError("Could not find vivado on PATH")
 
-    return Path(which_vivado)
+    return Path(which_vivado).resolve()
 
 
 def to_tcl_path(path):
