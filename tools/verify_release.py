@@ -20,7 +20,7 @@ def verify_release_version(version):
     if git_local_changes_are_present():
         sys.exit("Must make release from clean repo")
 
-    release_notes_file = TSFPGA_DOC / "release_notes" / (version + ".md")
+    release_notes_file = TSFPGA_DOC / "release_notes" / (version + ".rst")
     if not release_notes_file.exists():
         sys.exit(f"Could not find release notes file: {release_notes_file}")
 

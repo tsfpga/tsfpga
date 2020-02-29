@@ -4,4 +4,4 @@
 
 
 def get_version():
-    return "0.1.4"
+    return "1.0.0"

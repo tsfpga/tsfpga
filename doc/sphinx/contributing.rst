@@ -66,6 +66,12 @@ Create a release commit and tag with the new version number (with a "v" in front
     git commit -m "Release X.Y.Z"
     git tag vX.Y.Z
 
+
+Verify
+______
+Before pushing the tag it is a good idea to run the ``tools/verify_release.py`` script manually.
+
+
 Push tag and commit
 ___________________
 
