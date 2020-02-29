@@ -9,7 +9,7 @@ import sys
 from setuptools import setup, find_packages
 
 REPO_ROOT = Path(__file__).parent
-sys.path.append(str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT))
 import tsfpga
 from tsfpga.system_utils import read_file
 
@@ -63,7 +63,12 @@ def get_package_data():
     """
     Additional files that shall be included in the release, apart from the python packages
     """
-    package_data = [README_MD, REQUIREMENTS_TXT]
+    package_data = [
+        README_MD,
+        REQUIREMENTS_TXT,
+        tsfpga.TSFPGA_PATH / "test" / "lint" / "pylintrc",
+        tsfpga.TSFPGA_PATH / "test" / "lint" / "pycodestylerc",
+    ]
     package_data += find_package_files(tsfpga.TSFPGA_TCL)
     package_data += find_package_files(tsfpga.TSFPGA_MODULES)
 
