@@ -28,6 +28,7 @@ class VivadoProject:
             tcl_sources=None,
             build_step_hooks=None,
             vivado_path=None,
+            default_run_index=1,
             defined_at=None,
     ):
         """
@@ -48,6 +49,8 @@ class VivadoProject:
             build_step_hooks (list(BuildStepTclHook)): Build step hooks that will be applied to the project.
             vivado_path (`pathlib.Path`): A path to the Vivado executable. If omitted,
                 the default location from the system PATH will be used.
+            default_run_index (int): Default run index (synth_X and impl_X) that is set in the project.
+                Is overrun by a call to :meth:`build() <VivadoProject.build>`.
             defined_at (`pathlib.Path`): Optional path to the file where you defined your
                 project. To get a useful build.py --list message. Is useful when you have many
                 projects set up.
@@ -57,6 +60,7 @@ class VivadoProject:
         self.part = part
         self.static_generics = generics
         self.constraints = constraints
+        self.default_run_index = default_run_index
         self.defined_at = defined_at
 
         self.top = name + "_top" if top is None else top
@@ -71,7 +75,8 @@ class VivadoProject:
         # Lists are immutable. Since we assign and modify this one we have to copy it.
         self.tcl_sources = [] if tcl_sources_from_user is None else tcl_sources_from_user.copy()
         self.tcl_sources += [
-            TSFPGA_TCL / "vivado_directive_settings.tcl",
+            TSFPGA_TCL / "vivado_default_run.tcl",
+            TSFPGA_TCL / "vivado_fast_run.tcl",
             TSFPGA_TCL / "vivado_messages.tcl",
         ]
 
@@ -104,6 +109,7 @@ class VivadoProject:
             modules=self.modules,
             part=self.part,
             top=self.top,
+            run_index=self.default_run_index,
             generics=self.static_generics,
             constraints=self.constraints,
             tcl_sources=self.tcl_sources,

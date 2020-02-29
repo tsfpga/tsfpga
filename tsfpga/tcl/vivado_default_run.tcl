@@ -7,7 +7,7 @@
 # command is printed to the console.
 # ------------------------------------------------------------------------------
 
-puts "Applying vivado directives settings"
+puts "Setting up default run"
 
 
 
@@ -22,10 +22,6 @@ set_property STEPS.SYNTH_DESIGN.ARGS.DIRECTIVE Default [get_runs synth_1]
 # based on the original RTL. This value allows the QoR benefit of cross-boundry optimizations with a
 # final hierarchy that is similar to the RTL for ease of analysis.
 set_property STEPS.SYNTH_DESIGN.ARGS.FLATTEN_HIERARCHY Rebuilt [get_runs synth_1]
-
-# Enable VHDL assert statements to be evaluated. A severity level of failure will stop the synthesis
-# and produce an error.
-set_property STEPS.SYNTH_DESIGN.ARGS.ASSERT true [get_runs synth_1]
 
 
 

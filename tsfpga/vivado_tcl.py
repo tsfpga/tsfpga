@@ -20,6 +20,7 @@ class VivadoTcl:
                modules,
                part,
                top,
+               run_index,
                generics=None,
                constraints=None,
                tcl_sources=None,
@@ -29,9 +30,6 @@ class VivadoTcl:
         tcl += "set_property target_language VHDL [current_project]\n"
         if ip_cache_path is not None:
             tcl += f"config_ip_cache -use_cache_location {to_tcl_path(ip_cache_path)}\n"
-        # Default value for when opening project in GUI.
-        # Will be overwritten if using build() function.
-        tcl += "set_param general.maxThreads 4\n"
         tcl += "\n"
         tcl += self._add_modules(modules)
         tcl += "\n"
@@ -43,7 +41,9 @@ class VivadoTcl:
         tcl += "\n"
         tcl += self._add_build_step_hooks(build_step_hooks, project_folder)
         tcl += "\n"
-        tcl += self._add_binary_bitstream()
+        tcl += self._add_project_settings()
+        tcl += "\n"
+        tcl += f"current_run [get_runs synth_{run_index}]\n"
         tcl += "\n"
         tcl += f"set_property top {top} [current_fileset]\n"
         tcl += "reorder_files -auto -disable_unused\n"
@@ -123,12 +123,19 @@ class VivadoTcl:
             tcl += self._tcl_for_each_run(run_wildcard, tcl_block)
         return tcl
 
-    def _add_binary_bitstream(self):
-        """
-        Enable binary bitstream. Is set for a run, not on project basis.
-        """
+    def _add_project_settings(self):
+        tcl = ""
+        # Default value for when opening project in GUI.
+        # Will be overwritten if using build() function.
+        tcl += "set_param general.maxThreads 7\n"
+        # Enable VHDL assert statements to be evaluated. A severity level of failure will
+        # stop the synthesis and produce an error.
+        tcl_block = "set_property STEPS.SYNTH_DESIGN.ARGS.ASSERT true ${run}"
+        tcl += self._tcl_for_each_run("synth_*", tcl_block)
+        # Enable binary bitstream as well
         tcl_block = "set_property STEPS.WRITE_BITSTREAM.ARGS.BIN_FILE true ${run}"
-        return self._tcl_for_each_run("impl_*", tcl_block)
+        tcl += self._tcl_for_each_run("impl_*", tcl_block)
+        return tcl
 
     @staticmethod
     def _tcl_for_each_run(run_wildcard, tcl_block):

@@ -63,7 +63,7 @@ begin
     input_p1 <= input;
   end process;
 
-{assign_output}
+{code_block}
 
 end architecture;
 """
@@ -74,14 +74,14 @@ end architecture;
 
         # Default top level
         resync = """
-  assign_output : entity resync.resync_level
+  code_block : entity resync.resync_level
   port map (
     data_in => input_p1,
 
     clk_out => clk_out,
     data_out => output
   );"""
-        top = self.top_template.format(assign_output=resync)
+        top = self.top_template.format(code_block=resync)
         self.top_file = create_file(modules_folder / "apa" / "test_proj_top.vhd", top)
 
         constraint = """
@@ -120,23 +120,16 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
             self.proj.build(self.project_folder, synth_only=True)
         assert file_contains_string(self.log_file, "\nERROR: Run synth_1 failed.")
 
-    def test_synth_with_unhandled_clock_crossing_should_fail(self):
-        unhandled_clock_crossing = """
-  assign_output : process
-  begin
-    wait until rising_edge(clk_out);
-    output <= input_p1;
-  end process;"""
+    def test_synth_with_assert_false_should_fail(self):
+        assert_false = """
+  assert false severity failure;"""
 
-        top = self.top_template.format(assign_output=unhandled_clock_crossing)
+        top = self.top_template.format(code_block=assert_false)
         create_file(self.top_file, top)
 
         with pytest.raises(CalledProcessError):
-            self.proj.build(self.project_folder, synth_only=True)
-        assert file_contains_string(self.log_file, "\nERROR: Unhandled clock crossing in synth_1 run.")
-
-        assert (self.runs_folder / "synth_1" / "clock_interaction.rpt").exists()
-        assert (self.runs_folder / "synth_1" / "timing_summary.rpt").exists()
+            self.proj.build(self.project_folder, synth_only=True, run_index=2)
+        assert file_contains_string(self.log_file, "RTL assertion: \"Assertion violation.\"")
 
     def test_build_project(self):
         self.proj.build(self.project_folder, self.project_folder)
@@ -173,7 +166,7 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
     end process;
   end block;"""
 
-        top = self.top_template.format(assign_output=bad_timing)
+        top = self.top_template.format(code_block=bad_timing)
         create_file(self.top_file, top)
 
         with pytest.raises(CalledProcessError):
