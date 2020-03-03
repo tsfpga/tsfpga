@@ -81,6 +81,7 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
                 yield vhd_file
 
     def _compile_ghdl_file(self, vhd_file, library_name):
+        print(f"Compiling {vhd_file} into {library_name}")
         workdir = self._output_path / library_name / "v08"
         create_directory(workdir, empty=False)
         cmd = [
@@ -88,7 +89,7 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
             "-a",
             "--ieee=synopsys",
             "--std=08",
-            "--workdir=" + str(workdir),
+            "--workdir=" + str(workdir.resolve()),
             "-P" + str(self._output_path),
             "-fexplicit",
             "-frelaxed-rules",
