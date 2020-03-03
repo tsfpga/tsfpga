@@ -143,7 +143,7 @@ begin
           wait until rising_edge(clk);
         end loop;
       end loop;
-      wait for 30 us; -- Wait until all writes are finished
+      wait_until_idle(net, as_sync(axi_master));
 
       -- Test that everything was written correctly to memory
       for slave in memory'range loop
