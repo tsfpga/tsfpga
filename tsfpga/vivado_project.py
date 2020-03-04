@@ -52,7 +52,7 @@ class VivadoProject:
             default_run_index (int): Default run index (synth_X and impl_X) that is set in the project.
                 Is overrun by a call to :meth:`build() <VivadoProject.build>`.
             defined_at (`pathlib.Path`): Optional path to the file where you defined your
-                project. To get a useful build.py --list message. Is useful when you have many
+                project. To get a useful ``build.py --list`` message. Is useful when you have many
                 projects set up.
         """
         self.name = name
@@ -88,10 +88,10 @@ class VivadoProject:
 
     def project_file(self, project_path):
         """
-        Return the path of the project file of this project, in the given folder
-
         Args:
             project_path (`pathlib.Path`): A path containing a Vivado project.
+        Return:
+            `pathlib.Path`: The project file of this project, in the given folder
         """
         return project_path / (self.name + ".xpr")
 
@@ -127,6 +127,7 @@ class VivadoProject:
         Args:
             project_path (`pathlib.Path`): Path where the project shall be placed.
             ip_cache_path (`pathlib.Path`): Path to a folder where the Vivado IP cache can be placed.
+                If omitted, the Vivado IP cache mechanism will not be enabled.
         """
         print(f"Creating Vivado project in {project_path}")
         create_vivado_project_tcl = self._create_tcl(project_path, ip_cache_path)
@@ -166,7 +167,7 @@ class VivadoProject:
         Will be called from :meth:`.build` right before the call to Vivado.
 
         Args:
-            kwargs: Will have all the build parameters in it. Including additional parameters
+            kwargs: Will have all the :meth:`.build` parameters in it. Including additional parameters
                 from the user.
         """
 
@@ -176,7 +177,7 @@ class VivadoProject:
         Will be called from :meth:`.build` right after the call to Vivado.
 
         Args:
-            kwargs: Will have all the build parameters in it. Including additional parameters
+            kwargs: Will have all the :meth:`.build` parameters in it. Including additional parameters
                 from the user.
         """
 
@@ -194,16 +195,18 @@ class VivadoProject:
         Args:
             project_path (`pathlib.Path`): A path containing a Vivado project.
             output_path (`pathlib.Path`): Results (bit file, ...) will be placed here.
-            run_index (int): Select Vivado run (synth_X and impl_X).
+            run_index (int): Select Vivado run (synth_X and impl_X) to build with.
             generics: A dict with generics values (`dict(name: value)`). Use for run-time
-                generics, i.e. Values that can change between each build of this project.
+                generics, i.e. values that can change between each build of this project.
 
                 Compare to the create-time generics argument in :meth:`.__init__`.
             synth_only (bool): Run synthesis and then stop.
             num_threads (int): Number of parallell threads to use during run.
             pre_and_post_build_parameters: Additional parameters that will be
-                sent to pre- and post build functions. Note that this is a "kwargs" style
-                argument; you can pass any number of named arguments.
+                sent to pre- and post build functions.
+
+                .. note::
+                    This is a "kwargs" style argument. You can pass any number of named arguments.
         """
         if output_path is None and not synth_only:
             raise ValueError("Must specify output_path when doing an implementation run")

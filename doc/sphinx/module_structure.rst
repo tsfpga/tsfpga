@@ -11,9 +11,9 @@ It also shows how modules and files are abstracted in python classes and methods
 Folder structure
 ________________
 
-Some functions in tsfpga requires that your modules use a certain folder structure.
+Some functions in tsfpga require that your modules use a certain folder structure.
 For example, if we want to set up :ref:`local test configurations <local_configuration>` we
-must use a file called ``module_<name>.py`` in the root of your module.
+must use a file called exactly ``module_<name>.py`` in the root of your module.
 
 Additionally the :meth:`get_modules() <tsfpga.module.get_modules>` function in tsfpga, which creates
 :meth:`module objects <tsfpga.module.BaseModule>` from a source tree, will look for source files only in certain sub-directories.
@@ -29,7 +29,7 @@ The different files and folders are explained further down.
     │   ├── project_foo.py
     │   ├── foo_regs.json
     │   ├── ip_cores
-    │   │   ├── foo_fifo.tcl
+    │   │   ├── fifo.tcl
     │   │   └── ...
     │   ├── scoped_constraints
     │   │   ├── sample_data.tcl
@@ -108,7 +108,6 @@ foo_regs.json
 
 Register definitions used in the tsfpga :ref:`register generator <registers>` are taken from a file called ``<module_name>_regs.json``.
 It contains the registers that the module uses and the fields within those registers.
-See :ref:`here <registers>` for more information.
 
 
 
@@ -117,7 +116,7 @@ See :ref:`here <registers>` for more information.
 IP cores
 --------
 
-In tsfpga, IP cores are handled using TCL files that contain the code snippets that generate the core.
+In tsfpga, IP cores are handled using TCL files that contain the code snippet that generates the core.
 This TCL snippet can be found in the Vivado TCL console when creating or modifying your IP.
 It typically looks something like this:
 
@@ -136,9 +135,9 @@ Scoped constraints
 
 Scoped constraints are constraint files that are applied in Vivado relative to a certain entity.
 This is handled in :meth:`build projects <tsfpga.vivado_project.VivadoProject>` using the :meth:`Constraint <tsfpga.constraint.Constraint>` class.
-The constraint files shall be placed in the ``scoped_constraints`` directory within your module.
+Constraint files in the ``scoped_constraints`` directory will be automatically added to your build project as scoped constraints.
 
-The name of scoped constraint file must be the same as the entity name and source file name.
+The name of a scoped constraint file must be the same as the entity name and source file name.
 In the example tree above there is a scoped constraint file ``sample_data.tcl`` that will be applied to ``sample_data.vhd``, which presumably contains an entity called ``sample_data``.
 
 

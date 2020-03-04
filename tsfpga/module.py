@@ -23,8 +23,8 @@ class BaseModule:
         Args:
             path (`pathlib.Path`): Path to the module folder.
             library_name_has_lib_suffix (bool): If set, the library name will be
-                <module name>_lib, otherwise it is just <module name>.
-            default_registers (dict[str, Register]): Default registers.
+                ``<module name>_lib``, otherwise it is just ``<module name>``.
+            default_registers (dict(str, Register)): Default registers.
         """
         self.path = path
         self.name = path.name
@@ -55,7 +55,7 @@ class BaseModule:
     @property
     def registers(self):
         """
-        Get the :class:`.Registers` for this module.
+        :class:`.Registers`: Get the registers for this module.
         """
         if self._registers is not None:
             # Only create object once
@@ -78,7 +78,7 @@ class BaseModule:
     def get_synthesis_files(self):
         """
         Return:
-            List of files (:class:`.HdlFile` objects) that should be included in a synthesis project.
+            list(:class:`.HdlFile`): Files that should be included in a synthesis project.
         """
         self.create_regs_vhdl_package()
 
@@ -105,8 +105,7 @@ class BaseModule:
                     other modules.
 
         Return:
-            List of files (:class:`.HdlFile` objects) that should be included in a
-            simulation project.
+            list(:class:`.HdlFile`): Files that should be included in a simulation project.
         """
         self.create_regs_vhdl_package()
 
@@ -144,7 +143,8 @@ class BaseModule:
 
     def get_ip_core_files(self):
         """
-        Get a list of TCL files that set up the IP cores from this module.
+        Return:
+            list(`pathlib.Path`): TCL files that set up the IP cores from this module.
         """
         folders = [
             self.path / "ip_cores",
@@ -154,7 +154,9 @@ class BaseModule:
 
     def get_scoped_constraints(self):
         """
-        Get a list of constraints that will be applied to a certain entity within the module.
+        Return:
+            list(:class:`.Constraint`): Constraints that will be applied to a certain
+                entity within the module.
         """
         scoped_constraints_folders = [
             self.path / "scoped_constraints",

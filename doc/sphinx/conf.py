@@ -44,7 +44,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # Remove warning that built-in types cannot be referenced.
 nitpick_ignore = []
 for name in dir(builtins):
-    nitpick_ignore.append(('py:class', name))
+    nitpick_ignore.append(("py:class", name))
 
 
 # -- Options for HTML output -------------------------------------------------

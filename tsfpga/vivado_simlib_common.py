@@ -33,8 +33,6 @@ class VivadoSimlibCommon:
     @property
     def compile_is_needed(self):
         """
-        True if a (re) compile is needed. False otherwise.
-
         If there is compiled simlib available that matches
 
          * Operating system
@@ -82,7 +80,7 @@ class VivadoSimlibCommon:
     @property
     def artifact_name(self):
         """
-        The name (`str`) of the folder where simlib is or will be compiled.
+        str: The name of the folder where simlib is or will be compiled.
         Follows a format ``vivado-simlib-WW.XX.YY.ZZ`` suitable for storage and versioning
         in Artifactory.
         """
@@ -92,8 +90,8 @@ class VivadoSimlibCommon:
         """
         Compress compiled simlib to an archive.
 
-        Return (`pathlib.Path`):
-            Path to the archive.
+        Return:
+            `pathlib.Path`: Path to the archive.
         """
         make_archive(self._output_path, "zip", self._output_path)
         archive = self._output_path.parent / (self._output_path.name + ".zip")

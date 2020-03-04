@@ -32,21 +32,21 @@ class VivadoIpCores:
     @property
     def compile_order_file(self):
         """
-        Path to the generated compile order file.
+        `pathlib.Path`: Path to the generated compile order file.
         """
         return self._project_folder / "compile_order.txt"
 
     @property
     def vivado_project_sources_directory(self):
         """
-        Path to the "sources" directory of the Vivado project.
+        `pathlib.Path`: Path to the "sources" directory of the Vivado project.
         """
         return self._project_folder / "vivado_ip_project.srcs" / "sources_1"
 
     @property
     def vivado_project_file(self):
         """
-        Path to the Vivado project file.
+        `pathlib.Path`: Path to the Vivado project file.
         """
         return self._vivado_project.project_file(self._project_folder)
 
@@ -71,7 +71,7 @@ class VivadoIpCores:
         or the contents of a TCL file is changed, there will be a recreation.
 
         Return:
-            True of Vivado project was created. False otherwise.
+            True if Vivado project was created. False otherwise.
         """
         if self._should_create():
             self.create_vivado_project()

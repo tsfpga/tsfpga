@@ -36,7 +36,7 @@ Example project class creation
 This is an example of project creation, using the ``artyz7`` example project from the `repo <https://gitlab.com/truestream/tsfpga/-/tree/master/examples>`__.
 
 Projects are created by the modules in a file called ``project_<module_name>.py`` within the module root.
-It must contain a function called ``get_projects()`` that returns a list of build project objects.
+See :ref:`folder structure <folder_structure_project>` for details.
 
 .. literalinclude:: ../../examples/modules/artyz7/project_artyz7.py
    :caption: Example project file `project_artyz7.py`
@@ -67,7 +67,7 @@ This filtering of modules can be achieved using the arguments to :ref:`get_modul
 TCL files
 _________
 This module has a sub-folder ``tcl`` which contains pinning and a block design.
-The block design, which is added to the :class:`.VivadoProject` is a TCL source is simply represented using it's path.
+The block design, which is added to the :class:`.VivadoProject` as a TCL source is simply represented using it's path.
 The pinning on the other hand, which is used as a constraint in Vivado, must be represented using the :class:`.Constraint` class.
 
 
@@ -101,7 +101,6 @@ A ``build.py`` in a simplified and hard-coded fashion could look something like 
     :caption: Minimal ``build.py`` file.
 
     from pathlib import Path
-    import tsfpga
     from tsfpga.fpga_project_list import FpgaProjectList
 
     my_modules_folders = [

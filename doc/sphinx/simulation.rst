@@ -30,7 +30,7 @@ If your source code is roughly organized along the :ref:`folder structure <folde
     for module in get_modules(my_modules_folders):
         vunit_library = vunit_proj.add_library(module.library_name)
         for hdl_file in module.get_simulation_files():
-             vunit_library.add_source_file(hdl_file.filename)
+             vunit_library.add_source_file(hdl_file.path)
         module.setup_simulations(vunit_proj)
 
 The call to :ref:`get_modules() <get_modules>` creates :ref:`module objects <module_objects>` from the directory structure of the folders listed in the argument.
@@ -38,7 +38,7 @@ The library name is deduced from the name of each module folder.
 Source files, packages and testbenches are collected from a few standard locations within the module folder.
 
 .. note::
-    If you use a different folder structure within the modules then what is currently supported by tsfpga, feel free to create an `issue <https://gitlab.com/truestream/tsfpga/issues>`__ or a merge request.
+    If you use a different folder structure within the modules than what is currently supported by tsfpga, feel free to create an `issue <https://gitlab.com/truestream/tsfpga/issues>`__ or a merge request.
 
 
 The ``module.get_simulation_files()`` call returns a list of files (:ref:`HdlFile objects <hdl_file>`) that are to be included in the simulation project.
@@ -71,7 +71,7 @@ Local configuration of test cases
 Running test cases in a few different configurations via generics is a common design pattern.
 This can be achieved in tsfpga by creating a file ``module_<name>.py`` in the root of the module folder.
 
-Say for example if we want to set some generics for a FIFO testbench, located in a module called ``fifo``, which is located under ``modules``.
+Say for example that we want to set some generics for a FIFO testbench, located in a module called ``fifo``, which is located under ``modules``.
 We would create the file ``modules/fifo/module_fifo.py``, and fill it with something like this.
 
 .. code-block:: python

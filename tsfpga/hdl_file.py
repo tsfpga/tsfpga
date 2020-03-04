@@ -24,24 +24,21 @@ class HdlFile:
     @property
     def is_vhdl(self):
         """
-        Returns:
-            True if the file is a VHDL file. Otherwise False.
+        True if the file is a VHDL file. Otherwise False.
         """
         return self.path.name.endswith(self.vhdl_file_ending)
 
     @property
     def is_verilog_source(self):
         """
-        Returns:
-            True if the file is a Verilog source file. Otherwise False.
+        True if the file is a Verilog source file. Otherwise False.
         """
         return self.path.name.endswith(self.verilog_source_file_ending)
 
     @property
     def is_verilog_header(self):
         """
-        Returns:
-            True if the file is a Verilog header file. Otherwise False.
+        True if the file is a Verilog header file. Otherwise False.
         """
         return self.path.name.endswith(self.verilog_header_file_ending)
 
