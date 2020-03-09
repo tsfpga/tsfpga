@@ -2,21 +2,29 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
+import json
 from pathlib import Path
+import shutil
 from subprocess import check_call, check_output
 import sys
+from xml.etree import ElementTree
 
 
 REPO_ROOT = Path(__file__).parent.parent
 sys.path.append(str(REPO_ROOT))
 import tsfpga
-from tsfpga.system_utils import create_file, read_file
+from tsfpga.system_utils import create_directory, create_file, delete, read_file
+
+
+SPHINX_HTML = tsfpga.TSFPGA_GENERATED / "sphinx_html"
 
 
 def main():
     generate_registers()
     generate_release_notes()
-    build_documentation()
+    build_sphinx()
+    build_coverage_badge()
+    copy_coverage_to_html_output()
 
 
 def generate_registers():
@@ -104,16 +112,44 @@ class Release:
         return check_output(cmd).decode().strip()
 
 
-def build_documentation():
+def build_coverage_badge():
+    pytest_coverage_xml = tsfpga.TSFPGA_GENERATED / "pytest_coverage.xml"
+    assert pytest_coverage_xml.exists(), "Run pytest with coverage before building documentation"
+
+    xml_root = ElementTree.parse(pytest_coverage_xml).getroot()
+    line_coverage = int(float(xml_root.attrib["line-rate"]) * 100)
+    color = "success" if line_coverage > 80 else "critical"
+
+    badge_json = {
+        "schemaVersion": 1,
+        "label": "Pytest coverage",
+        "message": str(line_coverage),
+        "color": color,
+        "namedLogo": "python",
+    }
+    output_directory = create_directory(SPHINX_HTML / "badges")
+    with (output_directory / "pytest_coverage.json").open("w") as file_handle:
+        json.dump(badge_json, file_handle, indent=2)
+
+
+def build_sphinx():
     cmd = [
         sys.executable,
         "-m",
         "sphinx",
         "-EanWT",
         tsfpga.TSFPGA_DOC / "sphinx",
-        REPO_ROOT / "generated" / "sphinx_html",
+        SPHINX_HTML,
     ]
     check_call(cmd)
+
+
+def copy_coverage_to_html_output():
+    pytest_coverage_html = tsfpga.TSFPGA_GENERATED / "pytest_coverage_html"
+    assert (pytest_coverage_html / "index.html").exists(), "Run pytest with coverage before building documentation"
+
+    output_path = delete(SPHINX_HTML / "pytest_coverage_html")
+    shutil.copytree(pytest_coverage_html, output_path)
 
 
 if __name__ == "__main__":

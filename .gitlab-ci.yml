@@ -3,6 +3,7 @@
 
 stages:
   - test
+  - build_documentation
   - deploy
 
 
@@ -27,10 +28,14 @@ pytest:
   script:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git g++ > /dev/null
-    - python3 -m pip install pytest pylint pycodestyle > /dev/null
+    - python3 -m pip install pytest pytest-cov pylint pycodestyle > /dev/null
     - python3 -m pylint --version
     - python3 -m pycodestyle --version
-    - python3 -m pytest -v --ignore=tsfpga/test/vivado/ tsfpga/
+    - python3 -m pytest -v --cov tsfpga --cov-report xml:generated/pytest_coverage.xml --cov-report html:generated/pytest_coverage_html --ignore=tsfpga/test/vivado/ tsfpga/
+  artifacts:
+    paths:
+      - generated/pytest_coverage.xml
+      - generated/pytest_coverage_html
 
 
 simulate:
@@ -57,7 +62,8 @@ build_pypi:
 
 
 build_pages:
-  stage: test
+  # Uses artifacts from the pytest job in the previous stage
+  stage: build_documentation
   rules:
     - when: always
   script:

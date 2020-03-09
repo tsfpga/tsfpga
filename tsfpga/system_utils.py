@@ -29,6 +29,7 @@ def delete(path):
             rmtree(path)
         else:
             path.unlink()
+    return path
 
 
 def create_directory(directory, empty=True):
