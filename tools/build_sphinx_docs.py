@@ -125,9 +125,12 @@ def build_coverage_badge():
         right_text=str(line_coverage) + "%",
         right_color=color,
         logo="https://upload.wikimedia.org/wikipedia/commons/0/0a/Python.svg",
-        embed_logo=True
+        embed_logo=True,
+        left_link="https://truestream.gitlab.io/tsfpga/pytest_coverage_html",
+        right_link="https://truestream.gitlab.io/tsfpga/pytest_coverage_html"
     )
-    create_file(SPHINX_HTML / "badges" / "pytest_coverage.svg", badge_svg)
+    output_path = create_directory(SPHINX_HTML / "badges")
+    create_file(output_path / "pytest_coverage.svg", badge_svg)
 
 
 def build_sphinx():
