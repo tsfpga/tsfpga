@@ -2,13 +2,13 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-import json
 from pathlib import Path
 import shutil
 from subprocess import check_call, check_output
 import sys
 from xml.etree import ElementTree
 
+from pybadges import badge
 
 REPO_ROOT = Path(__file__).parent.parent
 sys.path.append(str(REPO_ROOT))
@@ -118,18 +118,16 @@ def build_coverage_badge():
 
     xml_root = ElementTree.parse(pytest_coverage_xml).getroot()
     line_coverage = int(float(xml_root.attrib["line-rate"]) * 100)
-    color = "success" if line_coverage > 80 else "critical"
+    color = "green" if line_coverage > 80 else "red"
 
-    badge_json = {
-        "schemaVersion": 1,
-        "label": "Pytest coverage",
-        "message": str(line_coverage),
-        "color": color,
-        "namedLogo": "python",
-    }
-    output_directory = create_directory(SPHINX_HTML / "badges")
-    with (output_directory / "pytest_coverage.json").open("w") as file_handle:
-        json.dump(badge_json, file_handle, indent=2)
+    badge_svg = badge(
+        left_text="Pytest coverage",
+        right_text=str(line_coverage) + "%",
+        right_color=color,
+        logo="https://upload.wikimedia.org/wikipedia/commons/0/0a/Python.svg",
+        embed_logo=True
+    )
+    create_file(SPHINX_HTML / "badges" / "pytest_coverage.svg", badge_svg)
 
 
 def build_sphinx():

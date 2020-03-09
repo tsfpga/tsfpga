@@ -14,7 +14,7 @@ import tsfpga
 from tsfpga.system_utils import read_file
 
 
-README_MD = REPO_ROOT / "readme.md"
+README_RST = REPO_ROOT / "readme.rst"
 REQUIREMENTS_TXT = REPO_ROOT / "requirements.txt"
 
 
@@ -23,7 +23,7 @@ def main():
         name="tsfpga",
         version=tsfpga.__version__,
         description="A project platform for modern FPGA development",
-        long_description=read_file(README_MD),
+        long_description=read_file(README_RST),
         long_description_content_type="text/markdown",
         license="BSD 3-Clause License",
         author="Lukas Vik",
@@ -64,7 +64,7 @@ def get_package_data():
     Additional files that shall be included in the release, apart from the python packages
     """
     package_data = [
-        README_MD,
+        README_RST,
         REQUIREMENTS_TXT,
         tsfpga.TSFPGA_PATH / "test" / "lint" / "pylintrc",
         tsfpga.TSFPGA_PATH / "test" / "lint" / "pycodestylerc",
