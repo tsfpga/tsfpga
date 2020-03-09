@@ -29,8 +29,8 @@ ____________
 In order to use the package you will need
 
 * Python 3.6+
-* `VUnit <https://vunit.github.io/>`__ in your `PYTHONPATH`, with a functioning VHDL simulator in your `PATH`
-* Python package: `toml`
+* `VUnit <https://vunit.github.io/>`__ in your ``PYTHONPATH``, with a functioning VHDL simulator in your ``PATH``
+* Python package: ``toml``
 
 To run the bundled tests you must have
 
@@ -46,7 +46,7 @@ Having these high quality building blocks available will make it easier to add n
 
 Requirements
 ____________
-The modules make heavy use of ``VHDL-2008` so you will need a recent simulator and synthesis tool.
+The modules make heavy use of ``VHDL-2008`` so you will need a recent simulator and synthesis tool.
 
 Main contributors
 =================
@@ -56,4 +56,4 @@ Main contributors
 
 License
 =======
-This project is released under the terms of the BSD 3-Clause License. See `license.txt` for details.
+This project is released under the terms of the BSD 3-Clause License. See ``license.txt`` for details.
