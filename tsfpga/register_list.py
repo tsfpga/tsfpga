@@ -19,16 +19,16 @@ class Bit:
 
 # mode: (mode_readable, description)
 REGISTER_MODES = {
-    "r": ("Read", "PS can read a value that PL provides."),
-    "w": ("Write", "PS can write a value that is available for PL usage."),
+    "r": ("Read", "Bus can read a value that fabric provides."),
+    "w": ("Write", "Bus can write a value that is available for fabric usage."),
     "r_w": (
         "Read, Write",
-        "PS can write a value and read it back. The written value is available for PL usage."),
-    "wpulse": ("Write-pulse", "PS can write a value that is asserted for one clock cycle in PL."),
+        "Bus can write a value and read it back. The written value is available for fabric usage."),
+    "wpulse": ("Write-pulse", "Bus can write a value that is asserted for one clock cycle in fabric."),
     "r_wpulse": (
         "Read, Write-pulse",
-        "PS can read a value that PL provides. "
-        "PS can write a value that is asserted for one clock cycle in PL."),
+        "Bus can read a value that fabric provides. "
+        "Bus can write a value that is asserted for one clock cycle in fabric."),
 }
 
 
@@ -63,16 +63,16 @@ class Register:
         return formatting_string.format(address_int)
 
     @property
-    def is_ps_readable(self):
+    def is_bus_readable(self):
         """
-        Return true if the register is readable by PS.
+        True if the register is readable by bus.
         """
         return self.mode in ["r", "r_w", "r_wpulse"]
 
     @property
-    def is_ps_writeable(self):
+    def is_bus_writeable(self):
         """
-        Return true if the register is writeable by PS.
+        True if the register is writeable by bus.
         """
         return self.mode in ["w", "r_w", "wpulse", "r_wpulse"]
 

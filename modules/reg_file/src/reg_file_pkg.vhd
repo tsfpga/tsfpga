@@ -20,11 +20,11 @@ package reg_file_pkg is
   type reg_vec_t is array (integer range <>) of reg_t;
 
   type reg_type_t is (
-    r, -- PS can read a value that PL provides
-    w, -- PS can write a value that is available for PL usage
-    r_w, -- PS can write a value and read it back. The written value is available for PL usage
-    wpulse, -- PS can write a value that is asserted for one cycle in PL
-    r_wpulse -- PS can read a value that PL provides. PS can write a value that is asserted for one cycle in PL
+    r, -- Bus can read a value that fabric provides
+    w, -- Bus can write a value that is available for fabric usage
+    r_w, -- Bus can write a value and read it back. The written value is available for fabric usage
+    wpulse, -- Bus can write a value that is asserted for one cycle in fabric
+    r_wpulse -- Bus can read a value that fabric provides. Bus can write a value that is asserted for one cycle in fabric
   );
 
   function is_read_type(reg_type : reg_type_t) return boolean;

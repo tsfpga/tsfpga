@@ -25,9 +25,9 @@ class RegisterCppGenerator:
 
         cpp_code += f"  virtual ~I{self._class_name}() {{ }}\n\n"
         for register in self.register_list.registers.values():
-            if register.is_ps_readable:
+            if register.is_bus_readable:
                 cpp_code += f"  virtual {self._getter_function_signature(register)} const = 0;\n"
-            if register.is_ps_writeable:
+            if register.is_bus_writeable:
                 cpp_code += f"  virtual {self._setter_function_signature(register)} const = 0;\n"
             cpp_code += "\n"
         cpp_code += "};\n"
@@ -52,9 +52,9 @@ class RegisterCppGenerator:
         cpp_code += f"  {self._constructor_signature()};\n\n"
         cpp_code += f"  virtual ~{self._class_name}() {{ }}\n\n"
         for register in self.register_list.registers.values():
-            if register.is_ps_readable:
+            if register.is_bus_readable:
                 cpp_code += f"  virtual {self._getter_function_signature(register)} const override;\n"
-            if register.is_ps_writeable:
+            if register.is_bus_writeable:
                 cpp_code += f"  virtual {self._setter_function_signature(register)} const override;\n"
             cpp_code += "\n"
         cpp_code += "};\n"
@@ -76,9 +76,9 @@ class RegisterCppGenerator:
         cpp_code += "}\n\n"
 
         for register in self.register_list.registers.values():
-            if register.is_ps_readable:
+            if register.is_bus_readable:
                 cpp_code += self._getter_function(register)
-            if register.is_ps_writeable:
+            if register.is_bus_writeable:
                 cpp_code += self._setter_function(register)
 
         cpp_code_top = f"{self._file_header()}\n"
