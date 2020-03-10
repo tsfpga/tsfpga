@@ -1,5 +1,5 @@
 Added
-_______
+_____
 
 * Add ``run_index`` argument to :meth:`.VivadoProject.__init__` and :meth:`.VivadoProject.build`.
 * Add :meth:`.VivadoProject.open` method.

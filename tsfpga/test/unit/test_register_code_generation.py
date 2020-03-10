@@ -4,25 +4,27 @@
 
 import unittest
 
+from tsfpga.registers import RegisterList
 from tsfpga.register_c_generator import RegisterCGenerator
 from tsfpga.register_cpp_generator import RegisterCppGenerator
 from tsfpga.register_html_generator import RegisterHtmlGenerator
-from tsfpga.register_list import RegisterList
 from tsfpga.register_vhdl_generator import RegisterVhdlGenerator
 
 
 class TestRegisterCodeGeneration(unittest.TestCase):
 
     def setUp(self):
-        self.register_list = RegisterList("sensor")
+        register_list = RegisterList(name="", source_definition_file="")
 
-        register = self.register_list.append("conf", "r_w")
+        register = register_list.append_register("conf", "r_w")
         register.description = "conf desc"
         register.append_bit("bit_0", "conf bit 0 desc")
         register.append_bit("bit_1", "")
 
-        register = self.register_list.append("addr", "w")
+        register = register_list.append_register("addr", "w")
         register.description = "addr desc is _very_ good"
+
+        self.registers = register_list.registers
 
     def test_generated_html_contains_all_fields_in_correct_order(self):
         expected = """
@@ -51,37 +53,36 @@ class TestRegisterCodeGeneration(unittest.TestCase):
     <td>addr desc is <em>very</em> good</td>
   </tr>
 """
-        html_generator = RegisterHtmlGenerator(self.register_list)
-        assert expected in html_generator.get_table()
-        assert expected in html_generator.get_page()
+        assert expected in RegisterHtmlGenerator("", "").get_table(self.registers)
+        assert expected in RegisterHtmlGenerator("", "").get_page(self.registers)
 
     def test_generated_vhdl_contains_all_fields_in_correct_order(self):
-        vhdl_generator = RegisterVhdlGenerator(self.register_list)
+        package = RegisterVhdlGenerator("sensor", "").get_package(self.registers)
         expected = """
   constant sensor_conf : integer := 0;
   constant sensor_addr : integer := 1;
 """
-        assert expected in vhdl_generator.get_package()
+        assert expected in package
         expected = """
     (idx => sensor_conf, reg_type => r_w),
     (idx => sensor_addr, reg_type => w)
 """
-        assert expected in vhdl_generator.get_package()
+        assert expected in package
         expected = """
   constant sensor_conf_bit_0 : integer := 0;
   constant sensor_conf_bit_1 : integer := 1;
 """
-        assert expected in vhdl_generator.get_package()
+        assert expected in package
 
     def test_generated_c_contains_all_fields_in_correct_order(self):
-        c_generator = RegisterCGenerator(self.register_list)
+        header = RegisterCGenerator("sensor", "").get_header(self.registers)
         expected = """
 struct sensor_regs_t {
   uint32_t conf;
   uint32_t addr;
 };
 """
-        assert expected in c_generator.get_header()
+        assert expected in header
 
         expected = """
 #define SENSOR_CONF_BIT_0_BIT (0uL)
@@ -90,15 +91,15 @@ struct sensor_regs_t {
 #define SENSOR_CONF_BIT_1_BIT (1uL)
 #define SENSOR_CONF_BIT_1     (2uL)
 """
-        assert expected in c_generator.get_header()
+        assert expected in header
 
     def test_generated_cpp_contains_all_fields_in_correct_order(self):
-        cpp_generator = RegisterCppGenerator(self.register_list)
+        cpp_generator = RegisterCppGenerator("sensor", "")
         expected = """
   static const uint32_t conf_bit_0 = 1uL;
   static const uint32_t conf_bit_1 = 2uL;
 """
-        assert expected in cpp_generator.get_interface()
+        assert expected in cpp_generator.get_interface(self.registers)
 
         expected = """
 uint32_t Sensor::get_conf() const
@@ -116,7 +117,7 @@ void Sensor::set_addr(uint32_t value) const
   m_registers[1] = value;
 }
 """
-        assert expected in cpp_generator.get_implementation()
+        assert expected in cpp_generator.get_implementation(self.registers)
 
         # Write-only register should not have getter method
-        assert "get_addr" not in cpp_generator.get_implementation()
+        assert "get_addr" not in cpp_generator.get_implementation(self.registers)

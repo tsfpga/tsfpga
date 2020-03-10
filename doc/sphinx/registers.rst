@@ -5,13 +5,13 @@ Register code generation
 
 TBC WIP
 
-.. autoclass:: tsfpga.register_list.Register()
+.. autoclass:: tsfpga.registers.Register()
     :members:
 
     .. automethod:: __init__
 
 
-.. autoclass:: tsfpga.registers.Registers()
+.. autoclass:: tsfpga.registers.RegisterList()
     :members:
 
     .. automethod:: __init__

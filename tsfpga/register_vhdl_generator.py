@@ -5,34 +5,34 @@
 
 class RegisterVhdlGenerator:
 
-    def __init__(self, register_list):
-        self.register_list = register_list
+    def __init__(self, module_name, generated_info):
+        self.module_name = module_name
+        self.generated_info = generated_info
 
     @staticmethod
     def _comment(comment):
         return f"-- {comment}\n"
 
     def _header(self):
-        vhdl = self._comment(self.register_list.generated_info())
-        return vhdl
+        return self._comment(self.generated_info)
 
     def _register_constant_name(self, register):
-        return self.register_list.name + "_" + register.name
+        return self.module_name + "_" + register.name
 
-    def _register_indexes(self):
+    def _register_indexes(self, registers):
         vhdl = ""
-        for register in self.register_list.iterate_registers():
+        for register in registers:
             constant = self._register_constant_name(register)
             vhdl += f"  constant {constant} : integer := {register.idx};\n"
 
         return vhdl
 
-    def _register_map(self):
-        num_regs = str(len(self.register_list.registers))
-        map_name = self.register_list.name + "_reg_map"
+    def _register_map(self, registers):
+        num_regs = str(len(registers))
+        map_name = self.module_name + "_reg_map"
 
         register_definitions = []
-        for register in self.register_list.iterate_registers():
+        for register in registers:
             constant = self._register_constant_name(register)
             mode = register.mode
             register_definitions.append(f"  (idx => {constant}, reg_type => {mode})")
@@ -41,15 +41,15 @@ class RegisterVhdlGenerator:
         vhdl += ",\n  ".join(register_definitions)
         vhdl += "\n  );\n"
         vhdl += "\n"
-        vhdl += f"  subtype {self.register_list.name}_regs_t is reg_vec_t({map_name}'range);\n"
-        vhdl += f"  constant {self.register_list.name}_regs_zero : \
-{self.register_list.name}_regs_t := (others => (others => '0'));\n"
-        vhdl += f"  subtype {self.register_list.name}_reg_was_written_t is std_logic_vector({map_name}'range);\n"
+        vhdl += f"  subtype {self.module_name}_regs_t is reg_vec_t({map_name}'range);\n"
+        vhdl += f"  constant {self.module_name}_regs_zero : \
+{self.module_name}_regs_t := (others => (others => '0'));\n"
+        vhdl += f"  subtype {self.module_name}_reg_was_written_t is std_logic_vector({map_name}'range);\n"
         return vhdl
 
-    def _register_bits(self):
+    def _register_bits(self, registers):
         vhdl = ""
-        for register in self.register_list.iterate_registers():
+        for register in registers:
             for bit in register.bits:
                 name = self._register_constant_name(register) + "_" + bit.name
                 vhdl += f"  constant {name} : integer := {bit.idx};\n"
@@ -58,8 +58,8 @@ class RegisterVhdlGenerator:
 
         return vhdl
 
-    def get_package(self):
-        pkg_name = self.register_list.name + "_regs_pkg"
+    def get_package(self, registers):
+        pkg_name = self.module_name + "_regs_pkg"
 
         vhdl = f"""
 {self._header()}
@@ -74,9 +74,9 @@ use reg_file.reg_file_pkg.all;
 
 package {pkg_name} is
 
-{self._register_indexes()}
-{self._register_map()}
-{self._register_bits()}
+{self._register_indexes(registers)}
+{self._register_map(registers)}
+{self._register_bits(registers)}
 end;"""
 
         return vhdl

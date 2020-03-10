@@ -24,7 +24,7 @@ class BaseModule:
             path (`pathlib.Path`): Path to the module folder.
             library_name_has_lib_suffix (bool): If set, the library name will be
                 ``<module name>_lib``, otherwise it is just ``<module name>``.
-            default_registers (dict(str, Register)): Default registers.
+            default_registers (list(Register)): Default registers.
         """
         self.path = path
         self.name = path.name
@@ -55,7 +55,7 @@ class BaseModule:
     @property
     def registers(self):
         """
-        :class:`.Registers`: Get the registers for this module.
+        :class:`.RegisterList`: Get the registers for this module.
         """
         if self._registers is not None:
             # Only create object once

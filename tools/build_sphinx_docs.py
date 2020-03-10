@@ -143,6 +143,9 @@ def build_sphinx():
         SPHINX_HTML,
     ]
     check_call(cmd)
+    index_html = SPHINX_HTML / "index.html"
+    assert index_html.exists(), index_html
+    print(f"Open with: firefox {index_html} &")
 
 
 def copy_coverage_to_html_output():

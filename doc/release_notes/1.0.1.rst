@@ -1,4 +1,4 @@
 Added
-_______
+_____
 
 * Include ``pylintrc`` and ``pycodestylerc`` in release.

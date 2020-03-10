@@ -11,15 +11,22 @@ from tsfpga.system_utils import create_file
 from tsfpga.registers import load_json_file, from_json, get_default_registers
 
 
-def test_deep_copy_of_register_actually_copies_everything():
+def test_deep_copy_of_registers_actually_copies_everything():
     registers = get_default_registers()
+    for register in registers:
+        if register.name == "config":
+            config_register = register
+
     registers_copy = copy.deepcopy(registers)
+    for register in registers_copy:
+        if register.name == "config":
+            config_register_copy = register
 
-    registers_copy["config"].description = "Dummy"
-    registers_copy["config"].bits.append("dummy object")
+    config_register_copy.description = "Dummy"
+    config_register_copy.bits.append("dummy object")
 
-    assert registers["config"].description == "Configuration register."
-    assert len(registers["config"].bits) == 0
+    assert config_register.description == "Configuration register."
+    assert len(config_register.bits) == 0
 
 
 @pytest.mark.usefixtures("fixture_tmp_path")
@@ -56,8 +63,7 @@ class TestRegisters(unittest.TestCase):
         self.json_file = create_file(self.tmp_path / "sensor_regs.json", self.json_data % "")
 
     def test_order_of_registers_and_bits(self):
-        json_registers = from_json(self.module_name, self.json_file)
-        registers = list(json_registers.register_list.registers.values())
+        registers = from_json(self.module_name, self.json_file).registers
 
         assert registers[0].name == "conf"
         assert registers[1].name == "cmd"
@@ -75,9 +81,9 @@ class TestRegisters(unittest.TestCase):
         json_registers = from_json(self.module_name, self.json_file, default_registers)
 
         # The registers from this test are appended at the end
-        assert json_registers.register_list.registers["conf"].idx == num_default_registers
-        assert json_registers.register_list.registers["cmd"].idx == num_default_registers + 1
-        assert json_registers.register_list.registers["irq"].idx == num_default_registers + 2
+        assert json_registers.get_register("conf").idx == num_default_registers
+        assert json_registers.get_register("cmd").idx == num_default_registers + 1
+        assert json_registers.get_register("irq").idx == num_default_registers + 2
 
     def test_load_nonexistent_json_file_should_raise_exception(self):
         file = self.json_file.with_name("apa.json")
@@ -142,7 +148,7 @@ class TestRegisters(unittest.TestCase):
         create_file(self.json_file, data)
         json_registers = from_json(self.module_name, self.json_file, get_default_registers())
 
-        assert json_registers.register_list.registers["config"].description == "apa"
+        assert json_registers.get_register("config").description == "apa"
 
     def test_changing_mode_of_default_register_should_raise_exception(self):
         extras = """,

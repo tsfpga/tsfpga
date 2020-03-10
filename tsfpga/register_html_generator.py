@@ -2,14 +2,34 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from tsfpga.register_list import REGISTER_MODES
 from tsfpga.markdown_to_html_translator import MarkdownToHtmlTranslator
+
+
+class Mode:
+
+    def __init__(self, mode_readable, description):
+        self.mode_readable = mode_readable
+        self.description = description
+
+
+REGISTER_MODES = dict(
+    r=Mode("Read", "Bus can read a value that fabric provides."),
+    w=Mode("Write", "Bus can write a value that is available for fabric usage."),
+    r_w=Mode("Read, Write",
+             "Bus can write a value and read it back. The written value is available for fabric usage."),
+    wpulse=Mode("Write-pulse",
+                "Bus can write a value that is asserted for one clock cycle in fabric."),
+    r_wpulse=Mode("Read, Write-pulse",
+                  "Bus can read a value that fabric provides. "
+                  "Bus can write a value that is asserted for one clock cycle in fabric."),
+)
 
 
 class RegisterHtmlGenerator:
 
-    def __init__(self, register_list):
-        self.register_list = register_list
+    def __init__(self, module_name, generated_info):
+        self.module_name = module_name
+        self.generated_info = generated_info
         self._markdown_to_html = MarkdownToHtmlTranslator()
 
     @staticmethod
@@ -17,9 +37,7 @@ class RegisterHtmlGenerator:
         return f"<!-- {comment} -->\n"
 
     def _header(self):
-        html = self._comment(self.register_list.generated_info())
-        html += self._comment(self.register_list.generated_source_info())
-        return html
+        return self._comment(self.generated_info)
 
     def _annotate_register(self, register):
         description = self._markdown_to_html.translate(register.description)
@@ -27,7 +45,7 @@ class RegisterHtmlGenerator:
   <tr>
     <td><strong>{register.name}</strong></td>
     <td>{register.address}</td>
-    <td>{register.mode_readable}</td>
+    <td>{REGISTER_MODES[register.mode].mode_readable}</td>
     <td>{description}</td>
   </tr>"""
 
@@ -45,7 +63,7 @@ class RegisterHtmlGenerator:
 
         return html
 
-    def _get_table(self):
+    def _get_table(self, registers):
         html = """
 <table>
 <thead>
@@ -58,7 +76,7 @@ class RegisterHtmlGenerator:
 </thead>
 <tbody>"""
 
-        for register in self.register_list.iterate_registers():
+        for register in registers:
             html += self._annotate_register(register)
             for bit in register.bits:
                 html += self._annotate_bit(bit)
@@ -68,9 +86,9 @@ class RegisterHtmlGenerator:
 
         return html
 
-    def get_table(self):
+    def get_table(self, registers):
         html = self._header()
-        html += self._get_table()
+        html += self._get_table(registers)
         return html
 
     @staticmethod
@@ -85,11 +103,11 @@ class RegisterHtmlGenerator:
 </thead>
 <tbody>"""
 
-        for (mode_readable, description) in REGISTER_MODES.values():
+        for mode in REGISTER_MODES.values():
             html += f"""
 <tr>
-  <td>{mode_readable}</td>
-  <td>{description}</td>
+  <td>{mode.mode_readable}</td>
+  <td>{mode.description}</td>
 </tr>
 """
         html += """
@@ -97,9 +115,8 @@ class RegisterHtmlGenerator:
 </table>"""
         return html
 
-    def get_page(self, table_style=None, font_style=None, extra_style=""):
-        module_name = self.register_list.name
-        title = f"Documentation of {module_name} registers"
+    def get_page(self, registers, table_style=None, font_style=None, extra_style=""):
+        title = f"Documentation of {self.module_name} registers"
 
         if font_style is None:
             font_style = """
@@ -130,7 +147,6 @@ th {
   color: white;
 }"""
 
-        footer = self.register_list.generated_source_info()
         html = f"""
 {self._header()}
 
@@ -146,14 +162,14 @@ th {
 </head>
 <body>
   <h1>{title}</h1>
-  <p>This document is a specification of the PS interface of the {module_name} module.</p>
+  <p>This document is a specification of the PS interface of the {self.module_name} module.</p>
   <h2>Register modes</h2>
   <p>The following register modes are available.</p>
 {self._get_mode_descriptions()}
   <h2>Register map</h2>
-  <p>The following registers make up the register map for the {module_name} module.</p>
-{self._get_table()}
-<p>{footer}</p>
+  <p>The following registers make up the register map for the {self.module_name} module.</p>
+{self._get_table(registers)}
+<p>{self.generated_info}</p>
 </body>
 </html>"""
 

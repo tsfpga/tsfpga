@@ -5,16 +5,17 @@
 
 class RegisterCppGenerator:
 
-    def __init__(self, register_list):
-        self.register_list = register_list
-        self._class_name = self._to_pascal_case(register_list.name)
+    def __init__(self, module_name, generated_info):
+        self.module_name = module_name
+        self.generated_info = generated_info
+        self._class_name = self._to_pascal_case(module_name)
 
-    def get_interface(self):
+    def get_interface(self, registers):
         cpp_code = f"class I{self._class_name}\n"
         cpp_code += "{\n"
         cpp_code += "public:\n"
 
-        for register in self.register_list.registers.values():
+        for register in registers:
             bits = register.bits
             if bits:
                 for bit in bits:
@@ -24,7 +25,7 @@ class RegisterCppGenerator:
                 cpp_code += "\n"
 
         cpp_code += f"  virtual ~I{self._class_name}() {{ }}\n\n"
-        for register in self.register_list.registers.values():
+        for register in registers:
             if register.is_bus_readable:
                 cpp_code += f"  virtual {self._getter_function_signature(register)} const = 0;\n"
             if register.is_bus_writeable:
@@ -41,7 +42,7 @@ class RegisterCppGenerator:
 """
         return cpp_code_top + self._with_namespace(cpp_code)
 
-    def get_header(self):
+    def get_header(self, registers):
         cpp_code = f"class {self._class_name} : public I{self._class_name}\n"
         cpp_code += "{\n"
 
@@ -51,7 +52,7 @@ class RegisterCppGenerator:
         cpp_code += "public:\n"
         cpp_code += f"  {self._constructor_signature()};\n\n"
         cpp_code += f"  virtual ~{self._class_name}() {{ }}\n\n"
-        for register in self.register_list.registers.values():
+        for register in registers:
             if register.is_bus_readable:
                 cpp_code += f"  virtual {self._getter_function_signature(register)} const override;\n"
             if register.is_bus_writeable:
@@ -63,26 +64,26 @@ class RegisterCppGenerator:
 {self._file_header()}
 #pragma once
 
-#include "i_{self.register_list.name}.h"
+#include "i_{self.module_name}.h"
 
 """
         return cpp_code_top + self._with_namespace(cpp_code)
 
-    def get_implementation(self):
+    def get_implementation(self, registers):
         cpp_code = f"{self._class_name}::{self._constructor_signature()}\n"
         cpp_code += "    : m_registers(reinterpret_cast<volatile uint32_t *>(base_address))\n"
         cpp_code += "{\n"
         cpp_code += "  // Empty\n"
         cpp_code += "}\n\n"
 
-        for register in self.register_list.registers.values():
+        for register in registers:
             if register.is_bus_readable:
                 cpp_code += self._getter_function(register)
             if register.is_bus_writeable:
                 cpp_code += self._setter_function(register)
 
         cpp_code_top = f"{self._file_header()}\n"
-        cpp_code_top += f"#include \"include/{self.register_list.name}.h\"\n\n"
+        cpp_code_top += f"#include \"include/{self.module_name}.h\"\n\n"
 
         return cpp_code_top + self._with_namespace(cpp_code)
 
@@ -99,9 +100,7 @@ class RegisterCppGenerator:
         return f"/* {comment} */\n"
 
     def _file_header(self):
-        cpp_code = self._comment(self.register_list.generated_info())
-        cpp_code += self._comment(self.register_list.generated_source_info())
-        return cpp_code
+        return self._comment(self.generated_info)
 
     @staticmethod
     def _to_pascal_case(snake_string):
