@@ -156,7 +156,7 @@ class BaseModule:
         """
         Return:
             list(:class:`.Constraint`): Constraints that will be applied to a certain
-                entity within the module.
+            entity within the module.
         """
         scoped_constraints_folders = [
             self.path / "scoped_constraints",
