@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 from subprocess import check_call, check_output
 import sys
+from datetime import datetime
 from xml.etree import ElementTree
 
 from pybadges import badge
@@ -41,10 +42,12 @@ def generate_release_notes():
 Release notes
 =============
 
+Release history and changelog for the tsfpga project.
+
 """
 
     for release, previous_release_git_tag in get_release_notes_files():
-        heading = f"[{release.version}] - {release.date}"
+        heading = f"{release.version} ({release.date})"
         rst += heading + "\n"
         rst += "-" * len(heading) + "\n"
         rst += "\n"
@@ -105,11 +108,11 @@ class Release:
             "git",
             "show",
             "-s",
-            "--format=%cd",
-            "--date=short",
+            "--format=%at",
             tag
         ]
-        return check_output(cmd).decode().strip()
+        timestamp = datetime.fromtimestamp(int(check_output(cmd).decode().strip()))
+        return f"{timestamp.day} {timestamp:%B} {timestamp.year}".lower()
 
 
 def build_coverage_badge():
@@ -145,7 +148,7 @@ def build_sphinx():
     check_call(cmd)
     index_html = SPHINX_HTML / "index.html"
     assert index_html.exists(), index_html
-    print(f"Open with: firefox {index_html} &")
+    print(f"Open with:\nfirefox {index_html} &")
 
 
 def copy_coverage_to_html_output():
