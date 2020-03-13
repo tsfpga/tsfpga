@@ -26,8 +26,8 @@ package axi_pkg is
   constant axi_a_len_sz : integer := 8; -- Number of transfers = len + 1
   constant axi_a_size_sz : integer := 3; -- Bytes per transfer = 2^size
 
-  function to_len(burst_length : integer) return std_logic_vector;
-  function to_size(data_width : integer) return std_logic_vector;
+  function to_len(burst_length_beats : integer) return std_logic_vector;
+  function to_size(data_width_bits : integer) return std_logic_vector;
 
   constant axi_a_burst_sz : integer := 2;
   constant axi_a_burst_fixed : std_logic_vector(axi_a_burst_sz - 1 downto 0) := "00";
@@ -234,19 +234,18 @@ end;
 
 package body axi_pkg is
 
-  function to_len(burst_length : integer) return std_logic_vector is
+  function to_len(burst_length_beats : integer) return std_logic_vector is
     variable result : std_logic_vector(axi_a_len_sz - 1 downto 0);
   begin
-    -- Burst_length as in number of transfers (beats)
-    result := std_logic_vector(to_unsigned(burst_length - 1, result'length));
+    -- burst_length_beats is number of transfers
+    result := std_logic_vector(to_unsigned(burst_length_beats - 1, result'length));
     return result;
   end function;
 
-  function to_size(data_width : integer) return std_logic_vector is
+  function to_size(data_width_bits : integer) return std_logic_vector is
     variable result : std_logic_vector(axi_a_size_sz - 1 downto 0);
   begin
-    -- Data_width is a number of bits.
-    result := std_logic_vector(to_unsigned(log2(data_width / 8), result'length));
+    result := std_logic_vector(to_unsigned(log2(data_width_bits / 8), result'length));
     return result;
   end function;
 
