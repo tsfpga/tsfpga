@@ -15,6 +15,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library common;
+use common.attribute_pkg.all;
 use common.types_pkg.all;
 
 
@@ -23,7 +24,8 @@ entity fifo is
     width : integer;
     depth : integer;
     almost_full_level : integer range 0 to depth - 1 := 0;
-    almost_empty_level : integer range 0 to depth - 1 := 0
+    almost_empty_level : integer range 0 to depth - 1 := 0;
+    ram_type : string := "auto"
   );
   port (
     clk : in std_logic;
@@ -119,6 +121,7 @@ begin
     subtype word_t is std_logic_vector(width - 1 downto 0);
     type mem_t is array (integer range <>) of word_t;
     variable mem : mem_t(0 to depth - 1) := (others => (others => '0'));
+    attribute ram_style of mem : variable is ram_type;
   begin
     wait until rising_edge(clk);
 
