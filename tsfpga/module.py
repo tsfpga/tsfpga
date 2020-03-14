@@ -61,10 +61,16 @@ class BaseModule:
             # Only create object once
             return self._registers
 
-        json_file = self.path / (self.name + "_regs.json")
+        json_file = self.path / (f"regs_{self.name}.json")
         if json_file.exists():
             self._registers = from_json(self.name, json_file, copy.deepcopy(self._default_registers))
             return self._registers
+
+        deprecated_json_file = self.path / (self.name + "_regs.json")
+        if deprecated_json_file.exists():
+            message = f"DEPRECATED: Using deprecated json file name: {deprecated_json_file}"
+            message += f"\nDEPRECATED: Rename to {json_file}"
+            raise ValueError(message)
 
         return None
 

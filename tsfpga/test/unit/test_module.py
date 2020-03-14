@@ -127,7 +127,7 @@ class Module(BaseModule):
 
     @mock.patch("tsfpga.module.from_json", autospec=True)
     def test_register_object_creation_synthesis(self, from_json):
-        json_file = create_file(self.tmp_path / "a" / "a_regs.json")
+        json_file = create_file(self.tmp_path / "a" / "regs_a.json")
 
         module = get_modules(self.modules_folders, names_include=["a"])[0]
         module.get_synthesis_files()
@@ -137,7 +137,7 @@ class Module(BaseModule):
 
     @mock.patch("tsfpga.module.from_json", autospec=True)
     def test_register_object_creation_simulation(self, from_json):
-        json_file = create_file(self.tmp_path / "a" / "a_regs.json")
+        json_file = create_file(self.tmp_path / "a" / "regs_a.json")
 
         module = get_modules(self.modules_folders, names_include=["a"])[0]
         module.get_simulation_files()
@@ -147,10 +147,19 @@ class Module(BaseModule):
 
     @mock.patch("tsfpga.module.from_json", autospec=True)
     def test_register_object_creation_mixed(self, from_json):
-        json_file = create_file(self.tmp_path / "a" / "a_regs.json")
+        json_file = create_file(self.tmp_path / "a" / "regs_a.json")
 
         module = get_modules(self.modules_folders, names_include=["a"])[0]
         module.get_synthesis_files()
         module.get_simulation_files()
 
         from_json.assert_called_once_with("a", json_file, mock.ANY)
+
+    def test_deprecated_register_json_file_name_should_raise_exception(self):
+        json_file = create_file(self.tmp_path / "a" / "a_regs.json")
+
+        module = get_modules(self.modules_folders, names_include=["a"])[0]
+        with pytest.raises(ValueError) as exception_info:
+            module.get_synthesis_files()
+        assert str(exception_info.value).startswith(
+            f"DEPRECATED: Using deprecated json file name: {json_file}")

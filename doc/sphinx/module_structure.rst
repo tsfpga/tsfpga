@@ -27,7 +27,7 @@ The different files and folders are explained further down.
     ├── foo
     │   ├── module_foo.py
     │   ├── project_foo.py
-    │   ├── foo_regs.json
+    │   ├── regs_foo.json
     │   ├── ip_cores
     │   │   ├── fifo.tcl
     │   │   └── ...
@@ -103,10 +103,10 @@ There is an example of a project file that sets up project classes :ref:`here <e
 
 
 
-foo_regs.json
+regs_foo.json
 -------------
 
-Register definitions used in the tsfpga :ref:`register generator <registers>` are taken from a file called ``<module_name>_regs.json``.
+Register definitions used in the tsfpga :ref:`register generator <registers>` are taken from a file called ``regs_<module_name>.json``.
 It contains the registers that the module uses and the fields within those registers.
 
 

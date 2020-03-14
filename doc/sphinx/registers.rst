@@ -33,8 +33,8 @@ JSON
 ____
 
 
-.. literalinclude:: ../../generated/registers/json/ddr_buffer_regs.json
-   :caption: ddr_buffer_regs.json
+.. literalinclude:: ../../generated/registers/json/regs_ddr_buffer.json
+   :caption: regs_ddr_buffer.json
    :language: json
 
 
