@@ -16,6 +16,7 @@ from tsfpga.system_utils import read_file
 
 README_RST = REPO_ROOT / "readme.rst"
 REQUIREMENTS_TXT = REPO_ROOT / "requirements.txt"
+REQUIREMENTS_DEVELOP_TXT = REPO_ROOT / "requirements_develop.txt"
 
 
 def main():
@@ -24,13 +25,14 @@ def main():
         version=tsfpga.__version__,
         description="A project platform for modern FPGA development",
         long_description=read_file(README_RST),
-        long_description_content_type="text/markdown",
+        long_description_content_type="text/x-rst",
         license="BSD 3-Clause License",
         author="Lukas Vik",
         author_email="2767848-LukasVik@users.noreply.gitlab.com",
         url="https://gitlab.com/truestream/tsfpga",
         python_requires=">=3.6",
-        install_requires=get_package_requirements(),
+        install_requires=read_requirements_file(REQUIREMENTS_TXT),
+        extras_require=dict(dev=read_requirements_file(REQUIREMENTS_DEVELOP_TXT)),
         packages=find_packages(),
         package_data={"tsfpga": get_package_data()},
         classifiers=[
@@ -48,9 +50,9 @@ def main():
     )
 
 
-def get_package_requirements():
+def read_requirements_file(path):
     requirements = []
-    with REQUIREMENTS_TXT.open() as file_handle:
+    with path.open() as file_handle:
         # Requirements file contains one package name per line
         for line_data in file_handle.readlines():
             if line_data:
@@ -66,6 +68,7 @@ def get_package_data():
     package_data = [
         README_RST,
         REQUIREMENTS_TXT,
+        REQUIREMENTS_DEVELOP_TXT,
         tsfpga.TSFPGA_PATH / "test" / "lint" / "pylintrc",
         tsfpga.TSFPGA_PATH / "test" / "lint" / "pycodestylerc",
     ]

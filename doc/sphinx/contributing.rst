@@ -1,6 +1,23 @@
 Contribution guide
 ==================
 
+Information on how to make contributions to the tsfpga project.
+
+
+
+Setting up development environment
+----------------------------------
+
+For tsfpga development we have a lot more python dependencies than when simply using the package.
+Install further dependencies with:
+
+.. code-block:: shell
+
+    python -m pip install --upgrade --requirement requirements_develop.txt
+
+You also need VUnit installed `somewhere where python can find it <https://vunit.github.io/installing.html>`__.
+
+
 
 .. _maintain_changelog:
 
@@ -9,26 +26,27 @@ Maintaining changelog
 
 We maintain a changelog according to the `keep a changelog <https://keepachangelog.com/>`__ format.
 The unreleased changelog in ``doc/release_notes/unreleased.rst`` shall be updated continuously, not just at release.
-Release note files are in the ``rst`` format and shall be formatted as such:
+Release note files are in the ``rst`` format, inspect older release note files to see the formatting details.
 
-.. code-block:: rst
 
-    Added
 
-    * Add the one thing
+How to build documentation
+--------------------------
 
-    Changed
+Documentation is built using the ``tools/build_sphinx_docs.py`` script.
+The documentation pages have information about unit test code coverage.
+So before building documentation you must run pytest with coverage reports enabled like in CI:
 
-    * Change something
-    * Update that other thing
+.. code-block:: shell
 
+    python -m pytest -v --cov tsfpga --cov-report xml:generated/pytest_coverage.xml --cov-report html:generated/pytest_coverage_html tsfpga
 
 
 
 How to make a new release
 -------------------------
 
-Releases are made to the Python Packaging Index (PyPI) and can be installed with the Python "pip" tool.
+Releases are made to the Python Packaging Index (PyPI) and can be installed with the python ``pip`` tool.
 To make a new release follow these steps.
 
 
