@@ -28,7 +28,7 @@ pytest:
   script:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git g++ > /dev/null
-    - python3 -m pip install --upgrade --requirement requirements_develop.txt > /dev/null
+    - python3 -m pip install --requirement requirements_develop.txt > /dev/null
     - python3 -m pylint --version
     - python3 -m pycodestyle --version
     - python3 -m pytest -v --cov tsfpga --cov-report xml:generated/pytest_coverage.xml --cov-report html:generated/pytest_coverage_html --ignore=tsfpga/test/vivado/ tsfpga/
@@ -43,7 +43,7 @@ simulate:
   rules:
     - when: always
   script:
-    - python3 -m pip install --upgrade --requirement requirements_develop.txt > /dev/null
+    - python3 -m pip install --requirement requirements_develop.txt > /dev/null
     - ghdl --version
     - python3 examples/simulate.py --num-threads 4 --vivado-skip
 
@@ -69,7 +69,7 @@ build_pages:
   script:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git > /dev/null
-    - python3 -m pip install --upgrade --requirement requirements_develop.txt > /dev/null
+    - python3 -m pip install --requirement requirements_develop.txt > /dev/null
     - python3 tools/build_sphinx_docs.py
   artifacts:
     paths:
@@ -88,7 +88,7 @@ deploy_pypi:
   script:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git > /dev/null
-    - python3 -m pip install --upgrade --requirement requirements_develop.txt > /dev/null
+    - python3 -m pip install --requirement requirements_develop.txt > /dev/null
     - python3 tools/verify_release.py
     - python3 -m twine upload dist/*
 
