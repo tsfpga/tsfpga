@@ -82,7 +82,7 @@ One for the commit and one for the tag.
 
 .. image:: ci_deploy_pipelines.png
 
-The pipeline for the tag will run an additional job ``pypi_deploy``.
+The pipeline for the tag will run an additional job ``deploy_pypi``.
 
 .. image:: ci_deploy_jobs.png
 
