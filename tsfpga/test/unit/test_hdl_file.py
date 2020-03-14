@@ -14,3 +14,7 @@ def test_file_type():
 
     assert HdlFile(Path("file.vh")).is_verilog_header
     assert HdlFile(Path("file.v")).is_verilog_source
+
+
+def test_can_cast_to_string_without_error():
+    str(HdlFile(Path("file.vhd")))

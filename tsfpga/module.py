@@ -184,7 +184,7 @@ class BaseModule:
         return constraints
 
     def __str__(self):
-        return self.name + ": " + self.path
+        return f"{self.name}:{self.path}"
 
 
 def iterate_module_folders(modules_folders):

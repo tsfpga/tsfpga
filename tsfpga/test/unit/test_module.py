@@ -2,6 +2,7 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
+from pathlib import Path
 from unittest import mock, TestCase
 
 import pytest
@@ -59,6 +60,10 @@ def test_scoped_constraint_entity_not_existing_should_raise_error(tmp_path):
     with pytest.raises(FileNotFoundError) as exception_info:
         module.get_scoped_constraints()
     assert str(exception_info.value).startswith("Could not find a matching entity file")
+
+
+def test_can_cast_to_string_without_error():
+    str(BaseModule(Path("dummy")))
 
 
 @pytest.mark.usefixtures("fixture_tmp_path")

@@ -42,3 +42,6 @@ def get_projects():
         with pytest.raises(ValueError) as exception_info:
             self.projects.get("c")
         assert str(exception_info.value) == "Could not find project: c"
+
+    def test_can_cast_to_string_without_error(self):
+        str(self.projects)
