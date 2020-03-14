@@ -2,7 +2,7 @@ About tsfpga
 ------------
 This repo contains a set of tools for working in a modern FPGA project.
 
-**See documentation on the website**: https://truestream.gitlab.io/tsfpga
+**See documentation on the website**: https://tsfpga.com
 
 It consists of two distinct parts that can be used independently of each other.
 
@@ -12,9 +12,9 @@ The ``tsfpga`` folder contains a Python package for working with modules and FPG
 The goal is a highly useable system for working in a multi-chip and multi-vendor environment.
 Focus has been placed on modularization and enabling a high level of scalability.
 
-.. image:: https://truestream.gitlab.io/tsfpga/badges/pytest_coverage.svg
+.. image:: https://tsfpga.com/badges/pytest_coverage.svg
   :alt: Pytest coverage badge
-  :target: https://truestream.gitlab.io/tsfpga/pytest_coverage_html
+  :target: https://tsfpga.com/pytest_coverage_html
 
 Key features
 ____________
