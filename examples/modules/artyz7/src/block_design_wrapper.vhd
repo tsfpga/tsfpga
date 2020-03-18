@@ -55,11 +55,11 @@ begin
     subtype axi3_len_rng is integer range 3 downto 0;
 
     subtype m_gp0_id_rng is integer range 11 downto 0;
-    subtype m_gp0_strb_rng is integer range axi_w_strb_width(m_gp0_data_width) - 1 downto 0;
+    subtype m_gp0_strb_rng is integer range axi_strb_width(m_gp0_data_width) - 1 downto 0;
 
     subtype s_hp0_id_rng is integer range 5 downto 0;
     subtype s_hp0_data_rng is integer range s_hp0_data_width - 1 downto 0;
-    subtype s_hp0_strb_rng is integer range axi_w_strb_width(s_hp0_data_width) - 1 downto 0;
+    subtype s_hp0_strb_rng is integer range axi_strb_width(s_hp0_data_width) - 1 downto 0;
   begin
 
     ----------------------------------------------------------------------------
