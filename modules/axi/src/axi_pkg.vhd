@@ -18,6 +18,10 @@ package axi_pkg is
 
   constant axi_id_sz : integer := 32; -- Max value
 
+  constant axi_max_burst_length_beats : integer := 256;
+  constant axi3_max_burst_length_beats : integer := 16;
+
+
   ------------------------------------------------------------------------------
   -- A (Address Read and Address Write) channels
   ------------------------------------------------------------------------------
