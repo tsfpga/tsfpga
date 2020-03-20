@@ -74,6 +74,20 @@ package reg_operations_pkg is
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master);
 
+  procedure write_reg_bits(
+    signal net : inout network_t;
+    reg_index : in integer;
+    bits : in integer_vector;
+    base_address : in addr_t := (others => '0');
+    bus_handle : in bus_master_t := regs_bus_master);
+
+  procedure write_reg_bit(
+    signal net : inout network_t;
+    reg_index : in integer;
+    bit_index : in integer;
+    base_address : in addr_t := (others => '0');
+    bus_handle : in bus_master_t := regs_bus_master);
+
   procedure write_command(
     signal net : inout network_t;
     bit : in integer;
@@ -164,6 +178,32 @@ package body reg_operations_pkg is
     bus_handle : in bus_master_t := regs_bus_master) is
   begin
     write_reg(net, reg_index, std_logic_vector(to_signed(value, 32)), base_address, bus_handle);
+  end procedure;
+
+  procedure write_reg_bits(
+    signal net : inout network_t;
+    reg_index : in integer;
+    bits : in integer_vector;
+    base_address : in addr_t := (others => '0');
+    bus_handle : in bus_master_t := regs_bus_master) is
+    variable data : reg_t := (others => '0');
+  begin
+    -- Write with only the bits listed in "bits" asserted.
+    for vec_index in bits'range loop
+      data(bits(vec_index)) := '1';
+    end loop;
+    write_reg(net, reg_index, data, base_address, bus_handle);
+  end procedure;
+
+  procedure write_reg_bit(
+    signal net : inout network_t;
+    reg_index : in integer;
+    bit_index : in integer;
+    base_address : in addr_t := (others => '0');
+    bus_handle : in bus_master_t := regs_bus_master) is
+  begin
+    -- Write with only the bit "bit_index" asserted.
+    write_reg_bits(net, reg_index, (0 => bit_index), base_address, bus_handle);
   end procedure;
 
   procedure write_command(
