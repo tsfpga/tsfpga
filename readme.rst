@@ -12,9 +12,9 @@ The ``tsfpga`` folder contains a Python package for working with modules and FPG
 The goal is a highly useable system for working in a multi-chip and multi-vendor environment.
 Focus has been placed on modularization and enabling a high level of scalability.
 
-.. image:: https://tsfpga.com/badges/pytest_coverage.svg
-  :alt: Pytest coverage badge
-  :target: https://tsfpga.com/pytest_coverage_html
+.. image:: https://tsfpga.com/badges/python_coverage.svg
+  :alt: Python coverage badge
+  :target: https://tsfpga.com/python_coverage_html
 
 Key features
 ____________
@@ -43,6 +43,16 @@ A reusable set of HDL building blocks
 The ``modules`` folder contains a set of VHDL modules/IP that are common in many FPGA projects.
 The modules have been developed with quality and reusability in mind.
 Having these high quality building blocks available will make it easier to add new functionality to your project.
+
+|pic1|  |pic2|
+
+.. |pic1| image:: https://tsfpga.com/badges/vhdl_line_coverage.svg
+  :alt: VHDL line coverage badge
+  :target: https://tsfpga.com/vhdl_coverage_html
+
+.. |pic2| image:: https://tsfpga.com/badges/vhdl_branch_coverage.svg
+  :alt: VHDL branch coverage badge
+  :target: https://tsfpga.com/vhdl_coverage_html
 
 Requirements
 ____________
