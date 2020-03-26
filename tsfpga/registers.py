@@ -18,46 +18,76 @@ from tsfpga.system_utils import create_directory, create_file
 
 class Bit:
 
-    def __init__(self, idx, name, description):
-        self.idx = idx
+    """
+    Used to represent a bit in a register.
+    """
+
+    def __init__(self, name, index, description):
+        """
+        Args:
+            name (str): The name of the bit.
+            index (int): The zero-based index of this bit within the register.
+            description (str): Textual bit description.
+        """
         self.name = name
+        self.index = index
         self.description = description
 
 
 class Register:
 
-    def __init__(self, name, idx, mode, description=""):
+    """
+    Used to represent a register and its fields.
+    """
+
+    def __init__(self, name, index, mode, description=""):
+        """
+        Args:
+            name (str): The name of the register.
+            index (int): The zero-based index of this register in its register list.
+            mode (str): A valid register mode.
+            description (str): Textual register description.
+        """
         self.name = name
-        self.idx = idx
+        self.index = index
         self.mode = mode
         self.description = description
         self.bits = []
 
-    def append_bit(self, bit_name, bit_description):
-        idx = len(self.bits)
-        bit = Bit(idx, bit_name, bit_description)
+    def append_bit(self, name, description):
+        """
+        Append a bit to this register.
+
+        Args:
+            name (str): The name of the bit.
+            description (str): Description of the bit.
+        Return:
+            :class:`.Bit`: The bit object that was created.
+        """
+        index = len(self.bits)
+        bit = Bit(name, index, description)
 
         self.bits.append(bit)
         return bit
 
     @property
     def address(self):
-        address_int = 4 * self.idx
-        num_nibbles_needed = 4
-        formatting_string = "0x{:0%iX}" % num_nibbles_needed
-        return formatting_string.format(address_int)
+        """
+        int: Byte address, within the register list, of this register.
+        """
+        return 4 * self.index
 
     @property
     def is_bus_readable(self):
         """
-        True if the register is readable by bus.
+        True if the register is readable by bus. Based on the register type.
         """
         return self.mode in ["r", "r_w", "r_wpulse"]
 
     @property
     def is_bus_writeable(self):
         """
-        True if the register is writeable by bus.
+        True if the register is writeable by bus. Based on the register type.
         """
         return self.mode in ["w", "r_w", "wpulse", "r_wpulse"]
 
@@ -86,32 +116,56 @@ def get_default_registers():
 
 class RegisterList:
 
+    """
+    Used to handle the registers of a module. Also known as a register map.
+    """
+
     def __init__(self, name, source_definition_file):
+        """
+        Args:
+            name (str): The name of this register list. Typically the name of the module that uses it.
+            source_definition_file (`pathlib.Path`): The JSON source file that defined this register list.
+        """
         self.name = name
         self.source_definition_file = source_definition_file
         self.registers = []
 
-    def append_register(self, register_name, mode):
-        idx = len(self.registers)
-        register = Register(register_name, idx, mode)
+    def append_register(self, name, mode):
+        """
+        Append a register to this list.
+
+        Args:
+            name (str): The name of the register.
+            mode (str): A valid register mode.
+        Return:
+            :class:`.Register`: The register object that was created.
+        """
+        index = len(self.registers)
+        register = Register(name, index, mode)
 
         self.registers.append(register)
         return register
 
-    def get_register(self, register_name):
+    def get_register(self, name):
         """
+        Get a register from this list.
+
+        Args:
+            name (str): The name of the register.
         Return:
-            :class:`.Register`: The register with the specified name. ``None`` if no register matched.
+            :class:`.Register`: The register. ``None`` if no register matched.
         """
         for register in self.registers:
-            if register.name == register_name:
+            if register.name == name:
                 return register
 
         return None
 
     def create_vhdl_package(self, output_path):
         """
-        Assumes that the ``output_path`` folder already exists.
+        Create a VHDL package file with register and field definitions.
+
+        This function assumes that the ``output_path`` folder already exists.
         This assumption makes it slightly faster than the other functions that use ``create_file()``.
         Necessary since this one is often used in real time (before simulations, etc..) and not in
         one-off scenarios like the others (when making a release).
@@ -125,6 +179,8 @@ class RegisterList:
 
     def create_c_header(self, output_path):
         """
+        Create a C header file with register and field definitions.
+
         Args:
             output_path (`pathlib.Path`): Result will be placed here.
         """
@@ -134,6 +190,9 @@ class RegisterList:
 
     def create_cpp_interface(self, output_path):
         """
+        Create a C++ class interface header file, with register and field definitions. The interface header
+        contains only virtual methods.
+
         Args:
             output_path (`pathlib.Path`): Result will be placed here.
         """
@@ -143,6 +202,8 @@ class RegisterList:
 
     def create_cpp_header(self, output_path):
         """
+        Create a C++ class header file.
+
         Args:
             output_path (`pathlib.Path`): Result will be placed here.
         """
@@ -152,6 +213,8 @@ class RegisterList:
 
     def create_cpp_implementation(self, output_path):
         """
+        Create a C++ class implementation file.
+
         Args:
             output_path (`pathlib.Path`): Result will be placed here.
         """
@@ -161,6 +224,9 @@ class RegisterList:
 
     def create_html_page(self, output_path):
         """
+        Create a documentation HTML page with register and field information. Will include the
+        table created by :meth:`.create_html_table`.
+
         Args:
             output_path (`pathlib.Path`): Result will be placed here.
         """
@@ -170,6 +236,8 @@ class RegisterList:
 
     def create_html_table(self, output_path):
         """
+        Create documentation HTML table with register and field information.
+
         Args:
             output_path (`pathlib.Path`): Result will be placed here.
         """
@@ -188,14 +256,16 @@ class RegisterList:
     @staticmethod
     def generated_info():
         """
-        A string informing the user that a file is automatically generated.
+        Return:
+            str: A string informing the user that a file is automatically generated.
         """
         return "File automatically generated by tsfpga."
 
     def generated_source_info(self):
         """
-        A string informing the user that a file is automatically generated, containing info
-        about the source of the generated register information.
+        Return:
+            str: A string informing the user that a file is automatically generated, containing
+            info about the source of the generated register information.
         """
         time_info = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 

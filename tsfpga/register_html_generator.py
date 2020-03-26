@@ -39,12 +39,18 @@ class RegisterHtmlGenerator:
     def _header(self):
         return self._comment(self.generated_info)
 
+    @staticmethod
+    def _to_readable_address(address):
+        num_nibbles_needed = 4
+        formatting_string = "0x{:0%iX}" % num_nibbles_needed
+        return formatting_string.format(address)
+
     def _annotate_register(self, register):
         description = self._markdown_to_html.translate(register.description)
         html = f"""
   <tr>
     <td><strong>{register.name}</strong></td>
-    <td>{register.address}</td>
+    <td>{self._to_readable_address(register.address)}</td>
     <td>{REGISTER_MODES[register.mode].mode_readable}</td>
     <td>{description}</td>
   </tr>"""
@@ -56,7 +62,7 @@ class RegisterHtmlGenerator:
         html = f"""
   <tr>
     <td>&nbsp;&nbsp;<em>{bit.name}</em></td>
-    <td>{bit.idx}</td>
+    <td>{bit.index}</td>
     <td></td>
     <td>{description}</td>
   </tr>"""
@@ -166,7 +172,7 @@ th {
   <h2>Register modes</h2>
   <p>The following register modes are available.</p>
 {self._get_mode_descriptions()}
-  <h2>Register map</h2>
+  <h2>Register list</h2>
   <p>The following registers make up the register map for the {self.module_name} module.</p>
 {self._get_table(registers)}
 <p>{self.generated_info}</p>

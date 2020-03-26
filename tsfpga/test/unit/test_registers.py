@@ -81,9 +81,9 @@ class TestRegisters(unittest.TestCase):
         json_registers = from_json(self.module_name, self.json_file, default_registers)
 
         # The registers from this test are appended at the end
-        assert json_registers.get_register("conf").idx == num_default_registers
-        assert json_registers.get_register("cmd").idx == num_default_registers + 1
-        assert json_registers.get_register("irq").idx == num_default_registers + 2
+        assert json_registers.get_register("conf").index == num_default_registers
+        assert json_registers.get_register("cmd").index == num_default_registers + 1
+        assert json_registers.get_register("irq").index == num_default_registers + 2
 
     def test_load_nonexistent_json_file_should_raise_exception(self):
         file = self.json_file.with_name("apa.json")

@@ -28,8 +28,8 @@ class RegisterCGenerator:
         for register in registers:
             for bit in register.bits:
                 bit_name = (self.module_name + "_" + register.name + "_" + bit.name).upper()
-                c_code += f"#define {bit_name}_BIT ({bit.idx}uL)\n"
-                c_code += f"#define {bit_name}     ({2**bit.idx}uL)\n"
+                c_code += f"#define {bit_name}_BIT ({bit.index}uL)\n"
+                c_code += f"#define {bit_name}     ({2**bit.index}uL)\n"
                 c_code += "\n"
 
         return c_code

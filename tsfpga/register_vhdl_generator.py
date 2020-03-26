@@ -23,7 +23,7 @@ class RegisterVhdlGenerator:
         vhdl = ""
         for register in registers:
             constant = self._register_constant_name(register)
-            vhdl += f"  constant {constant} : integer := {register.idx};\n"
+            vhdl += f"  constant {constant} : integer := {register.index};\n"
 
         return vhdl
 
@@ -52,7 +52,7 @@ class RegisterVhdlGenerator:
         for register in registers:
             for bit in register.bits:
                 name = self._register_constant_name(register) + "_" + bit.name
-                vhdl += f"  constant {name} : integer := {bit.idx};\n"
+                vhdl += f"  constant {name} : integer := {bit.index};\n"
             if register.bits:
                 vhdl += "\n"
 

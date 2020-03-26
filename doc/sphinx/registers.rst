@@ -5,16 +5,22 @@ Register code generation
 
 TBC WIP
 
+.. autoclass:: tsfpga.registers.RegisterList()
+    :members:
+
+    .. automethod:: __init__
+
+
 .. autoclass:: tsfpga.registers.Register()
     :members:
 
     .. automethod:: __init__
 
-
-.. autoclass:: tsfpga.registers.RegisterList()
+.. autoclass:: tsfpga.registers.Bit()
     :members:
 
     .. automethod:: __init__
+
 
 
 .. _default_registers:

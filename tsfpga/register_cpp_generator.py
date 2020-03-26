@@ -20,7 +20,7 @@ class RegisterCppGenerator:
             if bits:
                 for bit in bits:
                     bit_constant_name = register.name + "_" + bit.name
-                    bit_constant_value = 2 ** bit.idx
+                    bit_constant_value = 2 ** bit.index
                     cpp_code += f"  static const uint32_t {bit_constant_name} = {bit_constant_value}uL;\n"
                 cpp_code += "\n"
 
@@ -115,7 +115,7 @@ class RegisterCppGenerator:
     def _setter_function(self, register):
         cpp_code = f"void {self._class_name}::set_{register.name}(uint32_t value) const\n"
         cpp_code += "{\n"
-        cpp_code += f"  m_registers[{register.idx}] = value;\n"
+        cpp_code += f"  m_registers[{register.index}] = value;\n"
         cpp_code += "}\n\n"
         return cpp_code
 
@@ -126,7 +126,7 @@ class RegisterCppGenerator:
     def _getter_function(self, register):
         cpp_code = f"uint32_t {self._class_name}::get_{register.name}() const\n"
         cpp_code += "{\n"
-        cpp_code += f"  return m_registers[{register.idx}];\n"
+        cpp_code += f"  return m_registers[{register.index}];\n"
         cpp_code += "}\n\n"
         return cpp_code
 
