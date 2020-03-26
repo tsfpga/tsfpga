@@ -116,7 +116,7 @@ Of course this is incredibly simplified, but it does show the interface to the t
 The :class:`.FpgaProjectList` function :meth:`.FpgaProjectList.get` will return a :class:`build project object <.VivadoProject>`.
 With this objects the ``create()`` and ``build()`` functions are available.
 
-Note that when a project is created a :ref:`register generation <registers>` is run, so that the project is built using up-to-date register definitions.
+Note that before a project is built a :ref:`register generation <registers>` is run, so that the project is built using up-to-date register definitions.
 
 Of course a more realistic ``build.py`` would be a little more verbose.
 It would probably feature command line arguments that control the behavior, output paths, etc.

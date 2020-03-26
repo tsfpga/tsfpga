@@ -226,6 +226,10 @@ class VivadoProject:
             num_threads=num_threads
         )
 
+        # Make sure register packages are up to date
+        for module in self.modules:
+            module.create_regs_vhdl_package()
+
         self.pre_build(**pre_and_post_build_parameters)
 
         build_vivado_project_tcl = self._build_tcl(project_path=project_path,
