@@ -18,17 +18,16 @@ class BaseModule:
     different catalog structure.
     """
 
-    def __init__(self, path, library_name_has_lib_suffix=False, default_registers=None):
+    def __init__(self, path, library_name, default_registers=None):
         """
         Args:
             path (`pathlib.Path`): Path to the module folder.
-            library_name_has_lib_suffix (bool): If set, the library name will be
-                ``<module name>_lib``, otherwise it is just ``<module name>``.
+            library_name (str): VHDL library name.
             default_registers (list(Register)): Default registers.
         """
         self.path = path
         self.name = path.name
-        self.library_name = self._get_library_name(self.name, library_name_has_lib_suffix)
+        self.library_name = library_name
 
         # Note: Likely mutable object, need to create deep copy before using.
         self._default_registers = default_registers
@@ -125,16 +124,6 @@ class BaseModule:
 
         return self.get_synthesis_files() + self._get_hdl_file_list(test_folders)
 
-    @staticmethod
-    def _get_library_name(module_name, library_name_has_lib_suffix):
-        """
-        By praxis VHDL libraries should be named e.g. ieee and not ieee_lib.
-        However using <module_name>_lib is very common.
-        """
-        if library_name_has_lib_suffix:
-            return module_name + "_lib"
-        return module_name
-
     def setup_simulations(self, vunit_proj, **kwargs):
         """
         Setup local configuration of this module's test benches.
@@ -195,13 +184,12 @@ def iterate_module_folders(modules_folders):
 
 
 def get_module_object(path, name, library_name_has_lib_suffix, default_registers):
-    module_file = path / ("module_" + name + ".py")
+    module_file = path / f"module_{name}.py"
+    library_name = f"{name}_lib" if library_name_has_lib_suffix else name
 
     if module_file.exists():
-        return load_python_module(module_file).Module(path,
-                                                      library_name_has_lib_suffix,
-                                                      default_registers)
-    return BaseModule(path, library_name_has_lib_suffix, default_registers)
+        return load_python_module(module_file).Module(path, library_name, default_registers)
+    return BaseModule(path, library_name, default_registers)
 
 
 def get_modules(modules_folders,
@@ -216,8 +204,9 @@ def get_modules(modules_folders,
         modules_folders (list(`pathlib.Path`)): A list of paths where your modules are located.
         names_include (list(str)): If specified, only modules with these names will be included.
         names_avoid (list(str)): If specified, modules with these names will be discarded.
-        library_name_has_lib_suffix (bool): See :class:`BaseModule`.
-        default_registers: See :class:`BaseModule`.
+        library_name_has_lib_suffix (bool): If set, the library name will be
+            ``<module name>_lib``, otherwise it is just ``<module name>``.
+        default_registers (list(Register)): Default registers.
 
     Return:
         List of module objects (:class:`BaseModule` or child classes thereof) created from

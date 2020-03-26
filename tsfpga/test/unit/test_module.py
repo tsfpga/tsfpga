@@ -29,7 +29,7 @@ def test_file_list_filtering(tmp_path):
 
     sim_files = [create_file(path / "sim" / "sim.vhd")]
 
-    my_module = BaseModule(path)
+    my_module = BaseModule(path, "zebra")
 
     files = [file.path for file in my_module.get_synthesis_files()]
     assert set(files) == set(synth_files)
@@ -46,7 +46,7 @@ def test_scoped_constraints(tmp_path):
     create_file(module_path / "src" / "hest.vhd")
     create_file(module_path / "scoped_constraints" / "hest.tcl")
 
-    my_module = BaseModule(module_path)
+    my_module = BaseModule(module_path, "apa")
     scoped_constraints = my_module.get_scoped_constraints()
     assert len(scoped_constraints) == 1
     assert scoped_constraints[0].ref == "hest"
@@ -56,14 +56,14 @@ def test_scoped_constraint_entity_not_existing_should_raise_error(tmp_path):
     module_path = tmp_path / "apa"
     create_file(module_path / "scoped_constraints" / "hest.tcl")
 
-    module = BaseModule(module_path)
+    module = BaseModule(module_path, "apa")
     with pytest.raises(FileNotFoundError) as exception_info:
         module.get_scoped_constraints()
     assert str(exception_info.value).startswith("Could not find a matching entity file")
 
 
 def test_can_cast_to_string_without_error():
-    str(BaseModule(Path("dummy")))
+    str(BaseModule(Path("dummy"), "dummy"))
 
 
 @pytest.mark.usefixtures("fixture_tmp_path")

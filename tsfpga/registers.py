@@ -320,8 +320,8 @@ def from_json(module_name, json_file, default_registers=None):
             # change the mode.
             register = register_list.get_register(register_name)
             if "mode" in register_fields:
-                mesg = f"Overloading register {register_name} in {json_file}, one can not change mode from default"
-                raise ValueError(mesg)
+                message = f"Overloading register {register_name} in {json_file}, one can not change mode from default"
+                raise ValueError(message)
         else:
             # If it is a new register however the mode has to be specified.
             if "mode" not in register_fields:
