@@ -29,10 +29,12 @@ def main():
     generate_release_notes()
     build_sphinx()
 
+    badges_path = create_directory(SPHINX_HTML / "badges")
+    build_information_badges(badges_path)
+
     if args.skip_coverage:
         return
 
-    badges_path = create_directory(SPHINX_HTML / "badges")
     build_python_coverage_badge(badges_path)
     build_vhdl_coverage_badges(badges_path)
 
@@ -137,6 +139,32 @@ class Release:
         return f"{timestamp.day} {timestamp:%B} {timestamp.year}".lower()
 
 
+def build_information_badges(output_path):
+    badge_svg = badge(
+        left_text="pip install",
+        right_text="tsfpga",
+        right_color="blue"
+    )
+    create_file(output_path / "pip_install.svg", badge_svg)
+
+    badge_svg = badge(
+        left_text="license",
+        right_text="BSD 3-Clause",
+        right_color="blue"
+    )
+    create_file(output_path / "license.svg", badge_svg)
+
+    badge_svg = badge(
+        left_text="",
+        right_text="truestream/tsfpga",
+        left_color="grey",
+        right_color="grey",
+        logo="https://about.gitlab.com/images/press/press-kit-icon.svg",
+        embed_logo=True,
+    )
+    create_file(output_path / "gitlab.svg", badge_svg)
+
+
 def build_python_coverage_badge(output_path):
     coverage_xml = tsfpga.TSFPGA_GENERATED / "python_coverage.xml"
     assert coverage_xml.exists(), "Run pytest with coverage before building documentation"
@@ -147,7 +175,7 @@ def build_python_coverage_badge(output_path):
     color = "green" if line_coverage > 80 else "red"
 
     badge_svg = badge(
-        left_text="Line coverage",
+        left_text="line coverage",
         right_text=f"{line_coverage}%",
         right_color=color,
         logo="https://upload.wikimedia.org/wikipedia/commons/0/0a/Python.svg",
@@ -173,7 +201,7 @@ def build_vhdl_line_coverage_badge(xml_root, output_path):
     color = "green" if line_coverage > 80 else "red"
 
     badge_svg = badge(
-        left_text="Line coverage",
+        left_text="line coverage",
         right_text=f"{line_coverage}%",
         right_color=color,
         logo="http://vunit.github.io/_static/VUnit_logo_420x420.png",
@@ -190,7 +218,7 @@ def build_vhdl_branch_coverage_badge(xml_root, output_path):
     color = "green" if branch_coverage > 80 else "orange"
 
     badge_svg = badge(
-        left_text="Branch coverage",
+        left_text="branch coverage",
         right_text=f"{branch_coverage}%",
         right_color=color,
         logo="http://vunit.github.io/_static/VUnit_logo_420x420.png",
