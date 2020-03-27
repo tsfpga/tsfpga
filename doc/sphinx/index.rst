@@ -1,10 +1,7 @@
-Documentation of tsfpga
-=======================
-
-Note that the documentation is at this stage very much a Work In Progress.
+.. include:: ../../generated/sphinx/index.rst
 
 .. toctree::
-    :maxdepth: 2
+    :hidden:
 
     simulation
     build

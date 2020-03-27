@@ -11,6 +11,7 @@ from setuptools import setup, find_packages
 REPO_ROOT = Path(__file__).parent
 sys.path.insert(0, str(REPO_ROOT))
 import tsfpga
+from tsfpga.about import get_slogan
 from tsfpga.system_utils import read_file
 
 
@@ -23,7 +24,7 @@ def main():
     setup(
         name="tsfpga",
         version=tsfpga.__version__,
-        description="A project platform for modern FPGA development",
+        description=get_slogan(),
         long_description=read_file(README_RST),
         long_description_content_type="text/x-rst",
         license="BSD 3-Clause License",

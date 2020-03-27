@@ -15,6 +15,7 @@ from pybadges import badge
 REPO_ROOT = Path(__file__).parent.parent
 sys.path.append(str(REPO_ROOT))
 import tsfpga
+from tsfpga.about import get_short_doc, get_doc
 from tsfpga.system_utils import create_directory, create_file, delete, read_file
 
 
@@ -27,6 +28,7 @@ def main():
 
     generate_registers()
     generate_release_notes()
+    generate_sphinx_index()
     build_sphinx()
 
     badges_path = create_directory(SPHINX_HTML / "badges")
@@ -83,6 +85,36 @@ Release history and changelog for the tsfpga project.
         rst += "\n"
 
     create_file(tsfpga.TSFPGA_GENERATED / "sphinx" / "release_notes.rst", rst)
+
+
+def generate_sphinx_index():
+    """
+    Generate index.rst for sphinx. Also verify that readme.rst in the project is identical.
+
+    Rst file inclusion in readme.rst does not work with on gitlab unfortunately, hence this
+    cumbersome handling of syncing documentation.
+    """
+    rst_head = """\
+About tsfpga
+============
+
+"""
+    rst_head += read_file(tsfpga.TSFPGA_DOC / "readme" / "badges.rst")
+    rst_head += "\n"
+    rst_head += get_short_doc()
+    rst_head += "\n"
+
+    rst_index = rst_head + get_doc()
+    create_file(tsfpga.TSFPGA_GENERATED / "sphinx" / "index.rst", rst_index)
+
+    rst_readme = rst_head
+    rst_readme += "**See documentation on the website**: https://tsfpga.com\n"
+    rst_readme += "\n"
+    rst_readme += get_doc()
+    if read_file(tsfpga.REPO_ROOT / "readme.rst") != rst_readme:
+        file_path = tsfpga.TSFPGA_GENERATED / "sphinx" / "readme.rst"
+        create_file(file_path, rst_readme)
+        assert False, f"readme.rst in repo root not correct. See file {file_path}"
 
 
 def get_release_notes_files():
@@ -163,6 +195,16 @@ def build_information_badges(output_path):
         embed_logo=True,
     )
     create_file(output_path / "gitlab.svg", badge_svg)
+
+    badge_svg = badge(
+        left_text="",
+        right_text="tsfpga.com",
+        left_color="grey",
+        right_color="grey",
+        logo="https://design.firefox.com/product-identity/firefox/firefox/firefox-logo.svg",
+        embed_logo=True,
+    )
+    create_file(output_path / "website.svg", badge_svg)
 
 
 def build_python_coverage_badge(output_path):
