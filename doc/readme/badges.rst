@@ -1,4 +1,8 @@
-|pic_gitlab| |pic_pip_install| |pic_license| |pic_python_line_coverage| |pic_vhdl_line_coverage| |pic_vhdl_branch_coverage|
+|pic_website| |pic_gitlab| |pic_pip_install| |pic_license| |pic_python_line_coverage| |pic_vhdl_line_coverage| |pic_vhdl_branch_coverage|
+
+.. |pic_website| image:: https://tsfpga.com/badges/website.svg
+  :alt: Website
+  :target: https://tsfpga.com
 
 .. |pic_gitlab| image:: https://tsfpga.com/badges/gitlab.svg
   :alt: Gitlab
@@ -10,6 +14,7 @@
 
 .. |pic_license| image:: https://tsfpga.com/badges/license.svg
   :alt: License
+  :target: https://gitlab.com/truestream/tsfpga/-/blob/master/license.txt
 
 .. |pic_python_line_coverage| image:: https://tsfpga.com/badges/python_coverage.svg
   :alt: Python line coverage
