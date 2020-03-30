@@ -117,10 +117,14 @@ class VivadoTcl:
                 source_hooks_tcl = "".join([f"source {to_tcl_path(hook.tcl_file)}\n" for hook in hooks])
                 create_file(tcl_file, source_hooks_tcl)
 
-            # Build step hook is applied to a run (e.g. impl_1), not on a project basis
+            # Add to fileset to enable archive and other project based functionality
+            tcl += f"add_files -fileset utils_1 -norecurse {to_tcl_path(tcl_file)}\n"
+
+            # Build step hook can only be applied to a run (e.g. impl_1), not on a project basis
             run_wildcard = "synth_*" if hooks[0].step_is_synth else "impl_*"
             tcl_block = f"set_property {step} {to_tcl_path(tcl_file)} ${{run}}"
             tcl += self._tcl_for_each_run(run_wildcard, tcl_block)
+
         return tcl
 
     def _add_project_settings(self):
