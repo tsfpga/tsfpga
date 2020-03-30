@@ -35,32 +35,33 @@ Example project class creation
 
 This is an example of project creation, using the ``artyz7`` example project from the `repo <https://gitlab.com/truestream/tsfpga/-/tree/master/examples>`__.
 
-Projects are created by the modules in a file called ``project_<module_name>.py`` within the module root.
-See :ref:`folder structure <folder_structure_project>` for details.
+Projects are created by modules using the file ``module_<module_name>.py``, see :ref:`folder structure <folder_structure_project>` for details.
+In tsfpga a top-level module that defines build projects is handled just like any other module.
+It can use register generation, set up simulations, etc.
+The only difference is that it overrides the :meth:`.BaseModule.get_build_projects` method to return a list of :class:`build project objects <.VivadoProject>`.
 
-.. literalinclude:: ../../examples/modules/artyz7/project_artyz7.py
-   :caption: Example project file `project_artyz7.py`
+.. literalinclude:: ../../examples/modules/artyz7/module_artyz7.py
+   :caption: Example project creation
    :language: python
    :lines: 5-
 
-So there is a lot going on here.
-Lets go through what happens in the ``get_projects()`` function step by step.
-
+There is a lot going on here, so lets go through what happens in ``get_build_projects()``.
 
 
 Get modules
 ___________
 
-Firstly we need to get a list of modules that shall be included in the build projects.
+Firstly we need to get a list of modules that shall be included in the build project.
+Source files, IP cores, scoped constraints, etc., from all these modules will be added to the project.
+
+It can be a good idea to filter what modules are included here.
+If you have a huge module tree but your project only uses a subset of the modules, you might not want to slow down Vivado by adding everything.
+You might also use primitives and IP cores in some modules that are not available for the target part.
+This filtering of modules can be achieved using the arguments to :ref:`get_modules() <get_modules>`.
 
 In this case we use a wrapper ``get_tsfpga_modules()`` around the :ref:`get_modules() <get_modules>` function.
 The wrapper sets the correct :ref:`get_modules() <get_modules>` flags (all modules paths, :ref:`default registers <default_registers>` and ``library_name_has_lib_suffix``).
 It is recommended that you also create a function like this so the arguments don't have to be repeated in many places.
-
-It can also be a good idea to filter what modules are included here.
-If you have a huge module tree but your project only uses a subset of the modules, you might not want to slow down Vivado by adding everything.
-You might also use primitives and IP cores in some modules that are not available for the target part.
-This filtering of modules can be achieved using the arguments to :ref:`get_modules() <get_modules>`.
 
 
 
@@ -78,7 +79,7 @@ The sources gathered are then use to create project objects which are appended t
 
 First a :class:`.VivadoProject` object is created with the name ``artyz7``.
 The modules, part name, TCL sources and constraints are passed to the constructor.
-There is also a ``defined_at`` argument, which is given the path to the ``project_artyz7.py`` file.
+There is also a ``defined_at`` argument, which is given the path to the ``module_artyz7.py`` file.
 This is used to get a useful ``--list`` result in your :ref:`build.py <example_build_py>`.
 
 The second project is created using a child class that inherits :class:`.VivadoProject`.
@@ -101,19 +102,22 @@ A ``build.py`` in a simplified and hard-coded fashion could look something like 
     :caption: Minimal ``build.py`` file.
 
     from pathlib import Path
-    from tsfpga.fpga_project_list import FpgaProjectList
+    from tsfpga.build_project_list import BuildProjectList
+    from tsfpga.module import get_modules
 
     my_modules_folders = [
-        Path("path/to/my/modules")
+        Path("path/to/my/modules"),
     ]
-    projects = FpgaProjectList(my_modules_folders)
+    modules = get_modules(my_modules_folders)
+    projects = BuildProjectList(modules)
     project = projects.get("artyz7")
 
-    project.create(project_path="build_projects/artyz7")
-    project.build(project_path="build_projects/artyz7", output_path="build_projects/artyz7/artifacts")
+    build_path = Path("build_projects")
+    project.create(project_path=build_path / project.name)
+    project.build(project_path=build_path / project.name, output_path=build_path / project.name / "artifacts")
 
 Of course this is incredibly simplified, but it does show the interface to the tsfpga classes.
-The :class:`.FpgaProjectList` function :meth:`.FpgaProjectList.get` will return a :class:`build project object <.VivadoProject>`.
+The :class:`.BuildProjectList` function :meth:`.BuildProjectList.get` will return a :class:`build project object <.VivadoProject>`.
 With this objects the ``create()`` and ``build()`` functions are available.
 
 Note that before a project is built a :ref:`register generation <registers>` is run, so that the project is built using up-to-date register definitions.
@@ -162,10 +166,10 @@ It is possible to add more than one hook per step.
 
 .. _project_list:
 
-FPGA project list class
+FPGA build project list
 -----------------------
 
-.. autoclass:: tsfpga.fpga_project_list.FpgaProjectList()
+.. autoclass:: tsfpga.build_project_list.BuildProjectList()
     :members:
 
     .. automethod:: __init__

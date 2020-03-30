@@ -26,7 +26,6 @@ The different files and folders are explained further down.
     modules/
     ├── foo
     │   ├── module_foo.py
-    │   ├── project_foo.py
     │   ├── regs_foo.json
     │   ├── ip_cores
     │   │   ├── fifo.tcl
@@ -58,7 +57,7 @@ Sources and testbenches
 -----------------------
 
 Source code and packages are recommended to be placed in the ``src`` folder.
-There is no distinction made between source files and packages in tsfpga.
+There is no distinction made between entity source files and packages in tsfpga.
 The corresponding test benches are recommended to use the ``test`` folder.
 
 You don't have to use these exact folders; :meth:`BaseModule <tsfpga.module.BaseModule>` will look for files in many folder, to accommodate for different projects using different structures.
@@ -70,36 +69,29 @@ For example, at the moment :meth:`BaseModule.get_synthesis_files() <tsfpga.modul
 * ``hdl/package``
 
 .. note::
-    If your project uses a different folder structure, and is locked into using that, tsfpga can be updated to accommodate that as well.
+    If your project uses a different folder structure, and is locked into using it, tsfpga can be updated to accommodate that as well.
     This goes for most of the folders within the module, described below.
     Feel free to create and `issue <https://gitlab.com/truestream/tsfpga/issues>`__ or a merge request.
 
 
 
+.. _folder_structure_project:
+
 module_foo.py
 -------------
 
-If you want to do :ref:`local test configurations <local_configuration>`, or overload any other
-thing in the :meth:`BaseModule <tsfpga.module.BaseModule>` class, you can use a file called ``module_<name>.py``.
-The Python file shall contain a class definition called ``Module``.
-If you do this it is recommended to inherit the class from :meth:`BaseModule <tsfpga.module.BaseModule>` and override any method you want to change the behavior of.
+If you want to set up :ref:`FPGA build projects <example_project_class>` or do :ref:`local test configurations <local_configuration>` you can use a file called ``module_<name>.py``.
+The Python file shall contain a class definition called ``Module`` that inherits from :class:`.BaseModule`.
+Methods from :class:`.BaseModule` can then be overridden to achieve the desired behavior.
 
 
-.. _folder_structure_project:
+Extra files
+___________
 
-project_foo.py
---------------
-
-Modules that define FPGA build projects shall have a Python file name ``project_<name>.py`` in their root.
-The file must contain a function ``get_projects()`` that returns a list of :meth:`FPGA build projects <tsfpga.vivado_project.VivadoProject>`.
-
-An FPGA project like this might need a lot extra files, such as TCL scripts for pinning, block design, etc.
-These can be placed in a new folder of your liking within the module.
-For example for your TCL scripts you might place them in a sub-directory called ``tcl`` in the module root.
-This folder will not have any significance for tsfpga.
-For things like TCL sources it is up to the user to point to them when creating the :meth:`FPGA project <tsfpga.vivado_project.VivadoProject>`.
-
-There is an example of a project file that sets up project classes :ref:`here <example_project_class>`.
+An FPGA build project might need a lot extra files, such as TCL scripts for pinning, block design, etc.
+Or maybe some simulations need data files stored on disk.
+It is perfectly valid to create other folders within the module, e.g. `tcl` or `test/data`, and place files there.
+Extra folders like these can be used freely and will not have any significance to tsfpga.
 
 
 

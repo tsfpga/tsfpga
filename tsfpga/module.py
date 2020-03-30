@@ -127,7 +127,9 @@ class BaseModule:
     def setup_simulations(self, vunit_proj, **kwargs):
         """
         Setup local configuration of this module's test benches.
-        Should be overridden by modules that have any test benches that operate via generics.
+
+        .. Note::
+            Should be overridden by modules that have any test benches that operate via generics.
 
         Args:
             vunit_proj: The VUnit project that is used to run simulation.
@@ -171,6 +173,18 @@ class BaseModule:
                 constraint.validate_scoped_entity(synthesis_files)
                 constraints.append(constraint)
         return constraints
+
+    def get_build_projects(self):  # pylint: disable=no-self-use
+        """
+        Get FPGA build projects defined by this module.
+
+        .. Note::
+            Should be overridden by modules that set up build projects.
+
+        Return:
+            list(:class:`.VivadoProject`): FPGA build projects.
+        """
+        return []
 
     def __str__(self):
         return f"{self.name}:{self.path}"

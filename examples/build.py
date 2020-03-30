@@ -9,8 +9,7 @@ import sys
 
 PATH_TO_TSFPGA = Path(__file__).parent.parent
 sys.path.append(str(PATH_TO_TSFPGA))
-import tsfpga
-from tsfpga.fpga_project_list import FpgaProjectList
+from tsfpga.build_project_list import BuildProjectList
 from tsfpga.system_utils import create_directory, delete
 
 from tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
@@ -55,7 +54,8 @@ def arguments(projects):
                         help="number of threads to use when building project")
     parser.add_argument("project_name",
                         nargs="?",
-                        choices=projects.names(), help="which project to build")
+                        choices=projects.names(),
+                        help="which project to build")
     parser.add_argument("--collect-artifacts-only",
                         action="store_true",
                         help="only create release zip from an existing build result")
@@ -68,18 +68,18 @@ def arguments(projects):
 
 
 def main():
-    projects = FpgaProjectList(tsfpga.ALL_TSFPGA_MODULES_FOLDERS)
+    modules = get_tsfpga_modules()
+    projects = BuildProjectList(modules)
     args = arguments(projects)
 
     if args.list_only:
-        print("Available projects:\n\n%s" % projects)
+        print(f"Available projects:\n\n{projects}")
         return
 
     if args.generate_registers_only:
         # Generate register output from all modules. Note that this is not used by the build
         # flow or simulation flow, it is only for the user to inspect the artifacts.
-        generate_registers(get_tsfpga_modules(tsfpga.ALL_TSFPGA_MODULES_FOLDERS),
-                           TSFPGA_EXAMPLES_TEMP_DIR / "registers")
+        generate_registers(modules, TSFPGA_EXAMPLES_TEMP_DIR / "registers")
         return
 
     project = projects.get(args.project_name)
