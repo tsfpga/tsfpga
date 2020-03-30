@@ -143,6 +143,8 @@ class VivadoProject:
 
         if self.static_generics is None:
             all_generics = generics
+        elif generics is None:
+            all_generics = self.static_generics
         else:
             # Add the two dictionaries
             all_generics = self.static_generics.copy()

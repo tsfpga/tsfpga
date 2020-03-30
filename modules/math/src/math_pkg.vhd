@@ -26,16 +26,21 @@ end package;
 
 package body math_pkg is
 
-  function log2(value : integer) return integer is
-    constant result : integer := integer(log2(real(value)));
+  function log2_no_assert(value : integer) return integer is
   begin
-    assert 2**result = value report "Calculated value not correct" severity failure;
-    return result;
+    return integer(log2(real(value)));
+  end function;
+
+  function log2(value : integer) return integer is
+  begin
+    assert is_power_of_two(value) report "Must be power of two: " & to_string(value) severity failure;
+    return log2_no_assert(value);
   end function;
 
   function is_power_of_two(value : integer) return boolean is
+    constant log2_value : integer := log2_no_assert(value);
   begin
-    return 2**log2(value) = value;
+    return 2 ** log2_value = value;
   end function;
 
   function num_bits_needed(value : std_logic_vector) return integer is

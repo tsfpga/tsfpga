@@ -99,6 +99,14 @@ begin
         check_equal(hamming_distance(to_gray(i-1, 8), to_gray(i, 8)), 1);
         check_equal(hamming_distance(to_gray(i-1, 8), to_gray(i+1, 8)), 2);
       end loop;
+
+    elsif run("is_power_of_two") then
+      check_true(is_power_of_two(2));
+      check_true(is_power_of_two(4));
+      check_true(is_power_of_two(16));
+
+      check_false(is_power_of_two(15));
+      check_false(is_power_of_two(17));
     end if;
 
     test_runner_cleanup(runner);

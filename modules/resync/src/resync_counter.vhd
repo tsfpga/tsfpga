@@ -40,7 +40,7 @@ architecture a of resync_counter is
   attribute async_reg of counter_out_gray   : signal is "true";
 begin
 
-  assert is_power_of_two(counter_max+1) report "Counter range must be a power of two";
+  assert is_power_of_two(counter_max+1) report "Counter range must be a power of two" severity failure;
 
   clk_in_process : process
   begin

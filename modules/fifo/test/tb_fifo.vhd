@@ -19,14 +19,14 @@ entity tb_fifo is
   generic (
     width : integer;
     depth : integer;
+    almost_full_level : integer;
+    almost_empty_level : integer;
     runner_cfg : string
   );
 end entity;
 
 architecture tb of tb_fifo is
 
-  constant almost_full_level : integer := depth / 2;
-  constant almost_empty_level : integer := depth / 4;
 
   signal clk : std_logic := '0';
 
@@ -126,6 +126,11 @@ begin
 
       write_num <= 1;
       run_write;
+      if almost_empty_level = 0 then
+        -- almost_empty is updated one cycle later, since write must propagate into RAM before
+        -- read data is valid
+        wait until rising_edge(clk);
+      end if;
       check_equal(almost_empty, '0');
 
       read_num <= 1;
@@ -210,6 +215,7 @@ begin
     generic map (
       width => width,
       depth => depth,
+      include_level_counter => false,
       almost_full_level => almost_full_level,
       almost_empty_level => almost_empty_level
     )

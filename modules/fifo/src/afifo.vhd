@@ -62,7 +62,7 @@ architecture a of afifo is
   signal read_data_int : std_logic_vector(read_data'range);
 begin
 
-  assert is_power_of_two(depth) report "Depth must be a power of two, to make counter synchronization convenient";
+  assert is_power_of_two(depth) report "Depth must be a power of two" severity failure;
 
   write_ready <= not to_sl(write_level > depth - 1);
   write_almost_full <= to_sl(write_level > almost_full_level - 1);
