@@ -84,10 +84,11 @@ begin
     end if;
 
     read_valid <= to_sl(level > 0);
+    level <= level - to_int(read_ready and read_valid) + to_int(write_valid and write_ready);
+
     if read_ready and read_valid and not (write_valid and write_ready) then
       -- Read but no write
       write_ready <= '1';
-      level <= level - 1;
 
       if read_addr_plus_1_reg = write_addr then
         -- No data left
@@ -97,7 +98,6 @@ begin
     elsif write_ready and write_valid and not (read_ready and read_valid) then
       -- Write but no read
       write_addr <= write_addr_plus_1;
-      level <= level + 1;
 
       if write_addr_plus_1 = read_addr_reg then
         -- FIFO full
