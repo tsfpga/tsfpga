@@ -247,6 +247,8 @@ class RegisterList:
 
     def copy_source_definition(self, output_path):
         """
+        Copy the JSON file that created this register list.
+
         Args:
             output_path (`pathlib.Path`): Result will be placed here.
         """
