@@ -16,11 +16,13 @@ context vunit_lib.vc_context;
 
 library ddr_buffer;
 use ddr_buffer.ddr_buffer_regs_pkg.all;
+use ddr_buffer.ddr_buffer_sim_pkg.all;
 
 library reg_file;
 use reg_file.reg_operations_pkg.all;
 
 use work.artyz7_top_pkg.all;
+use work.artyz7_regs_pkg.all;
 use work.top_level_sim_pkg.all;
 
 
@@ -44,6 +46,8 @@ begin
   main : process
     constant beef : std_logic_vector(32 - 1 downto 0) := x"beef_beef";
     constant dead : std_logic_vector(32 - 1 downto 0) := x"dead_dead";
+    constant face : std_logic_vector(32 - 1 downto 0) := x"face_face";
+    constant cafe : std_logic_vector(32 - 1 downto 0) := x"cafe_cafe";
     constant all_zero : std_logic_vector(32 - 1 downto 0) := x"0000_0000";
 
     constant axi_width : integer := 64;
@@ -68,18 +72,27 @@ begin
 
       check_reg_equal(net, 0, beef, base_address => reg_slaves(0).addr or x"43c0_0000");
 
+    elsif run("test_dummy_reg_read_write") then
+      write_reg(net, artyz7_dummy_regs_configuration(0), beef, base_address => reg_slaves(0).addr);
+      write_reg(net, artyz7_dummy_regs_configuration(3), dead, base_address => reg_slaves(0).addr);
+      write_reg(net, artyz7_dummy_regs_settings(0), face, base_address => reg_slaves(0).addr);
+      write_reg(net, artyz7_dummy_regs_settings(3), cafe, base_address => reg_slaves(0).addr);
+
+      check_reg_equal(net, artyz7_dummy_regs_configuration(0), beef, base_address => reg_slaves(0).addr);
+      check_reg_equal(net, artyz7_dummy_regs_configuration(3), dead, base_address => reg_slaves(0).addr);
+      check_reg_equal(net, artyz7_dummy_regs_settings(0), face, base_address => reg_slaves(0).addr);
+      check_reg_equal(net, artyz7_dummy_regs_settings(3), cafe, base_address => reg_slaves(0).addr);
+
+      -- Sanity check some of the generated registers
+      check_equal(artyz7_dummy_regs_configuration(3), artyz7_dummy_regs_settings(2) + 1);
+      check_equal(artyz7_dummy_regs_settings(3), artyz7_dummy_regs_configuration(3) + 1);
+      check_equal(artyz7_dummy_regs_settings(3), artyz7_plain_dummy_reg - 1);
+
+      check_equal(artyz7_dummy_regs_configuration_enable, 0);
+      check_equal(artyz7_dummy_regs_configuration_disable, 1);
+
     elsif run("test_ddr_buffer") then
-      random_integer_array(rnd, memory_data, width=>burst_size_bytes, bits_per_word=>8);
-
-      buf := write_integer_array(axi_memory, memory_data, "read data", permissions=>read_only);
-      write_reg(net, ddr_buffer_read_addr, base_address(buf), ddr_buffer_regs_base_addr);
-
-      buf := set_expected_integer_array(axi_memory, memory_data, "write data", permissions=>write_only);
-      write_reg(net, ddr_buffer_write_addr, base_address(buf), ddr_buffer_regs_base_addr);
-
-      write_command(net, ddr_buffer_command_start, ddr_buffer_regs_base_addr);
-      wait_for_status_bit(net, ddr_buffer_status_idle, ddr_buffer_regs_base_addr);
-
+      run_ddr_buffer_test(net, axi_memory, rnd, ddr_buffer_regs_base_addr);
       check_expected_was_written(axi_memory);
     end if;
 

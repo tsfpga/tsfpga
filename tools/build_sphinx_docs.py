@@ -213,7 +213,7 @@ def build_python_coverage_badge(output_path):
 
     xml_root = ElementTree.parse(coverage_xml).getroot()
     line_coverage = int(round(float(xml_root.attrib["line-rate"]) * 100))
-    assert line_coverage > 50, "Coverage is way low: {line_coverage}. Something is wrong."
+    assert line_coverage > 50, f"Coverage is way low: {line_coverage}. Something is wrong."
     color = "green" if line_coverage > 80 else "red"
 
     badge_svg = badge(
@@ -239,7 +239,7 @@ def build_vhdl_coverage_badges(output_path):
 
 def build_vhdl_line_coverage_badge(xml_root, output_path):
     line_coverage = int(round(float(xml_root.attrib["line-rate"]) * 100))
-    assert line_coverage > 50, "Coverage is way low: {line_coverage}. Something is wrong."
+    assert line_coverage > 50, f"Coverage is way low: {line_coverage}. Something is wrong."
     color = "green" if line_coverage > 80 else "red"
 
     badge_svg = badge(

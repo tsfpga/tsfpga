@@ -9,12 +9,17 @@
       "start": "Start a read and write cycle."
     }
   },
-  "read_addr": {
-    "description": "Where to read data from.",
-    "mode": "r_w"
-  },
-  "write_addr": {
-    "description": "Where to write data.",
-    "mode": "r_w"
+  "addrs": {
+    "array_length": 2,
+    "registers": {
+      "read_addr": {
+        "description": "Where to read data from.",
+        "mode": "r_w"
+      },
+      "write_addr": {
+        "description": "Where to write data.",
+        "mode": "r_w"
+      }
+    }
   }
 }

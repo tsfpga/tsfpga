@@ -6,7 +6,7 @@ import copy
 
 from tsfpga.constraint import Constraint
 from tsfpga.hdl_file import HdlFile
-from tsfpga.registers import from_json
+from tsfpga.register_list import from_json
 from tsfpga.system_utils import load_python_module
 
 

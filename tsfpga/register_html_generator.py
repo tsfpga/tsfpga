@@ -3,6 +3,7 @@
 # ------------------------------------------------------------------------------
 
 from tsfpga.markdown_to_html_translator import MarkdownToHtmlTranslator
+from tsfpga.register_types import Register
 
 
 class Mode:
@@ -36,7 +37,7 @@ class RegisterHtmlGenerator:
     def _comment(comment):
         return f"<!-- {comment} -->\n"
 
-    def _header(self):
+    def _file_header(self):
         return self._comment(self.generated_info)
 
     @staticmethod
@@ -45,12 +46,18 @@ class RegisterHtmlGenerator:
         formatting_string = "0x{:0%iX}" % num_nibbles_needed
         return formatting_string.format(address)
 
-    def _annotate_register(self, register):
+    def _annotate_register(self, register, register_array_index=None, array_index_increment=None):
+        if register_array_index is None:
+            address_readable = self._to_readable_address(register.address)
+        else:
+            register_address = self._to_readable_address(4 * register_array_index)
+            address_increment = self._to_readable_address(4 * array_index_increment)
+            address_readable = f"{register_address} + i &times; {address_increment}"
         description = self._markdown_to_html.translate(register.description)
         html = f"""
   <tr>
     <td><strong>{register.name}</strong></td>
-    <td>{self._to_readable_address(register.address)}</td>
+    <td>{address_readable}</td>
     <td>{REGISTER_MODES[register.mode].mode_readable}</td>
     <td>{description}</td>
   </tr>"""
@@ -69,7 +76,7 @@ class RegisterHtmlGenerator:
 
         return html
 
-    def _get_table(self, registers):
+    def _get_table(self, register_objects):
         html = """
 <table>
 <thead>
@@ -82,19 +89,34 @@ class RegisterHtmlGenerator:
 </thead>
 <tbody>"""
 
-        for register in registers:
-            html += self._annotate_register(register)
-            for bit in register.bits:
-                html += self._annotate_bit(bit)
+        for register_object in register_objects:
+            if isinstance(register_object, Register):
+                html += self._annotate_register(register_object)
+                for bit in register_object.bits:
+                    html += self._annotate_bit(bit)
+            else:
+                html += f"""
+  <tr>
+    <td colspan="4" class="array_header">Register array <strong>{register_object.name}</strong>, repeated {register_object.length} times</td>
+  </tr>"""
+                array_index_increment = len(register_object.registers)
+                for register in register_object.registers:
+                    register_index = register_object.base_index + register.index
+                    html += self._annotate_register(register, register_index, array_index_increment)
+                html += f"""
+  <tr>
+    <td colspan="4" class="array_header">End register array <strong>{register_object.name}</strong></td>
+  </tr>"""
+
         html += """
 </tbody>
 </table>"""
 
         return html
 
-    def get_table(self, registers):
-        html = self._header()
-        html += self._get_table(registers)
+    def get_table(self, register_objects):
+        html = self._file_header()
+        html += self._get_table(register_objects)
         return html
 
     @staticmethod
@@ -121,7 +143,7 @@ class RegisterHtmlGenerator:
 </table>"""
         return html
 
-    def get_page(self, registers, table_style=None, font_style=None, extra_style=""):
+    def get_page(self, register_objects, table_style=None, font_style=None, extra_style=""):
         title = f"Documentation of {self.module_name} registers"
 
         if font_style is None:
@@ -139,6 +161,10 @@ td, th {
   border: 1px solid #ddd;
   padding: 8px;
 }
+td.array_header {
+  background-color: #4cacaf;
+  color: white;
+}
 tr:nth-child(even) {
   background-color: #f2f2f2;
 }
@@ -154,7 +180,7 @@ th {
 }"""
 
         html = f"""
-{self._header()}
+{self._file_header()}
 
 <!DOCTYPE html>
 <html>
@@ -174,7 +200,7 @@ th {
 {self._get_mode_descriptions()}
   <h2>Register list</h2>
   <p>The following registers make up the register map for the {self.module_name} module.</p>
-{self._get_table(registers)}
+{self._get_table(register_objects)}
 <p>{self.generated_info}</p>
 </body>
 </html>"""

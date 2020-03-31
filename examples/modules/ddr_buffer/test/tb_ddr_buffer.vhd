@@ -26,6 +26,7 @@ library reg_file;
 use reg_file.reg_operations_pkg.all;
 
 use work.ddr_buffer_regs_pkg.all;
+use work.ddr_buffer_sim_pkg.all;
 
 
 entity tb_ddr_buffer is
@@ -68,16 +69,7 @@ begin
     test_runner_setup(runner, runner_cfg);
     rnd.InitSeed(rnd'instance_name);
 
-    random_integer_array(rnd, memory_data, width=>burst_size_bytes, bits_per_word=>8);
-
-    buf := write_integer_array(memory, memory_data, "read data", permissions=>read_only);
-    write_reg(net, ddr_buffer_read_addr, base_address(buf));
-
-    buf := set_expected_integer_array(memory, memory_data, "write data", permissions=>write_only);
-    write_reg(net, ddr_buffer_write_addr, base_address(buf));
-
-    write_command(net, ddr_buffer_command_start);
-    wait_for_status_bit(net, ddr_buffer_status_idle);
+    run_ddr_buffer_test(net, memory, rnd);
 
     check_expected_was_written(memory);
     test_runner_cleanup(runner);
@@ -116,10 +108,6 @@ begin
 
   ------------------------------------------------------------------------------
   dut : entity work.ddr_buffer_top
-    generic map (
-      axi_width => axi_width,
-      burst_length => burst_length
-    )
     port map (
       clk_axi_read => clk_axi,
       axi_read_m2s => axi_read_m2s,

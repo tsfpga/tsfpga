@@ -103,10 +103,6 @@ begin
 
   ------------------------------------------------------------------------------
   ddr_buffer_inst : entity ddr_buffer.ddr_buffer_top
-    generic map (
-      axi_width => s_hp0_data_width,
-      burst_length => 16 -- AXI3 max
-    )
     port map (
       clk_axi_read => clk_s_hp0,
       axi_read_m2s => s_hp0_m2s.read,

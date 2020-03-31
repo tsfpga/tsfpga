@@ -1,3 +1,7 @@
+Added
+
+* Add support for register arrays in register code generation.
+
 Fixes
 
 * Fix synchronous FIFO signal ``almost_empty`` being de-asserted too early when ``almost_empty_level`` is zero.

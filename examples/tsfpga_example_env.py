@@ -8,7 +8,7 @@ Common functions and definitions in the example build environment.
 
 import tsfpga
 from tsfpga.module import get_modules
-from tsfpga.registers import get_default_registers
+from tsfpga.register_list import get_default_registers
 
 
 TSFPGA_EXAMPLES_TEMP_DIR = tsfpga.TSFPGA_GENERATED

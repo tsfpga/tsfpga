@@ -8,13 +8,15 @@ To start using it simply create a file ``regs_<name>.json`` in the root of a mod
 
 From the JSON definition the register generator can create a VHDL package with all registers and their fields.
 This VHDL package can then be used with the generic AXI-Lite register file in tsfpga.
-Apart from that a HTML page can be generated for documentation.
+Apart from that a HTML page can be generated for human-readable documentation.
 There is also support to generate a C header and a C++ class.
 
 The register generator is well-integrated in the tsfpga module work flow.
 It is fast enough that before each build and each simulation run, the modules will re-generate their VHDL register package so that it is always up-to-date.
 Creating documentation and headers, which are typically distributed as part of FPGA release artifacts, is simple and easy to integrate in a build script.
 
+There is also a set of VHDL AXI components that enable the register bus: AXI-to-AXI-Lite converter, AXI/AXI-Lite interconnect, AXI-Lite mux (splitter), AXI-Lite clock domain crossing, AXI-Lite generic register file.
+These are found in the repo within the `axi module <https://gitlab.com/truestream/tsfpga/-/tree/master/modules/axi>`__.
 
 
 .. _default_registers:
@@ -48,8 +50,11 @@ In this example module we use a set of default registers that include ``status``
 That is why these registers do not have a ``mode`` set in the JSON, which is otherwise required.
 The address registers on the other hand are set to Read/Write.
 
-The register description is also inherited from the register specification.
-While a description is not required it used for all registers and bits in this example.
+For default registers, the register description is also inherited from the default specification.
+While a description is not strictly required it is used for all registers and bits in this example.
+
+In this example we use a register array for the read and write addresses.
+The registers ``read_addr`` and ``write_addr`` will be repeated two times in the register list.
 
 
 
@@ -62,10 +67,12 @@ The VHDL package file is designed to be used with the generic AXI-Lite register 
    :caption: ddr_buffer_regs_pkg.vhd
    :language: vhdl
 
+For the plain registers the register index is simply an integer, e.g. ``ddr_buffer_config``, but for the register arrays is is a function, e.g. ``ddr_buffer_addrs_read_addr()``.
+The function takes an array index arguments and will assert if it is out of bounds of the array.
+
 Note that there is a large eco-system of register related components in tsfpga.
 Firstly there are wrappers available for easier working with VUnit verification components.
 See the `bfm library <https://gitlab.com/truestream/tsfpga/-/tree/master/modules/bfm/sim>`__ and `reg_operations_pkg <https://gitlab.com/truestream/tsfpga/-/blob/master/modules/reg_file/sim/reg_operations_pkg.vhd>`__.
-
 Furthermore there is a large number of synthesizable AXI components available that enable the register bus: AXI-to-AXI-Lite converter, AXI/AXI-Lite interconnect, AXI-Lite mux (splitter), AXI-Lite clock domain crossing, etc.
 See the `axi library <https://gitlab.com/truestream/tsfpga/-/tree/master/modules/axi>`__ for more details.
 
@@ -74,9 +81,11 @@ See the `axi library <https://gitlab.com/truestream/tsfpga/-/tree/master/modules
 HTML page
 _________
 
-A complete HTML page can be generated with register details as well description of the different modes.
-Note that markdown syntax can be used in register and bit descriptions to annotate.
-This will be converted to appropriate HTML tags.
+A complete HTML page can be generated, with register details as well as textual description of the different register modes.
+
+.. note::
+   Markdown syntax can be used in register and bit descriptions to annotate, which will be converted to appropriate HTML tags.
+   Supports bold with double asterisks or underscores, and italics with a single asterisk or underscore.
 
 Generated HTML file :download:`here <../../generated/registers/doc/ddr_buffer_regs.html>`
 
@@ -96,7 +105,6 @@ C++ class
 _________
 
 A complete C++ class can be generated with methods that read or write the registers.
-
 There is an abstract interface header available that can be used for mocking in a unit test environment.
 
 .. literalinclude:: ../../generated/registers/cpp/include/i_ddr_buffer.h
@@ -111,6 +119,8 @@ There is an abstract interface header available that can be used for mocking in 
    :caption: DdrBuffer class implementation
    :language: C++
 
+Note that when the register is part of an array, the setter/getter takes a second argument ``array_index``.
+There is an assert that the user-provided array index is within the bounds of the array.
 
 
 C header
@@ -122,6 +132,9 @@ A C header with register and field definitions can be generated.
    :caption: ddr_buffer header
    :language: C
 
+It provides to methods for usage: A struct that can be memory mapped, or address definitions that can be offset a base address.
+For the addresses, array registers use a macro with an array index argument.
+
 
 
 Python abstraction
@@ -129,18 +142,23 @@ Python abstraction
 
 The following classes are used to handle registers in the tsfpga python package.
 
-.. autoclass:: tsfpga.registers.RegisterList()
+.. autoclass:: tsfpga.register_list.RegisterList()
     :members:
 
     .. automethod:: __init__
 
 
-.. autoclass:: tsfpga.registers.Register()
+.. autoclass:: tsfpga.register_types.Register()
     :members:
 
     .. automethod:: __init__
 
-.. autoclass:: tsfpga.registers.Bit()
+.. autoclass:: tsfpga.register_types.RegisterArray()
+    :members:
+
+    .. automethod:: __init__
+
+.. autoclass:: tsfpga.register_types.Bit()
     :members:
 
     .. automethod:: __init__
