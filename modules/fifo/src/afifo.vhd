@@ -39,6 +39,7 @@ entity afifo is
     -- Status signals on the read side. Updated one clock cycle after read transactions.
     -- Updated "a while" after write transactions (not deterministic).
     read_level : out integer range 0 to depth := 0;
+    -- '1' if there are almost_empty_level or fewer words available to read
     read_almost_empty : out std_logic;
     -- Write data interface
     clk_write : in std_logic;
@@ -48,6 +49,7 @@ entity afifo is
     -- Status signals on the write side. Updated one clock cycle after write transactions.
     -- Updated "a while" after read transactions (not deterministic).
     write_level : out integer range 0 to depth := 0;
+    -- '1' if there are almost_full_level or more words available in the FIFO
     write_almost_full : out std_logic
   );
 end entity;
@@ -66,7 +68,7 @@ begin
 
   write_ready <= not to_sl(write_level > depth - 1);
   write_almost_full <= to_sl(write_level > almost_full_level - 1);
-  read_almost_empty <= to_sl(read_level < almost_empty_level);
+  read_almost_empty <= to_sl(read_level < almost_empty_level + 1);
 
 
   ------------------------------------------------------------------------------

@@ -27,19 +27,19 @@ entity fifo is
     -- Must set to '1' for "level" port to be valid
     include_level_counter : boolean := false;
     almost_full_level : integer range 0 to depth := depth;
-    almost_empty_level : integer range 0 to depth := 1;
+    almost_empty_level : integer range 0 to depth := 0;
     ram_type : string := "auto"
   );
   port (
     clk : in std_logic;
-    -- Must set "include_level_counter" to True for this value to be vaLid
+    -- Must set "include_level_counter" to true for this value to be vaLid
     level : out integer range 0 to depth := 0;
 
     read_ready : in std_logic;
     -- '1' if FIFO is not empty
     read_valid : out std_logic := '0';
     read_data : out std_logic_vector(width - 1 downto 0);
-    -- '1' if there are fewer than almost_empty_level words available to read
+    -- '1' if there are almost_empty_level or fewer words available to read
     almost_empty : out std_logic;
 
     -- '1' if FIFO is not full
@@ -56,7 +56,7 @@ architecture a of fifo is
   -- Default full/empty levels are chosen so that we can use the handshake signals.
   -- If they do not have the default value, then we need to maintain a level counter.
   constant almost_full_level_has_non_default_value : boolean := almost_full_level /= depth;
-  constant almost_empty_level_has_non_default_value : boolean := almost_empty_level /= 1;
+  constant almost_empty_level_has_non_default_value : boolean := almost_empty_level /= 0;
   constant include_level_counter_int : boolean :=
     include_level_counter
     or almost_full_level_has_non_default_value
@@ -94,11 +94,11 @@ begin
     assert include_level_counter_int severity failure;
   end generate;
 
-  assign_almost_empty : if almost_empty_level = 1 generate
+  assign_almost_empty : if almost_empty_level = 0 generate
     almost_empty <= not read_valid;
     assert not almost_empty_level_has_non_default_value severity failure;
   else generate
-    almost_empty <= to_sl(level < almost_empty_level);
+    almost_empty <= to_sl(level < almost_empty_level + 1);
     assert almost_empty_level_has_non_default_value severity failure;
     assert include_level_counter_int severity failure;
   end generate;

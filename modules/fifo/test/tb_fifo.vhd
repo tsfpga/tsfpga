@@ -107,6 +107,8 @@ begin
       check_relation(has_gone_empty_times > 200, "Got " & to_string(has_gone_empty_times));
 
     elsif run("test_almost_full") then
+      check_equal(almost_full, '0');
+
       write_num <= almost_full_level - 1;
       run_write;
       check_equal(almost_full, '0');
@@ -120,7 +122,9 @@ begin
       check_equal(almost_full, '0');
 
     elsif run("test_almost_empty") then
-      write_num <= almost_empty_level - 1;
+      check_equal(almost_empty, '1');
+
+      write_num <= almost_empty_level;
       run_write;
       check_equal(almost_empty, '1');
 
