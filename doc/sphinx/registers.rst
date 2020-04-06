@@ -8,8 +8,7 @@ To start using it simply create a file ``regs_<name>.json`` in the root of a mod
 
 From the JSON definition the register generator can create a VHDL package with all registers and their fields.
 This VHDL package can then be used with the generic AXI-Lite register file in tsfpga.
-Apart from that a HTML page can be generated for human-readable documentation.
-There is also support to generate a C header and a C++ class.
+Apart from that a C header and a C++ class can be generaterd, as well as a HTML page with human-readable documentation.
 
 The register generator is well-integrated in the tsfpga module work flow.
 It is fast enough that before each build and each simulation run, the modules will re-generate their VHDL register package so that it is always up-to-date.
