@@ -237,4 +237,10 @@ def get_modules(modules_folders,
                                              library_name_has_lib_suffix,
                                              default_registers))
 
+            deprecated_project_file = module_folder / f"project_{module_name}.py"
+            if deprecated_project_file.exists():
+                message = f"DEPRECATED: Using deprecated project file: {deprecated_project_file}"
+                message += f"\nDEPRECATED: Instead use module_{module_name}.py"
+                raise ValueError(message)
+
     return modules
