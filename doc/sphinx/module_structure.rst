@@ -86,7 +86,7 @@ Methods from :class:`.BaseModule` can then be overridden to achieve the desired 
 
 
 Extra files
-___________
++++++++++++
 
 An FPGA build project might need a lot extra files, such as TCL scripts for pinning, block design, etc.
 Or maybe some simulations need data files stored on disk.
