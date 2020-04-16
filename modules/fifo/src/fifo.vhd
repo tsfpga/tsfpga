@@ -100,48 +100,28 @@ begin
 
 
   ------------------------------------------------------------------------------
-  read_addr_update : process(all)
-  begin
-    read_addr_next <= read_addr + to_int(read_ready and read_valid);
-  end process;
-
-
-  ------------------------------------------------------------------------------
   status : process
     variable write_addr_next : fifo_addr_t := (others => '0');
   begin
     wait until rising_edge(clk);
 
-    write_addr_next := write_addr + to_int(write_ready and write_valid);
-
-    if read_addr_next(bram_addr_range) /= write_addr_next(bram_addr_range) then
-      read_valid <= '1';
-      write_ready <= '1';
-    else
-      if read_addr_next(read_addr_next'high) /=  write_addr_next(write_addr_next'high) then
-        -- Write address has wrapped around but read pointer has not. FIFO is full.
-        read_valid <= '1';
-        write_ready <= '0';
-      else
-        -- FIFO is empty
-        read_valid <= '0';
-        write_ready <= '1';
-      end if;
-    end if;
-
-    -- Race condition that happens when writing and reading at the same time to FIFO of level 1.
-    -- Need to let data propagate into RAM before it can be read.
-    if (write_ready and write_valid) = '1' and read_addr_next(bram_addr_range) = write_addr(bram_addr_range) then
-      read_valid <= '0';
-    end if;
-
     if include_level_counter_int then
       level <= level + to_int(write_valid and write_ready) - to_int(read_ready and read_valid);
     end if;
 
+    write_addr_next := write_addr + to_int(write_ready and write_valid);
+
+    write_ready <= to_sl(
+      read_addr_next(bram_addr_range) /= write_addr_next(bram_addr_range)
+      or read_addr_next(read_addr_next'high) =  write_addr_next(write_addr_next'high));
+
+    read_valid <= to_sl(read_addr_next /= write_addr);
+
     read_addr <= read_addr_next;
     write_addr <= write_addr_next;
   end process;
+
+  read_addr_next <= read_addr + to_int(read_ready and read_valid);
 
 
   ------------------------------------------------------------------------------
