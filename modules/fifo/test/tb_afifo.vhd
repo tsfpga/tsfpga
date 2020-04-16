@@ -17,13 +17,17 @@ use osvvm.RandomPkg.all;
 
 entity tb_afifo is
   generic (
-    width      : integer;
-    depth      : integer;
+    depth : integer;
+    almost_empty_level : natural;
+    almost_full_level : natural;
+    read_clock_is_faster : boolean;
     runner_cfg : string
     );
 end entity;
 
 architecture tb of tb_afifo is
+
+  constant width : integer := 8;
 
   signal clk_read, clk_write : std_logic := '0';
 
@@ -34,9 +38,9 @@ architecture tb of tb_afifo is
   signal read_level, write_level : integer;
   signal read_almost_empty, write_almost_full : std_logic := '0';
 
-  signal start_stimuli, writer_done, reader_done : boolean   := false;
+  signal start, writer_done, reader_done : boolean := false;
 
-  constant num_stimuli : integer := 50 * depth;
+  signal num_read, num_write : integer;
   signal write_max_jitter, read_max_jitter : integer := 0;
 
   signal has_gone_full_times, has_gone_empty_times : integer := 0;
@@ -47,95 +51,133 @@ architecture tb of tb_afifo is
 begin
 
   test_runner_watchdog(runner, 2 ms);
-  clk_read  <= not clk_read after 2 ns;
-  clk_write <= not clk_write after 3 ns;
+
+  clocks : if read_clock_is_faster generate
+    clk_read  <= not clk_read after 2 ns;
+    clk_write <= not clk_write after 3 ns;
+  else  generate
+    clk_read  <= not clk_read after 3 ns;
+    clk_write <= not clk_write after 2 ns;
+  end generate;
 
 
   ------------------------------------------------------------------------------
   main : process
-    procedure start is
+
+    procedure run_test(read_count, write_count : natural) is
     begin
-      start_stimuli <= true;
+      num_read <= read_count;
+      num_write <= write_count;
+
+      start <= true;
       wait until rising_edge(clk_read);
       wait until rising_edge(clk_write);
-      start_stimuli <= false;
+      start <= false;
+
+      wait until writer_done and reader_done;
+      wait until rising_edge(clk_read);
+      wait until rising_edge(clk_write);
     end procedure;
 
-    procedure run_test is
+    procedure run_read(count : natural) is
     begin
-      start;
-      wait until writer_done and reader_done;
+      run_test(count, 0);
+    end procedure;
+
+    procedure run_write(count : natural) is
+    begin
+      run_test(0, count);
+    end procedure;
+
+    procedure wait_for_read_to_propagate is
+    begin
+      wait until rising_edge(clk_write);
+      wait until rising_edge(clk_write);
+    end procedure;
+
+    procedure wait_for_write_to_propagate is
+    begin
+      wait until rising_edge(clk_read);
+      wait until rising_edge(clk_read);
+      wait until rising_edge(clk_read);
     end procedure;
 
   begin
     test_runner_setup(runner, runner_cfg);
     rnd.InitSeed(rnd'instance_name);
 
-    if run("random_read_and_write") then
-      run_test;
+    if run("test_init_state") then
+      check_equal(read_valid, '0');
+      check_equal(write_ready, '1');
+      check_equal(write_almost_full, '0');
+      check_equal(read_almost_empty, '1');
+      wait until read_valid'event or write_ready'event or write_almost_full'event or read_almost_empty'event for 1 us;
+      check_equal(read_valid, '0');
+      check_equal(write_ready, '1');
+      check_equal(write_almost_full, '0');
+      check_equal(read_almost_empty, '1');
 
-    elsif run("random_read_and_write_with_more_write_jitter") then
-      read_max_jitter <= 1;
-      write_max_jitter <= 8;
-
-      run_test;
-      check_relation(has_gone_empty_times > 200, "Got " & to_string(has_gone_empty_times));
-      check_true(is_empty(data_queue));
-
-    elsif run("random_read_and_write_with_more_read_jitter") then
+    elsif run("test_write_faster_than_read") then
       read_max_jitter <= 8;
       write_max_jitter <= 1;
 
-      run_test;
-      check_relation(has_gone_full_times > 200, "Got " & to_string(has_gone_full_times));
+      run_test(50 * depth, 50 * depth);
+      check_relation(has_gone_full_times > 200);
       check_true(is_empty(data_queue));
 
-    elsif run("levels_as_well_as_empty_and_full_flags_are_updated") then
+    elsif run("test_read_faster_than_write") then
+      read_max_jitter <= 1;
+      write_max_jitter <= 8;
+
+      run_test(50 * depth, 50 * depth);
+      check_relation(has_gone_empty_times > 200);
+      check_true(is_empty(data_queue));
+
+    elsif run("test_levels_full_range") then
       -- Check empty status
-      check_equal(write_almost_full, '0');
       check_equal(write_level, 0);
-      check_equal(read_almost_empty, '1');
       check_equal(read_level, 0);
 
-      start;
-
       -- Fill the FIFO
-      read_max_jitter <= 5000;
-      write_max_jitter <= 0;
-      for delay in 1 to 5000 loop
-        wait until rising_edge(clk_read);
-        wait until rising_edge(clk_write);
-      end loop;
+      run_write(depth);
 
-      -- Check full status
-      check_equal(write_almost_full, '1');
+      -- Check full status. Must wait a while before all writes have propagated to read side.
       check_equal(write_level, depth);
-      check_equal(read_almost_empty, '0');
+      wait_for_write_to_propagate;
       check_equal(read_level, depth);
 
       -- Empty the FIFO
-      read_max_jitter <= 0;
-      write_max_jitter <= 5000;
-      for delay in 1 to 5000 loop
-        wait until rising_edge(clk_read);
-        wait until rising_edge(clk_write);
-      end loop;
+      run_read(depth);
 
-      -- Check empty status
-      check_equal(write_almost_full, '0');
-      check_equal(write_level, 0);
-      check_equal(read_almost_empty, '1');
+      -- Check empty status. Must wait a while before all reads have propagated to write side.
       check_equal(read_level, 0);
+      wait_for_read_to_propagate;
+      check_equal(write_level, 0);
 
-    elsif run("check_init_state") then
-      check_equal(read_valid, '0');
-      check_equal(write_ready, '1');
+    elsif run("test_write_almost_full") then
       check_equal(write_almost_full, '0');
+
+      run_write(almost_full_level - 1);
+      check_equal(write_almost_full, '0');
+
+      run_write(1);
+      check_equal(write_almost_full, '1');
+
+      run_read(1);
+      wait_for_read_to_propagate;
+      check_equal(write_almost_full, '0');
+
+    elsif run("test_read_almost_empty") then
       check_equal(read_almost_empty, '1');
-      wait until read_valid = '1' or write_ready = '0' or write_almost_full = '1' or read_almost_empty = '0' for 1 us;
-      check_equal(read_valid, '0');
-      check_equal(write_ready, '1');
-      check_equal(write_almost_full, '0');
+
+      run_write(almost_empty_level);
+      check_equal(read_almost_empty, '1');
+
+      run_write(1);
+      wait_for_write_to_propagate;
+      check_equal(read_almost_empty, '0');
+
+      run_read(1);
       check_equal(read_almost_empty, '1');
     end if;
 
@@ -145,49 +187,45 @@ begin
 
   ------------------------------------------------------------------------------
   write_stimuli : process
-    procedure write_fifo is
-    begin
+  begin
+    wait until rising_edge(clk_write) and start;
+    writer_done <= false;
+
+    for stimuli_idx in 1 to num_write loop
       write_valid <= '1';
       write_data  <= rnd.RandSlv(write_data'length);
       wait until (write_ready and write_valid) = '1' and rising_edge(clk_write);
       push(data_queue, write_data);
-      write_valid <= '0';
-    end procedure;
-  begin
-    wait until rising_edge(clk_write) and start_stimuli;
-    writer_done <= false;
 
-    for stimuli_idx in 1 to num_stimuli loop
-      write_fifo;
+      write_valid <= '0';
       for delay in 1 to rnd.FavorSmall(0, write_max_jitter) loop
         wait until rising_edge(clk_write);
       end loop;
     end loop;
 
+    wait until rising_edge(clk_write);
     writer_done <= true;
   end process;
 
 
   ------------------------------------------------------------------------------
   read_stimuli : process
-    procedure read_fifo is
-    begin
+  begin
+    wait until rising_edge(clk_read) and start;
+    reader_done <= false;
+
+    for stimuli_idx in 1 to num_read loop
       read_ready <= '1';
       wait until (read_ready and read_valid) = '1' and rising_edge(clk_read);
       check_equal(read_data, pop_std_ulogic_vector(data_queue));
-      read_ready <= '0';
-    end procedure;
-  begin
-    wait until rising_edge(clk_read) and start_stimuli;
-    reader_done <= false;
 
-    for stimuli_idx in 1 to num_stimuli loop
-      read_fifo;
+      read_ready <= '0';
       for delay in 1 to rnd.FavorSmall(0, read_max_jitter) loop
         wait until rising_edge(clk_read);
       end loop;
     end loop;
 
+    wait until rising_edge(clk_read);
     reader_done <= true;
   end process;
 
@@ -227,8 +265,8 @@ begin
     generic map (
       width              => width,
       depth              => depth,
-      almost_full_level  => depth - 1,
-      almost_empty_level => 1
+      almost_full_level  => almost_full_level,
+      almost_empty_level => almost_empty_level
     )
     port map (
       clk_read => clk_read,

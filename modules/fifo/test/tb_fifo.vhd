@@ -17,7 +17,6 @@ use osvvm.RandomPkg.all;
 
 entity tb_fifo is
   generic (
-    width : integer;
     depth : integer;
     almost_full_level : integer;
     almost_empty_level : integer;
@@ -27,6 +26,7 @@ end entity;
 
 architecture tb of tb_fifo is
 
+  constant width : integer := 8;
 
   signal clk : std_logic := '0';
 
@@ -52,8 +52,11 @@ begin
   ------------------------------------------------------------------------------
   main : process
 
-    procedure run_test is
+    procedure run_test(read_count, write_count : natural) is
     begin
+      read_num <= read_count;
+      write_num <= write_count;
+
       read_start <= true;
       write_start <= true;
 
@@ -64,20 +67,14 @@ begin
       wait until read_done and write_done and rising_edge(clk);
     end procedure;
 
-    procedure run_read is
+    procedure run_read(count : natural) is
     begin
-      read_start <= true;
-      wait until rising_edge(clk);
-      read_start <= false;
-      wait until read_done and rising_edge(clk);
+      run_test(count, 0);
     end procedure;
 
-    procedure run_write is
+    procedure run_write(count : natural) is
     begin
-      write_start <= true;
-      wait until rising_edge(clk);
-      write_start <= false;
-      wait until write_done and rising_edge(clk);
+      run_test(0, count);
     end procedure;
 
   begin
@@ -85,51 +82,40 @@ begin
     rnd.InitSeed(rnd'instance_name);
 
     if run("test_write_faster_than_read") then
-      read_num <= 100 * depth;
-      write_num <= 100 * depth;
-
       write_max_jitter <= 2;
       read_max_jitter <= 4;
 
-      run_test;
+      run_test(100 * depth, 100 * depth);
       check_true(is_empty(data_queue));
       check_relation(has_gone_full_times > 200, "Got " & to_string(has_gone_full_times));
 
     elsif run("test_read_faster_than_write") then
-      read_num <= 100 * depth;
-      write_num <= 100 * depth;
-
       write_max_jitter <= 4;
       read_max_jitter <= 2;
 
-      run_test;
+      run_test(100 * depth, 100 * depth);
       check_true(is_empty(data_queue));
       check_relation(has_gone_empty_times > 200, "Got " & to_string(has_gone_empty_times));
 
     elsif run("test_almost_full") then
       check_equal(almost_full, '0');
 
-      write_num <= almost_full_level - 1;
-      run_write;
+      run_write(almost_full_level - 1);
       check_equal(almost_full, '0');
 
-      write_num <= 1;
-      run_write;
+      run_write(1);
       check_equal(almost_full, '1');
 
-      read_num <= 1;
-      run_read;
+      run_read(1);
       check_equal(almost_full, '0');
 
     elsif run("test_almost_empty") then
       check_equal(almost_empty, '1');
 
-      write_num <= almost_empty_level;
-      run_write;
+      run_write(almost_empty_level);
       check_equal(almost_empty, '1');
 
-      write_num <= 1;
-      run_write;
+      run_write(1);
       if almost_empty_level = 0 then
         -- almost_empty is updated one cycle later, since write must propagate into RAM before
         -- read data is valid
@@ -137,8 +123,7 @@ begin
       end if;
       check_equal(almost_empty, '0');
 
-      read_num <= 1;
-      run_read;
+      run_read(1);
       check_equal(almost_empty, '1');
     end if;
 

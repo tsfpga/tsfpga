@@ -34,7 +34,8 @@ entity afifo is
     -- Read data interface
     clk_read : in std_logic;
     read_ready : in  std_logic;
-    read_valid : out std_logic := '0';  -- '1' if FIFO is not empty
+    -- '1' if FIFO is not empty
+    read_valid : out std_logic := '0';
     read_data  : out std_logic_vector(width - 1 downto 0);
     -- Status signals on the read side. Updated one clock cycle after read transactions.
     -- Updated "a while" after write transactions (not deterministic).
@@ -43,7 +44,8 @@ entity afifo is
     read_almost_empty : out std_logic;
     -- Write data interface
     clk_write : in std_logic;
-    write_ready : out std_logic := '1';  -- '1' if FIFO is not full
+      -- '1' if FIFO is not full
+    write_ready : out std_logic := '1';
     write_valid : in  std_logic;
     write_data  : in  std_logic_vector(width - 1 downto 0);
     -- Status signals on the write side. Updated one clock cycle after write transactions.
