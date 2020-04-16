@@ -204,7 +204,6 @@ begin
     generic map (
       width => width,
       depth => depth,
-      include_level_counter => false,
       almost_full_level => almost_full_level,
       almost_empty_level => almost_empty_level
     )

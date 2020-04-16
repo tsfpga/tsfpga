@@ -5,12 +5,10 @@ Added
 Fixes
 
 * Fix synchronous FIFO signal ``almost_empty`` being de-asserted too early when ``almost_empty_level`` is zero.
+* Area optimize the synchronous and asynchronous FIFOs.
 
 Breaking changes
 
-* Area optimize the synchronous FIFO.
-  A generic ``include_level_counter`` is introduced that must be set to ``true`` for the level counter output to be valid.
-  Depth must be a power of two.
 * Change meaning of ``almost_empty`` FIFO signal to be "'1' if there are almost_full_level or more words available in the FIFO".
   Used to be "fewer than almost_full_level".
 * Change register json definition file name from ``<name>_regs.json`` to ``regs_<name>.json``.

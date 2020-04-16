@@ -9,10 +9,10 @@ class Module(BaseModule):
 
     def setup_simulations(self, vunit_proj, **kwargs):  # pylint: disable=too-many-branches
         # Note that
-        #   almost full level = depth
-        # will exclude write level counter. And
-        #   empty level = 0
-        # will exclude read level counter
+        #   almost_full_level = depth, or
+        #   almost_empty_level = 0
+        # result in alternative ways of calculating almost full/empty.
+
         for read_clock_is_faster in [True, False]:
             name = "read_clock_faster" if read_clock_is_faster else "write_clock_faster"
             for test in vunit_proj.library(self.library_name).test_bench("tb_afifo").get_tests():
@@ -30,15 +30,11 @@ class Module(BaseModule):
                     for depth in [16, 1024]:
                         test_case_name = f"{name}.depth_{depth}"
                         generics = dict(depth=depth,
-                                        almost_full_level=depth // 2,
-                                        almost_empty_level=0,
+                                        almost_full_level=0,
+                                        almost_empty_level=depth,
                                         read_clock_is_faster=read_clock_is_faster)
                         test.add_config(name=test_case_name, generics=generics)
 
-        # Note that
-        #   almost full level = depth, and
-        #   empty level = 0
-        # will exclude level counter
         for test in vunit_proj.library(self.library_name).test_bench("tb_fifo").get_tests():
             if "almost" in test.name:
                 depth = 1024

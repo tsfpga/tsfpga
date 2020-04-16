@@ -2,10 +2,6 @@
 -- Copyright (c) Lukas Vik. All rights reserved.
 -- -----------------------------------------------------------------------------
 -- Synchronous FIFO.
---
--- The smallest resource footprint will happen if:
--- * include_level_counter is set to false.
--- * almost_full_level and almost_empty_level have their default value.
 -- -----------------------------------------------------------------------------
 
 library ieee;
@@ -24,15 +20,13 @@ entity fifo is
   generic (
     width : positive;
     depth : positive;
-    -- Must set to '1' for "level" port to be valid
-    include_level_counter : boolean := false;
+    -- Changing these levels from default value will increase logic footprint
     almost_full_level : integer range 0 to depth := depth;
     almost_empty_level : integer range 0 to depth := 0;
     ram_type : string := "auto"
   );
   port (
     clk : in std_logic;
-    -- Must set "include_level_counter" to true for this value to be vaLid
     level : out integer range 0 to depth := 0;
 
     read_ready : in std_logic;
@@ -52,15 +46,6 @@ entity fifo is
 end entity;
 
 architecture a of fifo is
-
-  -- Default full/empty levels are chosen so that we can use the handshake signals.
-  -- If they do not have the default value, then we need to maintain a level counter.
-  constant almost_full_level_has_non_default_value : boolean := almost_full_level /= depth;
-  constant almost_empty_level_has_non_default_value : boolean := almost_empty_level /= 0;
-  constant include_level_counter_int : boolean :=
-    include_level_counter
-    or almost_full_level_has_non_default_value
-    or almost_empty_level_has_non_default_value;
 
   -- Need one extra bit in the addresses to be able to make the distinction if the FIFO
   -- is full or empty (where the addresses would otherwise be equal).
@@ -82,20 +67,14 @@ begin
 
   assign_almost_full : if almost_full_level = depth generate
     almost_full <= not write_ready;
-    assert not almost_full_level_has_non_default_value severity failure;
   else generate
     almost_full <= to_sl(level > almost_full_level - 1);
-    assert almost_full_level_has_non_default_value severity failure;
-    assert include_level_counter_int severity failure;
   end generate;
 
   assign_almost_empty : if almost_empty_level = 0 generate
     almost_empty <= not read_valid;
-    assert not almost_empty_level_has_non_default_value severity failure;
   else generate
     almost_empty <= to_sl(level < almost_empty_level + 1);
-    assert almost_empty_level_has_non_default_value severity failure;
-    assert include_level_counter_int severity failure;
   end generate;
 
 
@@ -105,9 +84,7 @@ begin
   begin
     wait until rising_edge(clk);
 
-    if include_level_counter_int then
-      level <= level + to_int(write_valid and write_ready) - to_int(read_ready and read_valid);
-    end if;
+    level <= level + to_int(write_valid and write_ready) - to_int(read_ready and read_valid);
 
     write_addr_next := write_addr + to_int(write_ready and write_valid);
 
