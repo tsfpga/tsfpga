@@ -9,6 +9,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 library common;
 use common.attribute_pkg.all;
@@ -19,33 +20,31 @@ use math.math_pkg.all;
 
 entity resync_counter is
   generic (
-    default_value   : integer := 0;
-    counter_max     : integer := integer'high;
+    width : positive;
+    default_value   : unsigned(width - 1 downto 0) := (others => '0');
     pipeline_output : boolean := false
     );
   port (
-    clk_in     : in  std_logic;
-    counter_in : in integer range 0 to counter_max;
+    clk_in     : in std_logic;
+    counter_in : in unsigned(default_value'range);
 
-    clk_out     : in  std_logic;
-    counter_out : out integer range 0 to counter_max := default_value
+    clk_out     : in std_logic;
+    counter_out : out unsigned(default_value'range) := default_value
     );
 end entity;
 
 architecture a of resync_counter is
-  constant data_width : integer := num_bits_needed(counter_max);
-  signal counter_in_gray, counter_in_gray_p1, counter_out_gray : std_logic_vector(data_width-1 downto 0) := to_gray(default_value, data_width);
+  signal counter_in_gray, counter_in_gray_p1, counter_out_gray : std_logic_vector(counter_in'range)
+    := to_gray(default_value);
 
   attribute async_reg of counter_in_gray_p1 : signal is "true";
   attribute async_reg of counter_out_gray   : signal is "true";
 begin
 
-  assert is_power_of_two(counter_max+1) report "Counter range must be a power of two" severity failure;
-
   clk_in_process : process
   begin
     wait until rising_edge(clk_in);
-    counter_in_gray <= to_gray(counter_in, data_width);
+    counter_in_gray <= to_gray(counter_in);
   end process;
 
   clk_out_process : process

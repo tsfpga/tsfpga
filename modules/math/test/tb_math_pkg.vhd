@@ -39,6 +39,7 @@ begin
   main : process
     variable value : signed(5 - 1 downto 0);
     variable slv : std_logic_vector(5 - 1 downto 0);
+    variable unsigned_value : unsigned(8 - 1 downto 0);
   begin
     test_runner_setup(runner, runner_cfg);
 
@@ -91,13 +92,14 @@ begin
       check_true(geq_0(value));
 
     elsif run("to_and_from_gray") then
-      for i in 1 to 2**8-2 loop
-        check_equal(from_gray(to_gray(i, 8)), i);
+      for i in 1 to 2 ** unsigned_value'length - 2 loop
+        unsigned_value := to_unsigned(i, unsigned_value'length);
+        check_equal(from_gray(to_gray(unsigned_value)), unsigned_value);
         -- Verify that only one bit changes when incrementing the input
         -- to to_gray
-        check_equal(hamming_distance(to_gray(i, 8), to_gray(i+1, 8)), 1);
-        check_equal(hamming_distance(to_gray(i-1, 8), to_gray(i, 8)), 1);
-        check_equal(hamming_distance(to_gray(i-1, 8), to_gray(i+1, 8)), 2);
+        check_equal(hamming_distance(to_gray(unsigned_value), to_gray(unsigned_value + 1)), 1);
+        check_equal(hamming_distance(to_gray(unsigned_value - 1), to_gray(unsigned_value)), 1);
+        check_equal(hamming_distance(to_gray(unsigned_value - 1), to_gray(unsigned_value + 1)), 2);
       end loop;
 
     elsif run("is_power_of_two") then

@@ -15,7 +15,8 @@ use work.axi_pkg.all;
 
 entity axil_cdc is
   generic (
-    data_width : integer
+    data_width : integer;
+    ram_type : string := "auto"
   );
   port (
     clk_master : in std_logic;
@@ -39,7 +40,8 @@ begin
   aw_afifo_inst : entity fifo.afifo
     generic map (
       width => axil_m2s_a_sz,
-      depth => fifo_depth
+      depth => fifo_depth,
+      ram_type => ram_type
     )
     port map(
       clk_read => clk_slave,
@@ -67,7 +69,8 @@ begin
     w_afifo_inst : entity fifo.afifo
       generic map (
         width => w_width,
-        depth => fifo_depth
+        depth => fifo_depth,
+        ram_type => ram_type
       )
       port map(
         clk_read => clk_slave,
@@ -87,7 +90,8 @@ begin
   b_afifo_inst : entity fifo.afifo
     generic map (
       width => axil_s2m_b_sz,
-      depth => fifo_depth
+      depth => fifo_depth,
+      ram_type => ram_type
     )
     port map(
       clk_read => clk_master,
@@ -106,7 +110,8 @@ begin
   ar_afifo_inst : entity fifo.afifo
     generic map (
       width => axil_m2s_a_sz,
-      depth => fifo_depth
+      depth => fifo_depth,
+      ram_type => ram_type
     )
     port map(
       clk_read => clk_slave,
@@ -136,7 +141,8 @@ begin
     r_afifo_inst : entity fifo.afifo
       generic map (
         width => r_width,
-        depth => fifo_depth
+        depth => fifo_depth,
+        ram_type => ram_type
       )
       port map(
         clk_read => clk_master,

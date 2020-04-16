@@ -19,8 +19,8 @@ package math_pkg is
   function lt_0(value  : signed) return boolean;
   function geq_0(value : signed) return boolean;
 
-  function to_gray(value, num_bits : integer) return std_logic_vector;
-  function from_gray(code          : std_logic_vector) return integer;
+  function to_gray(value : unsigned) return std_logic_vector;
+  function from_gray(code : std_logic_vector) return unsigned;
 
 end package;
 
@@ -81,28 +81,23 @@ package body math_pkg is
     return value(value'left) = '0';
   end function;
 
-  function to_gray(value, num_bits : integer) return std_logic_vector is
-    variable value_slv : std_logic_vector(num_bits - 1 downto 0);
-    variable ret       : std_logic_vector(num_bits - 1 downto 0);
+  function to_gray(value : unsigned) return std_logic_vector is
+    variable value_slv, result : std_logic_vector(value'range);
   begin
-    assert value < 2**num_bits report "Input value is out of range: " & to_string(value);
-
-    value_slv := std_logic_vector(to_unsigned(value, num_bits));
-    ret       := value_slv xor "0" & value_slv(value_slv'high downto 1);
-    return ret;
+    value_slv := std_logic_vector(value);
+    result := value_slv xor "0" & value_slv(value_slv'high downto 1);
+    return result;
   end function;
 
-  function from_gray(code : std_logic_vector) return integer is
-    variable ret_slv : std_logic_vector(code'range);
-    variable ret     : integer range 0 to 2**code'length-1;
+  function from_gray(code : std_logic_vector) return unsigned is
+    variable result : unsigned(code'range);
   begin
-    ret_slv(code'high) := code(code'high);
+    result(code'high) := code(code'high);
     for bit_num in code'high -1 downto 0 loop
-      ret_slv(bit_num) := ret_slv(bit_num + 1) xor code(bit_num);
+      result(bit_num) := result(bit_num + 1) xor code(bit_num);
     end loop;
 
-    ret := to_integer(unsigned(ret_slv));
-    return ret;
+    return result;
   end function;
 
 end package body;

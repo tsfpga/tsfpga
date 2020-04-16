@@ -22,7 +22,6 @@ end entity;
 architecture tb of tb_resync_counter is
   constant clk_in_period   : time    := 3.3 ns;
   constant clk_out_period  : time    := 4 ns;
-  constant counter_max     : integer := 255;
   constant max_resync_time : time :=
     clk_in_period +
     2*clk_out_period +
@@ -30,7 +29,8 @@ architecture tb of tb_resync_counter is
 
   signal clk_in                  : std_logic                      := '1';
   signal clk_out                 : std_logic                      := '0';
-  signal counter_in, counter_out : integer range 0 to counter_max := 0;
+  signal counter_in, counter_out : unsigned(8 - 1 downto 0) := (others => '0');
+  constant counter_max : integer := 2 ** counter_in'length - 1;
 begin
 
   test_runner_watchdog(runner, 10 ms);
@@ -43,7 +43,7 @@ begin
     procedure apply_and_check(value : integer) is
     begin
       wait until rising_edge(clk_in);
-      counter_in <= value;
+      counter_in <= to_unsigned(value, counter_in'length);
       wait until counter_out'event for max_resync_time;
       wait until rising_edge(clk_out);
       check_equal(counter_out, value);
@@ -71,8 +71,7 @@ begin
   ------------------------------------------------------------------------------
   dut : entity work.resync_counter
     generic map (
-      default_value   => 0,
-      counter_max     => counter_max,
+      width => counter_in'length,
       pipeline_output => pipeline_output)
     port map (
       clk_in     => clk_in,
