@@ -22,8 +22,8 @@ use math.math_pkg.all;
 
 entity fifo is
   generic (
-    width : integer;
-    depth : integer;
+    width : positive;
+    depth : positive;
     -- Must set to '1' for "level" port to be valid
     include_level_counter : boolean := false;
     almost_full_level : integer range 0 to depth := depth;
@@ -62,18 +62,13 @@ architecture a of fifo is
     or almost_full_level_has_non_default_value
     or almost_empty_level_has_non_default_value;
 
-  function max_addr return integer is
-  begin
-    if include_level_counter_int then
-      return depth - 1;
-    end if;
-    -- If we do not have a level counter we must have one extra bit in the addresses to be able to make
-    -- the distinction if the fifo is full or empty (where the addresses would otherwise be equal).
-    return 2 * depth - 1;
-  end function;
+  -- Need one extra bit in the addresses to be able to make the distinction if the FIFO
+  -- is full or empty (where the addresses would otherwise be equal).
+  subtype fifo_addr_t is unsigned(num_bits_needed(2 * depth - 1) - 1 downto 0);
+  signal read_addr_next, read_addr, write_addr : fifo_addr_t := (others => '0');
 
-  subtype fifo_addr_t is integer range 0 to max_addr;
-  signal read_addr, read_addr_plus_1_reg, read_addr_reg, write_addr : fifo_addr_t := 0;
+  -- The part of the address that actually goes to the BRAM address port
+  subtype bram_addr_range is integer range num_bits_needed(depth - 1) - 1 downto 0;
 
 begin
 
@@ -105,84 +100,67 @@ begin
 
 
   ------------------------------------------------------------------------------
-  read_addr_handling : process
+  read_addr_update : process(all)
   begin
-    wait until rising_edge(clk);
-
-    read_addr_reg <= read_addr;
-    read_addr_plus_1_reg <= (read_addr + 1) mod (fifo_addr_t'high + 1);
+    read_addr_next <= read_addr + to_int(read_ready and read_valid);
   end process;
-
-  read_addr <= read_addr_plus_1_reg when (read_ready and read_valid) = '1' else read_addr_reg;
 
 
   ------------------------------------------------------------------------------
   status : process
-    variable write_addr_plus_1 : fifo_addr_t := 0;
+    variable write_addr_next : fifo_addr_t := (others => '0');
   begin
     wait until rising_edge(clk);
 
-    write_addr_plus_1 := (write_addr + 1) mod (fifo_addr_t'high + 1);
+    write_addr_next := write_addr + to_int(write_ready and write_valid);
+
+    if read_addr_next(bram_addr_range) /= write_addr_next(bram_addr_range) then
+      read_valid <= '1';
+      write_ready <= '1';
+    else
+      if read_addr_next(read_addr_next'high) /=  write_addr_next(write_addr_next'high) then
+        -- Write address has wrapped around but read pointer has not. FIFO is full.
+        read_valid <= '1';
+        write_ready <= '0';
+      else
+        -- FIFO is empty
+        read_valid <= '0';
+        write_ready <= '1';
+      end if;
+    end if;
+
+    -- Race condition that happens when writing and reading at the same time to FIFO of level 1.
+    -- Need to let data propagate into RAM before it can be read.
+    if (write_ready and write_valid) = '1' and read_addr_next(bram_addr_range) = write_addr(bram_addr_range) then
+      read_valid <= '0';
+    end if;
 
     if include_level_counter_int then
-      -- If we have the level it is cheaper to compare it with zero, rather than the address comparison below
-      read_valid <= to_sl(level /= 0);
       level <= level + to_int(write_valid and write_ready) - to_int(read_ready and read_valid);
-    else
-      read_valid <= to_sl(read_addr /= write_addr);
     end if;
 
-    if read_ready and read_valid and not (write_valid and write_ready) then
-      -- Read but no write
-      write_ready <= '1';
-
-      if read_addr_plus_1_reg mod depth = write_addr mod depth then
-        -- No data left
-        read_valid <= '0';
-      end if;
-
-    elsif write_ready and write_valid and not (read_ready and read_valid) then
-      -- Write but no read
-      write_addr <= write_addr_plus_1;
-
-      if write_addr_plus_1 mod depth = read_addr_reg mod depth then
-        -- FIFO full
-        write_ready <= '0';
-      end if;
-
-    elsif read_ready and read_valid and write_ready and write_valid then
-      -- Write and read
-      write_addr <= write_addr_plus_1;
-
-      -- Race condition when reading and writing to fifo of level 1. Need to let write
-      -- data propagate into RAM before it can be read.
-      if include_level_counter_int then
-        if level = 1 then
-          read_valid <= '0';
-        end if;
-      else
-        if read_addr mod depth = write_addr mod depth then
-          read_valid <= '0';
-        end if;
-      end if;
-    end if;
+    read_addr <= read_addr_next;
+    write_addr <= write_addr_next;
   end process;
 
 
   ------------------------------------------------------------------------------
-  memory : process
+  memory : block
     subtype word_t is std_logic_vector(width - 1 downto 0);
     type mem_t is array (integer range <>) of word_t;
-    variable mem : mem_t(0 to depth - 1) := (others => (others => '0'));
-    attribute ram_style of mem : variable is ram_type;
+
+    signal mem : mem_t(0 to depth - 1) := (others => (others => '0'));
+    attribute ram_style of mem : signal is ram_type;
   begin
-    wait until rising_edge(clk);
+    memory : process
+    begin
+      wait until rising_edge(clk);
 
-    read_data <= mem(read_addr mod depth);
+      read_data <= mem(to_integer(read_addr_next) mod depth);
 
-    if write_ready and write_valid then
-      mem(write_addr mod depth) := write_data;
-    end if;
-  end process;
-
+      if write_ready and write_valid then
+        mem(to_integer(write_addr) mod depth) <= write_data;
+      end if;
+    end process;
+  end block;
 end architecture;

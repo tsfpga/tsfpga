@@ -15,8 +15,8 @@ class Module(BaseModule):
                 tb.add_config(name=name, generics=dict(width=width, depth=depth))
 
         # Note that
-        #   almost full level to depth
-        #   empty level of 0
+        #   almost full level = depth
+        #   empty level = 0
         # will exclude level counter
         for test in vunit_proj.library(self.library_name).test_bench("tb_fifo").get_tests():
             if "almost" in test.name:
@@ -33,16 +33,9 @@ class Module(BaseModule):
             else:
                 for width in [8, 24]:
                     for depth in [16, 1024]:
-                        name = f"width_{width}.depth_{depth}.no_level_counter"
+                        name = f"width_{width}.depth_{depth}"
                         generics = dict(width=width,
                                         depth=depth,
                                         almost_full_level=depth,
                                         almost_empty_level=0)
                         test.add_config(name=name, generics=generics)
-
-                name = f"include_level_counter"
-                generics = dict(width=8,
-                                depth=256,
-                                almost_full_level=73,
-                                almost_empty_level=31)
-                test.add_config(name=name, generics=generics)
