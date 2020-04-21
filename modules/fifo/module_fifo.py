@@ -48,5 +48,14 @@ class Module(BaseModule):
             else:
                 for depth in [16, 1024]:
                     name = f"depth_{depth}"
-                    generics = dict(depth=depth, almost_full_level=depth, almost_empty_level=0)
+                    generics = dict(depth=depth,
+                                    almost_full_level=depth,
+                                    almost_empty_level=0,
+                                    enable_last=True)
+
+                    if "write_faster_than_read" in test.name:
+                        generics.update(read_stall_probability_percent=75)
+                    if "read_faster_than_write" in test.name:
+                        generics.update(write_stall_probability_percent=75)
+
                     test.add_config(name=name, generics=generics)

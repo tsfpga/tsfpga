@@ -23,6 +23,8 @@ entity fifo is
     -- Changing these levels from default value will increase logic footprint
     almost_full_level : integer range 0 to depth := depth;
     almost_empty_level : integer range 0 to depth := 0;
+    -- Set to true in order to use read_last and write_last
+    enable_last : boolean := false;
     ram_type : string := "auto"
   );
   port (
@@ -33,6 +35,8 @@ entity fifo is
     -- '1' if FIFO is not empty
     read_valid : out std_logic := '0';
     read_data : out std_logic_vector(width - 1 downto 0);
+    -- Must set enable_last generic in order to use this
+    read_last : out std_logic := '0';
     -- '1' if there are almost_empty_level or fewer words available to read
     almost_empty : out std_logic;
 
@@ -40,6 +44,8 @@ entity fifo is
     write_ready : out std_logic := '1';
     write_valid : in std_logic;
     write_data : in std_logic_vector(width - 1 downto 0);
+    -- Must set enable_last generic in order to use this
+    write_last : in std_logic := '-';
     -- '1' if there are almost_full_level or more words available in the FIFO
     almost_full : out std_logic
   );
@@ -103,20 +109,32 @@ begin
 
   ------------------------------------------------------------------------------
   memory : block
-    subtype word_t is std_logic_vector(width - 1 downto 0);
+    constant memory_word_width : integer := width + to_int(enable_last);
+    subtype word_t is std_logic_vector(memory_word_width - 1 downto 0);
     type mem_t is array (integer range <>) of word_t;
 
     signal mem : mem_t(0 to depth - 1) := (others => (others => '0'));
     attribute ram_style of mem : signal is ram_type;
+
+    signal memory_read_data, memory_write_data : word_t;
   begin
+
+    read_data <= memory_read_data(read_data'range);
+    memory_write_data(write_data'range) <= write_data;
+
+    assign_data : if enable_last generate
+      read_last <= memory_read_data(memory_read_data'high);
+      memory_write_data(memory_write_data'high) <= write_last;
+    end generate;
+
     memory : process
     begin
       wait until rising_edge(clk);
 
-      read_data <= mem(to_integer(read_addr_next) mod depth);
+      memory_read_data <= mem(to_integer(read_addr_next) mod depth);
 
       if write_ready and write_valid then
-        mem(to_integer(write_addr) mod depth) <= write_data;
+        mem(to_integer(write_addr) mod depth) <= memory_write_data;
       end if;
     end process;
   end block;
