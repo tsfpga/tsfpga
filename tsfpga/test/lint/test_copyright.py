@@ -13,25 +13,20 @@ from tsfpga.git_utils import find_git_files
 
 class CopyrightHeader:
 
-    def __init__(self, copyright_holder, file):
-        self._copyright_holder = copyright_holder
+    def __init__(self, file, copyright_holder, copyright_text_lines=None):
         self._file = file
+        self._comment_character = self._get_comment_character()
+        self.expected_copyright_header = self._get_expected_copyright_header(
+            copyright_holder, copyright_text_lines)
 
     def check_file(self):
         """
         Copyright comments should be correct. It should be followed by a blank line or another comment.
         """
-        copyright_header_re = self.get_expected_copyright_header().replace("(", "\\(").replace(")", "\\)")
+        copyright_header_re = self.expected_copyright_header.replace("(", "\\(").replace(")", "\\)")
         regexp = re.compile(copyright_header_re + rf"($|\n|{self._comment_character})")
         data = read_file(self._file)
         return regexp.match(data) is not None
-
-    def get_expected_copyright_header(self):
-        separator_line = self._comment_character + " " + "-" * (79 - len(self._comment_character))
-        header = separator_line + "\n" + \
-            self._comment_character + " " + f"Copyright (c) {self._copyright_holder}. All rights reserved." + "\n" + \
-            separator_line + "\n"
-        return header
 
     def fix_file(self):
         if self._is_suitable_for_insertion():
@@ -39,8 +34,18 @@ class CopyrightHeader:
         else:
             raise ValueError(f"Can not fix copyright header in file {self._file}")
 
-    @property
-    def _comment_character(self):
+    def _get_expected_copyright_header(self, copyright_holder, copyright_text_lines):
+        separator_line = self._comment_character + " " + "-" * (79 - len(self._comment_character))
+        header = f"{separator_line}\n"
+        header += f"{self._comment_character} Copyright (c) {copyright_holder}. All rights reserved.\n"
+        if copyright_text_lines:
+            header += f"{self._comment_character}\n"
+            for copyright_text_line in copyright_text_lines:
+                header += f"{self._comment_character} {copyright_text_line}\n"
+        header += f"{separator_line}\n"
+        return header
+
+    def _get_comment_character(self):
         if self._file.name.endswith(".py"):
             return "#"
         if self._file.name.endswith(".vhd"):
@@ -57,7 +62,7 @@ class CopyrightHeader:
 
     def _insert_copyright_header(self):
         data = read_file(self._file)
-        data = self.get_expected_copyright_header() + "\n" + data
+        data = f"{self.expected_copyright_header}\n{data}"
         create_file(self._file, data)
 
 
@@ -72,11 +77,10 @@ def files_to_check_for_copyright_header():
 def test_copyright_header_of_all_checked_in_files():
     test_ok = True
     for file in files_to_check_for_copyright_header():
-        copyright_header_checker = CopyrightHeader("Lukas Vik", file)
+        copyright_header_checker = CopyrightHeader(file, "Lukas Vik")
         if not copyright_header_checker.check_file():
             test_ok = False
-            expected = copyright_header_checker.get_expected_copyright_header()
-            print(f"Fail for {file}.\nExpected:\n{expected}")
+            print(f"Fail for {file}.\nExpected:\n{copyright_header_checker.expected_copyright_header}")
     assert test_ok
 
 
@@ -86,19 +90,32 @@ def test_check_file(tmp_path):
     header += "-- " + "-" * 77 + "\n"
 
     file = create_file(tmp_path / "header.vhd", header)
-    copyright_header = CopyrightHeader("Apa", file)
+    copyright_header = CopyrightHeader(file, "Apa")
     assert copyright_header.check_file()
 
     file = create_file(tmp_path / "non_comment.vhd", header + "non-comment on line after")
-    copyright_header = CopyrightHeader("Apa", file)
+    copyright_header = CopyrightHeader(file, "Apa")
     assert not copyright_header.check_file()
 
     file = create_file(tmp_path / "empty_line.vhd", header + "\nEmpty line and then non-comment")
-    copyright_header = CopyrightHeader("Apa", file)
+    copyright_header = CopyrightHeader(file, "Apa")
     assert copyright_header.check_file()
 
     file = create_file(tmp_path / "further_comment.vhd", header + "-- Further comment\n")
-    copyright_header = CopyrightHeader("Apa", file)
+    copyright_header = CopyrightHeader(file, "Apa")
+    assert copyright_header.check_file()
+
+
+def test_check_file_with_copyright_text(tmp_path):
+    header = "-- " + "-" * 77 + "\n"
+    header += "-- Copyright (c) Apa. All rights reserved.\n"
+    header += "--\n"
+    header += "-- Some more\n"
+    header += "-- text.\n"
+    header += "-- " + "-" * 77 + "\n"
+
+    file = create_file(tmp_path / "header.vhd", header)
+    copyright_header = CopyrightHeader(file, "Apa", ["Some more", "text."])
     assert copyright_header.check_file()
 
 
@@ -106,7 +123,7 @@ def test_fix_file_comment_insertion(tmp_path):
     data = "Apa\n"
     file = create_file(tmp_path / "file_for_test.vhd", data)
 
-    copyright_header = CopyrightHeader("Hest Hestsson", file)
+    copyright_header = CopyrightHeader(file, "Hest Hestsson")
     copyright_header.fix_file()
 
     data = read_file(file).split("\n")
@@ -120,7 +137,7 @@ def test_fix_file_comment_insertion(tmp_path):
 def test_fix_file_should_not_run_on_dirty_file(tmp_path):
     data = "-- Custom comment line\n\nApa\n"
     file = create_file(tmp_path / "file_for_test.vhd", data)
-    copyright_header = CopyrightHeader("A", file)
+    copyright_header = CopyrightHeader(file, "A")
 
     with pytest.raises(ValueError) as exception_info:
         copyright_header.fix_file()
