@@ -21,10 +21,14 @@ from tsfpga.vivado_ip_cores import VivadoIpCores
 from tsfpga.vivado_simlib import VivadoSimlib
 from tsfpga.system_utils import create_directory
 
-from tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
+from examples.tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
 
 
 def main():
+    setup_and_run(all_modules=get_tsfpga_modules())
+
+
+def setup_and_run(all_modules):
     args = arguments()
 
     vunit_proj = VUnit.from_args(args=args)
@@ -35,13 +39,12 @@ def main():
 
     has_commercial_simulator = vunit_proj.get_simulator_name() != "ghdl"
 
-    all_modules = get_tsfpga_modules()
     if has_commercial_simulator and not args.vivado_skip:
         # Includes modules with IP cores. Can only be used with a commercial simulator.
         sim_modules = all_modules
     else:
         # Only modules that do not contain IP cores
-        sim_modules = get_tsfpga_modules([tsfpga.TSFPGA_MODULES, tsfpga.TSFPGA_EXAMPLE_MODULES])
+        sim_modules = [module for module in all_modules if len(module.get_ip_core_files()) == 0]
 
     if args.vivado_skip:
         ip_core_vivado_project_sources_directory = None

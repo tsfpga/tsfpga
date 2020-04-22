@@ -8,7 +8,7 @@ from tsfpga.constraint import Constraint
 from tsfpga.module import BaseModule
 from tsfpga.vivado_project import VivadoProject
 
-from tsfpga_example_env import get_tsfpga_modules
+from examples.tsfpga_example_env import get_tsfpga_modules
 
 THIS_FILE = Path(__file__)
 
