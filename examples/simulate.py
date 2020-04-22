@@ -25,10 +25,6 @@ from examples.tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP
 
 
 def main():
-    setup_and_run(all_modules=get_tsfpga_modules())
-
-
-def setup_and_run(all_modules):
     args = arguments()
 
     vunit_proj = VUnit.from_args(args=args)
@@ -37,6 +33,7 @@ def setup_and_run(all_modules):
     vunit_proj.enable_location_preprocessing()
     vunit_proj.enable_check_preprocessing()
 
+    all_modules = get_tsfpga_modules()
     has_commercial_simulator = vunit_proj.get_simulator_name() != "ghdl"
 
     if has_commercial_simulator and not args.vivado_skip:
@@ -60,7 +57,8 @@ def setup_and_run(all_modules):
 
     create_vhdl_ls_configuration(vunit_proj,
                                  all_modules,
-                                 ip_core_vivado_project_sources_directory)
+                                 ip_core_vivado_project_sources_directory,
+                                 PATH_TO_TSFPGA)
 
     for module in sim_modules:
         vunit_library = vunit_proj.add_library(module.library_name)
@@ -127,7 +125,7 @@ def generate_ip_core_files(modules, temp_dir, force_generate):
     return vivado_ip_cores.compile_order_file, vivado_ip_cores.vivado_project_sources_directory
 
 
-def create_vhdl_ls_configuration(vunit_proj, all_modules, ip_core_vivado_project_sources_directory):
+def create_vhdl_ls_configuration(vunit_proj, all_modules, ip_core_vivado_project_sources_directory, root_path):
     """
     Create config for vhdl_ls. Granted this might no be the "correct" place for this functionality.
     But since the call is somewhat quick (~10 ms), and simulate.py is run "often" it seems an
@@ -135,7 +133,7 @@ def create_vhdl_ls_configuration(vunit_proj, all_modules, ip_core_vivado_project
     """
     vivado_location = None if which("vivado") is None else Path(which("vivado"))
     tsfpga.create_vhdl_ls_config.create_configuration(
-        PATH_TO_TSFPGA,
+        root_path,
         modules=all_modules,
         vunit_proj=vunit_proj,
         vivado_location=vivado_location,
