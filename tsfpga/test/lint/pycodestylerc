@@ -2,5 +2,5 @@
 max-line-length = 150
 
 # E402 = Wrong import order. Pycodestylerc does not usually allow us doing sys.path.append(...) before import.
-ignore=E402
-
+# W503 = Line break before binary operator. This is how it should be. W504 is respected. https://github.com/PyCQA/pycodestyle/pull/502
+ignore=E402,W503
