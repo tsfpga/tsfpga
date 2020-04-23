@@ -145,14 +145,16 @@ def merge_ghdl_coverage(results):
         print("No test results to merge coverage on")
         return
 
-    merged_coverage_output = TSFPGA_EXAMPLES_TEMP_DIR / "vunit_coverage_database"
+    temp_dir = results.get_report().output_path.parent
+
+    merged_coverage_output = temp_dir / "vunit_coverage_database"
     results.merge_coverage(merged_coverage_output)
 
-    report_html_path = TSFPGA_EXAMPLES_TEMP_DIR / "vhdl_coverage_html"
+    report_html_path = temp_dir / "vhdl_coverage_html"
     create_directory(report_html_path, empty=True)
     gcovr_cmd = ["gcovr",
                  "--xml",
-                 TSFPGA_EXAMPLES_TEMP_DIR / "vhdl_coverage.xml",
+                 temp_dir / "vhdl_coverage.xml",
                  "--xml-pretty",
                  "--html",
                  "--html-details",
