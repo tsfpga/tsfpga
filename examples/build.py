@@ -15,7 +15,7 @@ from tsfpga.system_utils import create_directory, delete
 from examples.tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
 
 
-def arguments(projects):
+def arguments(projects, default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
     parser = argparse.ArgumentParser("Create, synth and build an FPGA project",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--list-only",
@@ -38,11 +38,11 @@ def arguments(projects):
                         help="only synthesize a project")
     parser.add_argument("--project-path",
                         type=Path,
-                        default=TSFPGA_EXAMPLES_TEMP_DIR / "projects",
+                        default=default_temp_dir / "projects",
                         help="the FPGA build project will be placed here")
     parser.add_argument("--ip-cache-path",
                         type=Path,
-                        default=TSFPGA_EXAMPLES_TEMP_DIR / "vivado_ip_cache",
+                        default=default_temp_dir / "vivado_ip_cache",
                         help="location of Vivado IP cache")
     parser.add_argument("--output-path",
                         type=Path,
@@ -72,6 +72,10 @@ def main():
     projects = BuildProjectList(modules)
     args = arguments(projects)
 
+    setup_and_run(modules, projects, args)
+
+
+def setup_and_run(modules, projects, args):
     if args.list_only:
         print(f"Available projects:\n\n{projects}")
         return
@@ -79,7 +83,7 @@ def main():
     if args.generate_registers_only:
         # Generate register output from all modules. Note that this is not used by the build
         # flow or simulation flow, it is only for the user to inspect the artifacts.
-        generate_registers(modules, TSFPGA_EXAMPLES_TEMP_DIR / "registers")
+        generate_registers(modules, args.project_path.parent / "registers")
         return
 
     project = projects.get(args.project_name)
