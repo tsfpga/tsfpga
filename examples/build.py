@@ -12,7 +12,7 @@ sys.path.append(str(PATH_TO_TSFPGA))
 from tsfpga.build_project_list import BuildProjectList
 from tsfpga.system_utils import create_directory, delete
 
-from tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
+from examples.tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
 
 
 def arguments(projects):
@@ -145,7 +145,8 @@ def collect_artifacts(project, output_path):
     generate_registers(project.modules, release_dir / "registers")
     copy2(output_path / (project.name + ".bit"), release_dir)
     copy2(output_path / (project.name + ".bin"), release_dir)
-    copy2(output_path / (project.name + ".hdf"), release_dir)
+    if (output_path / (project.name + ".hdf")).exists():
+        copy2(output_path / (project.name + ".hdf"), release_dir)
 
     make_archive(release_dir, "zip", release_dir)
 
