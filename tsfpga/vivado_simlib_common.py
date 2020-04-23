@@ -122,7 +122,7 @@ class VivadoSimlibCommon:
 
     def _get_vivado_version_tag(self):
         """
-        Return e.g. "vivado_2019_1".
+        Return e.g. "vivado_2019_2".
         """
         vivado_path = self._vivado_path
         if vivado_path == "vivado":
