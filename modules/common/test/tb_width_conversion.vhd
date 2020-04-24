@@ -144,7 +144,7 @@ begin
       -- is generated above. Note that the same random seed is used.
       random_slv(rnd_data, expected_data);
       check_equal(output_data, expected_data, "i=" & to_string(i));
-      check_equal(output_last, i = num_output_words - 1, "i=" & to_string(i));
+      check_equal(output_last, to_sl(i = num_output_words - 1), "i=" & to_string(i));
 
       if data_jitter then
         output_ready <= '0';

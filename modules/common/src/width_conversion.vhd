@@ -57,12 +57,12 @@ begin
 
   ------------------------------------------------------------------------------
   input_ready <= to_sl(atoms <= atom_count_max - input_atoms);
-  output_valid <= to_sl(atoms >= output_atoms);
 
 
   ------------------------------------------------------------------------------
   main : process
     variable atoms_next : integer range 0 to atom_count_max;
+    variable padded_input_last : std_logic_vector(input_atoms - 1 downto 0);
   begin
     wait until rising_edge(clk);
 
@@ -71,7 +71,10 @@ begin
     if input_ready and input_valid then
       atoms_next := atoms_next + input_atoms;
       data_shift_reg <= input_data & data_shift_reg(data_shift_reg'left downto input_data'length);
-      last_shift_reg <= input_last & last_shift_reg(last_shift_reg'left downto 1);
+
+      padded_input_last := (others => '0');
+      padded_input_last(padded_input_last'high) := input_last;
+      last_shift_reg <= padded_input_last & last_shift_reg(last_shift_reg'left downto input_atoms);
     end if;
 
     if output_ready and output_valid then
@@ -85,19 +88,20 @@ begin
   ------------------------------------------------------------------------------
   slice : process(all)
     variable atom_idx : integer range 0 to atom_count_max - output_atoms;
+    variable output_valid_int : std_logic;
   begin
-    if atoms >= output_atoms then
+    output_valid_int := to_sl(atoms >= output_atoms);
+
+    if output_valid_int then
       atom_idx := atom_count_max - atoms;
       output_data <= data_shift_reg((atom_idx + output_atoms) * atom_width - 1 downto atom_idx * atom_width);
+      output_last <= last_shift_reg(atom_idx + output_atoms - 1);
     else
       output_data <= (others => '-');
-    end if;
-
-    if atoms = output_atoms then
-      output_last <= last_shift_reg(last_shift_reg'high);
-    else
       output_last <= '-';
     end if;
+
+    output_valid <= output_valid_int;
   end process;
 
 end architecture;
