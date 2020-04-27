@@ -96,12 +96,12 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
                 array_length = self._array_length_constant_name(register_object)
                 for register in register_object.registers:
                     vhdl += f"  {self._register_function_signature(register, register_object)} is\n"
-                    vhdl += f"  begin\n"
+                    vhdl += "  begin\n"
                     vhdl += f"    assert array_index < {array_length} \n"
-                    vhdl += f"      report \"Array index out of bounds: \" & to_string(array_index)\n"
-                    vhdl += f"      severity failure;\n"
+                    vhdl += "      report \"Array index out of bounds: \" & to_string(array_index)\n"
+                    vhdl += "      severity failure;\n"
                     vhdl += f"    return {register_object.base_index} + array_index * {num_registers} + {register.index};\n"
-                    vhdl += f"  end function;\n\n"
+                    vhdl += "  end function;\n\n"
 
         return vhdl
 

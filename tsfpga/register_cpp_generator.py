@@ -154,7 +154,7 @@ class RegisterCppGenerator(RegisterCodeGenerator):
             cpp_code += f"  assert(array_index < {self._array_length_constant_name(register_array)});\n"
             cpp_code += f"  const size_t index = "\
                 f"{register_array.base_index} + array_index * {len(register_array.registers)} + {register.index};\n"
-            cpp_code += f"  m_registers[index] = value;\n"
+            cpp_code += "  m_registers[index] = value;\n"
         cpp_code += "}\n\n"
         return cpp_code
 
@@ -173,7 +173,7 @@ class RegisterCppGenerator(RegisterCodeGenerator):
             cpp_code += f"  assert(array_index < {self._array_length_constant_name(register_array)});\n"
             cpp_code += f"  const size_t index = "\
                 f"{register_array.base_index} + array_index * {len(register_array.registers)} + {register.index};\n"
-            cpp_code += f"  return m_registers[index];\n"
+            cpp_code += "  return m_registers[index];\n"
         cpp_code += "}\n\n"
         return cpp_code
 
