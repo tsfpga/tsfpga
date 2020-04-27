@@ -1,7 +1,7 @@
 Added
 
 * Add support for register arrays in register code generation.
-* Add support for "last" flag in synchronous FIFO.
+* Add packet mode and "last" flag to synchronous FIFO.
 
 Fixes
 

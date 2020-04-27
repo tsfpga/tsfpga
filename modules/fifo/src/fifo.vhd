@@ -25,6 +25,9 @@ entity fifo is
     almost_empty_level : integer range 0 to depth := 0;
     -- Set to true in order to use read_last and write_last
     enable_last : boolean := false;
+    -- If enabled, read_valid will not be asserted until a full packet is available in
+    -- FIFO. I.e. when write_last has been received.
+    enable_packet_mode : boolean := false;
     ram_type : string := "auto"
   );
   port (
@@ -53,6 +56,8 @@ end entity;
 
 architecture a of fifo is
 
+  constant enable_last_int : boolean := enable_last or enable_packet_mode;
+
   -- Need one extra bit in the addresses to be able to make the distinction if the FIFO
   -- is full or empty (where the addresses would otherwise be equal).
   subtype fifo_addr_t is unsigned(num_bits_needed(2 * depth - 1) - 1 downto 0);
@@ -60,6 +65,8 @@ architecture a of fifo is
 
   -- The part of the address that actually goes to the BRAM address port
   subtype bram_addr_range is integer range num_bits_needed(depth - 1) - 1 downto 0;
+
+  signal num_lasts_in_fifo : integer range 0 to depth := 0;
 
 begin
 
@@ -87,6 +94,7 @@ begin
   ------------------------------------------------------------------------------
   status : process
     variable write_addr_next : fifo_addr_t := (others => '0');
+    variable num_lasts_in_fifo_next : integer range 0 to depth := 0;
   begin
     wait until rising_edge(clk);
 
@@ -98,10 +106,18 @@ begin
       read_addr_next(bram_addr_range) /= write_addr_next(bram_addr_range)
       or read_addr_next(read_addr_next'high) =  write_addr_next(write_addr_next'high));
 
-    read_valid <= to_sl(read_addr_next /= write_addr);
+    if enable_packet_mode then
+      num_lasts_in_fifo_next := num_lasts_in_fifo
+        + to_int(write_ready and write_valid and write_last)
+        - to_int(read_ready and read_valid and read_last);
+      read_valid <= to_sl(read_addr_next /= write_addr and num_lasts_in_fifo_next /= 0);
+    else
+      read_valid <= to_sl(read_addr_next /= write_addr);
+    end if;
 
     read_addr <= read_addr_next;
     write_addr <= write_addr_next;
+    num_lasts_in_fifo <= num_lasts_in_fifo_next;
   end process;
 
   read_addr_next <= read_addr + to_int(read_ready and read_valid);
@@ -109,7 +125,7 @@ begin
 
   ------------------------------------------------------------------------------
   memory : block
-    constant memory_word_width : integer := width + to_int(enable_last);
+    constant memory_word_width : integer := width + to_int(enable_last_int);
     subtype word_t is std_logic_vector(memory_word_width - 1 downto 0);
     type mem_t is array (integer range <>) of word_t;
 
@@ -122,7 +138,7 @@ begin
     read_data <= memory_read_data(read_data'range);
     memory_write_data(write_data'range) <= write_data;
 
-    assign_data : if enable_last generate
+    assign_data : if enable_last_int generate
       read_last <= memory_read_data(memory_read_data'high);
       memory_write_data(memory_write_data'high) <= write_last;
     end generate;

@@ -27,7 +27,8 @@ entity tb_fifo is
     runner_cfg : string;
     read_stall_probability_percent : integer := 0;
     write_stall_probability_percent : integer := 0;
-    enable_last : boolean := false
+    enable_last : boolean := false;
+    enable_packet_mode : boolean := false
   );
 end entity;
 
@@ -36,6 +37,7 @@ architecture tb of tb_fifo is
   constant width : integer := 8;
 
   signal clk : std_logic := '0';
+  signal level : integer;
 
   signal read_ready, read_valid, read_last, almost_empty : std_logic := '0';
   signal write_ready, write_valid, write_last, almost_full : std_logic := '0';
@@ -75,14 +77,14 @@ begin
     variable data_queue, last_queue, axi_stream_pop_reference_queue : queue_t := new_queue;
     variable rnd : RandomPType;
 
-    procedure run_test(read_count, write_count : natural) is
+    procedure run_test(read_count, write_count : natural; set_last_flag : boolean := true) is
       variable data : std_logic_vector(write_data'range);
       variable last, last_expected : std_logic := '0';
       variable axi_stream_pop_reference : axi_stream_reference_t;
     begin
       for write_idx in 0 to write_count - 1 loop
         data := rnd.RandSLV(data'length);
-        last := to_sl(write_idx = write_count - 1);
+        last := to_sl(write_idx = write_count - 1 and set_last_flag);
 
         push_axi_stream(net, write_master, data, last);
 
@@ -142,6 +144,36 @@ begin
       run_test(8000, 8000);
       check_true(is_empty(data_queue));
       check_relation(has_gone_empty_times > 500, "Got " & to_string(has_gone_empty_times));
+
+    elsif run("test_packet_mode") then
+      -- Write a few words, without setting last
+      run_test(read_count=>0, write_count=>3, set_last_flag=>false);
+      check_relation(level > 0);
+      check_equal(read_valid, False);
+
+      -- Writing another word, with last set, shall enable read valid
+      run_test(read_count=>0, write_count=>1);
+      check_equal(read_valid, True);
+
+      -- Write further packets
+      for i in 1 to 3 loop
+        run_test(read_count=>0, write_count=>4);
+        check_equal(read_valid, True);
+      end loop;
+
+      -- Read and check all the packets (will only work if read_valid is set properly)
+      run_read(4 * 4);
+      check_equal(read_valid, False);
+      check_equal(level, 0);
+
+      -- Write a few words, without setting last
+      run_test(read_count=>0, write_count=>3, set_last_flag=>false);
+      check_relation(level > 0);
+      check_equal(read_valid, False);
+
+      -- Writing another word, with last set, shall enable read valid
+      run_test(read_count=>0, write_count=>1);
+      check_equal(read_valid, True);
 
     elsif run("test_almost_full") then
       check_equal(almost_full, '0');
@@ -232,10 +264,12 @@ begin
       depth => depth,
       almost_full_level => almost_full_level,
       almost_empty_level => almost_empty_level,
-      enable_last => enable_last
+      enable_last => enable_last,
+      enable_packet_mode => enable_packet_mode
     )
     port map (
       clk => clk,
+      level => level,
 
       read_ready => read_ready,
       read_valid => read_valid,

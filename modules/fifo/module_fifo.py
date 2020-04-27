@@ -57,5 +57,7 @@ class Module(BaseModule):
                         generics.update(read_stall_probability_percent=75)
                     if "read_faster_than_write" in test.name:
                         generics.update(write_stall_probability_percent=75)
+                    if "packet_mode" in test.name:
+                        generics.update(enable_packet_mode=True)
 
                     test.add_config(name=name, generics=generics)
