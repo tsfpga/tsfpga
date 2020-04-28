@@ -60,7 +60,7 @@ begin
       end loop;
     end loop;
 
-    count_down : for value in counter_max to 0 loop
+    count_down : for value in counter_max downto 0 loop
       apply_and_check(value);
     end loop;
 
