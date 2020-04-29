@@ -284,27 +284,28 @@ package body axi_pkg is
   end function;
 
   function to_axi_m2s_a(data : std_logic_vector; id_width : integer := 0) return axi_m2s_a_t is
+    constant offset : integer := data'low;
     variable result : axi_m2s_a_t;
     variable lo, hi : integer := 0;
   begin
     lo := 0;
     if id_width > 0 then
       hi := id_width - 1;
-      result.id(hi downto lo) := data(hi downto lo);
+      result.id(hi downto lo) := data(hi + offset downto lo + offset);
       lo := hi + 1;
     end if;
     hi := lo + result.addr'length - 1;
-    result.addr := data(hi downto lo);
+    result.addr := data(hi + offset downto lo + offset);
     lo := hi + 1;
     hi := lo + result.len'length - 1;
-    result.len := data(hi downto lo);
+    result.len := data(hi + offset downto lo + offset);
     lo := hi + 1;
     hi := lo + result.size'length - 1;
-    result.size := data(hi downto lo);
+    result.size := data(hi + offset downto lo + offset);
     lo := hi + 1;
     hi := lo + result.burst'length - 1;
-    result.burst := data(hi downto lo);
-    assert hi = data'high;
+    result.burst := data(hi + offset downto lo + offset);
+    assert hi + offset = data'high;
     return result;
   end function;
 
@@ -343,19 +344,20 @@ package body axi_pkg is
   end function;
 
   function to_axi_m2s_w(data : std_logic_vector; data_width : integer) return axi_m2s_w_t is
+    constant offset : integer := data'low;
     variable result : axi_m2s_w_t;
     variable lo, hi : integer := 0;
   begin
     lo := 0;
     hi := lo + data_width - 1;
-    result.data(data_width - 1 downto 0) := data(hi downto lo);
+    result.data(data_width - 1 downto 0) := data(hi + offset downto lo + offset);
     lo := hi + 1;
     hi := lo + axi_strb_width(data_width) - 1;
-    result.strb(axi_strb_width(data_width) - 1 downto 0) := data(hi downto lo);
+    result.strb(axi_strb_width(data_width) - 1 downto 0) := data(hi + offset downto lo + offset);
     lo := hi + 1;
     hi := lo;
-    result.last := data(hi);
-    assert hi = data'high;
+    result.last := data(hi + offset);
+    assert hi + offset = data'high;
     return result;
   end function;
 
@@ -381,18 +383,19 @@ package body axi_pkg is
   end function;
 
   function to_axi_s2m_b(data : std_logic_vector; id_width : integer := 0) return axi_s2m_b_t is
+    constant offset : integer := data'low;
     variable result : axi_s2m_b_t;
     variable lo, hi : integer := 0;
   begin
     lo := 0;
     if id_width > 0 then
       hi := id_width - 1;
-      result.id(hi downto lo) := data(hi downto lo);
+      result.id(hi downto lo) := data(hi + offset downto lo + offset);
       lo := hi + 1;
     end if;
     hi := lo + axi_resp_sz - 1;
-    result.resp := data(hi downto lo);
-    assert hi = data'high;
+    result.resp := data(hi + offset downto lo + offset);
+    assert hi + offset = data'high;
     return result;
   end function;
 
@@ -424,24 +427,25 @@ package body axi_pkg is
   end function;
 
   function to_axi_s2m_r(data : std_logic_vector; data_width : integer; id_width : integer := 0) return axi_s2m_r_t is
+    constant offset : integer := data'low;
     variable result : axi_s2m_r_t;
     variable lo, hi : integer := 0;
   begin
     lo := 0;
     if id_width > 0 then
       hi := id_width - 1;
-      result.id(hi downto lo) := data(hi downto lo);
+      result.id(hi downto lo) := data(hi + offset downto lo + offset);
       lo := hi + 1;
     end if;
     hi := lo + data_width - 1;
-    result.data(data_width - 1 downto 0) := data(hi downto lo);
+    result.data(data_width - 1 downto 0) := data(hi + offset downto lo + offset);
     lo := hi + 1;
     hi := lo + axi_resp_sz - 1;
-    result.resp := data(hi downto lo);
+    result.resp := data(hi + offset downto lo + offset);
     lo := hi + 1;
     hi := lo;
-    result.last := data(hi);
-    assert hi = data'high;
+    result.last := data(hi + offset);
+    assert hi + offset = data'high;
     return result;
   end function;
 
