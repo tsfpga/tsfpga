@@ -50,7 +50,7 @@ class VivadoProject:
             vivado_path (`pathlib.Path`): A path to the Vivado executable. If omitted,
                 the default location from the system PATH will be used.
             default_run_index (int): Default run index (synth_X and impl_X) that is set in the project.
-                Is overrun by a call to :meth:`build() <VivadoProject.build>`.
+                Can also use the argumment to :meth:`build() <VivadoProject.build>` to specify at build-time.
             defined_at (`pathlib.Path`): Optional path to the file where you defined your
                 project. To get a useful ``build.py --list`` message. Is useful when you have many
                 projects set up.
@@ -186,7 +186,7 @@ class VivadoProject:
     def build(self,
               project_path,
               output_path=None,
-              run_index=1,
+              run_index=None,
               generics=None,
               synth_only=False,
               num_threads=12,
@@ -217,6 +217,9 @@ class VivadoProject:
             print(f"Synthesizing Vivado project in {project_path}")
         else:
             print(f"Building Vivado project in {project_path}, placing artifacts in {output_path}")
+
+        # Run index is optional to specify at build-time
+        run_index = self.default_run_index if run_index is None else run_index
 
         # Send all available information to pre- and post build
         pre_and_post_build_parameters.update(
