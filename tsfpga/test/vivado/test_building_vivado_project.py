@@ -28,7 +28,7 @@ def test_building_artyz7_project(tmp_path):
     run_command(cmd, cwd=tsfpga.REPO_ROOT)
     assert (tmp_path / "artyz7.bit").exists()
     assert (tmp_path / "artyz7.bin").exists()
-    assert (tmp_path / "artyz7.hdf").exists()
+    assert (tmp_path / "artyz7.xsa").exists()
 
 
 @pytest.mark.usefixtures("fixture_tmp_path")

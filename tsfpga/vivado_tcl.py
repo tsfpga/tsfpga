@@ -213,7 +213,7 @@ class VivadoTcl:
         if not synth_only:
             tcl += self._run(impl_run, num_threads, to_step="write_bitstream")
             tcl += "\n"
-            tcl += self._hwdef(output_path)
+            tcl += self._write_hw_platform(output_path)
             tcl += "\n"
         tcl += "exit\n"
         return tcl
@@ -255,8 +255,7 @@ class VivadoTcl:
         tcl += "}\n"
         return tcl
 
-    def _hwdef(self, output_path):
-        # Vivado will append the wrong file ending (.hwdef) unless specified
-        hwdef_file = to_tcl_path(output_path / (self.name + ".hdf"))
-        tcl = "write_hwdef -force %s\n" % hwdef_file
+    def _write_hw_platform(self, output_path):
+        xsa_file = to_tcl_path(output_path / (self.name + ".xsa"))
+        tcl = f"write_hw_platform -fixed -force {xsa_file}\n"
         return tcl

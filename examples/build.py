@@ -149,8 +149,8 @@ def collect_artifacts(project, output_path):
     generate_registers(project.modules, release_dir / "registers")
     copy2(output_path / (project.name + ".bit"), release_dir)
     copy2(output_path / (project.name + ".bin"), release_dir)
-    if (output_path / (project.name + ".hdf")).exists():
-        copy2(output_path / (project.name + ".hdf"), release_dir)
+    if (output_path / (project.name + ".xsa")).exists():
+        copy2(output_path / (project.name + ".xsa"), release_dir)
 
     make_archive(release_dir, "zip", release_dir)
 
