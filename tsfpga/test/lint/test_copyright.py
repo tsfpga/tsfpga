@@ -52,6 +52,8 @@ class CopyrightHeader:
             return "--"
         if self._file.name.endswith(".tcl"):
             return "#"
+        if self._file.name.endswith(".c") or self._file.name.endswith(".cpp") or self._file.name.endswith(".h"):
+            return "//"
         raise RuntimeError(f"Could not decide file ending of {self._file}")
 
     def _is_suitable_for_insertion(self):
