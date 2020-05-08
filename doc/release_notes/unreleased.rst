@@ -10,8 +10,8 @@ Fixes
 
 Breaking changes
 
-* Change meaning of ``almost_empty`` FIFO signal to be "'1' if there are almost_full_level or more words available in the FIFO".
-  Used to be "fewer than almost_full_level".
+* Change meaning of ``almost_empty`` FIFO signal to be "'1' if there are almost_empty_level or fewer words available to read".
+  Used to be "fewer than almost_empty_level".
 * Change register json definition file name from ``<name>_regs.json`` to ``regs_<name>.json``.
 * ``default_registers`` passed to :class:`.BaseModule` shall now be a list of :class:`.Register`,
   instead of a dict.
