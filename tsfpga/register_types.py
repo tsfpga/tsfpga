@@ -3,6 +3,26 @@
 # ------------------------------------------------------------------------------
 
 
+class Mode:
+
+    def __init__(self, mode_readable, description):
+        self.mode_readable = mode_readable
+        self.description = description
+
+
+REGISTER_MODES = dict(
+    r=Mode("Read", "Bus can read a value that fabric provides."),
+    w=Mode("Write", "Bus can write a value that is available for fabric usage."),
+    r_w=Mode("Read, Write",
+             "Bus can write a value and read it back. The written value is available for fabric usage."),
+    wpulse=Mode("Write-pulse",
+                "Bus can write a value that is asserted for one clock cycle in fabric."),
+    r_wpulse=Mode("Read, Write-pulse",
+                  "Bus can read a value that fabric provides. "
+                  "Bus can write a value that is asserted for one clock cycle in fabric."),
+)
+
+
 class Bit:
 
     """
@@ -27,18 +47,24 @@ class Register:
     Used to represent a register and its fields.
     """
 
-    def __init__(self, name, index, mode, description=""):
+    # pylint: disable=too-many-arguments
+    def __init__(self, name, index, mode, description=None, default_value=None):
         """
         Args:
             name (str): The name of the register.
             index (int): The zero-based index of this register in its register list.
             mode (str): A valid register mode.
             description (str): Textual register description.
+            default_value (int): Default value for the register (unsigned).
         """
+        if mode not in REGISTER_MODES:
+            raise ValueError(f'Invalid mode "{mode}" for register "{name}"')
+
         self.name = name
         self.index = index
         self.mode = mode
-        self.description = description
+        self.description = "" if description is None else description
+        self.default_value = 0 if default_value is None else default_value
         self.bits = []
 
     def append_bit(self, name, description):
@@ -99,18 +125,20 @@ class RegisterArray:
         self.length = length
         self.registers = []
 
-    def append_register(self, name, mode):
+    def append_register(self, name, mode, description=None, default_value=None):
         """
         Append a register to this array.
 
         Args:
             name (str): The name of the register.
             mode (str): A valid register mode.
+            description (str): Textual register description.
+            default_value (int): Default value for the register (unsigned).
         Return:
             :class:`.Register`: The register object that was created.
         """
         index = len(self.registers)
-        register = Register(name, index, mode)
+        register = Register(name, index, mode, description, default_value)
 
         self.registers.append(register)
         return register
@@ -124,3 +152,10 @@ class RegisterArray:
             int: The highest index occupied by this array.
         """
         return self.base_index + self.length * len(self.registers) - 1
+
+
+class Constant:
+
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value

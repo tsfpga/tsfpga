@@ -12,7 +12,7 @@ class RegisterCGenerator(RegisterCodeGenerator):
         self.module_name = module_name
         self.generated_info = generated_info
 
-    def get_header(self, register_objects):
+    def get_header(self, register_objects, constants):
         define_name = self.module_name.upper() + "_REGS_H"
 
         c_code = f"""\
@@ -25,6 +25,7 @@ class RegisterCGenerator(RegisterCodeGenerator):
 
 {self._register_struct(register_objects)}
 {self._register_defines(register_objects)}\
+{self._constants(constants)}
 #pragma pack(pop)
 #endif {self._comment(define_name)}"""
 
@@ -96,3 +97,9 @@ class RegisterCGenerator(RegisterCodeGenerator):
         else:
             name = f"{self.module_name}_{register_array.name}_{register.name}"
         return name.upper()
+
+    def _constants(self, constants):
+        c_code = ""
+        for constant in constants:
+            c_code += f"#define {self.module_name.upper()}_CONSTANT_{constant.name.upper()} ({constant.value})\n"
+        return c_code

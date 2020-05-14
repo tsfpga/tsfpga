@@ -27,6 +27,9 @@ class TestRegisterCompilation(unittest.TestCase):
         json_file = tsfpga.TSFPGA_EXAMPLE_MODULES / "artyz7" / "regs_artyz7.json"
         self.registers = from_json("artyz7", json_file)
 
+        self.registers.add_constant("data_width", 24)
+        self.registers.add_constant("decrement", -8)
+
     def test_compiling_c_header(self):
         main_file = self.working_dir / "main.c"
         main = """\
@@ -50,6 +53,10 @@ int main()
   regs.plain_dummy_reg = 0;
   regs.dummy_regs[0].configuration = ARTYZ7_DUMMY_REGS_CONFIGURATION_ENABLE;
   regs.dummy_regs[3].settings = (1 << ARTYZ7_DUMMY_REGS_CONFIGURATION_ENABLE_BIT);
+
+  assert(ARTYZ7_CONSTANT_DATA_WIDTH == 24);
+  assert(ARTYZ7_CONSTANT_DECREMENT == -8);
+
   return 0;
 }
 """
@@ -91,6 +98,9 @@ int main()
 
   assert(fpga_regs::Artyz7::dummy_regs_configuration_enable == 1);
   assert(fpga_regs::Artyz7::dummy_regs_configuration_disable == 2);
+
+  assert(fpga_regs::Artyz7::data_width == 24);
+  assert(fpga_regs::Artyz7::decrement == -8);
 
   return 0;
 }

@@ -56,15 +56,18 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
         map_name = f"{self.module_name}_reg_map"
 
         register_definitions = []
+        default_values = []
         for register_object in register_objects:
             if isinstance(register_object, Register):
                 idx = self._register_name(register_object)
                 register_definitions.append(f"  (idx => {idx}, reg_type => {register_object.mode})")
+                default_values.append(f"  std_logic_vector(to_signed({register_object.default_value}, 32))")
             else:
                 for array_index in range(register_object.length):
                     for register in register_object.registers:
                         idx = f"{self._register_name(register, register_object)}({array_index})"
                         register_definitions.append(f"  (idx => {idx}, reg_type => {register.mode})")
+                        default_values.append(f"  std_logic_vector(to_signed({register.default_value}, 32))")
 
         last_index = register_objects[-1].index
         vhdl = f"  constant {map_name} : reg_definition_vec_t(0 to {last_index}) := (\n  "
@@ -72,9 +75,10 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
         vhdl += "\n  );\n"
         vhdl += "\n"
         vhdl += f"  subtype {self.module_name}_regs_t is reg_vec_t({map_name}'range);\n"
-        vhdl += f"  constant {self.module_name}_regs_zero : \
-{self.module_name}_regs_t := (others => (others => '0'));\n"
         vhdl += f"  subtype {self.module_name}_reg_was_written_t is std_logic_vector({map_name}'range);\n"
+        vhdl += f"  constant {self.module_name}_regs_init : {self.module_name}_regs_t := (\n  "
+        vhdl += ",\n  ".join(default_values)
+        vhdl += "\n  );\n"
         return vhdl
 
     def _register_bits(self, register_objects):
@@ -105,7 +109,13 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
 
         return vhdl
 
-    def get_package(self, register_objects):
+    def _constants(self, constants):
+        vhdl = ""
+        for constant in constants:
+            vhdl += f"  constant {self.module_name}_constant_{constant.name} : integer := {constant.value};\n"
+        return vhdl
+
+    def get_package(self, register_objects, constants):
         pkg_name = f"{self.module_name}_regs_pkg"
 
         vhdl = f"""\
@@ -124,6 +134,7 @@ package {pkg_name} is
 {self._array_constants(register_objects)}\
 {self._register_map(register_objects)}
 {self._register_bits(register_objects)}\
+{self._constants(constants)}
 end package;
 
 package body {pkg_name} is

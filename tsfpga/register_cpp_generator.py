@@ -13,11 +13,13 @@ class RegisterCppGenerator(RegisterCodeGenerator):
         self.generated_info = generated_info
         self._class_name = self._to_pascal_case(module_name)
 
-    def get_interface(self, register_objects):
+    def get_interface(self, register_objects, constants):
         cpp_code = f"class I{self._class_name}\n"
         cpp_code += "{\n"
         cpp_code += "public:\n"
 
+        for constant in constants:
+            cpp_code += f"  static const int {constant.name} = {constant.value}L;\n"
         cpp_code += f"  static const size_t num_registers = {register_objects[-1].index + 1}uL;\n\n"
 
         for register_object in register_objects:

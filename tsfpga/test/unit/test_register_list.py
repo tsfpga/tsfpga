@@ -8,7 +8,7 @@ import unittest
 import pytest
 
 from tsfpga.system_utils import create_file
-from tsfpga.register_list import from_json, load_json_file
+from tsfpga.register_list import from_json, load_json_file, RegisterList
 from tsfpga.register_types import Register
 
 
@@ -37,6 +37,32 @@ def test_deep_copy_of_registers_actually_copies_everything():
     assert len(config_register.bits) == 0
 
 
+def test_invalid_register_mode_should_raise_exception():
+    registers = RegisterList(None, None)
+    registers.append_register("test", "r_w")
+
+    with pytest.raises(ValueError) as exception_info:
+        registers.append_register("hest", "x")
+    assert str(exception_info.value) == 'Invalid mode "x" for register "hest"'
+
+    register_array = registers.append_register_array("array", 2)
+    register_array.append_register("apa", "r")
+    with pytest.raises(ValueError) as exception_info:
+        register_array.append_register("zebra", "y")
+    assert str(exception_info.value) == 'Invalid mode "y" for register "zebra"'
+
+
+def test_header_constants():
+    registers = RegisterList(None, None)
+    registers.add_constant("test", 123)
+    registers.add_constant("hest", 456)
+
+    assert registers.constants[0].name == "test"
+    assert registers.constants[0].value == 123
+    assert registers.constants[1].name == "hest"
+    assert registers.constants[1].value == 456
+
+
 @pytest.mark.usefixtures("fixture_tmp_path")
 class TestRegisterList(unittest.TestCase):
 
@@ -45,8 +71,9 @@ class TestRegisterList(unittest.TestCase):
     module_name = "sensor"
     json_data = """\
 {
-  "cmd": {
-    "mode": "w"
+  "data": {
+    "mode": "w",
+    "default_value": 3
   },
   "irq": {
     "description": "Interrupt register",
@@ -62,6 +89,7 @@ class TestRegisterList(unittest.TestCase):
       "input_settings": {
         "description": "Input configuration",
         "mode": "r_w",
+        "default_value": 1,
         "bits": {
           "enable": "Enable things",
           "disable": ""
@@ -85,16 +113,18 @@ class TestRegisterList(unittest.TestCase):
     def test_order_of_registers_and_bits(self):
         registers = from_json(self.module_name, self.json_file).register_objects
 
-        assert registers[0].name == "cmd"
+        assert registers[0].name == "data"
         assert registers[0].mode == "w"
         assert registers[0].index == 0
         assert registers[0].description == ""
+        assert registers[0].default_value == 3
         assert registers[0].bits == []
 
         assert registers[1].name == "irq"
         assert registers[1].mode == "r_w"
         assert registers[1].index == 1
         assert registers[1].description == "Interrupt register"
+        assert registers[1].default_value == 0
         assert registers[1].bits[0].name == "bad"
         assert registers[1].bits[0].description == "Bad things happen"
         assert registers[1].bits[1].name == "not_good"
@@ -108,6 +138,7 @@ class TestRegisterList(unittest.TestCase):
         assert registers[2].registers[0].mode == "r_w"
         assert registers[2].registers[0].index == 0
         assert registers[2].registers[0].description == "Input configuration"
+        assert registers[2].registers[0].default_value == 1
         assert registers[2].registers[0].bits[0].name == "enable"
         assert registers[2].registers[0].bits[0].description == "Enable things"
         assert registers[2].registers[0].bits[1].name == "disable"
@@ -116,6 +147,7 @@ class TestRegisterList(unittest.TestCase):
         assert registers[2].registers[1].mode == "w"
         assert registers[2].registers[1].index == 1
         assert registers[2].registers[1].description == ""
+        assert registers[2].registers[1].default_value == 0
         assert registers[2].registers[1].bits[0].name == "enable"
         assert registers[2].registers[1].bits[0].description == ""
         assert registers[2].registers[1].bits[1].name == "disable"
@@ -127,7 +159,7 @@ class TestRegisterList(unittest.TestCase):
         json_registers = from_json(self.module_name, self.json_file, default_registers)
 
         # The registers from this test are appended at the end
-        assert json_registers.get_register("cmd").index == num_default_registers
+        assert json_registers.get_register("data").index == num_default_registers
         assert json_registers.get_register("irq").index == num_default_registers + 1
 
     def test_load_nonexistent_json_file_should_raise_exception(self):

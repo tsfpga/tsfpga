@@ -63,6 +63,7 @@ class BaseModule:
         json_file = self.path / (f"regs_{self.name}.json")
         if json_file.exists():
             self._registers = from_json(self.name, json_file, copy.deepcopy(self._default_registers))
+            self.registers_hook()
             return self._registers
 
         deprecated_json_file = self.path / (self.name + "_regs.json")
@@ -72,6 +73,18 @@ class BaseModule:
             raise ValueError(message)
 
         return None
+
+    def registers_hook(self):
+        """
+        This function will be called directly after creating this module's registers from
+        the JSON definition file.
+
+        This is a good place if you want to add or modify some registers from Python.
+        Override this method and implement the desired behavior in a child class.
+
+        .. Note::
+            This default method does nothing and can be safely overridden.
+        """
 
     def create_regs_vhdl_package(self):
         """
@@ -129,7 +142,8 @@ class BaseModule:
         Setup local configuration of this module's test benches.
 
         .. Note::
-            Should be overridden by modules that have any test benches that operate via generics.
+            This default method does nothing. Should be overridden by modules that have
+            any test benches that operate via generics.
 
         Args:
             vunit_proj: The VUnit project that is used to run simulation.

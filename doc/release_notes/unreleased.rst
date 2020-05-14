@@ -1,6 +1,8 @@
 Added
 
 * Add support for register arrays in register code generation.
+* Add support for default values in register code generation.
+* Add :meth:`.BaseModule.registers_hook` to make it more convenient to manipulate register information from Python.
 * Add packet mode and "last" flag to synchronous FIFO.
 
 Fixes

@@ -39,7 +39,7 @@ architecture a of ddr_buffer_top is
 
   signal current_addr_index : integer range 0 to ddr_buffer_addrs_array_length - 1 := 0;
 
-  signal regs_up, regs_down : ddr_buffer_regs_t := ddr_buffer_regs_zero;
+  signal regs_up, regs_down : ddr_buffer_regs_t := ddr_buffer_regs_init;
 
   alias command_start is regs_down(ddr_buffer_command)(ddr_buffer_command_start);
   alias status_idle is regs_up(ddr_buffer_status)(ddr_buffer_status_idle);
@@ -125,7 +125,8 @@ begin
   ------------------------------------------------------------------------------
   axil_reg_file_inst : entity reg_file.axil_reg_file
     generic map (
-      regs => ddr_buffer_reg_map
+      regs => ddr_buffer_reg_map,
+      default_values => ddr_buffer_regs_init
     )
     port map (
       clk => clk_regs,

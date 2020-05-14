@@ -99,7 +99,7 @@ This will result in the tests
     fifo.tb_fifo.width_24.depth_1024.all
 
 So what happens here is that we created a class ``Module`` that inherits from :ref:`BaseModule <module_objects>`.
-In this class we overloaded the ``setup_simulations()`` method, which does nothing in the parent class, to set up our simulation configurations.
+In this class we override the ``setup_simulations()`` method, which does nothing in the parent class, to set up our simulation configurations.
 The :ref:`get_modules() <get_modules>` call used in our ``simulate.py`` will recognize that this module has a Python file to set up it's own class.
 When creating module objects the function will then use the user-specified class for this module.
 Later in ``simulate.py`` when ``setup_simulations()`` is run, the code we specified above will be run.

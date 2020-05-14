@@ -3,27 +3,7 @@
 # ------------------------------------------------------------------------------
 
 from tsfpga.markdown_to_html_translator import MarkdownToHtmlTranslator
-from tsfpga.register_types import Register
-
-
-class Mode:
-
-    def __init__(self, mode_readable, description):
-        self.mode_readable = mode_readable
-        self.description = description
-
-
-REGISTER_MODES = dict(
-    r=Mode("Read", "Bus can read a value that fabric provides."),
-    w=Mode("Write", "Bus can write a value that is available for fabric usage."),
-    r_w=Mode("Read, Write",
-             "Bus can write a value and read it back. The written value is available for fabric usage."),
-    wpulse=Mode("Write-pulse",
-                "Bus can write a value that is asserted for one clock cycle in fabric."),
-    r_wpulse=Mode("Read, Write-pulse",
-                  "Bus can read a value that fabric provides. "
-                  "Bus can write a value that is asserted for one clock cycle in fabric."),
-)
+from tsfpga.register_types import Register, REGISTER_MODES
 
 
 class RegisterHtmlGenerator:
@@ -59,6 +39,7 @@ class RegisterHtmlGenerator:
     <td><strong>{register.name}</strong></td>
     <td>{address_readable}</td>
     <td>{REGISTER_MODES[register.mode].mode_readable}</td>
+    <td>{register.default_value}</td>
     <td>{description}</td>
   </tr>"""
 
@@ -70,6 +51,7 @@ class RegisterHtmlGenerator:
   <tr>
     <td>&nbsp;&nbsp;<em>{bit.name}</em></td>
     <td>{bit.index}</td>
+    <td></td>
     <td></td>
     <td>{description}</td>
   </tr>"""
@@ -84,6 +66,7 @@ class RegisterHtmlGenerator:
     <th>Name</th>
     <th>Address</th>
     <th>Mode</th>
+    <th>Default value</th>
     <th>Description</th>
   </tr>
 </thead>
@@ -97,7 +80,7 @@ class RegisterHtmlGenerator:
             else:
                 html += f"""
   <tr>
-    <td colspan="4" class="array_header">Register array <strong>{register_object.name}</strong>, repeated {register_object.length} times</td>
+    <td colspan="5" class="array_header">Register array <strong>{register_object.name}</strong>, repeated {register_object.length} times</td>
   </tr>"""
                 array_index_increment = len(register_object.registers)
                 for register in register_object.registers:
@@ -105,7 +88,7 @@ class RegisterHtmlGenerator:
                     html += self._annotate_register(register, register_index, array_index_increment)
                 html += f"""
   <tr>
-    <td colspan="4" class="array_header">End register array <strong>{register_object.name}</strong></td>
+    <td colspan="5" class="array_header">End register array <strong>{register_object.name}</strong></td>
   </tr>"""
 
         html += """

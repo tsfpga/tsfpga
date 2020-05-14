@@ -9,6 +9,10 @@
       "start": "Start a read and write cycle."
     }
   },
+  "version": {
+    "mode": "r",
+    "description": "Version number for the ddr_buffer module"
+  },
   "addrs": {
     "array_length": 2,
     "registers": {

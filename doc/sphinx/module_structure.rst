@@ -15,7 +15,7 @@ Some functions in tsfpga require that your modules use a certain folder structur
 For example, if we want to set up :ref:`local test configurations <local_configuration>` we
 must use a file called exactly ``module_<name>.py`` in the root of your module.
 
-Additionally the :meth:`get_modules() <tsfpga.module.get_modules>` function in tsfpga, which creates
+Additionally the :class:`get_modules() <tsfpga.module.get_modules>` function in tsfpga, which creates
 :meth:`module objects <tsfpga.module.BaseModule>` from a source tree, will look for source files only in certain sub-directories.
 
 Below is a recommended folder structure.
@@ -60,7 +60,7 @@ Source code and packages are recommended to be placed in the ``src`` folder.
 There is no distinction made between entity source files and packages in tsfpga.
 The corresponding test benches are recommended to use the ``test`` folder.
 
-You don't have to use these exact folders; :meth:`BaseModule <tsfpga.module.BaseModule>` will look for files in many folder, to accommodate for different projects using different structures.
+You don't have to use these exact folders; :class:`BaseModule <tsfpga.module.BaseModule>` will look for files in many folders, to accommodate for different projects using different structures.
 For example, at the moment :meth:`BaseModule.get_synthesis_files() <tsfpga.module.BaseModule.get_synthesis_files>` will look for source files in
 
 * ``src``

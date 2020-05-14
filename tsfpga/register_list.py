@@ -8,7 +8,7 @@ import json
 from shutil import copy2
 
 from tsfpga.git_utils import git_commands_are_available, get_git_commit
-from tsfpga.register_types import Register, RegisterArray
+from tsfpga.register_types import Constant, Register, RegisterArray
 from tsfpga.register_c_generator import RegisterCGenerator
 from tsfpga.register_cpp_generator import RegisterCppGenerator
 from tsfpga.register_html_generator import RegisterHtmlGenerator
@@ -32,14 +32,17 @@ class RegisterList:
         self.name = name
         self.source_definition_file = source_definition_file
         self.register_objects = []
+        self.constants = []
 
-    def append_register(self, name, mode):
+    def append_register(self, name, mode, description=None, default_value=None):
         """
         Append a register to this list.
 
         Args:
             name (str): The name of the register.
             mode (str): A valid register mode.
+            description (str): Textual register description.
+            default_value (int): Default value for the register (unsigned).
         Return:
             :class:`.Register`: The register object that was created.
         """
@@ -47,9 +50,10 @@ class RegisterList:
             index = self.register_objects[-1].index + 1
         else:
             index = 0
-        register = Register(name, index, mode)
 
+        register = Register(name, index, mode, description, default_value)
         self.register_objects.append(register)
+
         return register
 
     def append_register_array(self, name, length):
@@ -87,6 +91,16 @@ class RegisterList:
 
         return None
 
+    def add_constant(self, name, value):
+        """
+        Add a constant. Will be available in the generated packages and headers.
+
+        Args:
+            name (str): The name of the constant.
+            length (int): The constant value (unsigned integer).
+        """
+        self.constants.append(Constant(name, value))
+
     def create_vhdl_package(self, output_path):
         """
         Create a VHDL package file with register and field definitions.
@@ -101,7 +115,7 @@ class RegisterList:
         """
         register_vhdl_generator = RegisterVhdlGenerator(self.name, self.generated_info())
         with (output_path / (self.name + "_regs_pkg.vhd")).open("w") as file_handle:
-            file_handle.write(register_vhdl_generator.get_package(self.register_objects))
+            file_handle.write(register_vhdl_generator.get_package(self.register_objects, self.constants))
 
     def create_c_header(self, output_path):
         """
@@ -112,7 +126,7 @@ class RegisterList:
         """
         output_file = output_path / (self.name + "_regs.h")
         register_c_generator = RegisterCGenerator(self.name, self.generated_source_info())
-        create_file(output_file, register_c_generator.get_header(self.register_objects))
+        create_file(output_file, register_c_generator.get_header(self.register_objects, self.constants))
 
     def create_cpp_interface(self, output_path):
         """
@@ -124,7 +138,7 @@ class RegisterList:
         """
         output_file = output_path / ("i_" + self.name + ".h")
         register_cpp_generator = RegisterCppGenerator(self.name, self.generated_source_info())
-        create_file(output_file, register_cpp_generator.get_interface(self.register_objects))
+        create_file(output_file, register_cpp_generator.get_interface(self.register_objects, self.constants))
 
     def create_cpp_header(self, output_path):
         """
@@ -291,6 +305,9 @@ def _parse_plain_register(name, items, register_list, default_register_names, js
             raise ValueError(f"Register {name} in {json_file} does not have mode field")
         register = register_list.append_register(name, items["mode"])
 
+    if "default_value" in items:
+        register.default_value = items["default_value"]
+
     if "description" in items:
         register.description = items["description"]
 
@@ -314,6 +331,9 @@ def _parse_register_array(name, items, register_list, json_file):
 
         if "description" in register_items:
             register.description = register_items["description"]
+
+        if "default_value" in register_items:
+            register.default_value = register_items["default_value"]
 
         if "bits" in register_items:
             for bit_name, bit_description in register_items["bits"].items():

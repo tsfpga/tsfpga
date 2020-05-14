@@ -69,7 +69,11 @@ begin
     test_runner_setup(runner, runner_cfg);
     rnd.InitSeed(rnd'instance_name);
 
-    run_ddr_buffer_test(net, memory, rnd);
+    if run("test_ddr_buffer") then
+      run_ddr_buffer_test(net, memory, rnd);
+    elsif run("test_version") then
+      check_reg_equal(net, ddr_buffer_version, ddr_buffer_constant_version);
+    end if;
 
     check_expected_was_written(memory);
     test_runner_cleanup(runner);

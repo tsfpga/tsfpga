@@ -20,7 +20,8 @@ use work.reg_file_pkg.all;
 
 entity axil_reg_file is
   generic (
-    regs : reg_definition_vec_t
+    regs : reg_definition_vec_t;
+    default_values : reg_vec_t(regs'range) := (others => (others => '0'))
   );
   port (
     clk : in std_logic;
@@ -45,7 +46,7 @@ architecture a of axil_reg_file is
 
   constant addr_and_mask_vec : addr_and_mask_vec_t := to_addr_and_mask_vec(regs);
 
-  signal reg_values : reg_vec_t(regs'range) := (others => (others => '0'));
+  signal reg_values : reg_vec_t(regs'range) := default_values;
 
   constant invalid_addr : integer := regs'length;
   subtype decoded_idx_t is integer range 0 to invalid_addr;
