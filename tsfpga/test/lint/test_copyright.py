@@ -15,7 +15,8 @@ class CopyrightHeader:
 
     def __init__(self, file, copyright_holder, copyright_text_lines=None):
         self._file = file
-        self._comment_character = self._get_comment_character()
+        self.comment_character = self._get_comment_character()
+        self.separator_line = f"{self.comment_character} " + "-" * (79 - len(self.comment_character))
         self.expected_copyright_header = self._get_expected_copyright_header(
             copyright_holder, copyright_text_lines)
 
@@ -24,7 +25,7 @@ class CopyrightHeader:
         Copyright comments should be correct. It should be followed by a blank line or another comment.
         """
         copyright_header_re = self.expected_copyright_header.replace("(", "\\(").replace(")", "\\)")
-        regexp = re.compile(copyright_header_re + rf"($|\n|{self._comment_character})")
+        regexp = re.compile(copyright_header_re + rf"($|\n|{self.comment_character})")
         data = read_file(self._file)
         return regexp.match(data) is not None
 
@@ -35,14 +36,13 @@ class CopyrightHeader:
             raise ValueError(f"Can not fix copyright header in file {self._file}")
 
     def _get_expected_copyright_header(self, copyright_holder, copyright_text_lines):
-        separator_line = self._comment_character + " " + "-" * (79 - len(self._comment_character))
-        header = f"{separator_line}\n"
-        header += f"{self._comment_character} Copyright (c) {copyright_holder}. All rights reserved.\n"
+        header = f"{self.separator_line}\n"
+        header += f"{self.comment_character} Copyright (c) {copyright_holder}. All rights reserved.\n"
         if copyright_text_lines:
-            header += f"{self._comment_character}\n"
+            header += f"{self.comment_character}\n"
             for copyright_text_line in copyright_text_lines:
-                header += f"{self._comment_character} {copyright_text_line}\n"
-        header += f"{separator_line}\n"
+                header += f"{self.comment_character} {copyright_text_line}\n"
+        header += f"{self.separator_line}\n"
         return header
 
     def _get_comment_character(self):
@@ -60,7 +60,7 @@ class CopyrightHeader:
         """
         If the file does not begin with a comment, we consired it suitable to insert a new copyright header comment.
         """
-        return not read_file(self._file).startswith(self._comment_character)
+        return not read_file(self._file).startswith(self.comment_character)
 
     def _insert_copyright_header(self):
         data = read_file(self._file)
