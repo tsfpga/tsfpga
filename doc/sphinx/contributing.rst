@@ -79,9 +79,9 @@ __________________
 
 Run the script
 
-```
-python3 tools/release.py X.Y.Z
-```
+.. code-block:: shell
+
+    python3 tools/release.py X.Y.Z
 
 where X.Y.Z is your new version number.
 The script will bump the tsfpga version number, commit this change and then tag the commit.
