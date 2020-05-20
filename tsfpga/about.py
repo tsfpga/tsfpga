@@ -3,10 +3,6 @@
 # ------------------------------------------------------------------------------
 
 
-def get_version():
-    return "1.0.1"
-
-
 def get_slogan():
     return "Tsfpga is a project platform for modern FPGA development."
 

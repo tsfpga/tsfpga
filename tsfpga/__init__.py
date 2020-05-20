@@ -8,7 +8,6 @@ A set of reusable functions for working with HDL projects.
 
 
 from pathlib import Path
-from tsfpga.about import get_version
 
 
 THIS_DIR = Path(__file__).parent
@@ -26,4 +25,4 @@ TSFPGA_EXAMPLE_MODULES_WITH_IP = TSFPGA_EXAMPLES / "modules_with_ip"
 
 ALL_TSFPGA_MODULES_FOLDERS = [TSFPGA_MODULES, TSFPGA_EXAMPLE_MODULES, TSFPGA_EXAMPLE_MODULES_WITH_IP]
 
-__version__ = get_version()
+__version__ = "1.0.1"

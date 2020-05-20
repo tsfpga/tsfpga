@@ -65,35 +65,29 @@ Read the **Summary** at the top of that page and decide the new version number a
 Create release notes
 ____________________
 
-Create and ``git add`` a new file ``doc/release_notes/X.Y.Z.rst`` according to your new release version.
+Create and a new file ``doc/release_notes/X.Y.Z.rst`` according to your new release version.
 Move the contents of ``unreleased.rst`` to your newly created file.
 Fill in anything that is missing according to :ref:`Maintaining changelog <maintain_changelog>`.
 
-
-Update python package version number
-____________________________________
-
-Bump the version number in ``tsfpga/about.py``.
+Make sure to ``git add`` the new file.
+Release must be made from a clean repo, so you have to commit these changes separately.
+A commit message of "Prepare for X.Y.Z release" is a good idea.
 
 
-Commit and tag
-______________
+Run release script
+__________________
 
-Create a release commit and tag with the new version number (with a "v" in front).
+Run the script
 
-.. code-block:: shell
+```
+python3 tools/release.py X.Y.Z
+```
 
-    git add doc/release_notes/X.Y.Z.md
-    git commit -m "Release X.Y.Z"
-    git tag vX.Y.Z
-
-
-Verify
-______
-Before pushing the tag it is a good idea to run the ``tools/verify_release.py`` script manually.
+where X.Y.Z is your new version number.
+The script will bump the tsfpga version number, commit this change and then tag the commit.
 
 
-Push tag and commit
+Push commit and tag
 ___________________
 
 .. code-block:: shell

@@ -99,6 +99,11 @@ def list_current_tags(cwd=REPO_ROOT):
     return subprocess.check_output(command, cwd=cwd).decode().splitlines()
 
 
+def list_tags(cwd=REPO_ROOT):
+    command = ["git", "tag", "--list"]
+    return subprocess.check_output(command, cwd=cwd).decode().splitlines()
+
+
 def _file_is_in_directory(filename, directories):
     for directory in directories:
         if commonpath([str(filename), str(directory)]) == str(directory):
