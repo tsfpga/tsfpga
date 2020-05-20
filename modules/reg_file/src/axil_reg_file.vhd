@@ -36,8 +36,8 @@ entity axil_reg_file is
                                     b => axil_s2m_b_init)
                                  );
 
-    regs_up : in reg_vec_t(regs'range) := (others => (others => '0'));
-    regs_down : out reg_vec_t(regs'range);
+    regs_up : in reg_vec_t(regs'range) := default_values;
+    regs_down : out reg_vec_t(regs'range) := default_values;
     reg_was_written : out std_logic_vector(regs'range) := (others => '0')
   );
 end entity;

@@ -17,6 +17,7 @@ Breaking changes
 * Change register json definition file name from ``<name>_regs.json`` to ``regs_<name>.json``.
 * ``default_registers`` passed to :class:`.BaseModule` shall now be a list of :class:`.Register`,
   instead of a dict.
+* Remove generated register constant ``<name>_regs_zero``. Instead add ``<name>_regs_init`` with default values.
 * FPGA build projects shall now be set up with :meth:`.BaseModule.get_build_projects` using ``module_<name>.py`` rather than with ``project_<name>.py``. See :ref:`documentation <example_project_class>`.
 * Rename ``FpgaProjectList`` to :class:`.BuildProjectList` to get a consistent naming.
 * Constructor argument to :class:`.BuildProjectList` shall now be a list of modules rather than a list of modules folders.
