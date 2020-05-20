@@ -93,7 +93,6 @@ deploy_pypi:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git > /dev/null
     - python3 -m pip install --requirement requirements_develop.txt > /dev/null
-    - python3 tools/verify_release.py
     - python3 -m twine upload dist/*
 
 
