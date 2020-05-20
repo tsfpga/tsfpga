@@ -1,0 +1,28 @@
+Added
+
+* Add support for register arrays in register code generation.
+* Add support for default values in register code generation.
+* Add :meth:`.BaseModule.registers_hook` to make it more convenient to manipulate register information from Python.
+* Add packet mode and "last" flag to synchronous FIFO.
+
+Fixes
+
+* Fix synchronous FIFO signal ``almost_empty`` being de-asserted too early when ``almost_empty_level`` is zero.
+* Area optimize the synchronous and asynchronous FIFOs.
+
+Breaking changes
+
+* Change meaning of ``almost_empty`` FIFO signal to be "'1' if there are almost_empty_level or fewer words available to read".
+  Used to be "fewer than almost_empty_level".
+* Change register json definition file name from ``<name>_regs.json`` to ``regs_<name>.json``.
+* ``default_registers`` passed to :class:`.BaseModule` shall now be a list of :class:`.Register`,
+  instead of a dict.
+* Remove generated register constant ``<name>_regs_zero``. Instead add ``<name>_regs_init`` with default values.
+* FPGA build projects shall now be set up with :meth:`.BaseModule.get_build_projects` using ``module_<name>.py`` rather than with ``project_<name>.py``. See :ref:`documentation <example_project_class>`.
+* Rename ``FpgaProjectList`` to :class:`.BuildProjectList` to get a consistent naming.
+* Constructor argument to :class:`.BuildProjectList` shall now be a list of modules rather than a list of modules folders.
+* Interface of ``resync_counter`` now uses ``unsigned`` vectors rather than ``integer`` s.
+
+Internal changes
+
+* Refactor register handling to use only one class :class:`.RegisterList`.
