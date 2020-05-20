@@ -114,7 +114,7 @@ package axi_pkg is
 
   constant axi_m2s_w_init : axi_m2s_w_t := (valid => '0', data => (others => '-'), last => '0', others => (others => '0'));
 
-  function axi_strb_width(data_width : integer)  return integer;
+  function axi_w_strb_width(data_width : integer)  return integer;
   function axi_m2s_w_sz(data_width : integer)  return integer;
   function to_slv(data : axi_m2s_w_t; data_width : integer) return std_logic_vector;
   function to_axi_m2s_w(data : std_logic_vector; data_width : integer) return axi_m2s_w_t;
@@ -316,14 +316,14 @@ package body axi_pkg is
     return result;
   end function;
 
-  function axi_strb_width(data_width : integer)  return integer is
+  function axi_w_strb_width(data_width : integer)  return integer is
   begin
     return data_width / 8;
   end function;
 
   function axi_m2s_w_sz(data_width : integer) return integer is
   begin
-    return data_width + axi_strb_width(data_width) + 1; -- Exluded member: valid
+    return data_width + axi_w_strb_width(data_width) + 1; -- Exluded member: valid
   end function;
 
   function to_slv(data : axi_m2s_w_t; data_width : integer) return std_logic_vector is
@@ -334,8 +334,8 @@ package body axi_pkg is
     hi := lo + data_width - 1;
     result(hi downto lo) := data.data(data_width - 1 downto 0);
     lo := hi + 1;
-    hi := lo + axi_strb_width(data_width) - 1;
-    result(hi downto lo) := data.strb(axi_strb_width(data_width) - 1 downto 0);
+    hi := lo + axi_w_strb_width(data_width) - 1;
+    result(hi downto lo) := data.strb(axi_w_strb_width(data_width) - 1 downto 0);
     lo := hi + 1;
     hi := lo;
     result(hi) := data.last;
@@ -352,8 +352,8 @@ package body axi_pkg is
     hi := lo + data_width - 1;
     result.data(data_width - 1 downto 0) := data(hi + offset downto lo + offset);
     lo := hi + 1;
-    hi := lo + axi_strb_width(data_width) - 1;
-    result.strb(axi_strb_width(data_width) - 1 downto 0) := data(hi + offset downto lo + offset);
+    hi := lo + axi_w_strb_width(data_width) - 1;
+    result.strb(axi_w_strb_width(data_width) - 1 downto 0) := data(hi + offset downto lo + offset);
     lo := hi + 1;
     hi := lo;
     result.last := data(hi + offset);
