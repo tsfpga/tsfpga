@@ -23,7 +23,7 @@ class VivadoIpCores:
             output_path (`pathlib.Path`): The Vivado project will be placed here.
             part_name (str): Vivado part name to be used for the project.
         """
-        self._project_folder = output_path / self._project_name
+        self._project_folder = output_path.resolve() / self._project_name
         self._part_name = part_name
         self._hash_file = self._project_folder / "ip_files_hash.txt"
 
