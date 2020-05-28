@@ -11,9 +11,9 @@ It also shows how modules and files are abstracted in python classes and methods
 Folder structure
 ________________
 
-Some functions in tsfpga require that your modules use a certain folder structure.
+Some functions in tsfpga require that modules use a certain folder structure.
 For example, if we want to set up :ref:`local test configurations <local_configuration>` we
-must use a file called exactly ``module_<name>.py`` in the root of your module.
+must use a file called exactly ``module_<name>.py`` in the root of the module.
 
 Additionally the :class:`get_modules() <tsfpga.module.get_modules>` function in tsfpga, which creates
 :meth:`module objects <tsfpga.module.BaseModule>` from a source tree, will look for source files only in certain sub-directories.
@@ -47,7 +47,7 @@ The different files and folders are explained further down.
     │
     └── ...
 
-So at the top level there is a folder called ``modules`` that contains all your modules.
+At the top level there is a folder called ``modules`` that contains all available modules.
 It does not have to be named that, but it is a name that fits well with the tsfpga nomenclature.
 Within this folder there are source code modules: ``foo``, ``bar``, etc.
 
@@ -60,7 +60,7 @@ Source code and packages are recommended to be placed in the ``src`` folder.
 There is no distinction made between entity source files and packages in tsfpga.
 The corresponding test benches are recommended to use the ``test`` folder.
 
-You don't have to use these exact folders; :class:`BaseModule <tsfpga.module.BaseModule>` will look for files in many folders, to accommodate for different projects using different structures.
+We don't have to use these exact folders; :class:`BaseModule <tsfpga.module.BaseModule>` will look for files in many folders, to accommodate for different projects using different structures.
 For example, at the moment :meth:`BaseModule.get_synthesis_files() <tsfpga.module.BaseModule.get_synthesis_files>` will look for source files in
 
 * ``src``
@@ -80,7 +80,7 @@ For example, at the moment :meth:`BaseModule.get_synthesis_files() <tsfpga.modul
 module_foo.py
 -------------
 
-If you want to set up :ref:`FPGA build projects <example_project_class>` or do :ref:`local test configurations <local_configuration>` you can use a file called ``module_<name>.py``.
+If we want to, e.g., set up :ref:`FPGA build projects <example_project_class>` or do :ref:`local test configurations <local_configuration>` we can use a file called ``module_<name>.py``.
 The Python file shall contain a class definition called ``Module`` that inherits from :class:`.BaseModule`.
 Methods from :class:`.BaseModule` can then be overridden to achieve the desired behavior.
 
@@ -109,7 +109,7 @@ IP cores
 --------
 
 In tsfpga, IP cores are handled using TCL files that contain the code snippet that generates the core.
-This TCL snippet can be found in the Vivado TCL console when creating or modifying your IP.
+This TCL snippet can be found in the Vivado TCL console when creating or modifying the IP.
 It typically looks something like this:
 
 .. literalinclude:: ../../examples/modules_with_ip/module_with_ip_cores/ip_cores/mult_u12_u5.tcl
@@ -117,7 +117,7 @@ It typically looks something like this:
    :language: none
    :lines: 5-
 
-These TCL files shall be place in the ``ip_cores`` folder within your module.
+These TCL files shall be place in the ``ip_cores`` folder within the module.
 The IP cores will be included in all build projects that include the module, and in the simulation project.
 
 
@@ -127,7 +127,7 @@ Scoped constraints
 
 Scoped constraints are constraint files that are applied in Vivado relative to a certain entity.
 This is handled in :meth:`build projects <tsfpga.vivado_project.VivadoProject>` using the :meth:`Constraint <tsfpga.constraint.Constraint>` class.
-Constraint files in the ``scoped_constraints`` directory will be automatically added to your build project as scoped constraints.
+Constraint files in the ``scoped_constraints`` directory will be automatically added to :ref:`build projects <build>` as scoped constraints.
 
 The name of a scoped constraint file must be the same as the entity name and source file name.
 In the example tree above there is a scoped constraint file ``sample_data.tcl`` that will be applied to ``sample_data.vhd``, which presumably contains an entity called ``sample_data``.

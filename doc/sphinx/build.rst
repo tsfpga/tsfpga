@@ -55,13 +55,13 @@ Firstly we need to get a list of modules that shall be included in the build pro
 Source files, IP cores, scoped constraints, etc., from all these modules will be added to the project.
 
 It can be a good idea to filter what modules are included here.
-If you have a huge module tree but your project only uses a subset of the modules, you might not want to slow down Vivado by adding everything.
-You might also use primitives and IP cores in some modules that are not available for the target part.
+If we have a huge module tree but our project only uses a subset of the modules, we might not want to slow down Vivado by adding everything.
+We might also use primitives and IP cores in some modules that are not available for the target part.
 This filtering of modules can be achieved using the arguments to :ref:`get_modules() <get_modules>`.
 
 In this case we use a wrapper ``get_tsfpga_modules()`` around the :ref:`get_modules() <get_modules>` function.
 The wrapper sets the correct :ref:`get_modules() <get_modules>` flags (all modules paths, :ref:`default registers <default_registers>` and ``library_name_has_lib_suffix``).
-It is recommended that you also create a function like this so the arguments don't have to be repeated in many places.
+It is recommended to use a function like this so the arguments don't have to be repeated in many places.
 
 
 
@@ -80,7 +80,7 @@ The sources gathered are then use to create project objects which are appended t
 First a :class:`.VivadoProject` object is created with the name ``artyz7``.
 The modules, part name, TCL sources and constraints are passed to the constructor.
 There is also a ``defined_at`` argument, which is given the path to the ``module_artyz7.py`` file.
-This is used to get a useful ``--list`` result in your :ref:`build.py <example_build_py>`.
+This is used to get a useful ``--list`` result in our :ref:`build.py <example_build_py>`.
 
 The second project is created using a child class that inherits :class:`.VivadoProject`.
 It showcases how to use :ref:`pre and post build hook functions <pre_post_build>`.

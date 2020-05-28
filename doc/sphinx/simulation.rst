@@ -6,7 +6,7 @@ Simulation flow
 This page shows how to run simulations using tsfpga and VUnit.
 
 As far as simulations go tsfpga can be seen as layer on top of VUnit.
-tsfpga helps manage the inputs to your simulation project: source files, test benches, :ref:`test configurations <local_configuration>`, :ref:`register code generation <registers>`, :ref:`IP cores <vivado_ip_cores>`, :ref:`simlib <vivado_simlib>`,...
+Tsfpga helps manage the inputs to the simulation project: source files, test benches, :ref:`test configurations <local_configuration>`, :ref:`register code generation <registers>`, :ref:`IP cores <vivado_ip_cores>`, :ref:`simlib <vivado_simlib>`, ...
 All features of VUnit are available as they are, and all simulators are supported (ghdl as well as commercial).
 
 
@@ -14,7 +14,7 @@ All features of VUnit are available as they are, and all simulators are supporte
 Minimal example
 ---------------
 
-If your source code is roughly organized along the :ref:`folder structure <folder_structure>`, running simulations using tsfpga and VUnit is as simple as:
+If the source code is roughly organized along the :ref:`folder structure <folder_structure>`, running simulations using tsfpga and VUnit is as simple as:
 
 .. code-block:: python
     :caption: Minimal ``simulate.py`` file.
@@ -109,8 +109,8 @@ Later in ``simulate.py`` when ``setup_simulations()`` is run, the code we specif
 
 There is also a ``kwargs`` argument available in the ``setup_simulations()`` signature which can be used to send arbitrary parameters from ``simulate.py`` to the module.
 This can be used for example to point out the location of test data.
-Or maybe select some test mode with a parameter to your ``simulate.py``.
-This is pure Python so you can get as fancy as you want to.
+Or maybe select some test mode with a parameter to our ``simulate.py``.
+This is pure Python so we can get as fancy as we want to.
 
 
 
@@ -135,10 +135,10 @@ They will only do a recompile when necessary (new Vivado or simulator version, e
 .. autoclass:: tsfpga.vivado_simlib_common.VivadoSimlibCommon()
     :members:
 
-Adding simlib to you simulation project using this class is achieved by simply doing:
+Adding simlib to a simulation project using this class is achieved by simply doing:
 
 .. code-block:: python
-    :caption: Adding simlib to your simulation project in ``simulate.py``.
+    :caption: Adding simlib to the simulation project in ``simulate.py``.
 
     from tsfpga.vivado_simlib import VivadoSimlib
 
@@ -167,21 +167,21 @@ Simulating with Vivado IP cores
 -------------------------------
 
 There is a class available in tsfpga for handling the IP cores that shall be included in the simulation project.
-From your list of modules it will create a Vivado project with all the IP cores.
+From the list of modules it will create a Vivado project with all the IP cores.
 This project shall then be used to generate the simulation models for the IP cores, which shall then be added to the simulation project.
 
 .. note::
-    You must follow the :ref:`folder structure <ip_cores_folder>` for this to work.
+    The :ref:`folder structure <ip_cores_folder>` must be followed for this to work.
 
 .. autoclass:: tsfpga.vivado_ip_cores.VivadoIpCores()
     :members:
 
     .. automethod:: __init__
 
-Adding IP cores to your simulation project can be done like this:
+Adding IP cores to a simulation project can be done like this:
 
 .. code-block:: python
-    :caption: Adding Vivado IP cores to your simulation project in ``simulate.py``.
+    :caption: Adding Vivado IP cores to a simulation project in ``simulate.py``.
 
     from tsfpga.vivado_ip_cores import VivadoIpCores
     from vunit.vivado.vivado import create_compile_order_file, add_from_compile_order_file

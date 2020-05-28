@@ -150,7 +150,7 @@ A C header with register and field definitions can be generated.
    :caption: ddr_buffer header
    :language: C
 
-It provides to methods for usage: A struct that can be memory mapped, or address definitions that can be offset a base address.
+It provides two methods for usage: A struct that can be memory mapped, or address definitions that can be offset a base address.
 For the addresses, array registers use a macro with an array index argument.
 
 
