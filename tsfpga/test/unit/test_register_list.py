@@ -292,3 +292,52 @@ class TestRegisterList(unittest.TestCase):
         with pytest.raises(ValueError) as exception_info:
             from_json(self.module_name, self.json_file, get_test_default_registers())
         assert str(exception_info.value) == f"Overloading register config in {self.json_file}, one can not change mode from default"
+
+    def test_unknown_register_field_should_raise_exception(self):
+        extras = """,
+  "test_reg": {
+    "mode": "w",
+    "dummy": 3
+  }"""
+        data = self.json_data % extras
+        create_file(self.json_file, data)
+
+        with pytest.raises(ValueError) as exception_info:
+            from_json(self.module_name, self.json_file)
+        assert str(exception_info.value) == f"Error while parsing JSON file {self.json_file}:\nUnknown key dummy"
+
+    def test_unknown_register_array_field_should_raise_exception(self):
+        extras = """,
+  "test_array": {
+    "array_length": 2,
+    "dummy": 3,
+    "registers": {
+      "hest": {
+        "mode": "r"
+      }
+    }
+  }"""
+        data = self.json_data % extras
+        create_file(self.json_file, data)
+
+        with pytest.raises(ValueError) as exception_info:
+            from_json(self.module_name, self.json_file)
+        assert str(exception_info.value) == f"Error while parsing register array test_array in {self.json_file}:\nUnknown key dummy"
+
+    def test_unknown_register_field_in_register_array_should_raise_exception(self):
+        extras = """,
+  "test_array": {
+    "array_length": 2,
+    "registers": {
+      "hest": {
+        "mode": "r",
+        "dummy": 3
+      }
+    }
+  }"""
+        data = self.json_data % extras
+        create_file(self.json_file, data)
+
+        with pytest.raises(ValueError) as exception_info:
+            from_json(self.module_name, self.json_file)
+        assert str(exception_info.value) == f"Error while parsing register hest in array test_array in {self.json_file}:\nUnknown key dummy"

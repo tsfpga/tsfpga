@@ -286,6 +286,10 @@ def from_json(module_name, json_file, default_registers=None):
     return register_list
 
 
+RECOGNIZED_REGISTER_ITEMS = {"mode", "default_value", "description", "bits"}
+RECOGNIZED_REGISTER_ARRAY_ITEMS = {"array_length", "registers"}
+
+
 def _parse_plain_register(name, items, register_list, default_register_names, json_file):
     if "array_length" in items:
         message = f"Plain register {name} in {json_file} can not have array_length attribute"
@@ -305,36 +309,52 @@ def _parse_plain_register(name, items, register_list, default_register_names, js
             raise ValueError(f"Register {name} in {json_file} does not have mode field")
         register = register_list.append_register(name, items["mode"])
 
-    if "default_value" in items:
-        register.default_value = items["default_value"]
+    for item_name, item_value in items.items():
+        if item_name not in RECOGNIZED_REGISTER_ITEMS:
+            message = f"Error while parsing JSON file {json_file}:\nUnknown key {item_name}"
+            raise ValueError(message)
+        if item_name == "default_value":
+            register.default_value = item_value
 
-    if "description" in items:
-        register.description = items["description"]
+        if item_name == "description":
+            register.description = item_value
 
-    if "bits" in items:
-        for bit_name, bit_description in items["bits"].items():
-            register.append_bit(bit_name, bit_description)
+        if item_name == "bits":
+            for bit_name, bit_description in item_value.items():
+                register.append_bit(bit_name, bit_description)
 
 
 def _parse_register_array(name, items, register_list, json_file):
     if "array_length" not in items:
         message = f"Register array {name} in {json_file} does not have array_length attribute"
         raise ValueError(message)
-    length = items["array_length"]
 
+    for item_name in items:
+        if item_name not in RECOGNIZED_REGISTER_ARRAY_ITEMS:
+            message = f"Error while parsing register array {name} in {json_file}:\n"\
+                f"Unknown key {item_name}"
+            raise ValueError(message)
+
+    length = items["array_length"]
     register_array = register_list.append_register_array(name, length)
 
     for register_name, register_items in items["registers"].items():
         if "mode" not in register_items:
-            raise ValueError(f"Register {register_name} within array {name} in {json_file} does not have mode field")
+            message = f"Register {register_name} within array {name} in {json_file} does not have mode field"
+            raise ValueError(message)
         register = register_array.append_register(register_name, register_items["mode"])
 
-        if "description" in register_items:
-            register.description = register_items["description"]
+        for register_item_name, register_item_value in register_items.items():
+            if register_item_name not in RECOGNIZED_REGISTER_ITEMS:
+                message = f"Error while parsing register {register_name} in array {name} in " \
+                    f"{json_file}:\nUnknown key {register_item_name}"
+                raise ValueError(message)
+            if register_item_name == "default_value":
+                register.default_value = register_item_value
 
-        if "default_value" in register_items:
-            register.default_value = register_items["default_value"]
+            if register_item_name == "description":
+                register.description = register_item_value
 
-        if "bits" in register_items:
-            for bit_name, bit_description in register_items["bits"].items():
-                register.append_bit(bit_name, bit_description)
+            if register_item_name == "bits":
+                for bit_name, bit_description in register_item_value.items():
+                    register.append_bit(bit_name, bit_description)
