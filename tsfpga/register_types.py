@@ -55,7 +55,7 @@ class Register:
             index (int): The zero-based index of this register in its register list.
             mode (str): A valid register mode.
             description (str): Textual register description.
-            default_value (int): Default value for the register (unsigned).
+            default_value (int): Default value for the register (signed).
         """
         if mode not in REGISTER_MODES:
             raise ValueError(f'Invalid mode "{mode}" for register "{name}"')
@@ -133,7 +133,7 @@ class RegisterArray:
             name (str): The name of the register.
             mode (str): A valid register mode.
             description (str): Textual register description.
-            default_value (int): Default value for the register (unsigned).
+            default_value (int): Default value for the register (signed).
         Return:
             :class:`.Register`: The register object that was created.
         """

@@ -42,7 +42,7 @@ class RegisterList:
             name (str): The name of the register.
             mode (str): A valid register mode.
             description (str): Textual register description.
-            default_value (int): Default value for the register (unsigned).
+            default_value (int): Default value for the register (signed).
         Return:
             :class:`.Register`: The register object that was created.
         """
@@ -97,7 +97,7 @@ class RegisterList:
 
         Args:
             name (str): The name of the constant.
-            length (int): The constant value (unsigned integer).
+            length (int): The constant value (signed).
         """
         self.constants.append(Constant(name, value))
 
