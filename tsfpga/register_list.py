@@ -311,7 +311,7 @@ def _parse_plain_register(name, items, register_list, default_register_names, js
 
     for item_name, item_value in items.items():
         if item_name not in RECOGNIZED_REGISTER_ITEMS:
-            message = f"Error while parsing JSON file {json_file}:\nUnknown key {item_name}"
+            message = f"Error while parsing register {name} in {json_file}:\nUnknown key {item_name}"
             raise ValueError(message)
         if item_name == "default_value":
             register.default_value = item_value

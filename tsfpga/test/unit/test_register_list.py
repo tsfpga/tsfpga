@@ -304,7 +304,7 @@ class TestRegisterList(unittest.TestCase):
 
         with pytest.raises(ValueError) as exception_info:
             from_json(self.module_name, self.json_file)
-        assert str(exception_info.value) == f"Error while parsing JSON file {self.json_file}:\nUnknown key dummy"
+        assert str(exception_info.value) == f"Error while parsing register test_reg in {self.json_file}:\nUnknown key dummy"
 
     def test_unknown_register_array_field_should_raise_exception(self):
         extras = """,
