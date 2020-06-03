@@ -16,7 +16,8 @@ use math.math_pkg.all;
 
 package axi_pkg is
 
-  constant axi_id_sz : integer := 32; -- Max value
+  -- Max value
+  constant axi_id_sz : integer := 24;
 
   constant axi_max_burst_length_beats : integer := 256;
   constant axi3_max_burst_length_beats : integer := 16;
@@ -285,10 +286,11 @@ package body axi_pkg is
 
   function to_axi_m2s_a(data : std_logic_vector; id_width : integer := 0) return axi_m2s_a_t is
     constant offset : integer := data'low;
-    variable result : axi_m2s_a_t;
+    variable result : axi_m2s_a_t := axi_m2s_a_init;
     variable lo, hi : integer := 0;
   begin
     lo := 0;
+    report to_string(offset);
     if id_width > 0 then
       hi := id_width - 1;
       result.id(hi downto lo) := data(hi + offset downto lo + offset);
@@ -345,7 +347,7 @@ package body axi_pkg is
 
   function to_axi_m2s_w(data : std_logic_vector; data_width : integer) return axi_m2s_w_t is
     constant offset : integer := data'low;
-    variable result : axi_m2s_w_t;
+    variable result : axi_m2s_w_t := axi_m2s_w_init;
     variable lo, hi : integer := 0;
   begin
     lo := 0;
@@ -384,7 +386,7 @@ package body axi_pkg is
 
   function to_axi_s2m_b(data : std_logic_vector; id_width : integer := 0) return axi_s2m_b_t is
     constant offset : integer := data'low;
-    variable result : axi_s2m_b_t;
+    variable result : axi_s2m_b_t := axi_s2m_b_init;
     variable lo, hi : integer := 0;
   begin
     lo := 0;
@@ -428,7 +430,7 @@ package body axi_pkg is
 
   function to_axi_s2m_r(data : std_logic_vector; data_width : integer; id_width : integer := 0) return axi_s2m_r_t is
     constant offset : integer := data'low;
-    variable result : axi_s2m_r_t;
+    variable result : axi_s2m_r_t := axi_s2m_r_init;
     variable lo, hi : integer := 0;
   begin
     lo := 0;
