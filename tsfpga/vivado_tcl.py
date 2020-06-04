@@ -155,7 +155,7 @@ class VivadoTcl:
     @staticmethod
     def _add_generics(generics):
         """
-        Generics are set accoring to this weird format: https://www.xilinx.com/support/answers/52217.html
+        Generics are set according to this weird format: https://www.xilinx.com/support/answers/52217.html
         """
         if generics is None:
             return ""
