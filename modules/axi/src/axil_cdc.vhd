@@ -35,7 +35,6 @@ architecture a of axil_cdc is
 
 begin
 
-
   ------------------------------------------------------------------------------
   aw_afifo_inst : entity fifo.afifo
     generic map (
@@ -130,13 +129,11 @@ begin
   r_block : block
     constant r_width : integer := axil_s2m_r_sz(data_width);
     signal master_s2m_r, slave_s2m_r : std_logic_vector(r_width - 1 downto 0);
-    signal slave_s2m_r_converted : axil_s2m_r_t;
   begin
 
     master_s2m.read.r.data <= to_axil_s2m_r(master_s2m_r, data_width).data;
     master_s2m.read.r.resp <= to_axil_s2m_r(master_s2m_r, data_width).resp;
     slave_s2m_r <= to_slv(slave_s2m.read.r, data_width);
-    slave_s2m_r_converted <= to_axil_s2m_r(slave_s2m_r, data_width);
 
     r_afifo_inst : entity fifo.afifo
       generic map (

@@ -17,7 +17,7 @@ entity handshake_pipeline is
     --
     input_ready : out std_logic := '1';
     input_valid : in std_logic;
-    input_last : in std_logic;
+    input_last : in std_logic := '-';
     input_data : in std_logic_vector(data_width - 1 downto 0);
     --
     output_ready : in std_logic;
