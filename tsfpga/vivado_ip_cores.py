@@ -94,13 +94,22 @@ class VivadoIpCores:
         self._hash = self._calculate_hash(ip_tcl_files)
 
     @staticmethod
-    def _calculate_hash(files):
-        ip_hash = hashlib.md5()
-        for file in files:
-            ip_hash.update(str(file).encode())
-            ip_hash.update(read_file(file).encode())
+    def _calculate_hash(ip_files):
+        """
+        A string with hashes of the different IP core files.
+        """
+        data = ""
 
-        return ip_hash.hexdigest()
+        def sort_by_file_name(path):
+            return path.name
+
+        for ip_file in sorted(ip_files, key=sort_by_file_name):
+            with open(ip_file, "rb") as file_handle:
+                ip_hash = hashlib.md5()
+                ip_hash.update(file_handle.read())
+                data += f"{ip_file}\n{ip_hash.hexdigest()}\n"
+
+        return data
 
     def _save_hash(self):
         create_file(self._hash_file, self._hash)

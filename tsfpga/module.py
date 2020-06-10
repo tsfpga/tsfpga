@@ -25,7 +25,7 @@ class BaseModule:
             library_name (str): VHDL library name.
             default_registers (list(Register)): Default registers.
         """
-        self.path = path
+        self.path = path.resolve()
         self.name = path.name
         self.library_name = library_name
 
