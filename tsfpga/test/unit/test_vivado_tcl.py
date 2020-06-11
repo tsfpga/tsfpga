@@ -245,3 +245,27 @@ class TestVivadoTcl(unittest.TestCase):
 
         for filename in extra_tcl_sources:
             assert f"\nsource -notrace {to_tcl_path(filename)}\n" in tcl
+
+    def test_io_buffer_setting(self):
+        tcl = self.tcl.create(
+            project_folder=Path(),
+            modules=self.modules,
+            part="part",
+            top="",
+            run_index=1,
+            disable_io_buffers=True
+        )
+
+        no_io_buffers_tcl = "\nset_property -name {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} -value -no_iobuf -objects [get_runs synth_1]\n"
+        assert no_io_buffers_tcl in tcl
+
+        tcl = self.tcl.create(
+            project_folder=Path(),
+            modules=self.modules,
+            part="part",
+            top="",
+            run_index=1,
+            disable_io_buffers=False
+        )
+
+        assert no_io_buffers_tcl not in tcl

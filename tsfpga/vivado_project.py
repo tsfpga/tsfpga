@@ -6,6 +6,7 @@ import shutil
 
 from tsfpga import TSFPGA_TCL
 from tsfpga.system_utils import create_file
+from tsfpga.vivado_utilization_parser import VivadoUtilizationParser
 from tsfpga.vivado_tcl import VivadoTcl
 from tsfpga.vivado_utils import run_vivado_tcl, run_vivado_gui
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
@@ -62,6 +63,8 @@ class VivadoProject:
         self.constraints = constraints
         self.default_run_index = default_run_index
         self.defined_at = defined_at
+        # Will be set by child class when applicable
+        self.is_netlist_build = False
 
         self.top = name + "_top" if top is None else top
         self._vivado_path = vivado_path
@@ -115,6 +118,7 @@ class VivadoProject:
             tcl_sources=self.tcl_sources,
             build_step_hooks=self.build_step_hooks,
             ip_cache_path=ip_cache_path,
+            disable_io_buffers=self.is_netlist_build
         )
         create_file(create_vivado_project_tcl, tcl)
 
@@ -209,6 +213,12 @@ class VivadoProject:
 
                 .. note::
                     This is a "kwargs" style argument. You can pass any number of named arguments.
+
+        Return:
+            `dict`: A dictionary with build results. The dictionary contains these fields:
+                - `name`: The name of the build.
+                - `synthesized_size`: A dictionary with the utilization of primitives for the synthesized design.
+                - `implemented_size`: A dictionary with the utilization of primitives for the implemented design.
         """
         if output_path is None and not synth_only:
             raise ValueError("Must specify output_path when doing an implementation run")
@@ -245,12 +255,19 @@ class VivadoProject:
                                                    synth_only=synth_only)
         run_vivado_tcl(self._vivado_path, build_vivado_project_tcl)
 
+        results = dict()
+        results["name"] = self.name
+        results["synthesized_size"] = self._get_size(project_path, f"synth_{run_index}")
+
         if not synth_only:
             impl_folder = project_path / (self.name + ".runs") / f"impl_{run_index}"
             shutil.copy2(impl_folder / (self.top + ".bit"), output_path / (self.name + ".bit"))
             shutil.copy2(impl_folder / (self.top + ".bin"), output_path / (self.name + ".bin"))
+            results["implemented_size"] = self._get_size(project_path, f"impl_{run_index}")
 
         self.post_build(**pre_and_post_build_parameters)
+
+        return results
 
     def open(self, project_path):
         """
@@ -260,6 +277,19 @@ class VivadoProject:
             project_path (`pathlib.Path`): A path containing a Vivado project.
         """
         run_vivado_gui(self._vivado_path, self.project_file(project_path))
+
+    def _get_size(self, project_path, run):
+        """
+        Reads the hierarchical utilization report and returns the top level size
+        for the specified run.
+        """
+        utilization_parser = VivadoUtilizationParser()
+        result = dict()
+        file_path = project_path / (self.name + ".runs") / run / "hierarchical_utilization.rpt"
+        with open(file_path) as utilization_report:
+            report_as_string = utilization_report.read()
+            result = utilization_parser.get_size(report_as_string)
+        return result
 
     def __str__(self):
         result = str(self.__class__.__name__)
@@ -274,3 +304,13 @@ class VivadoProject:
         result += "\nGenerics:  " + generics
 
         return result
+
+
+class VivadoNetlistProject(VivadoProject):
+    """
+    Used for handling Vivado build of a module without top level pinning.
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.is_netlist_build = True

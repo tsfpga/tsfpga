@@ -4,6 +4,7 @@
 
 import argparse
 from pathlib import Path
+import json
 from shutil import copy2, make_archive
 import sys
 
@@ -15,7 +16,7 @@ from tsfpga.system_utils import create_directory, delete
 from examples.tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
 
 
-def arguments(projects, default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
+def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
     parser = argparse.ArgumentParser("Create, synth and build an FPGA project",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--list-only",
@@ -36,6 +37,9 @@ def arguments(projects, default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
     parser.add_argument("--synth-only",
                         action="store_true",
                         help="only synthesize a project")
+    parser.add_argument("--netlist-builds",
+                        action="store_true",
+                        help="list netlist build projects instead of top level build projects")
     parser.add_argument("--project-path",
                         type=Path,
                         default=default_temp_dir / "projects",
@@ -52,17 +56,13 @@ def arguments(projects, default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
                         type=int,
                         default=8,
                         help="number of threads to use when building project")
-    parser.add_argument("project_name",
-                        nargs="?",
-                        choices=projects.names(),
-                        help="which project to build")
+    parser.add_argument("project_filters",
+                        nargs="*",
+                        help="filter for which projects to build")
     parser.add_argument("--collect-artifacts-only",
                         action="store_true",
                         help="only create release zip from an existing build result")
     args = parser.parse_args()
-
-    if not args.project_name and not (args.list_only or args.generate_registers_only):
-        sys.exit("Need to specify project name")
 
     return args
 
@@ -70,14 +70,14 @@ def arguments(projects, default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
 def main():
     modules = get_tsfpga_modules()
     projects = BuildProjectList(modules)
-    args = arguments(projects)
+    args = arguments()
 
     setup_and_run(modules, projects, args)
 
 
 def setup_and_run(modules, projects, args):
     if args.list_only:
-        print(f"Available projects:\n\n{projects}")
+        print(projects.list_projects(args.project_filters, args.netlist_builds))
         return
 
     if args.generate_registers_only:
@@ -86,38 +86,60 @@ def setup_and_run(modules, projects, args):
         generate_registers(modules, args.project_path.parent / "registers")
         return
 
-    project = projects.get(args.project_name)
-    project_path = args.project_path / project.name
-
-    if args.open:
-        project.open(project_path)
+    if not args.project_filters:
+        print("Must explicitly select builds. Available projects are:\n")
+        print(projects.list_projects(args.project_filters, args.netlist_builds))
         return
 
-    if not args.output_path:
-        args.output_path = project_path
+    build_results = []
+    for project in projects.get_projects(args.project_filters, args.netlist_builds):
+        project_path = args.project_path / project.name
 
-    # Possible that the user wants to collect artifacts (bit file) from a previous build
-    if not args.collect_artifacts_only:
-        build(args, project, project_path)
+        if args.open:
+            project.open(project_path)
+            continue
 
-    if args.create_only or args.synth_only:
-        return
+        output_path = args.output_path if args.output_path else project_path
 
-    collect_artifacts(project, args.output_path)
+        # Possible that the user wants to collect artifacts (bit file) from a previous build
+        if not args.collect_artifacts_only:
+            build_results.append(build(args, project, project_path, output_path))
+
+        if args.create_only or args.synth_only:
+            continue
+
+        collect_artifacts(project, output_path)
+
+    if not (args.create_only or args.open):
+        if args.synth_only:
+            json_field = "synthesized_size"
+            message = "Synthesis size for build:"
+        else:
+            json_field = "implemented_size"
+            message = "Implementation size for build:"
+        for build_result in build_results:
+            if json_field in build_result:
+                print(80 * "-")
+                print(message)
+                print(build_result["name"])
+                print(json.dumps(build_result[json_field], indent=4))
+                print("")
 
 
-def build(args, project, project_path):
+def build(args, project, project_path, output_path):
     if not args.use_existing_project:
         project.create(project_path=project_path, ip_cache_path=args.ip_cache_path)
 
     if args.create_only:
-        return
+        # No build result available. Return empty dict.
+        return dict()
 
-    create_directory(args.output_path, empty=False)
-    project.build(project_path=project_path,
-                  output_path=args.output_path,
-                  synth_only=args.synth_only,
-                  num_threads=args.num_threads)
+    create_directory(output_path, empty=False)
+    result = project.build(project_path=project_path,
+                           output_path=output_path,
+                           synth_only=args.synth_only,
+                           num_threads=args.num_threads)
+    return result
 
 
 def generate_registers(modules, output_path):

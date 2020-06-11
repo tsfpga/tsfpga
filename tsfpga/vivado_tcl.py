@@ -25,7 +25,8 @@ class VivadoTcl:
                constraints=None,
                tcl_sources=None,
                build_step_hooks=None,
-               ip_cache_path=None):
+               ip_cache_path=None,
+               disable_io_buffers=True):
         tcl = f"create_project {self.name} {to_tcl_path(project_folder)} -part {part}\n"
         tcl += "set_property target_language VHDL [current_project]\n"
         if ip_cache_path is not None:
@@ -47,6 +48,9 @@ class VivadoTcl:
         tcl += "\n"
         tcl += f"set_property top {top} [current_fileset]\n"
         tcl += "reorder_files -auto -disable_unused\n"
+        tcl += "\n"
+        if disable_io_buffers:
+            tcl += f"set_property -name {{STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS}} -value -no_iobuf -objects [get_runs synth_{run_index}]"
         tcl += "\n"
         tcl += "exit\n"
         return tcl

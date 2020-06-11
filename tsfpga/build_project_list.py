@@ -2,6 +2,8 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
+import fnmatch
+
 
 class BuildProjectList:
 
@@ -16,33 +18,47 @@ class BuildProjectList:
         """
         self._modules = modules
 
-    def get(self, project_name):
+    def get_projects(self, project_filters, include_netlist_not_top_builds=False):
         """
-        Get the project with the specified name.
+        Get projects matching any of the specified filters.
 
         Args:
-            project_name (str): Project name.
+            project_filters (list(str)): Project name filters.
+            include_netlist_not_top_builds: Set True to get only netlist builds instead of only top level builds.
 
         Returns:
-            A :class:`FPGA build project <.VivadoProject>` object.
+            A list of FPGA build project objects.
         """
-        for module in self._modules:
-            for project in module.get_build_projects():
-                if project.name == project_name:
-                    return project
-        raise ValueError(f"Could not find project: {project_name}")
+        projects = list(self._iterate_projects(project_filters, include_netlist_not_top_builds))
 
-    def names(self):
+        if not projects:
+            raise ValueError(f"Could not find projects with filters: {project_filters}")
+
+        return projects
+
+    def list_projects(self, project_filters, include_netlist_not_top_builds):
         """
+        Returns a string with a list of the projects matching the specified filters.
+
+        Args:
+            project_filters (list(str)): Project name filters.
+            include_netlist_not_top_builds (bool): Set True to get only netlist builds (:class:`.VivadoNetlistProject`)
+                instead of only top level builds (:class:`.VivadoProject`).
+
         Returns:
-            list(str): Names of the projects that are available.
+            A string listing projects matching the specified filters.
         """
-        return [project.name for project in self._iterate_projects()]
+        return "\n\n".join([str(project) for project in self._iterate_projects(project_filters, include_netlist_not_top_builds)])
 
-    def _iterate_projects(self):
+    def _iterate_projects(self, project_filters=None, include_netlist_not_top_builds=False):
+        projects = []
         for module in self._modules:
-            for project in module.get_build_projects():
-                yield project
-
-    def __str__(self):
-        return "\n\n".join([str(project) for project in self._iterate_projects()])
+            projects += module.get_build_projects()
+        for project in projects:
+            if project.is_netlist_build == include_netlist_not_top_builds:
+                if not project_filters:
+                    yield project
+                else:
+                    for project_filter in project_filters:
+                        if fnmatch.filter([project.name], project_filter):
+                            yield project

@@ -109,15 +109,13 @@ A ``build.py`` in a simplified and hard-coded fashion could look something like 
         Path("path/to/my/modules"),
     ]
     modules = get_modules(my_modules_folders)
-    projects = BuildProjectList(modules)
-    project = projects.get("artyz7")
-
     build_path = Path("build_projects")
-    project.create(project_path=build_path / project.name)
-    project.build(project_path=build_path / project.name, output_path=build_path / project.name / "artifacts")
+    for project in BuildProjectList(modules).get_projects("artyz7*"):
+        project.create(project_path=build_path / project.name)
+        project.build(project_path=build_path / project.name, output_path=build_path / project.name / "artifacts")
 
 Of course this is incredibly simplified, but it does show the interface to the tsfpga classes.
-The :class:`.BuildProjectList` function :meth:`.BuildProjectList.get` will return a :class:`build project object <.VivadoProject>`.
+The :class:`.BuildProjectList` function :meth:`.BuildProjectList.get_projects` will return a list of :class:`build project objects <.VivadoProject>` that match the given pattern.
 With this objects the ``create()`` and ``build()`` functions are available.
 
 Note that before a project is built a :ref:`register generation <registers>` is run, so that the project is built using up-to-date register definitions.
@@ -153,7 +151,7 @@ Constraint files
 Build step TCL hooks
 --------------------
 
-TCL scripts can be addded as hooks to certain build steps in Vivado.
+TCL scripts can be added as hooks to certain build steps in Vivado.
 Scripts like these are passed to the :class:`.VivadoProject` using this class.
 It is possible to add more than one hook per step.
 
@@ -161,6 +159,23 @@ It is possible to add more than one hook per step.
     :members:
 
     .. automethod:: __init__
+
+
+
+Netlist build projects
+----------------------
+
+tsfpga defines a class for builds that are not meant to result in a binary.
+These builds are typically used to quickly get information about timing or resource utilization for a module.
+In your ``build.py`` it is possible to parameterize many builds via generics and synthesize them in parallel.
+The results can then be aggregated to form a report about e.g. resource utilization for your module.
+
+The only real difference from the base class :class:`.VivadoProject` is that
+IO buffers are not included and no pinning is needed. By separating these builds into separate classes,
+top level FPGA builds and netlist builds can be listed and build separately.
+
+.. autoclass:: tsfpga.vivado_project.VivadoNetlistProject()
+    :members:
 
 
 
