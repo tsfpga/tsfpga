@@ -23,11 +23,11 @@ entity fifo is
     -- Changing these levels from default value will increase logic footprint
     almost_full_level : integer range 0 to depth := depth;
     almost_empty_level : integer range 0 to depth := 0;
-    -- Set to true in order to use read_last and write_last
-    enable_last : boolean := false;
     -- If enabled, read_valid will not be asserted until a full packet is available in
     -- FIFO. I.e. when write_last has been received.
     enable_packet_mode : boolean := false;
+    -- Set to true in order to use read_last and write_last
+    enable_last : boolean := enable_packet_mode;
     ram_type : string := "auto"
   );
   port (
@@ -71,6 +71,8 @@ architecture a of fifo is
 begin
 
   assert is_power_of_two(depth) report "Depth must be a power of two" severity failure;
+
+  assert enable_last or (not enable_packet_mode) report "Must set enable_last for packet mode" severity failure;
 
   -- The flags will update one cycle after the write/read that puts them over/below the line.
   -- Except for almost_empty when almost_empty_level is zero.
@@ -154,4 +156,5 @@ begin
       end if;
     end process;
   end block;
+
 end architecture;

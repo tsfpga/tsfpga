@@ -6,14 +6,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library osvvm;
+use osvvm.RandomPkg.all;
+
 library vunit_lib;
 use vunit_lib.axi_stream_pkg.all;
 use vunit_lib.sync_pkg.all;
 context vunit_lib.com_context;
 context vunit_lib.vunit_context;
-
-library osvvm;
-use osvvm.RandomPkg.all;
 
 library common;
 use common.types_pkg.all;
@@ -22,13 +22,13 @@ use common.types_pkg.all;
 entity tb_fifo is
   generic (
     depth : integer;
-    almost_full_level : integer;
-    almost_empty_level : integer;
-    runner_cfg : string;
+    almost_full_level : integer := 0;
+    almost_empty_level : integer := 0;
     read_stall_probability_percent : integer := 0;
     write_stall_probability_percent : integer := 0;
     enable_last : boolean := false;
-    enable_packet_mode : boolean := false
+    enable_packet_mode : boolean := false;
+    runner_cfg : string
   );
 end entity;
 
@@ -47,7 +47,7 @@ architecture tb of tb_fifo is
 
   constant read_stall_config : stall_config_t := new_stall_config(
     stall_probability => real(read_stall_probability_percent) / 100.0,
-    min_stall_cycles => 0,
+    min_stall_cycles => 1,
     max_stall_cycles => 4);
   constant read_slave : axi_stream_slave_t := new_axi_stream_slave(
     data_length => width,
@@ -57,7 +57,7 @@ architecture tb of tb_fifo is
 
   constant write_stall_config : stall_config_t := new_stall_config(
     stall_probability => real(write_stall_probability_percent) / 100.0,
-    min_stall_cycles => 0,
+    min_stall_cycles => 1,
     max_stall_cycles => 4);
   constant write_master : axi_stream_master_t := new_axi_stream_master(
     data_length => width,
@@ -135,13 +135,25 @@ begin
     -- Some tests leave data unread in the FIFO
     disable(get_logger("read_slave:rule 9"), error);
 
-    if run("test_write_faster_than_read") then
-      run_test(8000, 8000);
+
+    if run("test_init_state") then
+      check_equal(read_valid, '0');
+      check_equal(write_ready, '1');
+      check_equal(almost_full, '0');
+      check_equal(almost_empty, '1');
+      wait until read_valid'event or write_ready'event or almost_full'event or almost_empty'event for 1 us;
+      check_equal(read_valid, '0');
+      check_equal(write_ready, '1');
+      check_equal(almost_full, '0');
+      check_equal(almost_empty, '1');
+
+    elsif run("test_write_faster_than_read") then
+      run_test(5000, 5000);
       check_true(is_empty(data_queue));
       check_relation(has_gone_full_times > 500, "Got " & to_string(has_gone_full_times));
 
     elsif run("test_read_faster_than_write") then
-      run_test(8000, 8000);
+      run_test(5000, 5000);
       check_true(is_empty(data_queue));
       check_relation(has_gone_empty_times > 500, "Got " & to_string(has_gone_empty_times));
 
@@ -175,6 +187,36 @@ begin
       run_test(read_count=>0, write_count=>1);
       check_equal(read_valid, True);
 
+    elsif run("test_packet_mode_deep") then
+      -- Show that the FIFO can be filled with lasts
+
+      -- Fill the FIFO with lasts
+      for i in 1 to depth loop
+        run_test(read_count=>0, write_count=>1, set_last_flag=>true);
+      end loop;
+      check_equal(read_valid, True);
+
+      run_read(1);
+      check_equal(read_valid, True);
+
+      run_write(1);
+      check_equal(read_valid, True);
+
+      run_read(depth);
+      check_equal(read_valid, False);
+
+      -- Fill the FIFO with lasts again
+      for i in 1 to depth loop
+        run_test(read_count=>0, write_count=>1, set_last_flag=>true);
+      end loop;
+      check_equal(read_valid, True);
+
+      run_read(depth - 1);
+      check_equal(read_valid, True);
+
+      run_read(1);
+      check_equal(read_valid, False);
+
     elsif run("test_almost_full") then
       check_equal(almost_full, '0');
 
@@ -205,7 +247,7 @@ begin
       check_equal(almost_empty, '1');
     end if;
 
-    test_runner_cleanup(runner, allow_disabled_errors => true);
+    test_runner_cleanup(runner, allow_disabled_errors=>true);
   end process;
 
 
