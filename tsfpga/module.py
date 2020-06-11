@@ -200,6 +200,16 @@ class BaseModule:
         """
         return []
 
+    @staticmethod
+    def generics_to_string(generics):
+        """
+        Pack generics in a string. Useful for naming test cases and build projects.
+
+        Args:
+            generics (dict): Generic values to be packed.
+        """
+        return ".".join([f"{key}={value}" for key, value in generics.items()])
+
     def __str__(self):
         return f"{self.name}:{self.path}"
 
