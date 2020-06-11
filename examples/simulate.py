@@ -69,8 +69,6 @@ def main():
                 assert False, f"Can not handle this file: {hdl_file}"
         module.setup_simulations(vunit_proj)
 
-    print(TSFPGA_EXAMPLES_TEMP_DIR)
-
     vunit_proj.set_compile_option("ghdl.a_flags", ["-fpsl"])
     if vunit_proj.simulator_supports_coverage():
         vunit_proj.set_compile_option("enable_coverage", True)
