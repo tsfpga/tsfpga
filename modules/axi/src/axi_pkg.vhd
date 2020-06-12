@@ -85,6 +85,7 @@ package axi_pkg is
 
   constant axi_m2s_a_init : axi_m2s_a_t := (valid => '0', others => (others => '0'));
   function axi_m2s_a_sz(id_width : integer := 0)  return integer;
+  type axi_m2s_a_vec_t is array (integer range <>) of axi_m2s_a_t;
 
   function to_slv(data : axi_m2s_a_t; id_width : integer := 0) return std_logic_vector;
   function to_axi_m2s_a(data : std_logic_vector; id_width : integer := 0) return axi_m2s_a_t;
@@ -94,6 +95,7 @@ package axi_pkg is
   end record;
 
   constant axi_s2m_a_init : axi_s2m_a_t := (ready => '0');
+  type axi_s2m_a_vec_t is array (integer range <>) of axi_s2m_a_t;
 
 
   ------------------------------------------------------------------------------
@@ -114,9 +116,11 @@ package axi_pkg is
   end record;
 
   constant axi_m2s_w_init : axi_m2s_w_t := (valid => '0', data => (others => '-'), last => '0', others => (others => '0'));
+  function axi_m2s_w_sz(data_width : integer)  return integer;
+  type axi_m2s_w_vec_t is array (integer range <>) of axi_m2s_w_t;
 
   function axi_w_strb_width(data_width : integer)  return integer;
-  function axi_m2s_w_sz(data_width : integer)  return integer;
+
   function to_slv(data : axi_m2s_w_t; data_width : integer) return std_logic_vector;
   function to_axi_m2s_w(data : std_logic_vector; data_width : integer) return axi_m2s_w_t;
 
@@ -151,6 +155,7 @@ package axi_pkg is
 
   constant axi_s2m_b_init : axi_s2m_b_t := (valid => '0', others => (others => '0'));
   function axi_s2m_b_sz(id_width : integer := 0)  return integer;
+  type axi_s2m_b_vec_t is array (integer range <>) of axi_s2m_b_t;
 
   function to_slv(data : axi_s2m_b_t; id_width : integer := 0) return std_logic_vector;
   function to_axi_s2m_b(data : std_logic_vector; id_width : integer := 0) return axi_s2m_b_t;
@@ -176,6 +181,7 @@ package axi_pkg is
 
   constant axi_s2m_r_init : axi_s2m_r_t := (valid => '0', last => '0', others => (others => '0'));
   function axi_s2m_r_sz(data_width : integer; id_width : integer := 0)  return integer;
+  type axi_s2m_r_vec_t is array (integer range <>) of axi_s2m_r_t;
 
   function to_slv(data : axi_s2m_r_t; data_width : integer; id_width : integer := 0) return std_logic_vector;
   function to_axi_s2m_r(data : std_logic_vector; data_width : integer; id_width : integer := 0) return axi_s2m_r_t;
