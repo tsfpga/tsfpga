@@ -208,7 +208,7 @@ class BaseModule:
         Args:
             generics (dict): Generic values to be packed.
         """
-        return ".".join([f"{key}={value}" for key, value in generics.items()])
+        return ".".join([f"{key}_{value}" for key, value in generics.items()])
 
     def __str__(self):
         return f"{self.name}:{self.path}"
