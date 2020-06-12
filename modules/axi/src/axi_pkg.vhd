@@ -290,7 +290,6 @@ package body axi_pkg is
     variable lo, hi : integer := 0;
   begin
     lo := 0;
-    report to_string(offset);
     if id_width > 0 then
       hi := id_width - 1;
       result.id(hi downto lo) := data(hi + offset downto lo + offset);
