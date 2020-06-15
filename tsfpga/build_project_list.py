@@ -36,7 +36,7 @@ class BuildProjectList:
 
         return projects
 
-    def list_projects(self, project_filters, include_netlist_not_top_builds):
+    def list_projects(self, project_filters, include_netlist_not_top_builds=False):
         """
         Returns a string with a list of the projects matching the specified filters.
 
