@@ -87,9 +87,9 @@ def setup_and_run(modules, projects, args):
         return
 
     if not args.project_filters:
-        print("Must explicitly select builds. Available projects are:\n")
-        print(projects.list_projects(args.project_filters, args.netlist_builds))
-        return
+        message = "Must explicitly select builds. Available projects are:\n"
+        message += projects.list_projects(args.project_filters)
+        sys.exit(message)
 
     build_results = []
     for project in projects.get_projects(args.project_filters, args.netlist_builds):
@@ -110,20 +110,7 @@ def setup_and_run(modules, projects, args):
 
         collect_artifacts(project, output_path)
 
-    if not (args.create_only or args.open):
-        if args.synth_only:
-            json_field = "synthesized_size"
-            message = "Synthesis size for build:"
-        else:
-            json_field = "implemented_size"
-            message = "Implementation size for build:"
-        for build_result in build_results:
-            if json_field in build_result:
-                print(80 * "-")
-                print(message)
-                print(build_result["name"])
-                print(json.dumps(build_result[json_field], indent=4))
-                print("")
+    print_results(build_results, args.synth_only)
 
 
 def build(args, project, project_path, output_path):
@@ -140,6 +127,22 @@ def build(args, project, project_path, output_path):
                            synth_only=args.synth_only,
                            num_threads=args.num_threads)
     return result
+
+
+def print_results(build_results, synth_only):
+    if synth_only:
+        dict_field = "synthesized_size"
+        build_step = "Synthesis"
+    else:
+        dict_field = "implemented_size"
+        build_step = "Implementation"
+
+    for build_result in build_results:
+        if dict_field in build_result:
+            print("-" * 80)
+            print(f"{build_step} size for build {build_result['name']}:")
+            print(json.dumps(build_result[dict_field], indent=2))
+            print("")
 
 
 def generate_registers(modules, output_path):
