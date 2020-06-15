@@ -2,7 +2,7 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-set read_data [get_cells memory.read_data_reg*]
+set read_data [get_cells memory.memory_read_data_reg*]
 if {${read_data} != {}} {
     # These registers exist when the RAM is implemented as distributed RAM.
     # In this case there is a timing path from write clock to the read data registers which
