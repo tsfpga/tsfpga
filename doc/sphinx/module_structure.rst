@@ -71,7 +71,7 @@ For example, at the moment :meth:`BaseModule.get_synthesis_files() <tsfpga.modul
 .. note::
     If your project uses a different folder structure, and is locked into using it, tsfpga can be updated to accommodate that as well.
     This goes for most of the folders within the module, described below.
-    Feel free to create and `issue <https://gitlab.com/truestream/tsfpga/issues>`__ or a merge request.
+    Feel free to create and `issue <https://gitlab.com/tsfpga/tsfpga/issues>`__ or a merge request.
 
 
 

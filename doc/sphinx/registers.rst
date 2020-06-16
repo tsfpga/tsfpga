@@ -15,7 +15,7 @@ It is fast enough that before each build and each simulation run, the modules wi
 Creating documentation and headers, which are typically distributed as part of FPGA release artifacts, is simple and easy to integrate in a build script.
 
 There is also a set of VHDL AXI components that enable the register bus: AXI-to-AXI-Lite converter, AXI/AXI-Lite interconnect, AXI-Lite mux (splitter), AXI-Lite clock domain crossing, AXI-Lite generic register file.
-These are found in the repo within the `axi module <https://gitlab.com/truestream/tsfpga/-/tree/master/modules/axi>`__.
+These are found in the repo within the `axi module <https://gitlab.com/tsfpga/tsfpga/-/tree/master/modules/axi>`__.
 
 
 .. _default_registers:
@@ -32,7 +32,7 @@ Passing a list of :class:`.Register` objects will insert them in the register li
 Register examples
 -----------------
 
-Example register code generation from the `ddr_buffer example module <https://gitlab.com/truestream/tsfpga/-/tree/master/examples/modules/ddr_buffer>`__.
+Example register code generation from the `ddr_buffer example module <https://gitlab.com/tsfpga/tsfpga/-/tree/master/examples/modules/ddr_buffer>`__.
 
 
 
@@ -77,7 +77,7 @@ This will make sure that the software is running against the correct FPGA with e
 VHDL package
 ____________
 
-The VHDL package file is designed to be used with the generic AXI-Lite register file `available in tsfpga <https://gitlab.com/truestream/tsfpga/-/tree/master/modules/reg_file>`__.
+The VHDL package file is designed to be used with the generic AXI-Lite register file `available in tsfpga <https://gitlab.com/tsfpga/tsfpga/-/tree/master/modules/reg_file>`__.
 
 .. literalinclude:: ../../examples/modules/ddr_buffer/ddr_buffer_regs_pkg.vhd
    :caption: ddr_buffer_regs_pkg.vhd
@@ -88,9 +88,9 @@ The function takes an array index arguments and will assert if it is out of boun
 
 Note that there is a large eco-system of register related components in tsfpga.
 Firstly there are wrappers available for easier working with VUnit verification components.
-See the `bfm library <https://gitlab.com/truestream/tsfpga/-/tree/master/modules/bfm/sim>`__ and `reg_operations_pkg <https://gitlab.com/truestream/tsfpga/-/blob/master/modules/reg_file/sim/reg_operations_pkg.vhd>`__.
+See the `bfm library <https://gitlab.com/tsfpga/tsfpga/-/tree/master/modules/bfm/sim>`__ and `reg_operations_pkg <https://gitlab.com/tsfpga/tsfpga/-/blob/master/modules/reg_file/sim/reg_operations_pkg.vhd>`__.
 Furthermore there is a large number of synthesizable AXI components available that enable the register bus: AXI-to-AXI-Lite converter, AXI/AXI-Lite interconnect, AXI-Lite mux (splitter), AXI-Lite clock domain crossing, etc.
-See the `axi library <https://gitlab.com/truestream/tsfpga/-/tree/master/modules/axi>`__ for more details.
+See the `axi library <https://gitlab.com/tsfpga/tsfpga/-/tree/master/modules/axi>`__ for more details.
 
 
 

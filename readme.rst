@@ -9,7 +9,7 @@ About tsfpga
 
 .. |pic_gitlab| image:: https://tsfpga.com/badges/gitlab.svg
   :alt: Gitlab
-  :target: https://gitlab.com/truestream/tsfpga
+  :target: https://gitlab.com/tsfpga/tsfpga
 
 .. |pic_pip_install| image:: https://tsfpga.com/badges/pip_install.svg
   :alt: pypi
@@ -17,7 +17,7 @@ About tsfpga
 
 .. |pic_license| image:: https://tsfpga.com/badges/license.svg
   :alt: License
-  :target: https://gitlab.com/truestream/tsfpga/-/blob/master/license.txt
+  :target: https://gitlab.com/tsfpga/tsfpga/-/blob/master/license.txt
 
 .. |pic_python_line_coverage| image:: https://tsfpga.com/badges/python_coverage.svg
   :alt: Python line coverage

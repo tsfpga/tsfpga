@@ -38,7 +38,7 @@ The library name is deduced from the name of each module folder.
 Source files, packages and testbenches are collected from a few standard locations within the module folder.
 
 .. note::
-    If you use a different folder structure within the modules than what is currently supported by tsfpga, feel free to create an `issue <https://gitlab.com/truestream/tsfpga/issues>`__ or a merge request.
+    If you use a different folder structure within the modules than what is currently supported by tsfpga, feel free to create an `issue <https://gitlab.com/tsfpga/tsfpga/issues>`__ or a merge request.
 
 
 The ``module.get_simulation_files()`` call returns a list of files (:ref:`HdlFile objects <hdl_file>`) that are to be included in the simulation project.
@@ -53,7 +53,7 @@ The call to ``module.setup_simulations()`` does nothing in default setup, but is
 Realistic example
 -----------------
 
-If you want to dive into a more realistic example have a look at `examples/simulate.py <https://gitlab.com/truestream/tsfpga/blob/master/examples/simulate.py>`__ in the repo.
+If you want to dive into a more realistic example have a look at `examples/simulate.py <https://gitlab.com/tsfpga/tsfpga/blob/master/examples/simulate.py>`__ in the repo.
 Or continue reading this document for an explanation of the mechanisms.
 
 This file handles things like

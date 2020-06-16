@@ -33,7 +33,7 @@ Continue reading this page for explanations on how to use it and the different p
 Example project class creation
 ------------------------------
 
-This is an example of project creation, using the ``artyz7`` example project from the `repo <https://gitlab.com/truestream/tsfpga/-/tree/master/examples>`__.
+This is an example of project creation, using the ``artyz7`` example project from the `repo <https://gitlab.com/tsfpga/tsfpga/-/tree/master/examples>`__.
 
 Projects are created by modules using the file ``module_<module_name>.py``, see :ref:`folder structure <folder_structure_project>` for details.
 In tsfpga a top-level module that defines build projects is handled just like any other module.
@@ -122,7 +122,7 @@ Note that before a project is built a :ref:`register generation <registers>` is 
 
 Of course a more realistic ``build.py`` would be a little more verbose.
 It would probably feature command line arguments that control the behavior, output paths, etc.
-And example of this, which also features release artifact packaging, is available in the `repo <https://gitlab.com/truestream/tsfpga/-/blob/master/examples/build.py>`__.
+And example of this, which also features release artifact packaging, is available in the `repo <https://gitlab.com/tsfpga/tsfpga/-/blob/master/examples/build.py>`__.
 
 
 

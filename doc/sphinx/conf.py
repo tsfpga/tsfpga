@@ -57,7 +57,7 @@ html_theme_options = {
 
 html_context = {
     "display_gitlab": True,
-    "gitlab_user": "truestream",
+    "gitlab_user": "tsfpga",
     "gitlab_repo": "tsfpga",
     "gitlab_version": "master",
     "conf_py_path": "/doc/sphinx/",

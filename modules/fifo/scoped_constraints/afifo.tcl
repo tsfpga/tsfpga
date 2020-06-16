@@ -7,7 +7,7 @@ if {${read_data} != {}} {
     # These registers exist when the RAM is implemented as distributed RAM.
     # In this case there is a timing path from write clock to the read data registers which
     # can be safely ignored in order for timing to pass.
-    # See discussion in https://gitlab.com/truestream/tsfpga/merge_requests/20
+    # See discussion in https://gitlab.com/tsfpga/tsfpga/merge_requests/20
     set clk_write [get_clocks -of_objects [get_ports clk_write]]
     if {${clk_write} == {}} {
         puts "WARNING tsfpga afifo.tcl: Could not find clock to constrain DistRAM."

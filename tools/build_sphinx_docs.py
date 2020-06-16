@@ -78,7 +78,7 @@ Release history and changelog for the tsfpga project.
         rst += "-" * len(heading) + "\n"
         rst += "\n"
         if previous_release_git_tag is not None:
-            diff_url = f"https://gitlab.com/truestream/tsfpga/-/compare/{previous_release_git_tag}...{release.git_tag}"
+            diff_url = f"https://gitlab.com/tsfpga/tsfpga/-/compare/{previous_release_git_tag}...{release.git_tag}"
             rst += f"`Changes since previous release <{diff_url}>`__\n"
         rst += "\n"
         rst += read_file(release.release_notes_file)
@@ -188,7 +188,7 @@ def build_information_badges(output_path):
 
     badge_svg = badge(
         left_text="",
-        right_text="truestream/tsfpga",
+        right_text="tsfpga/tsfpga",
         left_color="grey",
         right_color="grey",
         logo="https://about.gitlab.com/images/press/press-kit-icon.svg",
