@@ -1,7 +1,7 @@
 Added
 
 * Add ``natural_vector`` and ``positive_vector`` to ``types_pkg``.
-* Add packet mode to asynchronous FIFO.
+* Add ``last`` flag and packet mode to asynchronous FIFO.
 * Add class for netlist builds.
 
 Fixes
