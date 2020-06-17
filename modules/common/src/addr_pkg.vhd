@@ -5,6 +5,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+library math;
+use math.math_pkg.all;
+
 
 package addr_pkg is
 
@@ -17,12 +20,25 @@ package addr_pkg is
   end record;
   type addr_and_mask_vec_t is array (integer range <>) of addr_and_mask_t;
 
+  function addr_bits_needed(addrs : addr_and_mask_vec_t) return positive;
+
   function match(addr : std_logic_vector; addr_and_mask : addr_and_mask_t) return boolean;
+
   function decode(addr : std_logic_vector; addrs : addr_and_mask_vec_t) return integer;
 
 end package;
 
 package body addr_pkg is
+
+  function addr_bits_needed(addrs : addr_and_mask_vec_t) return positive is
+    variable result : positive := 1;
+  begin
+    -- Return the number of bits that are needed to decode and handle the addresses.
+    for addr_idx in addrs'range loop
+      result := maximum(result, num_bits_needed(addrs(addr_idx).mask));
+    end loop;
+    return result;
+  end function;
 
   function match(addr : std_logic_vector; addr_and_mask : addr_and_mask_t) return boolean is
     variable test_ok : boolean := true;

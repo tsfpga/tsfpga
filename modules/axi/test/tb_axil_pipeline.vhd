@@ -29,6 +29,7 @@ end entity;
 architecture tb of tb_axil_pipeline is
 
   constant data_width : integer := 32;
+  constant addr_width : integer := 24;
   constant num_words : integer := 2048;
 
   constant clk_period : time := 7 ns;
@@ -126,7 +127,8 @@ begin
   ------------------------------------------------------------------------------
   dut : entity work.axil_pipeline
     generic map (
-      data_width => data_width
+      data_width => data_width,
+      addr_width => addr_width
     )
     port map (
       clk => clk,

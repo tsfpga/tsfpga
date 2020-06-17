@@ -7,11 +7,14 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+library axi;
+use axi.axil_pkg.all;
+
 library common;
 use common.addr_pkg.all;
 
-library axi;
-use axi.axil_pkg.all;
+library reg_file;
+use reg_file.reg_file_pkg.all;
 
 
 entity axil_to_vec is
@@ -32,8 +35,12 @@ entity axil_to_vec is
 end entity;
 
 architecture a of axil_to_vec is
+
+  constant addr_width : positive := addr_bits_needed(axil_slaves);
+
   signal axil_m2s_vec_int : axil_m2s_vec_t(axil_slaves'range);
   signal axil_s2m_vec_int : axil_s2m_vec_t(axil_slaves'range);
+
 begin
 
   ------------------------------------------------------------------------------
@@ -61,7 +68,8 @@ begin
       else generate
         axil_cdc_inst : entity axi.axil_cdc
           generic map (
-            data_width => 32
+            data_width => reg_width,
+            addr_width => addr_width
           )
           port map (
             clk_master => clk_axil,

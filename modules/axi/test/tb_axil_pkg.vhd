@@ -18,6 +18,7 @@ use work.axil_pkg.all;
 entity tb_axil_pkg is
   generic (
     data_width : integer;
+    addr_width : integer := 32;
     runner_cfg : string
   );
 end entity;
@@ -29,7 +30,7 @@ begin
     variable rnd : RandomPType;
 
     variable data_a : axil_m2s_a_t;
-    variable data_a_slv, data_a_converted : std_logic_vector(axil_m2s_a_sz - 1 downto 0) := (others => '0');
+    variable data_a_slv, data_a_converted : std_logic_vector(axil_m2s_a_sz(addr_width) - 1 downto 0) := (others => '0');
 
     variable data_w : axil_m2s_w_t := axil_m2s_w_init;
     variable data_w_slv, data_w_converted : std_logic_vector(axil_m2s_w_sz(data_width) - 1 downto 0);

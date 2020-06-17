@@ -19,6 +19,7 @@ entity tb_addr_pkg is
 end entity;
 
 architecture tb of tb_addr_pkg is
+
   constant addrs : addr_and_mask_vec_t(0 to 6 - 1) := (
     0 => (addr => x"0000_0000", mask => x"0000_f000"),
     1 => (addr => x"0000_1000", mask => x"0000_f000"),
@@ -27,6 +28,12 @@ architecture tb of tb_addr_pkg is
     4 => (addr => x"0000_3000", mask => x"0000_f000"),
     5 => (addr => x"0000_4000", mask => x"0000_f000")
   );
+
+  constant addrs2 : addr_and_mask_vec_t(0 to 2 - 1) := (
+    0 => (addr => x"0120_0000", mask => x"01f0_0000"),
+    1 => (addr => x"0130_0000", mask => x"01f0_0000")
+  );
+
 begin
 
   main : process
@@ -41,13 +48,18 @@ begin
   begin
     test_runner_setup(runner, runner_cfg);
 
-    if run("test_decode_happy_path") then
+    if run("test_addr_bits_needed") then
+      check_equal(addr_bits_needed(addrs), 16);
+      check_equal(addr_bits_needed(addrs2), 25);
+
+    elsif run("test_decode_happy_path") then
       check_equal(decode(x"43C0_0000"), 0);
       check_equal(decode(x"43C0_1000"), 1);
       check_equal(decode(x"43C0_2000"), 2);
       check_equal(decode(x"43C0_2100"), 3);
       check_equal(decode(x"43C0_3000"), 4);
       check_equal(decode(x"43C0_4000"), 5);
+
     elsif run("test_decode_fail") then
       check_equal(decode(x"43C0_2200"), addrs'length);
       check_equal(decode(x"43C0_2300"), addrs'length);

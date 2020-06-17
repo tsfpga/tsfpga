@@ -149,6 +149,7 @@ begin
   axi_ar_fifo_inst : entity work.axi_address_fifo
     generic map (
       id_width => id_width,
+      addr_width => 32,
       asynchronous => asynchronous,
       depth => depth
     )
@@ -190,6 +191,7 @@ begin
   axi_aw_fifo_inst : entity work.axi_address_fifo
     generic map (
       id_width => id_width,
+      addr_width => 32,
       asynchronous => asynchronous,
       depth => depth
     )

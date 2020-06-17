@@ -19,6 +19,7 @@ entity tb_axi_pkg is
   generic (
     data_width : integer;
     id_width : integer;
+    addr_width : integer;
     runner_cfg : string
   );
 end entity;
@@ -31,7 +32,7 @@ begin
     variable rnd : RandomPType;
 
     variable data_a : axi_m2s_a_t;
-    variable data_a_converted : std_logic_vector(axi_m2s_a_sz(id_width) - 1 downto 0) := (others => '0');
+    variable data_a_converted : std_logic_vector(axi_m2s_a_sz(id_width, addr_width) - 1 downto 0) := (others => '0');
     variable data_a_slv : std_logic_vector(data_a_converted'high + offset_max downto 0) := (others => '0');
 
     variable data_w : axi_m2s_w_t := axi_m2s_w_init;
@@ -59,8 +60,8 @@ begin
 
       hi := data_a_converted'high + lo;
       data_a_slv(hi downto lo) := rnd.RandSLV(data_a_converted'length);
-      data_a := to_axi_m2s_a(data_a_slv(hi downto lo), id_width);
-      data_a_converted := to_slv(data_a, id_width);
+      data_a := to_axi_m2s_a(data_a_slv(hi downto lo), id_width, addr_width);
+      data_a_converted := to_slv(data_a, id_width, addr_width);
 
       check_equal(data_a_converted, data_a_slv(hi downto lo));
 

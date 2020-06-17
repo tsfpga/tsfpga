@@ -16,7 +16,8 @@ use work.axi_pkg.all;
 
 entity axil_pipeline is
   generic (
-    data_width : integer
+    data_width : positive;
+    addr_width : positive
   );
   port (
     clk : in std_logic;
@@ -36,18 +37,18 @@ begin
   ------------------------------------------------------------------------------
   aw_handshake_pipeline_inst : entity common.handshake_pipeline
     generic map (
-      data_width => axil_m2s_a_sz
+      data_width => axil_m2s_a_sz(addr_width)
     )
     port map(
       clk => clk,
       --
       input_ready => master_s2m.write.aw.ready,
       input_valid => master_m2s.write.aw.valid,
-      input_data => master_m2s.write.aw.addr,
+      input_data => master_m2s.write.aw.addr(addr_width - 1 downto 0),
       --
       output_ready => slave_s2m.write.aw.ready,
       output_valid => slave_m2s.write.aw.valid,
-      output_data => slave_m2s.write.aw.addr
+      output_data => slave_m2s.write.aw.addr(addr_width - 1 downto 0)
     );
 
 
@@ -100,18 +101,18 @@ begin
   ------------------------------------------------------------------------------
   ar_handshake_pipeline_inst : entity common.handshake_pipeline
     generic map (
-      data_width => axil_m2s_a_sz
+      data_width => axil_m2s_a_sz(addr_width)
     )
     port map(
       clk => clk,
       --
       input_ready => master_s2m.read.ar.ready,
       input_valid => master_m2s.read.ar.valid,
-      input_data => master_m2s.read.ar.addr,
+      input_data => master_m2s.read.ar.addr(addr_width - 1 downto 0),
       --
       output_ready => slave_s2m.read.ar.ready,
       output_valid => slave_m2s.read.ar.valid,
-      output_data => slave_m2s.read.ar.addr
+      output_data => slave_m2s.read.ar.addr(addr_width - 1 downto 0)
     );
 
 

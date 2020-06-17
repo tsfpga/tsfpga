@@ -16,6 +16,8 @@ use work.axi_pkg.all;
 entity axil_cdc is
   generic (
     data_width : positive;
+    addr_width : positive;
+    fifo_depth : positive := 16;
     ram_type : string := "auto"
   );
   port (
@@ -31,14 +33,12 @@ end entity;
 
 architecture a of axil_cdc is
 
-  constant fifo_depth : integer := 16;
-
 begin
 
   ------------------------------------------------------------------------------
   aw_afifo_inst : entity fifo.afifo
     generic map (
-      width => axil_m2s_a_sz,
+      width => axil_m2s_a_sz(addr_width),
       depth => fifo_depth,
       ram_type => ram_type
     )
@@ -46,12 +46,12 @@ begin
       clk_read => clk_slave,
       read_ready => slave_s2m.write.aw.ready,
       read_valid => slave_m2s.write.aw.valid,
-      read_data => slave_m2s.write.aw.addr,
+      read_data => slave_m2s.write.aw.addr(addr_width - 1 downto 0),
       --
       clk_write => clk_master,
       write_ready => master_s2m.write.aw.ready,
       write_valid => master_m2s.write.aw.valid,
-      write_data => master_m2s.write.aw.addr
+      write_data => master_m2s.write.aw.addr(addr_width - 1 downto 0)
     );
 
 
@@ -108,7 +108,7 @@ begin
   ------------------------------------------------------------------------------
   ar_afifo_inst : entity fifo.afifo
     generic map (
-      width => axil_m2s_a_sz,
+      width => axil_m2s_a_sz(addr_width),
       depth => fifo_depth,
       ram_type => ram_type
     )
@@ -116,12 +116,12 @@ begin
       clk_read => clk_slave,
       read_ready => slave_s2m.read.ar.ready,
       read_valid => slave_m2s.read.ar.valid,
-      read_data => slave_m2s.read.ar.addr,
+      read_data => slave_m2s.read.ar.addr(addr_width - 1 downto 0),
       --
       clk_write => clk_master,
       write_ready => master_s2m.read.ar.ready,
       write_valid => master_m2s.read.ar.valid,
-      write_data => master_m2s.read.ar.addr
+      write_data => master_m2s.read.ar.addr(addr_width - 1 downto 0)
     );
 
 

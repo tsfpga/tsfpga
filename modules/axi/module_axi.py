@@ -9,12 +9,21 @@ class Module(BaseModule):
 
     def setup_simulations(self, vunit_proj, **kwargs):
         tb = vunit_proj.library(self.library_name).test_bench("tb_axi_pkg")
-        for data_width in [32, 64, 128]:
-            for id_width in [0, 20]:
-                name = "data_width_%i.id_width_%s" % (data_width, id_width)
-                tb.add_config(name=name, generics=dict(data_width=data_width, id_width=id_width))
+        for data_width in [32, 64]:
+            for id_width in [0, 5]:
+                for addr_width in [32, 40]:
+                    generics = dict(data_width=data_width, id_width=id_width, addr_width=addr_width)
+                    name = self.generics_to_string(generics)
+                    tb.add_config(name=name, generics=generics)
 
-        for tb_name in ["tb_axil_pkg", "tb_axi_to_axil", "tb_axi_to_axil_bus_error"]:
+        tb = vunit_proj.library(self.library_name).test_bench("tb_axil_pkg")
+        for data_width in [32, 64]:
+            for addr_width in [32, 40]:
+                generics = dict(data_width=data_width, addr_width=addr_width)
+                name = self.generics_to_string(generics)
+                tb.add_config(name=name, generics=generics)
+
+        for tb_name in ["tb_axi_to_axil", "tb_axi_to_axil_bus_error"]:
             tb = vunit_proj.library(self.library_name).test_bench(tb_name)
             for data_width in [32, 64]:
                 name = "data_width_%i" % data_width

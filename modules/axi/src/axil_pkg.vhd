@@ -26,7 +26,7 @@ package axil_pkg is
   end record;
 
   constant axil_m2s_a_init : axil_m2s_a_t := (valid => '0', others => (others => '0'));
-  constant axil_m2s_a_sz : integer := axi_a_addr_sz; -- Exluded member: valid
+  function axil_m2s_a_sz(addr_width : natural) return natural;
 
   type axil_s2m_a_t is record
     ready : std_logic;
@@ -39,8 +39,9 @@ package axil_pkg is
   -- W (Write Data) channels
   ------------------------------------------------------------------------------
 
-  constant axil_data_sz : integer := 64; -- Max value
-  constant axil_w_strb_sz : integer := axil_data_sz / 8; -- Max value
+   -- Max values
+  constant axil_data_sz : integer := 64;
+  constant axil_w_strb_sz : integer := axil_data_sz / 8;
 
   type axil_m2s_w_t is record
     valid : std_logic;
@@ -50,9 +51,9 @@ package axil_pkg is
 
   constant axil_m2s_w_init : axil_m2s_w_t := (valid => '0', others => (others => '-'));
 
-  function axil_m2s_w_sz(data_width : integer)  return integer;
-  function to_slv(data : axil_m2s_w_t; data_width : integer) return std_logic_vector;
-  function to_axil_m2s_w(data : std_logic_vector; data_width : integer) return axil_m2s_w_t;
+  function axil_m2s_w_sz(data_width : natural) return natural;
+  function to_slv(data : axil_m2s_w_t; data_width : natural) return std_logic_vector;
+  function to_axil_m2s_w(data : std_logic_vector; data_width : natural) return axil_m2s_w_t;
 
   type axil_s2m_w_t is record
     ready : std_logic;
@@ -77,7 +78,8 @@ package axil_pkg is
   end record;
 
   constant axil_s2m_b_init : axil_s2m_b_t := (valid => '0', others => (others => '0'));
-  constant axil_s2m_b_sz : integer := axi_resp_sz; -- Exluded member: valid
+  -- Exluded member: valid
+  constant axil_s2m_b_sz : integer := axi_resp_sz;
 
 
   ------------------------------------------------------------------------------
@@ -97,9 +99,9 @@ package axil_pkg is
   end record;
 
   constant axil_s2m_r_init : axil_s2m_r_t := (valid => '0', others => (others => '0'));
-  function axil_s2m_r_sz(data_width : integer)  return integer;
-  function to_slv(data : axil_s2m_r_t; data_width : integer) return std_logic_vector;
-  function to_axil_s2m_r(data : std_logic_vector; data_width : integer) return axil_s2m_r_t;
+  function axil_s2m_r_sz(data_width : natural) return natural;
+  function to_slv(data : axil_s2m_r_t; data_width : natural) return std_logic_vector;
+  function to_axil_s2m_r(data : std_logic_vector; data_width : natural) return axil_s2m_r_t;
 
 
   ------------------------------------------------------------------------------
@@ -160,15 +162,22 @@ end;
 
 package body axil_pkg is
 
-  function axil_m2s_w_sz(data_width : integer) return integer is
+  function axil_m2s_a_sz(addr_width : natural) return natural is
   begin
-    assert data_width = 32 or data_width = 64 report "AXI4-Lite protocol only supports data width 32 or 64";
-    return data_width + axi_w_strb_width(data_width); -- Exluded member: valid
+    -- Excluded membed: valid.
+    return addr_width;
   end function;
 
-  function to_slv(data : axil_m2s_w_t; data_width : integer) return std_logic_vector is
+  function axil_m2s_w_sz(data_width : natural) return natural is
+  begin
+    assert data_width = 32 or data_width = 64 report "AXI4-Lite protocol only supports data width 32 or 64" severity failure;
+    -- Exluded member: valid
+    return data_width + axi_w_strb_width(data_width);
+  end function;
+
+  function to_slv(data : axil_m2s_w_t; data_width : natural) return std_logic_vector is
     variable result : std_logic_vector(axil_m2s_w_sz(data_width) - 1 downto 0);
-    variable lo, hi : integer := 0;
+    variable lo, hi : natural := 0;
   begin
     lo := 0;
     hi := lo + data_width - 1;
@@ -176,13 +185,13 @@ package body axil_pkg is
     lo := hi + 1;
     hi := lo + axi_w_strb_width(data_width) - 1;
     result(hi downto lo) := data.strb(axi_w_strb_width(data_width) - 1 downto 0);
-    assert hi = result'high;
+    assert hi = result'high severity failure;
     return result;
   end function;
 
-  function to_axil_m2s_w(data : std_logic_vector; data_width : integer) return axil_m2s_w_t is
+  function to_axil_m2s_w(data : std_logic_vector; data_width : natural) return axil_m2s_w_t is
     variable result : axil_m2s_w_t := axil_m2s_w_init;
-    variable lo, hi : integer := 0;
+    variable lo, hi : natural := 0;
   begin
     lo := 0;
     hi := lo + data_width - 1;
@@ -190,18 +199,19 @@ package body axil_pkg is
     lo := hi + 1;
     hi := lo + axi_w_strb_width(data_width) - 1;
     result.strb(axi_w_strb_width(data_width) - 1 downto 0) := data(hi downto lo);
-    assert hi = data'high;
+    assert hi = data'high severity failure;
     return result;
   end function;
 
-  function axil_s2m_r_sz(data_width : integer)  return integer is
+  function axil_s2m_r_sz(data_width : natural)  return natural is
   begin
-    return data_width + axi_resp_sz; -- Exluded member: valid
+    -- Exluded member: valid
+    return data_width + axi_resp_sz;
   end function;
 
-  function to_slv(data : axil_s2m_r_t; data_width : integer) return std_logic_vector is
+  function to_slv(data : axil_s2m_r_t; data_width : natural) return std_logic_vector is
     variable result : std_logic_vector(axil_s2m_r_sz(data_width) - 1 downto 0);
-    variable lo, hi : integer := 0;
+    variable lo, hi : natural := 0;
   begin
     lo := 0;
     hi := lo + data_width - 1;
@@ -209,13 +219,13 @@ package body axil_pkg is
     lo := hi + 1;
     hi := lo + axi_resp_sz - 1;
     result(hi downto lo) := data.resp;
-    assert hi = result'high;
+    assert hi = result'high severity failure;
     return result;
   end function;
 
-  function to_axil_s2m_r(data : std_logic_vector; data_width : integer) return axil_s2m_r_t is
+  function to_axil_s2m_r(data : std_logic_vector; data_width : natural) return axil_s2m_r_t is
     variable result : axil_s2m_r_t := axil_s2m_r_init;
-    variable lo, hi : integer := 0;
+    variable lo, hi : natural := 0;
   begin
     lo := 0;
     hi := lo + data_width - 1;
@@ -223,7 +233,7 @@ package body axil_pkg is
     lo := hi + 1;
     hi := lo + axi_resp_sz - 1;
     result.resp := data(hi downto lo);
-    assert hi = data'high;
+    assert hi = data'high severity failure;
     return result;
   end function;
 

@@ -16,6 +16,7 @@ use work.axi_pkg.all;
 entity axi_address_fifo is
   generic (
     id_width : natural;
+    addr_width : positive;
     asynchronous : boolean;
     depth : natural := 16;
     ram_type : string := "auto"
@@ -43,7 +44,7 @@ begin
 
   else generate
 
-    constant ar_width : integer := axi_m2s_a_sz(id_width);
+    constant ar_width : integer := axi_m2s_a_sz(id_width, addr_width);
 
     signal read_valid : std_logic := '0';
     signal read_data, write_data : std_logic_vector(ar_width - 1 downto 0);
@@ -53,9 +54,9 @@ begin
     ------------------------------------------------------------------------------
     assign : process(all)
     begin
-      write_data <= to_slv(input_m2s, id_width);
+      write_data <= to_slv(input_m2s, id_width, addr_width);
 
-      output_m2s <= to_axi_m2s_a(read_data, id_width);
+      output_m2s <= to_axi_m2s_a(read_data, id_width, addr_width);
       output_m2s.valid <= read_valid;
     end process;
 

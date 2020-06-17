@@ -31,6 +31,7 @@ end entity;
 architecture tb of tb_axil_cdc is
 
   constant data_width : integer := 32;
+  constant addr_width : integer := 24;
   constant num_words : integer := 2048;
 
   constant clk_fast_period : time := 3 ns;
@@ -136,7 +137,8 @@ begin
   ------------------------------------------------------------------------------
   dut : entity work.axil_cdc
     generic map (
-      data_width => data_width
+      data_width => data_width,
+      addr_width => addr_width
     )
     port map (
       clk_master => clk_master,
