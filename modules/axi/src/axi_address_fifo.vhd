@@ -1,0 +1,108 @@
+-- -----------------------------------------------------------------------------
+-- Copyright (c) Lukas Vik. All rights reserved.
+-- -----------------------------------------------------------------------------
+-- FIFO for AXI address channel (AR or AW). Can be used as clock crossing by setting
+-- the "asynchronous" generic.
+-- -----------------------------------------------------------------------------
+
+library ieee;
+use ieee.std_logic_1164.all;
+
+library fifo;
+
+use work.axi_pkg.all;
+
+
+entity axi_address_fifo is
+  generic (
+    id_width : natural;
+    asynchronous : boolean;
+    depth : natural := 16;
+    ram_type : string := "auto"
+  );
+  port (
+    clk : in std_logic;
+    --
+    input_m2s : in axi_m2s_a_t;
+    input_s2m : out axi_s2m_a_t := axi_s2m_a_init;
+    --
+    output_m2s : out axi_m2s_a_t := axi_m2s_a_init;
+    output_s2m : in axi_s2m_a_t;
+    -- Only need to assign the clock if generic asynchronous is "True"
+    clk_input : in std_logic := '0'
+  );
+end entity;
+
+architecture a of axi_address_fifo is
+
+begin
+
+  passthrough_or_fifo : if depth = 0 generate
+    output_m2s <= input_m2s;
+    input_s2m <= output_s2m;
+
+  else generate
+
+    constant ar_width : integer := axi_m2s_a_sz(id_width);
+
+    signal read_valid : std_logic := '0';
+    signal read_data, write_data : std_logic_vector(ar_width - 1 downto 0);
+
+  begin
+
+    ------------------------------------------------------------------------------
+    assign : process(all)
+    begin
+      write_data <= to_slv(input_m2s, id_width);
+
+      output_m2s <= to_axi_m2s_a(read_data, id_width);
+      output_m2s.valid <= read_valid;
+    end process;
+
+
+    ------------------------------------------------------------------------------
+    fifo_gen : if asynchronous generate
+    begin
+
+      afifo_inst : entity fifo.afifo
+        generic map (
+          width => ar_width,
+          depth => depth,
+          ram_type => ram_type
+        )
+        port map(
+          clk_read => clk,
+          read_ready => output_s2m.ready,
+          read_valid => read_valid,
+          read_data => read_data,
+          --
+          clk_write => clk_input,
+          write_ready => input_s2m.ready,
+          write_valid => input_m2s.valid,
+          write_data => write_data
+        );
+
+    else generate
+
+      fifo_inst : entity fifo.fifo
+        generic map (
+          width => ar_width,
+          depth => depth,
+          ram_type => ram_type
+        )
+        port map(
+          clk => clk,
+          --
+          read_ready => output_s2m.ready,
+          read_valid => read_valid,
+          read_data => read_data,
+          --
+          write_ready => input_s2m.ready,
+          write_valid => input_m2s.valid,
+          write_data => write_data
+        );
+    end generate;
+
+  end generate;
+
+end architecture;

@@ -20,8 +20,8 @@ library resync;
 
 entity afifo is
   generic (
-    width : integer;
-    depth : integer;
+    width : positive;
+    depth : positive;
     -- Changing these levels from default value will increase logic footprint
     almost_full_level : integer range 0 to depth := depth;
     almost_empty_level : integer range 0 to depth := 0;

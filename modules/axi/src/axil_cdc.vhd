@@ -15,7 +15,7 @@ use work.axi_pkg.all;
 
 entity axil_cdc is
   generic (
-    data_width : integer;
+    data_width : positive;
     ram_type : string := "auto"
   );
   port (

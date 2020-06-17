@@ -25,6 +25,11 @@ class Module(BaseModule):
         tb.add_config(name="slave_clk_fast", generics=dict(slave_clk_fast=True))
         tb.add_config(name="same_clocks")
 
+        tb = vunit_proj.library(self.library_name).test_bench("tb_axi_fifo")
+        tb.add_config(name="passthrough", generics=dict(depth=0))
+        tb.add_config(name="synchronous", generics=dict(depth=16, asynchronous=False))
+        tb.add_config(name="asynchronous", generics=dict(depth=16, asynchronous=True))
+
         tb = vunit_proj.library(self.library_name).test_bench("tb_axi_interconnect")
         tb.add_config(name="axi_lite", generics=dict(test_axi_lite=True))
         tb.add_config(name="axi", generics=dict(test_axi_lite=False))
