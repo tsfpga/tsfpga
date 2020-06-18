@@ -17,7 +17,7 @@ entity axi_w_fifo is
   generic (
     data_width : positive;
     asynchronous : boolean;
-    packet_mode : boolean := false;
+    enable_packet_mode : boolean := false;
     depth : natural := 16;
     ram_type : string := "auto"
   );
@@ -71,6 +71,7 @@ begin
         generic map (
           width => w_width,
           depth => depth,
+          enable_packet_mode => enable_packet_mode,
           ram_type => ram_type
         )
         port map(
@@ -82,7 +83,8 @@ begin
           clk_write => clk_input,
           write_ready => input_s2m.ready,
           write_valid => input_m2s.valid,
-          write_data => write_data
+          write_data => write_data,
+          write_last => input_m2s.last
         );
 
     else generate
@@ -91,7 +93,8 @@ begin
         generic map (
           width => w_width,
           depth => depth,
-          ram_type => ram_type
+          ram_type => ram_type,
+          enable_packet_mode => enable_packet_mode
         )
         port map(
           clk => clk,
@@ -102,7 +105,8 @@ begin
           --
           write_ready => input_s2m.ready,
           write_valid => input_m2s.valid,
-          write_data => write_data
+          write_data => write_data,
+          write_last => input_m2s.last
         );
 
     end generate;
