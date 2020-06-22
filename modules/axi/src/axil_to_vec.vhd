@@ -20,7 +20,9 @@ use reg_file.reg_file_pkg.all;
 entity axil_to_vec is
   generic (
     axil_slaves : addr_and_mask_vec_t;
-    clocks_are_the_same : boolean_vector(axil_slaves'range) := (others => true)
+    clocks_are_the_same : boolean_vector(axil_slaves'range) := (others => true);
+    cdc_fifo_depth : positive := 16;
+    cdc_ram_type : string := "auto"
   );
   port (
     clk_axil : in std_logic;
@@ -69,7 +71,9 @@ begin
         axil_cdc_inst : entity axi.axil_cdc
           generic map (
             data_width => reg_width,
-            addr_width => addr_width
+            addr_width => addr_width,
+            fifo_depth => cdc_fifo_depth,
+            ram_type => cdc_ram_type
           )
           port map (
             clk_master => clk_axil,
