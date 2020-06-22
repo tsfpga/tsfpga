@@ -12,6 +12,7 @@ use axi.axil_pkg.all;
 
 library common;
 use common.addr_pkg.all;
+use common.attribute_pkg.all;
 
 library reg_file;
 use reg_file.reg_file_pkg.all;
@@ -22,7 +23,7 @@ entity axil_to_vec is
     axil_slaves : addr_and_mask_vec_t;
     clocks_are_the_same : boolean_vector(axil_slaves'range) := (others => true);
     cdc_fifo_depth : positive := 16;
-    cdc_ram_type : string := "auto"
+    cdc_ram_type : ram_style_t := ram_style_auto
   );
   port (
     clk_axil : in std_logic;

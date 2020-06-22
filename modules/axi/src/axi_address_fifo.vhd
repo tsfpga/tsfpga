@@ -8,6 +8,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+library common;
+use common.attribute_pkg.all;
+
 library fifo;
 
 use work.axi_pkg.all;
@@ -19,7 +22,7 @@ entity axi_address_fifo is
     addr_width : positive;
     asynchronous : boolean;
     depth : natural := 16;
-    ram_type : string := "auto"
+    ram_type : ram_style_t := ram_style_auto
   );
   port (
     clk : in std_logic;

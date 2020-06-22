@@ -7,6 +7,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+library common;
+use common.attribute_pkg.all;
+
 library fifo;
 
 use work.axil_pkg.all;
@@ -18,7 +21,7 @@ entity axil_cdc is
     data_width : positive;
     addr_width : positive;
     fifo_depth : positive := 16;
-    ram_type : string := "auto"
+    ram_type : ram_style_t := ram_style_auto
   );
   port (
     clk_master : in std_logic;

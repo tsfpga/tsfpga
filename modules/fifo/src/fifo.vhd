@@ -28,7 +28,7 @@ entity fifo is
     enable_packet_mode : boolean := false;
     -- Set to true in order to use read_last and write_last
     enable_last : boolean := enable_packet_mode;
-    ram_type : string := "auto"
+    ram_type : ram_style_t := ram_style_auto
   );
   port (
     clk : in std_logic;
@@ -132,7 +132,7 @@ begin
     type mem_t is array (integer range <>) of word_t;
 
     signal mem : mem_t(0 to depth - 1) := (others => (others => '0'));
-    attribute ram_style of mem : signal is ram_type;
+    attribute ram_style of mem : signal is to_attribute(ram_type);
 
     signal memory_read_data, memory_write_data : word_t;
   begin

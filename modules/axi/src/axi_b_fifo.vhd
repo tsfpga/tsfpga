@@ -10,6 +10,9 @@ use ieee.std_logic_1164.all;
 
 library fifo;
 
+library common;
+use common.attribute_pkg.all;
+
 use work.axi_pkg.all;
 
 
@@ -18,7 +21,7 @@ entity axi_b_fifo is
     id_width : natural;
     asynchronous : boolean;
     depth : natural := 16;
-    ram_type : string := "auto"
+    ram_type : ram_style_t := ram_style_auto
   );
   port (
     clk : in std_logic;

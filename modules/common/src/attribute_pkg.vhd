@@ -25,6 +25,13 @@ package attribute_pkg is
   -- * registers: Instructs the tool to infer registers instead of RAMs.
   -- * ultra: Instructs the tool to use the UltraScale+TM URAM primitives.
   attribute ram_style : string;
+  type ram_style_t is (
+    ram_style_block,
+    ram_style_distributed,
+    ram_style_registers,
+    ram_style_ultra,
+    ram_style_auto);
+  function to_attribute(ram_style_enum : ram_style_t) return string;
 
   -- instructs the synthesis tool how to deal with synthesis arithmetic structures. By
   -- default, unless there are timing concerns or threshold limits, synthesis attempts to
@@ -38,3 +45,26 @@ package attribute_pkg is
   attribute iob : string;
 
 end package;
+
+package body attribute_pkg is
+
+  function to_attribute(ram_style_enum : ram_style_t) return string is
+  begin
+    case ram_style_enum is
+      when ram_style_block =>
+        return "block";
+      when ram_style_distributed =>
+        return "distributed";
+      when ram_style_registers =>
+        return "registers";
+      when ram_style_ultra =>
+        return "ultra";
+      when ram_style_auto =>
+        return "auto";
+      when others =>
+        assert false severity failure;
+        return "error";
+    end case;
+  end function;
+
+end package body;

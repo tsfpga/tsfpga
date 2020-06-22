@@ -13,3 +13,5 @@ Breaking changes
 * Lower ``axi.axi_pkg.axi_id_sz`` from 32 to 24.
 * Remove default values from AXI conversion functions in ``axi_pkg`` and ``axil_pkg``.
   The ``addr_width``, ``data_width`` and ``id_width`` always have to be specified.
+* Change ``ram_type`` generic of FIFOs and FIFO wrappers to be of type
+  ``attribute_pkg.ram_style_t`` instead of ``string``.
