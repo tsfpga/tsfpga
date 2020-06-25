@@ -9,13 +9,13 @@ import pytest
 
 import tsfpga
 from tsfpga.system_utils import create_file, run_command
-from tsfpga.register_list import from_json
+from tsfpga.register_list import from_toml
 
 
 @pytest.mark.usefixtures("fixture_tmp_path")
 class TestRegisterCompilation(unittest.TestCase):
     """
-    Functional test: JSON -> registers -> Code generation -> compilation
+    Functional test: TOML -> registers -> Code generation -> compilation
     """
 
     tmp_path = None
@@ -24,8 +24,8 @@ class TestRegisterCompilation(unittest.TestCase):
         self.working_dir = self.tmp_path
         self.include_dir = self.working_dir / "include"
 
-        json_file = tsfpga.TSFPGA_EXAMPLE_MODULES / "artyz7" / "regs_artyz7.json"
-        self.registers = from_json("artyz7", json_file)
+        toml_file = tsfpga.TSFPGA_EXAMPLE_MODULES / "artyz7" / "regs_artyz7.toml"
+        self.registers = from_toml("artyz7", toml_file)
 
         self.registers.add_constant("data_width", 24)
         self.registers.add_constant("decrement", -8)
@@ -42,8 +42,8 @@ int main()
 
   assert(sizeof(regs) == 4 * ARTYZ7_NUM_REGS);
   assert(ARTYZ7_DUMMY_REGS_CONFIGURATION_ADDR(3) == ARTYZ7_DUMMY_REGS_SETTINGS_ADDR(3) - 4);
-  assert(ARTYZ7_DUMMY_REGS_SETTINGS_ADDR(3) == ARTYZ7_PLAIN_DUMMY_REG_ADDR - 4);
-  assert(ARTYZ7_PLAIN_DUMMY_REG_ADDR == 4 * (ARTYZ7_NUM_REGS - 1));
+  assert(ARTYZ7_DUMMY_REGS_CONFIGURATION_ADDR(0) == ARTYZ7_PLAIN_DUMMY_REG_ADDR + 4);
+  assert(ARTYZ7_DUMMY_REGS_SETTINGS_ADDR(3) == 4 * (ARTYZ7_NUM_REGS - 1));
 
   assert(ARTYZ7_DUMMY_REGS_CONFIGURATION_ENABLE_BIT == 0);
   assert(ARTYZ7_DUMMY_REGS_CONFIGURATION_ENABLE == 1);

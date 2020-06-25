@@ -89,9 +89,9 @@ begin
       check_reg_equal(net, artyz7_dummy_regs_settings(3), cafe, base_address => reg_slaves(0).addr);
 
       -- Sanity check some of the generated registers
+      check_equal(artyz7_dummy_regs_configuration(0), artyz7_plain_dummy_reg + 1);
       check_equal(artyz7_dummy_regs_configuration(3), artyz7_dummy_regs_settings(2) + 1);
       check_equal(artyz7_dummy_regs_settings(3), artyz7_dummy_regs_configuration(3) + 1);
-      check_equal(artyz7_dummy_regs_settings(3), artyz7_plain_dummy_reg - 1);
 
       check_equal(artyz7_dummy_regs_configuration_enable, 0);
       check_equal(artyz7_dummy_regs_configuration_disable, 1);

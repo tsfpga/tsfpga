@@ -4,9 +4,9 @@ Register code generation
 ========================
 
 There is a register code generation eco-system available in tsfpga which generates code from textual configuration files.
-To start using it simply create a file ``regs_<name>.json`` in the root of a module (see :ref:`module structure <folder_structure>`).
+To start using it simply create a file ``regs_<name>.toml`` in the root of a module (see :ref:`module structure <folder_structure>`).
 
-From the JSON definition the register generator can create a VHDL package with all registers and their fields.
+From the TOML definition the register generator can create a VHDL package with all registers and their fields.
 This VHDL package can then be used with the generic AXI-Lite register file in tsfpga.
 Apart from that a C header and a C++ class can be generaterd, as well as a HTML page with human-readable documentation.
 
@@ -36,18 +36,18 @@ Example register code generation from the `ddr_buffer example module <https://gi
 
 
 
-JSON file
+TOML file
 _________
 
-This is the source JSON file that defines the registers.
+This is the source TOML file that defines the registers.
 
-.. literalinclude:: ../../generated/registers/json/regs_ddr_buffer.json
-   :caption: regs_ddr_buffer.json
-   :language: json
+.. literalinclude:: ../../generated/registers/toml/regs_ddr_buffer.toml
+   :caption: regs_ddr_buffer.toml
+   :language: toml
 
 In this example module we use a set of default registers that include ``status`` and ``command``.
-That is why these registers do not have a ``mode`` set in the JSON, which is otherwise required.
-The address registers on the other hand are set to Read/Write.
+That is why these registers do not have a ``mode`` set in the TOML, which is otherwise required.
+For the other registers we have to explicitly set a mode.
 
 For default registers, the register description is also inherited from the default specification.
 While a description is not strictly required it is used for all registers and bits in this example.
@@ -61,7 +61,7 @@ Manipulating registers from Pyhton
 __________________________________
 
 The ``ddr_buffer`` example module also showcases how to manipulate registers from Python via tsfpga's module system.
-This method for manipulating registers can be very useful for information that is known in the Python realm, but is not convenient to add to the JSON file.
+This method for manipulating registers can be very useful for information that is known in the Python realm, but is not convenient to add to the TOML file.
 
 .. literalinclude:: ../../examples/modules/ddr_buffer/module_ddr_buffer.py
    :caption: module_ddr_buffer.py

@@ -8,7 +8,7 @@ import unittest
 import pytest
 
 from tsfpga.system_utils import create_file
-from tsfpga.register_list import from_json, load_json_file, RegisterList
+from tsfpga.register_list import from_toml, load_toml_file, RegisterList
 from tsfpga.register_types import Register
 
 
@@ -69,49 +69,65 @@ class TestRegisterList(unittest.TestCase):
     tmp_path = None
 
     module_name = "sensor"
-    json_data = """\
-{
-  "data": {
-    "mode": "w",
-    "default_value": 3
-  },
-  "irq": {
-    "description": "Interrupt register",
-    "mode": "r_w",
-    "bits": {
-      "bad": "Bad things happen",
-      "not_good": ""
-    }
-  },
-  "configuration": {
-    "array_length": 3,
-    "registers": {
-      "input_settings": {
-        "description": "Input configuration",
-        "mode": "r_w",
-        "default_value": 1,
-        "bits": {
-          "enable": "Enable things",
-          "disable": ""
-        }
-      },
-      "output_settings": {
-        "mode": "w",
-        "bits": {
-          "enable": "",
-          "disable": "Disable things"
-        }
-      }
-    }
-  }%s
-}
+    toml_data = """\
+
+################################################################################
+[register.data]
+
+mode = "w"
+default_value = 3
+
+
+################################################################################
+[register.irq]
+
+mode = "r_w"
+description = "Interrupt register"
+
+[register.irq.bits]
+
+bad = "Bad things happen"
+not_good = ""
+
+
+################################################################################
+[register_array.configuration]
+
+array_length = 3
+
+# ------------------------------------------------------------------------------
+[register_array.configuration.register.input_settings]
+
+description = "Input configuration"
+mode = "r_w"
+default_value = 1
+
+[register_array.configuration.register.input_settings.bits]
+
+enable = "Enable things"
+disable = ""
+
+
+# ------------------------------------------------------------------------------
+[register_array.configuration.register.output_settings]
+
+mode = "w"
+
+[register_array.configuration.register.output_settings.bits]
+
+enable = ""
+disable = "Disable things"
+
+
+################################################################################
+%s
 """
 
     def setUp(self):
-        self.json_file = create_file(self.tmp_path / "sensor_regs.json", self.json_data % "")
+        self.toml_file = create_file(self.tmp_path / "sensor_regs.toml", self.toml_data % "")
 
     def test_order_of_registers_and_bits(self):
-        registers = from_json(self.module_name, self.json_file).register_objects
+        registers = from_toml(self.module_name, self.toml_file).register_objects
 
         assert registers[0].name == "data"
         assert registers[0].mode == "w"
@@ -156,188 +172,203 @@ class TestRegisterList(unittest.TestCase):
     def test_default_registers(self):
         default_registers = get_test_default_registers()
         num_default_registers = len(default_registers)
-        json_registers = from_json(self.module_name, self.json_file, default_registers)
+        toml_registers = from_toml(self.module_name, self.toml_file, default_registers)
 
         # The registers from this test are appended at the end
-        assert json_registers.get_register("data").index == num_default_registers
-        assert json_registers.get_register("irq").index == num_default_registers + 1
+        assert toml_registers.get_register("data").index == num_default_registers
+        assert toml_registers.get_register("irq").index == num_default_registers + 1
 
-    def test_load_nonexistent_json_file_should_raise_exception(self):
-        file = self.json_file.with_name("apa.json")
+    def test_load_nonexistent_toml_file_should_raise_exception(self):
+        file = self.toml_file.with_name("apa.toml")
         with pytest.raises(FileNotFoundError) as exception_info:
-            load_json_file(file)
-        assert str(exception_info.value) == f"Requested json file does not exist: {file}"
+            load_toml_file(file)
+        assert str(exception_info.value) == f"Requested TOML file does not exist: {file}"
 
-    def test_load_dirty_json_file_should_raise_exception(self):
-        data = self.json_data % "apa"
-        create_file(self.json_file, data)
+    def test_load_dirty_toml_file_should_raise_exception(self):
+        data = self.toml_data % "apa"
+        create_file(self.toml_file, data)
 
         with pytest.raises(ValueError) as exception_info:
-            load_json_file(self.json_file)
-        assert str(exception_info.value).startswith(f"Error while parsing JSON file {self.json_file}:\nExpecting ',' delimiter")
+            load_toml_file(self.toml_file)
+        assert str(exception_info.value).startswith(f"Error while parsing TOML file {self.toml_file}:\nKey name found without value.")
 
     def test_plain_register_with_array_length_attribute_should_raise_exception(self):
-        extras = """,
-  "apa": {
-    "mode": "r_w",
-    "array_length": 4
-  }"""
-        data = self.json_data % extras
-        create_file(self.json_file, data)
+        extras = """
+[register.apa]
+
+mode = "r_w"
+array_length = 4
+"""
+        data = self.toml_data % extras
+        create_file(self.toml_file, data)
 
         with pytest.raises(ValueError) as exception_info:
-            from_json(self.module_name, self.json_file)
-        assert str(exception_info.value) == f"Plain register apa in {self.json_file} can not have array_length attribute"
+            from_toml(self.module_name, self.toml_file)
+        assert str(exception_info.value) == f"Plain register apa in {self.toml_file} can not have array_length attribute"
 
     def test_register_array_but_no_array_length_attribute_should_raise_exception(self):
-        extras = """,
-  "apa": {
-    "registers": {}
-  }"""
-        data = self.json_data % extras
-        create_file(self.json_file, data)
+        extras = """
+
+[register_array.apa]
+
+[register_array.apa.register.hest]
+
+mode = "r_w"
+"""
+        data = self.toml_data % extras
+        create_file(self.toml_file, data)
 
         with pytest.raises(ValueError) as exception_info:
-            from_json(self.module_name, self.json_file)
-        assert str(exception_info.value) == f"Register array apa in {self.json_file} does not have array_length attribute"
+            from_toml(self.module_name, self.toml_file)
+        assert str(exception_info.value) == f"Register array apa in {self.toml_file} does not have array_length attribute"
 
     def test_register_in_array_with_no_mode_attribute_should_raise_exception(self):
-        extras = """,
-  "apa": {
-    "array_length": 2,
-    "registers": {
-      "hest": {
-        "description": "nothing"
-      }
-    }
-  }"""
-        data = self.json_data % extras
-        create_file(self.json_file, data)
+        extras = """
+[register_array.apa]
+
+array_length = 2
+
+[register_array.apa.register.hest]
+
+description = "nothing"
+"""
+        data = self.toml_data % extras
+        create_file(self.toml_file, data)
 
         with pytest.raises(ValueError) as exception_info:
-            from_json(self.module_name, self.json_file)
-        assert str(exception_info.value) == f"Register hest within array apa in {self.json_file} does not have mode field"
+            from_toml(self.module_name, self.toml_file)
+        assert str(exception_info.value) == f"Register hest within array apa in {self.toml_file} does not have mode field"
 
     def test_no_mode_field_should_raise_exception(self):
-        extras = """,
-  "apa": {
-    "description": "w"
-  }"""
-        data = self.json_data % extras
-        create_file(self.json_file, data)
+        extras = """
+[register.apa]
+
+description = "w"
+"""
+        data = self.toml_data % extras
+        create_file(self.toml_file, data)
 
         with pytest.raises(ValueError) as exception_info:
-            from_json(self.module_name, self.json_file)
-        assert str(exception_info.value) == f"Register apa in {self.json_file} does not have mode field"
+            from_toml(self.module_name, self.toml_file)
+        assert str(exception_info.value) == f"Register apa in {self.toml_file} does not have mode field"
 
     def test_two_registers_with_same_name_should_raise_exception(self):
-        extras = """,
-  "irq": {
-    "mode": "w"
-  }"""
-        data = self.json_data % extras
-        create_file(self.json_file, data)
+        extras = """
+[register.irq]
+
+mode = "w"
+"""
+        data = self.toml_data % extras
+        create_file(self.toml_file, data)
 
         with pytest.raises(ValueError) as exception_info:
-            from_json(self.module_name, self.json_file)
-        assert str(exception_info.value) == f"Error while parsing JSON file {self.json_file}:\nDuplicate key irq"
+            from_toml(self.module_name, self.toml_file)
+        assert str(exception_info.value).startswith(
+            f"Error while parsing TOML file {self.toml_file}:\nWhat? irq already exists?")
 
     def test_register_with_same_name_as_register_array_should_raise_exception(self):
-        extras = """,
-  "configuration": {
-    "mode": "w"
-  }"""
-        data = self.json_data % extras
-        create_file(self.json_file, data)
+        extras = """
+[register.configuration]
+
+mode = "w"
+"""
+        data = self.toml_data % extras
+        create_file(self.toml_file, data)
 
         with pytest.raises(ValueError) as exception_info:
-            from_json(self.module_name, self.json_file)
-        assert str(exception_info.value) == f"Error while parsing JSON file {self.json_file}:\nDuplicate key configuration"
+            from_toml(self.module_name, self.toml_file)
+        assert str(exception_info.value) == f"Duplicate name configuration in {self.toml_file}"
 
     def test_two_bits_with_same_name_should_raise_exception(self):
-        extras = """,
-  "test_reg": {
-    "mode": "w",
-    "bits": {
-      "test_bit": "Declaration 1",
-      "test_bit": "Declaration 2"
-    }
-  }"""
-        data = self.json_data % extras
-        create_file(self.json_file, data)
+        extras = """
+[register.test_reg]
+
+mode = "w"
+
+[register.test_reg.bits]
+
+test_bit = "Declaration 1"
+test_bit = "Declaration 2"
+"""
+        data = self.toml_data % extras
+        create_file(self.toml_file, data)
 
         with pytest.raises(ValueError) as exception_info:
-            from_json(self.module_name, self.json_file)
-        assert str(exception_info.value) == f"Error while parsing JSON file {self.json_file}:\nDuplicate key test_bit"
+            from_toml(self.module_name, self.toml_file)
+        assert str(exception_info.value).startswith(
+            f"Error while parsing TOML file {self.toml_file}:\nDuplicate keys!")
 
     def test_overriding_default_register(self):
-        extras = """,
-  "config": {
-    "description": "apa"
-  }"""
-        data = self.json_data % extras
-        create_file(self.json_file, data)
-        json_registers = from_json(self.module_name, self.json_file, get_test_default_registers())
+        extras = """
+[register.config]
 
-        assert json_registers.get_register("config").description == "apa"
+description = "apa"
+"""
+        data = self.toml_data % extras
+        create_file(self.toml_file, data)
+        toml_registers = from_toml(self.module_name, self.toml_file, get_test_default_registers())
+
+        assert toml_registers.get_register("config").description == "apa"
 
     def test_changing_mode_of_default_register_should_raise_exception(self):
-        extras = """,
-  "config": {
-    "mode": "w"
-  }"""
-        data = self.json_data % extras
-        create_file(self.json_file, data)
+        extras = """
+[register.config]
+
+mode = "w"
+"""
+        data = self.toml_data % extras
+        create_file(self.toml_file, data)
 
         with pytest.raises(ValueError) as exception_info:
-            from_json(self.module_name, self.json_file, get_test_default_registers())
-        assert str(exception_info.value) == f"Overloading register config in {self.json_file}, one can not change mode from default"
+            from_toml(self.module_name, self.toml_file, get_test_default_registers())
+        assert str(exception_info.value) == f"Overloading register config in {self.toml_file}, one can not change mode from default"
 
     def test_unknown_register_field_should_raise_exception(self):
-        extras = """,
-  "test_reg": {
-    "mode": "w",
-    "dummy": 3
-  }"""
-        data = self.json_data % extras
-        create_file(self.json_file, data)
+        extras = """
+[register.test_reg]
+
+mode = "w"
+dummy = 3
+"""
+        data = self.toml_data % extras
+        create_file(self.toml_file, data)
 
         with pytest.raises(ValueError) as exception_info:
-            from_json(self.module_name, self.json_file)
-        assert str(exception_info.value) == f"Error while parsing register test_reg in {self.json_file}:\nUnknown key dummy"
+            from_toml(self.module_name, self.toml_file)
+        assert str(exception_info.value) == f"Error while parsing register test_reg in {self.toml_file}:\nUnknown key dummy"
 
     def test_unknown_register_array_field_should_raise_exception(self):
-        extras = """,
-  "test_array": {
-    "array_length": 2,
-    "dummy": 3,
-    "registers": {
-      "hest": {
-        "mode": "r"
-      }
-    }
-  }"""
-        data = self.json_data % extras
-        create_file(self.json_file, data)
+        extras = """
+[register_array.test_array]
+
+array_length = 2
+dummy = 3
+
+[register_array.test_array.hest]
+
+mode = "r"
+"""
+        data = self.toml_data % extras
+        create_file(self.toml_file, data)
 
         with pytest.raises(ValueError) as exception_info:
-            from_json(self.module_name, self.json_file)
-        assert str(exception_info.value) == f"Error while parsing register array test_array in {self.json_file}:\nUnknown key dummy"
+            from_toml(self.module_name, self.toml_file)
+        assert str(exception_info.value) == f"Error while parsing register array test_array in {self.toml_file}:\nUnknown key dummy"
 
     def test_unknown_register_field_in_register_array_should_raise_exception(self):
-        extras = """,
-  "test_array": {
-    "array_length": 2,
-    "registers": {
-      "hest": {
-        "mode": "r",
-        "dummy": 3
-      }
-    }
-  }"""
-        data = self.json_data % extras
-        create_file(self.json_file, data)
+        extras = """
+[register_array.test_array]
+
+array_length = 2
+
+[register_array.test_array.register.hest]
+
+mode = "r"
+dummy = 3
+"""
+        data = self.toml_data % extras
+        create_file(self.toml_file, data)
 
         with pytest.raises(ValueError) as exception_info:
-            from_json(self.module_name, self.json_file)
-        assert str(exception_info.value) == f"Error while parsing register hest in array test_array in {self.json_file}:\nUnknown key dummy"
+            from_toml(self.module_name, self.toml_file)
+        assert str(exception_info.value) == f"Error while parsing register hest in array test_array in {self.toml_file}:\nUnknown key dummy"

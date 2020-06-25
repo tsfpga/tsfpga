@@ -2,10 +2,10 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from collections import OrderedDict
 import datetime
-import json
 from shutil import copy2
+
+import toml
 
 from tsfpga.git_utils import git_commands_are_available, get_git_commit
 from tsfpga.register_types import Constant, Register, RegisterArray
@@ -14,7 +14,7 @@ from tsfpga.register_cpp_generator import RegisterCppGenerator
 from tsfpga.register_html_generator import RegisterHtmlGenerator
 from tsfpga.register_vhdl_generator import RegisterVhdlGenerator
 from tsfpga.svn_utils import svn_commands_are_available, get_svn_revision_information
-from tsfpga.system_utils import create_directory, create_file
+from tsfpga.system_utils import create_directory, create_file, read_file
 
 
 class RegisterList:
@@ -27,7 +27,7 @@ class RegisterList:
         """
         Args:
             name (str): The name of this register list. Typically the name of the module that uses it.
-            source_definition_file (`pathlib.Path`): The JSON source file that defined this register list.
+            source_definition_file (`pathlib.Path`): The TOML source file that defined this register list.
         """
         self.name = name
         self.source_definition_file = source_definition_file
@@ -187,7 +187,7 @@ class RegisterList:
 
     def copy_source_definition(self, output_path):
         """
-        Copy the JSON file that created this register list.
+        Copy the TOML file that created this register list.
 
         Args:
             output_path (`pathlib.Path`): Result will be placed here.
@@ -244,32 +244,21 @@ def get_default_registers():
     return registers
 
 
-def load_json_file(file_name):
-    def check_for_duplicate_keys(ordered_pairs):
-        """
-        Raise ValueError if a duplicate key exists
-        Note that built in dictionaries are not ordered, hence OrderedDict
-        """
-        result = OrderedDict()
-        for key, value in ordered_pairs:
-            if key in result:
-                raise ValueError(f"Duplicate key {key}")
-            result[key] = value
-        return result
+def load_toml_file(toml_file):
+    if not toml_file.exists():
+        raise FileNotFoundError(f"Requested TOML file does not exist: {toml_file}")
 
+    raw_toml = read_file(toml_file)
     try:
-        with file_name.open() as file_handle:
-            return json.load(file_handle, object_pairs_hook=check_for_duplicate_keys)
-    except ValueError as exception_info:
-        message = f"Error while parsing JSON file {file_name}:\n{exception_info}"
+        return toml.loads(raw_toml)
+    except toml.TomlDecodeError as exception_info:
+        message = f"Error while parsing TOML file {toml_file}:\n{exception_info}"
         raise ValueError(message)
-    except FileNotFoundError:
-        raise FileNotFoundError(f"Requested json file does not exist: {file_name}")
 
 
-def from_json(module_name, json_file, default_registers=None):
-    json_data = load_json_file(json_file)
-    register_list = RegisterList(module_name, json_file)
+def from_toml(module_name, toml_file, default_registers=None):
+    toml_data = load_toml_file(toml_file)
+    register_list = RegisterList(module_name, toml_file)
 
     default_register_names = []
     if default_registers is not None:
@@ -277,22 +266,29 @@ def from_json(module_name, json_file, default_registers=None):
         for register in default_registers:
             default_register_names.append(register.name)
 
-    for name, items in json_data.items():
-        if "registers" in items:
-            _parse_register_array(name, items, register_list, json_file)
-        else:
-            _parse_plain_register(name, items, register_list, default_register_names, json_file)
+    names_taken = set()
+
+    if "register" in toml_data:
+        for name, items in toml_data["register"].items():
+            _parse_plain_register(
+                name, items, register_list, default_register_names, names_taken, toml_file)
+
+    if "register_array" in toml_data:
+        for name, items in toml_data["register_array"].items():
+            _parse_register_array(name, items, register_list, names_taken, toml_file)
 
     return register_list
 
 
 RECOGNIZED_REGISTER_ITEMS = {"mode", "default_value", "description", "bits"}
-RECOGNIZED_REGISTER_ARRAY_ITEMS = {"array_length", "registers"}
+RECOGNIZED_REGISTER_ARRAY_ITEMS = {"array_length", "register"}
+
+# pylint: disable=too-many-arguments
 
 
-def _parse_plain_register(name, items, register_list, default_register_names, json_file):
+def _parse_plain_register(name, items, register_list, default_register_names, names_taken, toml_file):
     if "array_length" in items:
-        message = f"Plain register {name} in {json_file} can not have array_length attribute"
+        message = f"Plain register {name} in {toml_file} can not have array_length attribute"
         raise ValueError(message)
 
     if name in default_register_names:
@@ -301,17 +297,17 @@ def _parse_plain_register(name, items, register_list, default_register_names, js
         # change the mode.
         register = register_list.get_register(name)
         if "mode" in items:
-            message = f"Overloading register {name} in {json_file}, one can not change mode from default"
+            message = f"Overloading register {name} in {toml_file}, one can not change mode from default"
             raise ValueError(message)
     else:
         # If it is a new register however the mode has to be specified.
         if "mode" not in items:
-            raise ValueError(f"Register {name} in {json_file} does not have mode field")
+            raise ValueError(f"Register {name} in {toml_file} does not have mode field")
         register = register_list.append_register(name, items["mode"])
 
     for item_name, item_value in items.items():
         if item_name not in RECOGNIZED_REGISTER_ITEMS:
-            message = f"Error while parsing register {name} in {json_file}:\nUnknown key {item_name}"
+            message = f"Error while parsing register {name} in {toml_file}:\nUnknown key {item_name}"
             raise ValueError(message)
         if item_name == "default_value":
             register.default_value = item_value
@@ -323,31 +319,37 @@ def _parse_plain_register(name, items, register_list, default_register_names, js
             for bit_name, bit_description in item_value.items():
                 register.append_bit(bit_name, bit_description)
 
+    names_taken.add(name)
 
-def _parse_register_array(name, items, register_list, json_file):
+
+# pylint: disable=too-many-locals
+def _parse_register_array(name, items, register_list, names_taken, toml_file):
+    if name in names_taken:
+        message = f"Duplicate name {name} in {toml_file}"
+        raise ValueError(message)
     if "array_length" not in items:
-        message = f"Register array {name} in {json_file} does not have array_length attribute"
+        message = f"Register array {name} in {toml_file} does not have array_length attribute"
         raise ValueError(message)
 
     for item_name in items:
         if item_name not in RECOGNIZED_REGISTER_ARRAY_ITEMS:
-            message = f"Error while parsing register array {name} in {json_file}:\n"\
+            message = f"Error while parsing register array {name} in {toml_file}:\n"\
                 f"Unknown key {item_name}"
             raise ValueError(message)
 
     length = items["array_length"]
     register_array = register_list.append_register_array(name, length)
 
-    for register_name, register_items in items["registers"].items():
+    for register_name, register_items in items["register"].items():
         if "mode" not in register_items:
-            message = f"Register {register_name} within array {name} in {json_file} does not have mode field"
+            message = f"Register {register_name} within array {name} in {toml_file} does not have mode field"
             raise ValueError(message)
         register = register_array.append_register(register_name, register_items["mode"])
 
         for register_item_name, register_item_value in register_items.items():
             if register_item_name not in RECOGNIZED_REGISTER_ITEMS:
                 message = f"Error while parsing register {register_name} in array {name} in " \
-                    f"{json_file}:\nUnknown key {register_item_name}"
+                    f"{toml_file}:\nUnknown key {register_item_name}"
                 raise ValueError(message)
             if register_item_name == "default_value":
                 register.default_value = register_item_value

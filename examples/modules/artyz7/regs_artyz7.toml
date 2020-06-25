@@ -1,0 +1,27 @@
+
+################################################################################
+[register.plain_dummy_reg]
+
+mode = "r_w"
+
+
+################################################################################
+[register_array.dummy_regs]
+
+array_length = 4
+
+[register_array.dummy_regs.register.configuration]
+
+mode= "r_w"
+description = "Registers are R/W so they won't be optimized away."
+
+[register_array.dummy_regs.register.configuration.bits]
+
+enable = ""
+disable = ""
+
+[register_array.dummy_regs.register.settings]
+
+description = "Registers are R/W so they won't be optimized away."
+mode= "r_w"
+

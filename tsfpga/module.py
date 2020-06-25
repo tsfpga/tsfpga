@@ -6,7 +6,7 @@ import copy
 
 from tsfpga.constraint import Constraint
 from tsfpga.hdl_file import HdlFile
-from tsfpga.register_list import from_json
+from tsfpga.register_list import from_toml
 from tsfpga.system_utils import load_python_module
 
 
@@ -60,24 +60,24 @@ class BaseModule:
             # Only create object once
             return self._registers
 
-        json_file = self.path / (f"regs_{self.name}.json")
-        if json_file.exists():
-            self._registers = from_json(self.name, json_file, copy.deepcopy(self._default_registers))
+        toml_file = self.path / (f"regs_{self.name}.toml")
+        if toml_file.exists():
+            self._registers = from_toml(self.name, toml_file, copy.deepcopy(self._default_registers))
             self.registers_hook()
             return self._registers
 
-        deprecated_json_file = self.path / (self.name + "_regs.json")
-        if deprecated_json_file.exists():
-            message = f"DEPRECATED: Using deprecated json file name: {deprecated_json_file}"
-            message += f"\nDEPRECATED: Rename to {json_file}"
-            raise ValueError(message)
+        for deprecated_json_file in [self.path / f"{self.name}_regs.json", self.path / f"regs_{self.name}.json"]:
+            if deprecated_json_file.exists():
+                message = f"DEPRECATED: Using deprecated json file name: {deprecated_json_file}"
+                message += f"\nDEPRECATED: Use TOML file instead: {toml_file}"
+                raise ValueError(message)
 
         return None
 
     def registers_hook(self):
         """
         This function will be called directly after creating this module's registers from
-        the JSON definition file.
+        the TOML definition file.
 
         This is a good place if you want to add or modify some registers from Python.
         Override this method and implement the desired behavior in a child class.

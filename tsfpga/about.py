@@ -28,7 +28,7 @@ are handled "close" to the source code.
 * Complete Vivado build system.
 * Ideal for setting up VUnit simulation projects.
 * Handling of IP cores and simlib for your simulation project, with automatic re-compile when necessary.
-* Register code generation from JSON: VHDL package, HTML documentation, C header, C++ class.
+* Register code generation from TOML: VHDL package, HTML documentation, C header, C++ class.
 * VHDL AXI components that enable the register bus: AXI-to-AXI-Lite converter, AXI-Lite interconnect, \
 AXI-Lite mux (splitter), AXI-Lite clock domain crossing, AXI-Lite generic register file.
 

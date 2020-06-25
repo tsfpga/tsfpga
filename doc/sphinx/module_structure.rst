@@ -26,7 +26,7 @@ The different files and folders are explained further down.
     modules/
     ├── foo
     │   ├── module_foo.py
-    │   ├── regs_foo.json
+    │   ├── regs_foo.toml
     │   ├── ip_cores
     │   │   ├── fifo.tcl
     │   │   └── ...
@@ -95,10 +95,10 @@ Extra folders like these can be used freely and will not have any significance t
 
 
 
-regs_foo.json
+regs_foo.toml
 -------------
 
-Register definitions used in the tsfpga :ref:`register generator <registers>` are taken from a file called ``regs_<module_name>.json``.
+Register definitions used in the tsfpga :ref:`register generator <registers>` are taken from a file called ``regs_<module_name>.toml``.
 It contains the registers that the module uses and the fields within those registers.
 
 
