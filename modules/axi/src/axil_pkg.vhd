@@ -8,6 +8,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 use work.axi_pkg.all;
 
@@ -20,7 +21,7 @@ package axil_pkg is
 
   type axil_m2s_a_t is record
     valid : std_logic;
-    addr : std_logic_vector(axi_a_addr_sz - 1 downto 0);
+    addr : unsigned(axi_a_addr_sz - 1 downto 0);
     -- @note Excluded members: prot
     -- These are typically not changed on a transfer-to-transfer basis.
   end record;

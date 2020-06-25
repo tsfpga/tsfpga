@@ -87,7 +87,7 @@ begin
       return slave * addr_offset + word * bytes_per_word;
     end function;
 
-    procedure hard_coded_read_data(addr : in std_logic_vector(slave_addrs(0).addr'range)) is
+    procedure hard_coded_read_data(addr : in unsigned(slave_addrs(0).addr'range)) is
     begin
       hard_coded_m2s.read.ar.valid <= '1';
       hard_coded_m2s.read.ar.addr <= x"0000_0000" & addr;
@@ -99,7 +99,7 @@ begin
       hard_coded_m2s.read.r.ready <= '0';
     end procedure;
 
-    procedure hard_coded_write_data(addr : in std_logic_vector(slave_addrs(0).addr'range);
+    procedure hard_coded_write_data(addr : in unsigned(slave_addrs(0).addr'range);
                                     data : in std_logic_vector(data_width - 1 downto 0)) is
     begin
       hard_coded_m2s.write.aw.valid <= '1';

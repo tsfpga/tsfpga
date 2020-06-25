@@ -38,8 +38,7 @@ begin
 
   main : process
     variable value : signed(5 - 1 downto 0);
-    variable slv : std_logic_vector(5 - 1 downto 0);
-    variable unsigned_value : unsigned(8 - 1 downto 0);
+    variable value_slv : unsigned(8 - 1 downto 0);
   begin
     test_runner_setup(runner, runner_cfg);
 
@@ -59,21 +58,21 @@ begin
       check_equal(num_bits_needed(8), 4);
       check_equal(num_bits_needed(9), 4);
 
-    elsif run("num_bits_needed_slv") then
-      slv := "00000";
-      check_equal(num_bits_needed(slv), 1);
+    elsif run("num_bits_needed_vector") then
+      value_slv := "00000000";
+      check_equal(num_bits_needed(value_slv), 1);
 
-      slv := "00001";
-      check_equal(num_bits_needed(slv), 1);
+      value_slv := "00000001";
+      check_equal(num_bits_needed(value_slv), 1);
 
-      slv := "00010";
-      check_equal(num_bits_needed(slv), 2);
+      value_slv := "00000010";
+      check_equal(num_bits_needed(value_slv), 2);
 
-      slv := "00011";
-      check_equal(num_bits_needed(slv), 2);
+      value_slv := "00000011";
+      check_equal(num_bits_needed(value_slv), 2);
 
-      slv := "00100";
-      check_equal(num_bits_needed(slv), 3);
+      value_slv := "00000100";
+      check_equal(num_bits_needed(value_slv), 3);
 
     elsif run("lt_0") then
       value := to_signed(-3, value'length);
@@ -92,14 +91,14 @@ begin
       check_true(geq_0(value));
 
     elsif run("to_and_from_gray") then
-      for i in 1 to 2 ** unsigned_value'length - 2 loop
-        unsigned_value := to_unsigned(i, unsigned_value'length);
-        check_equal(from_gray(to_gray(unsigned_value)), unsigned_value);
+      for i in 1 to 2 ** value_slv'length - 2 loop
+        value_slv := to_unsigned(i, value_slv'length);
+        check_equal(from_gray(to_gray(value_slv)), value_slv);
         -- Verify that only one bit changes when incrementing the input
         -- to to_gray
-        check_equal(hamming_distance(to_gray(unsigned_value), to_gray(unsigned_value + 1)), 1);
-        check_equal(hamming_distance(to_gray(unsigned_value - 1), to_gray(unsigned_value)), 1);
-        check_equal(hamming_distance(to_gray(unsigned_value - 1), to_gray(unsigned_value + 1)), 2);
+        check_equal(hamming_distance(to_gray(value_slv), to_gray(value_slv + 1)), 1);
+        check_equal(hamming_distance(to_gray(value_slv - 1), to_gray(value_slv)), 1);
+        check_equal(hamming_distance(to_gray(value_slv - 1), to_gray(value_slv + 1)), 2);
       end loop;
 
     elsif run("is_power_of_two") then

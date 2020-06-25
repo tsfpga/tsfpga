@@ -159,8 +159,8 @@ package body reg_operations_pkg is
     bus_handle : in bus_master_t := regs_bus_master) is
     variable address : addr_t;
   begin
-    address := base_address or std_logic_vector(to_unsigned(4 * reg_index, address'length));
-    read_bus(net, bus_handle, address, value);
+    address := base_address or to_unsigned(4 * reg_index, address'length);
+    read_bus(net, bus_handle, std_logic_vector(address), value);
   end procedure;
 
   procedure read_reg(
@@ -233,8 +233,8 @@ package body reg_operations_pkg is
     bus_handle : in bus_master_t := regs_bus_master) is
     variable address : addr_t;
   begin
-      address := base_address or std_logic_vector(to_unsigned(4 * reg_index, address'length));
-      write_bus(net, bus_handle, address, value);
+      address := base_address or to_unsigned(4 * reg_index, address'length);
+      write_bus(net, bus_handle, std_logic_vector(address), value);
     end procedure;
 
   procedure write_reg(
@@ -320,9 +320,9 @@ package body reg_operations_pkg is
     bus_handle : in bus_master_t := regs_bus_master;
     timeout : delay_length := delay_length'high;
     message : string := "") is
-    constant address : addr_t := base_address or std_logic_vector(to_unsigned(4 * reg_index, addr_t'length));
+    constant address : addr_t := base_address or to_unsigned(4 * reg_index, addr_t'length);
   begin
-    wait_until_read_equals(net, bus_handle, address, value, timeout, message);
+    wait_until_read_equals(net, bus_handle, std_logic_vector(address), value, timeout, message);
   end procedure;
 
   procedure wait_until_reg_equals_bits(

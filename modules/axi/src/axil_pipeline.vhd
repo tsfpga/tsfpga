@@ -7,6 +7,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 library common;
 
@@ -35,21 +36,29 @@ architecture a of axil_pipeline is
 begin
 
   ------------------------------------------------------------------------------
-  aw_handshake_pipeline_inst : entity common.handshake_pipeline
-    generic map (
-      data_width => axil_m2s_a_sz(addr_width)
-    )
-    port map(
-      clk => clk,
-      --
-      input_ready => master_s2m.write.aw.ready,
-      input_valid => master_m2s.write.aw.valid,
-      input_data => master_m2s.write.aw.addr(addr_width - 1 downto 0),
-      --
-      output_ready => slave_s2m.write.aw.ready,
-      output_valid => slave_m2s.write.aw.valid,
-      output_data => slave_m2s.write.aw.addr(addr_width - 1 downto 0)
-    );
+  aw_block : block
+    signal output_data, input_data : std_logic_vector(addr_width - 1 downto 0);
+  begin
+
+    slave_m2s.write.aw.addr(output_data'range) <= unsigned(output_data);
+    input_data <= std_logic_vector(master_m2s.write.aw.addr(input_data'range));
+
+    aw_handshake_pipeline_inst : entity common.handshake_pipeline
+      generic map (
+        data_width => axil_m2s_a_sz(addr_width)
+      )
+      port map(
+        clk => clk,
+        --
+        input_ready => master_s2m.write.aw.ready,
+        input_valid => master_m2s.write.aw.valid,
+        input_data => input_data,
+        --
+        output_ready => slave_s2m.write.aw.ready,
+        output_valid => slave_m2s.write.aw.valid,
+        output_data => output_data
+      );
+  end block;
 
 
   ------------------------------------------------------------------------------
@@ -99,21 +108,29 @@ begin
 
 
   ------------------------------------------------------------------------------
-  ar_handshake_pipeline_inst : entity common.handshake_pipeline
-    generic map (
-      data_width => axil_m2s_a_sz(addr_width)
-    )
-    port map(
-      clk => clk,
-      --
-      input_ready => master_s2m.read.ar.ready,
-      input_valid => master_m2s.read.ar.valid,
-      input_data => master_m2s.read.ar.addr(addr_width - 1 downto 0),
-      --
-      output_ready => slave_s2m.read.ar.ready,
-      output_valid => slave_m2s.read.ar.valid,
-      output_data => slave_m2s.read.ar.addr(addr_width - 1 downto 0)
-    );
+  ar_block : block
+    signal output_data, input_data : std_logic_vector(addr_width - 1 downto 0);
+  begin
+
+    slave_m2s.read.ar.addr(output_data'range) <= unsigned(output_data);
+    input_data <= std_logic_vector(master_m2s.read.ar.addr(input_data'range));
+
+    ar_handshake_pipeline_inst : entity common.handshake_pipeline
+      generic map (
+        data_width => axil_m2s_a_sz(addr_width)
+      )
+      port map(
+        clk => clk,
+        --
+        input_ready => master_s2m.read.ar.ready,
+        input_valid => master_m2s.read.ar.valid,
+        input_data => input_data,
+        --
+        output_ready => slave_s2m.read.ar.ready,
+        output_valid => slave_m2s.read.ar.valid,
+        output_data => output_data
+      );
+  end block;
 
 
   ------------------------------------------------------------------------------

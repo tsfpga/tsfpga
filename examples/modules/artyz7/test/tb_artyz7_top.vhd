@@ -14,11 +14,15 @@ use vunit_lib.random_pkg.all;
 context vunit_lib.vunit_context;
 context vunit_lib.vc_context;
 
+library common;
+use common.addr_pkg.all;
+
 library ddr_buffer;
 use ddr_buffer.ddr_buffer_regs_pkg.all;
 use ddr_buffer.ddr_buffer_sim_pkg.all;
 
 library reg_file;
+use reg_file.reg_file_pkg.all;
 use reg_file.reg_operations_pkg.all;
 
 use work.artyz7_top_pkg.all;
@@ -44,11 +48,12 @@ begin
 
   ------------------------------------------------------------------------------
   main : process
-    constant beef : std_logic_vector(32 - 1 downto 0) := x"beef_beef";
-    constant dead : std_logic_vector(32 - 1 downto 0) := x"dead_dead";
-    constant face : std_logic_vector(32 - 1 downto 0) := x"face_face";
-    constant cafe : std_logic_vector(32 - 1 downto 0) := x"cafe_cafe";
-    constant all_zero : std_logic_vector(32 - 1 downto 0) := x"0000_0000";
+
+    constant beef : reg_t := x"beef_beef";
+    constant dead : reg_t := x"dead_dead";
+    constant face : reg_t := x"face_face";
+    constant cafe : reg_t := x"cafe_cafe";
+    constant all_zero : reg_t := x"0000_0000";
 
     constant axi_width : integer := 64;
     constant burst_length : integer := 16;
@@ -62,15 +67,15 @@ begin
     rnd.InitSeed(rnd'instance_name);
 
     if run("test_register_read_write") then
-      write_reg(net, 0, beef, base_address => reg_slaves(0).addr or x"43c0_0000");
-      check_reg_equal(net, 0, beef, base_address => reg_slaves(0).addr or x"43c0_0000");
+      write_reg(net, 0, beef, base_address => reg_slaves(0).addr);
+      check_reg_equal(net, 0, beef, base_address => reg_slaves(0).addr);
 
       -- Write different value to same register in another register map.
       -- Should be in another clock domain to verify CDC.
-      write_reg(net, 0, dead, base_address => reg_slaves(ddr_buffer_regs_idx).addr or x"43c0_0000");
-      check_reg_equal(net, 0, dead, base_address => reg_slaves(ddr_buffer_regs_idx).addr or x"43c0_0000");
+      write_reg(net, 0, dead, base_address => reg_slaves(ddr_buffer_regs_idx).addr);
+      check_reg_equal(net, 0, dead, base_address => reg_slaves(ddr_buffer_regs_idx).addr);
 
-      check_reg_equal(net, 0, beef, base_address => reg_slaves(0).addr or x"43c0_0000");
+      check_reg_equal(net, 0, beef, base_address => reg_slaves(0).addr);
 
     elsif run("test_dummy_reg_read_write") then
       write_reg(net, artyz7_dummy_regs_configuration(0), beef, base_address => reg_slaves(0).addr);

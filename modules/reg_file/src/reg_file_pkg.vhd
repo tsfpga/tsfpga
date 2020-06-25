@@ -88,7 +88,7 @@ package body reg_file_pkg is
   begin
     for list_idx in regs'range loop
       -- Registers are 32-bits i.e. four-byte aligned, hence the multiplication.
-      result(list_idx).addr := std_logic_vector(to_unsigned(4 * regs(list_idx).idx, result(list_idx).addr'length));
+      result(list_idx).addr := to_unsigned(4 * regs(list_idx).idx, result(list_idx).addr'length);
       result(list_idx).mask := mask;
     end loop;
     return result;

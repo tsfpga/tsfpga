@@ -35,6 +35,12 @@ entity axi_slave is
 end entity;
 
 architecture a of axi_slave is
+
+  signal awid, bid, arid, rid : std_logic_vector(id_width - 1 downto 0);
+  signal awaddr, araddr : std_logic_vector(axi_write_m2s.aw.addr'range );
+  signal awlen, arlen : std_logic_vector(axi_write_m2s.aw.len'range );
+  signal awsize, arsize : std_logic_vector(axi_write_m2s.aw.size'range );
+
 begin
 
   ------------------------------------------------------------------------------
@@ -47,10 +53,10 @@ begin
 
       awvalid => axi_write_m2s.aw.valid,
       awready => axi_write_s2m.aw.ready,
-      awid => axi_write_m2s.aw.id(id_width - 1 downto 0),
-      awaddr => axi_write_m2s.aw.addr,
-      awlen => axi_write_m2s.aw.len,
-      awsize => axi_write_m2s.aw.size,
+      awid => awid,
+      awaddr => awaddr,
+      awlen => awlen,
+      awsize => awsize,
       awburst => axi_write_m2s.aw.burst,
 
       wvalid => axi_write_m2s.w.valid,
@@ -61,9 +67,16 @@ begin
 
       bvalid => axi_write_s2m.b.valid,
       bready => axi_write_m2s.b.ready,
-      bid => axi_write_s2m.b.id(id_width - 1 downto 0),
+      bid => bid,
       bresp => axi_write_s2m.b.resp
     );
+
+  awid <= std_logic_vector(axi_write_m2s.aw.id(id_width - 1 downto 0));
+  awaddr <= std_logic_vector(axi_write_m2s.aw.addr);
+  awlen <= std_logic_vector(axi_write_m2s.aw.len);
+  awsize <= std_logic_vector(axi_write_m2s.aw.size);
+
+  axi_write_s2m.b.id(bid'range) <= unsigned(bid);
 
 
   ------------------------------------------------------------------------------
@@ -76,18 +89,25 @@ begin
 
       arvalid => axi_read_m2s.ar.valid,
       arready => axi_read_s2m.ar.ready,
-      arid => axi_read_m2s.ar.id(id_width - 1 downto 0),
-      araddr => axi_read_m2s.ar.addr,
-      arlen => axi_read_m2s.ar.len,
-      arsize => axi_read_m2s.ar.size,
+      arid => arid,
+      araddr => araddr,
+      arlen => arlen,
+      arsize => arsize,
       arburst => axi_read_m2s.ar.burst,
 
       rvalid => axi_read_s2m.r.valid,
       rready => axi_read_m2s.r.ready,
-      rid => axi_read_s2m.r.id(id_width - 1 downto 0),
+      rid => rid,
       rdata => axi_read_s2m.r.data(data_width - 1 downto 0),
       rresp => axi_read_s2m.r.resp,
       rlast => axi_read_s2m.r.last
     );
+
+  arid <= std_logic_vector(axi_read_m2s.ar.id(id_width - 1 downto 0));
+  araddr <= std_logic_vector(axi_read_m2s.ar.addr);
+  arlen <= std_logic_vector(axi_read_m2s.ar.len);
+  arsize <= std_logic_vector(axi_read_m2s.ar.size);
+
+  axi_read_s2m.r.id(id_width - 1 downto 0) <= unsigned(rid);
 
 end architecture;

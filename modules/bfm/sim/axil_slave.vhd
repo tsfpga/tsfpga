@@ -33,10 +33,15 @@ end entity;
 
 architecture a of axil_slave is
 
-  signal bid, rid, aid : std_logic_vector(8 - 1 downto 0) := (others => '0'); -- Using "open" not ok in GHDL: unconstrained port "rid" must be connected
+  constant len : std_logic_vector(axi_write_m2s_init.aw.len'range) :=
+    std_logic_vector(to_unsigned(0, axi_write_m2s_init.aw.len'length));
+  constant size : std_logic_vector(axi_write_m2s_init.aw.size'range) :=
+    std_logic_vector(to_unsigned(log2(data_width / 8), axi_write_m2s_init.aw.size'length));
 
-  constant len : std_logic_vector(axi_write_m2s_init.aw.len'range) := std_logic_vector(to_unsigned(0, axi_write_m2s_init.aw.len'length));
-  constant size : std_logic_vector(axi_write_m2s_init.aw.size'range) := std_logic_vector(to_unsigned(log2(data_width / 8), axi_write_m2s_init.aw.size'length));
+  -- Using "open" not ok in GHDL: unconstrained port "rid" must be connected
+  signal bid, rid, aid : std_logic_vector(8 - 1 downto 0) := (others => '0');
+
+  signal awaddr, araddr : std_logic_vector(axil_m2s.write.aw.addr'range);
 
 begin
 
@@ -51,7 +56,7 @@ begin
       awvalid => axil_m2s.write.aw.valid,
       awready => axil_s2m.write.aw.ready,
       awid => aid,
-      awaddr => axil_m2s.write.aw.addr,
+      awaddr => awaddr,
       awlen => len,
       awsize => size,
       awburst => axi_a_burst_fixed,
@@ -68,6 +73,8 @@ begin
       bresp => axil_s2m.write.b.resp
     );
 
+  awaddr <= std_logic_vector(axil_m2s.write.aw.addr);
+
 
   ------------------------------------------------------------------------------
   axi_read_slave_inst : entity vunit_lib.axi_read_slave
@@ -80,7 +87,7 @@ begin
       arvalid => axil_m2s.read.ar.valid,
       arready => axil_s2m.read.ar.ready,
       arid => aid,
-      araddr => axil_m2s.read.ar.addr,
+      araddr => araddr,
       arlen => len,
       arsize => size,
       arburst => axi_a_burst_fixed,
@@ -92,5 +99,7 @@ begin
       rresp => axil_s2m.read.r.resp,
       rlast => open
     );
+
+  araddr <= std_logic_vector(axil_m2s.read.ar.addr);
 
 end architecture;

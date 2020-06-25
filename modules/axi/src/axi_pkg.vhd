@@ -34,8 +34,8 @@ package axi_pkg is
   -- Bytes per transfer = 2^size
   constant axi_a_size_sz : integer := 3;
 
-  function to_len(burst_length_beats : natural) return std_logic_vector;
-  function to_size(data_width_bits : natural) return std_logic_vector;
+  function to_len(burst_length_beats : natural) return unsigned;
+  function to_size(data_width_bits : natural) return unsigned;
 
   constant axi_a_burst_sz : integer := 2;
   constant axi_a_burst_fixed : std_logic_vector(axi_a_burst_sz - 1 downto 0) := "00";
@@ -77,16 +77,20 @@ package axi_pkg is
 
   type axi_m2s_a_t is record
     valid : std_logic;
-    id : std_logic_vector(axi_id_sz - 1 downto 0);
-    addr : std_logic_vector(axi_a_addr_sz - 1 downto 0);
-    len : std_logic_vector(axi_a_len_sz - 1 downto 0);
-    size : std_logic_vector(axi_a_size_sz - 1 downto 0);
+    id : unsigned(axi_id_sz - 1 downto 0);
+    addr : unsigned(axi_a_addr_sz - 1 downto 0);
+    len : unsigned(axi_a_len_sz - 1 downto 0);
+    size : unsigned(axi_a_size_sz - 1 downto 0);
     burst : std_logic_vector(axi_a_burst_sz - 1 downto 0);
     -- @note Excluded members: lock, cache, prot, region.
     -- These are typically not changed on a transfer-to-transfer basis.
   end record;
 
-  constant axi_m2s_a_init : axi_m2s_a_t := (valid => '0', others => (others => '0'));
+  constant axi_m2s_a_init : axi_m2s_a_t := (
+    valid => '0',
+    burst => (others => '0'),
+    others => (others => '0')
+  );
   function axi_m2s_a_sz(id_width : natural; addr_width : natural)  return natural;
   type axi_m2s_a_vec_t is array (integer range <>) of axi_m2s_a_t;
 
@@ -156,11 +160,15 @@ package axi_pkg is
 
   type axi_s2m_b_t is record
     valid : std_logic;
-    id : std_logic_vector(axi_id_sz - 1 downto 0);
+    id : unsigned(axi_id_sz - 1 downto 0);
     resp : std_logic_vector(axi_resp_sz - 1 downto 0);
   end record;
 
-  constant axi_s2m_b_init : axi_s2m_b_t := (valid => '0', others => (others => '0'));
+  constant axi_s2m_b_init : axi_s2m_b_t := (
+    valid => '0',
+    id => (others => '0'),
+    resp => (others => '0')
+  );
   function axi_s2m_b_sz(id_width : natural) return natural;
   type axi_s2m_b_vec_t is array (integer range <>) of axi_s2m_b_t;
 
@@ -180,13 +188,18 @@ package axi_pkg is
 
   type axi_s2m_r_t is record
     valid : std_logic;
-    id : std_logic_vector(axi_id_sz - 1 downto 0);
+    id : unsigned(axi_id_sz - 1 downto 0);
     data : std_logic_vector(axi_data_sz - 1 downto 0);
     resp : std_logic_vector(axi_resp_sz - 1 downto 0);
     last : std_logic;
   end record;
 
-  constant axi_s2m_r_init : axi_s2m_r_t := (valid => '0', last => '0', others => (others => '0'));
+  constant axi_s2m_r_init : axi_s2m_r_t := (
+    valid => '0',
+    last => '0',
+    id => (others => '0'),
+    others => (others => '0')
+  );
   function axi_s2m_r_sz(data_width : natural; id_width : natural)  return natural;
   type axi_s2m_r_vec_t is array (integer range <>) of axi_s2m_r_t;
 
@@ -252,18 +265,18 @@ end;
 
 package body axi_pkg is
 
-  function to_len(burst_length_beats : natural) return std_logic_vector is
-    variable result : std_logic_vector(axi_a_len_sz - 1 downto 0);
+  function to_len(burst_length_beats : natural) return unsigned is
+    variable result : unsigned(axi_a_len_sz - 1 downto 0);
   begin
     -- burst_length_beats is number of transfers
-    result := std_logic_vector(to_unsigned(burst_length_beats - 1, result'length));
+    result := to_unsigned(burst_length_beats - 1, result'length);
     return result;
   end function;
 
-  function to_size(data_width_bits : natural) return std_logic_vector is
-    variable result : std_logic_vector(axi_a_size_sz - 1 downto 0);
+  function to_size(data_width_bits : natural) return unsigned is
+    variable result : unsigned(axi_a_size_sz - 1 downto 0);
   begin
-    result := std_logic_vector(to_unsigned(log2(data_width_bits / 8), result'length));
+    result := to_unsigned(log2(data_width_bits / 8), result'length);
     return result;
   end function;
 
@@ -280,17 +293,17 @@ package body axi_pkg is
     lo := 0;
     if id_width > 0 then
       hi := id_width - 1;
-      result(hi downto lo) := data.id(hi downto lo);
+      result(hi downto lo) := std_logic_vector(data.id(hi downto lo));
       lo := hi + 1;
     end if;
     hi := lo + addr_width - 1;
-    result(hi downto lo) := data.addr(addr_width - 1 downto 0);
+    result(hi downto lo) := std_logic_vector(data.addr(addr_width - 1 downto 0));
     lo := hi + 1;
     hi := lo + data.len'length - 1;
-    result(hi downto lo) := data.len;
+    result(hi downto lo) := std_logic_vector(data.len);
     lo := hi + 1;
     hi := lo + data.size'length - 1;
-    result(hi downto lo) := data.size;
+    result(hi downto lo) := std_logic_vector(data.size);
     lo := hi + 1;
     hi := lo + data.burst'length - 1;
     result(hi downto lo) := data.burst;
@@ -306,17 +319,17 @@ package body axi_pkg is
     lo := 0;
     if id_width > 0 then
       hi := id_width - 1;
-      result.id(hi downto lo) := data(hi + offset downto lo + offset);
+      result.id(hi downto lo) := unsigned(data(hi + offset downto lo + offset));
       lo := hi + 1;
     end if;
     hi := lo + addr_width - 1;
-    result.addr(addr_width - 1 downto 0) := data(hi + offset downto lo + offset);
+    result.addr(addr_width - 1 downto 0) := unsigned(data(hi + offset downto lo + offset));
     lo := hi + 1;
     hi := lo + result.len'length - 1;
-    result.len := data(hi + offset downto lo + offset);
+    result.len := unsigned(data(hi + offset downto lo + offset));
     lo := hi + 1;
     hi := lo + result.size'length - 1;
-    result.size := data(hi + offset downto lo + offset);
+    result.size := unsigned(data(hi + offset downto lo + offset));
     lo := hi + 1;
     hi := lo + result.burst'length - 1;
     result.burst := data(hi + offset downto lo + offset);
@@ -391,7 +404,7 @@ package body axi_pkg is
     lo := 0;
     if id_width > 0 then
       hi := id_width - 1;
-      result(hi downto lo) := data.id(hi downto lo);
+      result(hi downto lo) := std_logic_vector(data.id(hi downto lo));
       lo := hi + 1;
     end if;
     hi := lo + axi_resp_sz - 1;
@@ -408,7 +421,7 @@ package body axi_pkg is
     lo := 0;
     if id_width > 0 then
       hi := id_width - 1;
-      result.id(hi downto lo) := data(hi + offset downto lo + offset);
+      result.id(hi downto lo) := unsigned(data(hi + offset downto lo + offset));
       lo := hi + 1;
     end if;
     hi := lo + axi_resp_sz - 1;
@@ -431,7 +444,7 @@ package body axi_pkg is
     lo := 0;
     if id_width > 0 then
       hi := id_width - 1;
-      result(hi downto lo) := data.id(hi downto lo);
+      result(hi downto lo) := std_logic_vector(data.id(hi downto lo));
       lo := hi + 1;
     end if;
     hi := lo + data_width - 1;
@@ -454,7 +467,7 @@ package body axi_pkg is
     lo := 0;
     if id_width > 0 then
       hi := id_width - 1;
-      result.id(hi downto lo) := data(hi + offset downto lo + offset);
+      result.id(hi downto lo) := unsigned(data(hi + offset downto lo + offset));
       lo := hi + 1;
     end if;
     hi := lo + data_width - 1;

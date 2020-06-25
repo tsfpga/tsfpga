@@ -34,13 +34,15 @@ architecture a of axil_master is
   signal rdata, wdata : std_logic_vector(data_length(bus_handle) - 1 downto 0);
   signal wstrb : std_logic_vector(byte_enable_length(bus_handle) - 1 downto 0);
 
-  constant addr_width : integer := address_length(bus_handle);
+  signal araddr, awaddr : std_logic_vector(address_length(bus_handle) - 1 downto 0);
 
 begin
 
   ------------------------------------------------------------------------------
+  axil_m2s.read.ar.addr(araddr'range) <= unsigned(araddr);
   rdata <= axil_s2m.read.r.data(rdata'range);
 
+  axil_m2s.write.aw.addr(awaddr'range) <= unsigned(awaddr);
   axil_m2s.write.w.data(wdata'range) <= wdata;
   axil_m2s.write.w.strb(wstrb'range) <= wstrb;
 
@@ -55,7 +57,7 @@ begin
 
     arready => axil_s2m.read.ar.ready,
     arvalid => axil_m2s.read.ar.valid,
-    araddr => axil_m2s.read.ar.addr(addr_width - 1 downto 0),
+    araddr => araddr,
 
     rready => axil_m2s.read.r.ready,
     rvalid => axil_s2m.read.r.valid,
@@ -64,7 +66,7 @@ begin
 
     awready => axil_s2m.write.aw.ready,
     awvalid => axil_m2s.write.aw.valid,
-    awaddr => axil_m2s.write.aw.addr(addr_width - 1 downto 0),
+    awaddr => awaddr,
 
     wready => axil_s2m.write.w.ready,
     wvalid => axil_m2s.write.w.valid,

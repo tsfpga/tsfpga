@@ -134,8 +134,7 @@ begin
 
     procedure read_hardcoded(reg_index : integer) is
     begin
-      hardcoded_m2s.read.ar.addr <= std_logic_vector(
-        to_unsigned(4 * reg_index, hardcoded_m2s.read.ar.addr'length));
+      hardcoded_m2s.read.ar.addr <= to_unsigned(4 * reg_index, hardcoded_m2s.read.ar.addr'length);
       hardcoded_m2s.read.ar.valid <= '1';
       wait until (axil_s2m.read.ar.ready and axil_m2s.read.ar.valid) = '1' and rising_edge(clk);
       hardcoded_m2s.read.ar.valid <= '0';
@@ -147,8 +146,7 @@ begin
 
     procedure write_hardcoded(reg_index : integer) is
     begin
-      hardcoded_m2s.write.aw.addr <= std_logic_vector(
-        to_unsigned(4 * reg_index, hardcoded_m2s.write.aw.addr'length));
+      hardcoded_m2s.write.aw.addr <= to_unsigned(4 * reg_index, hardcoded_m2s.write.aw.addr'length);
       hardcoded_m2s.write.aw.valid <= '1';
       wait until (axil_s2m.write.aw.ready and axil_m2s.write.aw.valid) = '1' and rising_edge(clk);
       hardcoded_m2s.write.aw.valid <= '0';

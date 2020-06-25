@@ -104,7 +104,11 @@ begin
     ----------------------------------------------------------------------------
     assign_bus : process(all)
     begin
-      output_read_m2s.ar <= (valid => '0', others => (others => '-'));
+      output_read_m2s.ar <= (
+        valid => '0',
+        burst => (others => '-'),
+        others => (others => '-')
+      );
       output_read_m2s.r <= (ready => '0');
 
       for idx in inputs_read_m2s'range loop
@@ -183,7 +187,11 @@ begin
     ----------------------------------------------------------------------------
     assign_bus : process(all)
     begin
-      output_write_m2s.aw <= (valid => '0', others => (others => '-'));
+      output_write_m2s.aw <= (
+        valid => '0',
+        burst => (others => '-'),
+        others => (others => '-')
+      );
       output_write_m2s.w <= (valid => '0', last => '-', others => (others => '-'));
       output_write_m2s.b <= (ready => '0');
 

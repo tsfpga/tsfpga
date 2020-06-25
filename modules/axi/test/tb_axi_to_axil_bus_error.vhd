@@ -56,8 +56,8 @@ begin
       axil_s2m.read.ar.ready <= '1';
 
       axi_m2s.read.ar.valid <= '1';
-      axi_m2s.read.ar.len <= std_logic_vector(to_unsigned(len, axi_m2s.read.ar.len'length));
-      axi_m2s.read.ar.size <= std_logic_vector(to_unsigned(size, axi_m2s.read.ar.size'length));
+      axi_m2s.read.ar.len <= to_unsigned(len, axi_m2s.read.ar.len'length);
+      axi_m2s.read.ar.size <= to_unsigned(size, axi_m2s.read.ar.size'length);
 
       wait until (axi_m2s.read.ar.valid and axi_s2m.read.ar.ready) = '1' and rising_edge(clk);
       axi_m2s.read.r.ready <= '1';
@@ -72,8 +72,8 @@ begin
       axil_s2m.write.aw.ready <= '1';
 
       axi_m2s.write.aw.valid <= '1';
-      axi_m2s.write.aw.len <= std_logic_vector(to_unsigned(len, axi_m2s.write.aw.len'length));
-      axi_m2s.write.aw.size <= std_logic_vector(to_unsigned(size, axi_m2s.write.aw.size'length));
+      axi_m2s.write.aw.len <= to_unsigned(len, axi_m2s.write.aw.len'length);
+      axi_m2s.write.aw.size <= to_unsigned(size, axi_m2s.write.aw.size'length);
 
       wait until (axi_m2s.write.aw.valid and axi_s2m.write.aw.ready) = '1' and rising_edge(clk);
       axi_m2s.write.b.ready <= '1';

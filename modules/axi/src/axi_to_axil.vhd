@@ -47,7 +47,7 @@ architecture a of axi_to_axil is
   constant len : integer := 0;
   constant size : integer := log2(data_width / 8);
 
-  signal read_id, write_id : std_logic_vector(axi_m2s.read.ar.id'range) := (others => '0');
+  signal read_id, write_id : unsigned(axi_m2s.read.ar.id'range) := (others => '0');
 
   subtype data_rng is integer range data_width - 1 downto 0;
   subtype strb_rng is integer range data_width / 8 - 1 downto 0;

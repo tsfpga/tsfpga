@@ -14,7 +14,7 @@ package math_pkg is
   function is_power_of_two(value : integer) return boolean;
 
   function num_bits_needed(value : integer) return integer;
-  function num_bits_needed(value : std_logic_vector) return integer;
+  function num_bits_needed(value : unsigned) return integer;
 
   function lt_0(value  : signed) return boolean;
   function geq_0(value : signed) return boolean;
@@ -43,7 +43,7 @@ package body math_pkg is
     return 2 ** log2_value = value;
   end function;
 
-  function num_bits_needed(value : std_logic_vector) return integer is
+  function num_bits_needed(value : unsigned) return integer is
     variable result : integer;
   begin
     -- The number of bits needed to express the given value.
@@ -59,8 +59,8 @@ package body math_pkg is
   end function;
 
   function num_bits_needed(value : integer) return integer is
-    constant value_slv : std_logic_vector(64 - 1 downto 0) := std_logic_vector(to_unsigned(value, 64));
-    constant result : integer := num_bits_needed(value_slv);
+    constant value_vector : unsigned(64 - 1 downto 0) := to_unsigned(value, 64);
+    constant result : integer := num_bits_needed(value_vector);
   begin
     -- The number of bits needed to express the given value in an unsigned vector.
     assert value <= 2**result - 1 report "Calculated value not correct: " & to_string(value) & " " & to_string(result) severity failure;

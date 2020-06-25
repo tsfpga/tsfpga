@@ -37,22 +37,23 @@ architecture a of axi_master is
   constant len : std_logic_vector(axi_write_m2s.aw.len'range) := std_logic_vector(to_unsigned(0, axi_write_m2s.aw.len'length));
   constant size : std_logic_vector(axi_write_m2s.aw.size'range) := std_logic_vector(to_unsigned(log2(data_length(bus_handle) / 8), axi_write_m2s.aw.size'length));
 
-  constant addr_length : integer := address_length(bus_handle);
-
+  signal araddr, awaddr : std_logic_vector(address_length(bus_handle) - 1 downto 0);
   signal rdata, wdata : std_logic_vector(data_length(bus_handle) - 1 downto 0);
   signal wstrb : std_logic_vector(byte_enable_length(bus_handle) - 1 downto 0);
 
 begin
 
   ------------------------------------------------------------------------------
-  axi_read_m2s.ar.len <= len;
-  axi_read_m2s.ar.size <= size;
+  axi_read_m2s.ar.addr(araddr'range) <= unsigned(araddr);
+  axi_read_m2s.ar.len <= unsigned(len);
+  axi_read_m2s.ar.size <= unsigned(size);
   axi_read_m2s.ar.burst <= axi_a_burst_incr;
 
   rdata <= axi_read_s2m.r.data(rdata'range);
 
-  axi_write_m2s.aw.len <= len;
-  axi_write_m2s.aw.size <= size;
+  axi_write_m2s.aw.addr(awaddr'range) <= unsigned(awaddr);
+  axi_write_m2s.aw.len <= unsigned(len);
+  axi_write_m2s.aw.size <= unsigned(size);
   axi_write_m2s.aw.burst <= axi_a_burst_incr;
 
   axi_write_m2s.w.data(wdata'range) <= wdata;
@@ -70,7 +71,7 @@ begin
 
     arready => axi_read_s2m.ar.ready,
     arvalid => axi_read_m2s.ar.valid,
-    araddr => axi_read_m2s.ar.addr(addr_length - 1 downto 0),
+    araddr => araddr,
 
     rready => axi_read_m2s.r.ready,
     rvalid => axi_read_s2m.r.valid,
@@ -79,7 +80,7 @@ begin
 
     awready => axi_write_s2m.aw.ready,
     awvalid => axi_write_m2s.aw.valid,
-    awaddr => axi_write_m2s.aw.addr(addr_length - 1 downto 0),
+    awaddr => awaddr,
 
     wready => axi_write_s2m.w.ready,
     wvalid => axi_write_m2s.w.valid,

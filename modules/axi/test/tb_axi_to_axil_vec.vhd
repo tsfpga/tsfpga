@@ -15,6 +15,7 @@ use common.addr_pkg.all;
 
 library reg_file;
 use reg_file.reg_file_pkg.all;
+use reg_file.reg_operations_pkg.all;
 
 library axi;
 use axi.axi_pkg.all;
@@ -63,8 +64,6 @@ architecture tb of tb_axi_to_axil_vec is
   signal axil_m2s_vec : axil_m2s_vec_t(axil_slaves'range);
   signal axil_s2m_vec : axil_s2m_vec_t(axil_slaves'range);
 
-  constant axi_master : bus_master_t := new_bus(data_length => 32, address_length => axi_m2s.read.ar.addr'length);
-
 begin
 
   clk_axi <= not clk_axi after clk_axi_period / 2;
@@ -88,20 +87,20 @@ begin
     for slave_under_test_idx in axil_slaves'range loop
       for slave_idx in axil_slaves'range loop
         -- Write init value to all
-        write_bus(net, axi_master, axil_slaves(slave_idx).addr, beef);
-        check_bus(net, axi_master, axil_slaves(slave_idx).addr, beef);
+        write_reg(net, 0, beef, axil_slaves(slave_idx).addr);
+        check_reg_equal(net, 0, beef, axil_slaves(slave_idx).addr);
       end loop;
 
       -- Write special value to one of them
-      write_bus(net, axi_master, axil_slaves(slave_under_test_idx).addr, dead);
+      write_reg(net, 0, dead, axil_slaves(slave_under_test_idx).addr);
 
       for slave_idx in axil_slaves'range loop
         if slave_idx = slave_under_test_idx then
           -- Check special value
-          check_bus(net, axi_master, axil_slaves(slave_idx).addr, dead);
+          check_reg_equal(net, 0, dead, axil_slaves(slave_idx).addr);
         else
           -- The others should still have old value
-          check_bus(net, axi_master, axil_slaves(slave_idx).addr, beef);
+          check_reg_equal(net, 0, beef, axil_slaves(slave_idx).addr);
         end if;
       end loop;
     end loop;
@@ -113,7 +112,7 @@ begin
   ------------------------------------------------------------------------------
   axi_master_inst : entity bfm.axi_master
     generic map (
-      bus_handle => axi_master
+      bus_handle => regs_bus_master
     )
     port map (
       clk => clk_axi,
