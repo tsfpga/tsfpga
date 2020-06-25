@@ -172,7 +172,7 @@ The results can then be aggregated to form a report about e.g. resource utilizat
 
 The only real difference from the base class :class:`.VivadoProject` is that
 IO buffers are not included and no pinning is needed. By separating these builds into separate classes,
-top level FPGA builds and netlist builds can be listed and build separately.
+top level FPGA builds and netlist builds can be listed and built separately.
 
 .. autoclass:: tsfpga.vivado_project.VivadoNetlistProject()
     :members:
