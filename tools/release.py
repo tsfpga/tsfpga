@@ -43,6 +43,10 @@ def verify_version_number(version):
     if release_notes_file not in find_git_files():
         sys.exit(f"Could not find release notes file: {release_notes_file} (is it 'git add'ed?)")
 
+    unreleased_notes_file = tsfpga.TSFPGA_DOC / "release_notes" / "unreleased.rst"
+    if read_file(unreleased_notes_file) != "":
+        sys.exit("The unreleased notes file should be empty")
+
     with urlopen("https://pypi.python.org/pypi/tsfpga/json") as file_handle:
         json_data = json.load(file_handle)
         if version in json_data["releases"]:
