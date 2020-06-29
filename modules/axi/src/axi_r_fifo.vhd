@@ -22,7 +22,6 @@ entity axi_r_fifo is
     data_width : positive;
     asynchronous : boolean;
     depth : natural := 16;
-    almost_full_level : natural := depth;
     ram_type : ram_style_t := ram_style_auto
   );
   port (
@@ -33,8 +32,6 @@ entity axi_r_fifo is
     --
     output_m2s : out axi_m2s_r_t := axi_m2s_r_init;
     output_s2m : in axi_s2m_r_t;
-    --
-    almost_full : out std_logic := '0';
     -- Only need to assign the clock if generic asynchronous is "True"
     clk_input : in std_logic := '0'
   );
@@ -75,7 +72,6 @@ begin
         generic map (
           width => r_width,
           depth => depth,
-          almost_full_level => almost_full_level,
           ram_type => ram_type
         )
         port map(
@@ -87,8 +83,7 @@ begin
           clk_write => clk,
           write_ready => output_m2s.ready,
           write_valid => output_s2m.valid,
-          write_data => write_data,
-          write_almost_full => almost_full
+          write_data => write_data
         );
 
     else generate
@@ -97,13 +92,10 @@ begin
         generic map (
           width => r_width,
           depth => depth,
-          almost_full_level => almost_full_level,
           ram_type => ram_type
         )
         port map(
           clk => clk,
-          --
-          almost_full => almost_full,
           --
           read_ready => input_m2s.ready,
           read_valid => read_valid,
