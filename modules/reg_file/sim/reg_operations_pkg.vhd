@@ -84,6 +84,13 @@ package reg_operations_pkg is
   procedure write_reg(
     signal net : inout network_t;
     reg_index : in integer;
+    value : in unsigned(reg_width - 1 downto 0);
+    base_address : in addr_t := (others => '0');
+    bus_handle : in bus_master_t := regs_bus_master);
+
+  procedure write_reg(
+    signal net : inout network_t;
+    reg_index : in integer;
     value : in integer;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master);
@@ -244,7 +251,17 @@ package body reg_operations_pkg is
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master) is
   begin
-    write_reg(net, reg_index, std_logic_vector(to_signed(value, 32)), base_address, bus_handle);
+    write_reg(net, reg_index, std_logic_vector(to_signed(value, reg_width)), base_address, bus_handle);
+  end procedure;
+
+  procedure write_reg(
+    signal net : inout network_t;
+    reg_index : in integer;
+    value : in unsigned(reg_width - 1 downto 0);
+    base_address : in addr_t := (others => '0');
+    bus_handle : in bus_master_t := regs_bus_master) is
+  begin
+    write_reg(net, reg_index, std_logic_vector(value), base_address, bus_handle);
   end procedure;
 
   procedure write_reg_bits(
