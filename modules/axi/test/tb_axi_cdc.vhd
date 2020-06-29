@@ -165,6 +165,7 @@ begin
       id_width => id_width,
       addr_width => addr_width,
       data_width => data_width,
+      enable_data_fifo_packet_mode => true,
       address_fifo_depth => 32,
       data_fifo_depth => 1024,
       response_fifo_depth => 32

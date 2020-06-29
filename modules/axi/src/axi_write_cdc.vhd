@@ -20,6 +20,7 @@ entity axi_write_cdc is
     id_width : natural;
     addr_width : positive;
     data_width : positive;
+    enable_data_fifo_packet_mode : boolean;
     address_fifo_depth : positive;
     address_fifo_ram_type : ram_style_t := ram_style_auto;
     data_fifo_depth : positive;
@@ -69,6 +70,7 @@ begin
     generic map (
       data_width => data_width,
       asynchronous => true,
+      enable_packet_mode => enable_data_fifo_packet_mode,
       depth => data_fifo_depth,
       ram_type => data_fifo_ram_type
     )
