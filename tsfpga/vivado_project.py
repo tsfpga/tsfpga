@@ -260,13 +260,13 @@ class VivadoProject:
                                                    synth_only=synth_only)
         run_vivado_tcl(self._vivado_path, build_vivado_project_tcl)
 
-        result.synthesized_size = self._get_size(project_path, f"synth_{run_index}")
+        result.synthesis_size = self._get_size(project_path, f"synth_{run_index}")
 
         if not synth_only:
             impl_folder = project_path / f"{self.name}.runs" / f"impl_{run_index}"
             shutil.copy2(impl_folder / f"{self.top}.bit", output_path / f"{self.name}.bit")
             shutil.copy2(impl_folder / f"{self.top}.bin", output_path / f"{self.name}.bin")
-            result.implemented_size = self._get_size(project_path, f"impl_{run_index}")
+            result.implementation_size = self._get_size(project_path, f"impl_{run_index}")
 
         # Send result as well to the post-build function
         pre_and_post_build_parameters.update(build_result=result)
@@ -324,8 +324,8 @@ class BuildResult:
     Attributes:
         project_name (`str`): The name of the build.
         success (`bool`): True if the build and all pre- and post hooks succeeded.
-        synthesized_size (`dict`): A dictionary with the utilization of primitives for the synthesized design.
-        implemented_size (`dict`): A dictionary with the utilization of primitives for the implemented design.
+        synthesis_size (`dict`): A dictionary with the utilization of primitives for the synthesized design.
+        implementation_size (`dict`): A dictionary with the utilization of primitives for the implemented design.
     """
 
     def __init__(self, name):
@@ -335,5 +335,5 @@ class BuildResult:
         """
         self.name = name
         self.success = True
-        self.synthesized_size = None
-        self.implemented_size = None
+        self.synthesis_size = None
+        self.implementation_size = None

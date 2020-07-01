@@ -8,8 +8,14 @@ import json
 from shutil import copy2, make_archive
 import sys
 
+
 PATH_TO_TSFPGA = Path(__file__).parent.parent
 sys.path.append(str(PATH_TO_TSFPGA))
+PATH_TO_VUNIT = PATH_TO_TSFPGA.parent / "vunit"
+sys.path.append(str(PATH_TO_VUNIT))
+
+from vunit.color_printer import COLOR_PRINTER
+
 from tsfpga.build_project_list import BuildProjectList
 from tsfpga.system_utils import create_directory, delete
 
@@ -72,24 +78,27 @@ def main():
     projects = BuildProjectList(modules)
     args = arguments()
 
-    setup_and_run(modules, projects, args)
+    sys.exit(setup_and_run(modules, projects, args))
 
 
 def setup_and_run(modules, projects, args):
+    """
+    Returns 0 if everything passed, otherwise non-zero.
+    """
     if args.list_only:
         print(projects.list_projects(args.project_filters, args.netlist_builds))
-        return
+        return 0
 
     if args.generate_registers_only:
         # Generate register output from all modules. Note that this is not used by the build
         # flow or simulation flow, it is only for the user to inspect the artifacts.
         generate_registers(modules, args.project_path.parent / "registers")
-        return
+        return 0
 
     if not args.project_filters:
-        message = "Must explicitly select builds. Available projects are:\n"
-        message += projects.list_projects(args.project_filters)
-        sys.exit(message)
+        print("Must explicitly select builds. Available projects are:")
+        print(projects.list_projects(args.project_filters))
+        return -1
 
     build_results = []
     for project in projects.get_projects(args.project_filters, args.netlist_builds):
@@ -110,7 +119,7 @@ def setup_and_run(modules, projects, args):
 
         collect_artifacts(project, output_path)
 
-    print_results(build_results, args.synth_only)
+    return print_results(build_results)
 
 
 def build(args, project, project_path, output_path):
@@ -129,20 +138,57 @@ def build(args, project, project_path, output_path):
     return result
 
 
-def print_results(build_results, synth_only):
-    if synth_only:
-        dict_field = "synthesized_size"
-        build_step = "Synthesis"
-    else:
-        dict_field = "implemented_size"
-        build_step = "Implementation"
+def print_results(build_results):
+    """
+    Print result summary. Return 0 if all passed otherwise non-zero.
+    """
+    name_length = max([len(build_result.name) for build_result in build_results])
+    separator = "=" * (len("pass") + 1 + name_length)
 
+    num_pass = 0
+    num_fail = 0
+    num_total = len(build_results)
+
+    print("\n" + ("=" * 4) + " Summary " + ("=" * (len(separator) - 4 - len(" Summary "))))
     for build_result in build_results:
-        if dict_field in build_result:
-            print("-" * 80)
-            print(f"{build_step} size for build {build_result['name']}:")
-            print(json.dumps(build_result[dict_field], indent=2))
+        if build_result.success:
+            num_pass += 1
+            COLOR_PRINTER.write("pass", fg=COLOR_PRINTER.GREEN + COLOR_PRINTER.INTENSITY)
+        else:
+            num_fail += 1
+            COLOR_PRINTER.write("fail", fg=COLOR_PRINTER.RED + COLOR_PRINTER.INTENSITY)
+
+        print(f" {build_result.name}")
+
+        if build_result.implementation_size:
+            build_step = "Implementation"
+            size = build_result.implementation_size
+        else:
+            build_step = "Synthesis"
+            size = build_result.synthesis_size
+
+        if size:
+            print(f"{build_step} size:")
+            print(json.dumps(size, indent=2))
             print("")
+
+    print(separator)
+    if num_pass > 0:
+        COLOR_PRINTER.write("pass", fg=COLOR_PRINTER.GREEN + COLOR_PRINTER.INTENSITY)
+        print(f" {num_pass} of {num_total}")
+    if num_fail > 0:
+        COLOR_PRINTER.write("fail", fg=COLOR_PRINTER.RED + COLOR_PRINTER.INTENSITY)
+        print(f" {num_fail} of {num_total}")
+
+    print(separator)
+    if num_fail == 0:
+        COLOR_PRINTER.write("All passed!", fg=COLOR_PRINTER.GREEN + COLOR_PRINTER.INTENSITY)
+        print()
+    else:
+        COLOR_PRINTER.write("Some failed!", fg=COLOR_PRINTER.RED + COLOR_PRINTER.INTENSITY)
+        print()
+
+    return num_fail
 
 
 def generate_registers(modules, output_path):

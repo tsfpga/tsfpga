@@ -110,7 +110,8 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         pass
 
     def test_synth_project(self):
-        self.proj.build(self.project_folder, synth_only=True)
+        build_result = self.proj.build(self.project_folder, synth_only=True)
+        assert build_result.success
         assert (self.runs_folder / "synth_1" / "hierarchical_utilization.rpt").exists()
 
     def test_synth_should_fail_if_source_code_does_not_compile(self):
@@ -141,11 +142,10 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         # Sanity check some of the build result
         assert build_result.success
 
-        assert build_result.synthesized_size["Total LUTs"] > 0, build_result.synthesized_size
-        assert build_result.synthesized_size["Total LUTs"] < 2000, build_result.synthesized_size
+        assert build_result.synthesis_size["Total LUTs"] == 0, build_result.synthesis_size
 
-        assert build_result.implemented_size["FFs"] > 0, build_result.implemented_size
-        assert build_result.implemented_size["FFs"] < 2000, build_result.implemented_size
+        assert build_result.implementation_size["FFs"] > 0, build_result.implementation_size
+        assert build_result.implementation_size["FFs"] < 2000, build_result.implementation_size
 
     def test_build_with_bad_timing_should_fail(self):
         # Do a ridiculously wide multiplication, which Vivado can't optimize away
