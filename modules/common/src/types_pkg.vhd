@@ -3,6 +3,7 @@
 -- -----------------------------------------------------------------------------
 
 library ieee;
+use ieee.numeric_std.all;
 use ieee.std_logic_1164.all;
 
 
@@ -13,6 +14,8 @@ package types_pkg is
   type positive_vector is array (integer range <>) of positive;
 
   type boolean_vec_t is array (integer range <>) of boolean;
+
+  type signed_vec_t is array (integer range <>) of signed;
 
   function to_sl(value : boolean) return std_logic;
   function to_bool(value : std_logic) return boolean;
