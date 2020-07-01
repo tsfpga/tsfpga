@@ -132,10 +132,20 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         assert file_contains_string(self.log_file, "RTL assertion: \"Assertion violation.\"")
 
     def test_build_project(self):
-        self.proj.build(self.project_folder, self.project_folder)
+        build_result = self.proj.build(self.project_folder, self.project_folder)
+
         assert (self.project_folder / (self.proj.name + ".bit")).exists()
         assert (self.project_folder / (self.proj.name + ".bin")).exists()
         assert (self.runs_folder / "impl_1" / "hierarchical_utilization.rpt").exists()
+
+        # Sanity check some of the build result
+        assert build_result.success
+
+        assert build_result.synthesized_size["Total LUTs"] > 0, build_result.synthesized_size
+        assert build_result.synthesized_size["Total LUTs"] < 2000, build_result.synthesized_size
+
+        assert build_result.implemented_size["FFs"] > 0, build_result.implemented_size
+        assert build_result.implemented_size["FFs"] < 2000, build_result.implemented_size
 
     def test_build_with_bad_timing_should_fail(self):
         # Do a ridiculously wide multiplication, which Vivado can't optimize away

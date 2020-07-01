@@ -5,7 +5,7 @@
 import shutil
 
 from tsfpga import TSFPGA_TCL
-from tsfpga.system_utils import create_file
+from tsfpga.system_utils import create_file, read_file
 from tsfpga.vivado_utilization_parser import VivadoUtilizationParser
 from tsfpga.vivado_tcl import VivadoTcl
 from tsfpga.vivado_utils import run_vivado_tcl, run_vivado_gui
@@ -167,25 +167,32 @@ class VivadoProject:
 
         return build_vivado_project_tcl
 
-    def pre_build(self, **kwargs):
+    def pre_build(self, **kwargs):  # pylint: disable=no-self-use, unused-argument
         """
         Override this function in a child class if you wish to do something useful with it.
         Will be called from :meth:`.build` right before the call to Vivado.
 
+        Shall return ``True`` upon success and ``False`` upon failure.
+
         Args:
             kwargs: Will have all the :meth:`.build` parameters in it. Including additional parameters
                 from the user.
         """
+        return True
 
-    def post_build(self, **kwargs):
+    def post_build(self, **kwargs):  # pylint: disable=no-self-use, unused-argument
         """
         Override this function in a child class if you wish to do something useful with it.
         Will be called from :meth:`.build` right after the call to Vivado.
 
+        Shall return ``True`` upon success and ``False`` upon failure.
+
         Args:
             kwargs: Will have all the :meth:`.build` parameters in it. Including additional parameters
-                from the user.
+                from the user. Will also include ``build_result`` with implemented/synthesized size,
+                which can be used for asserting the expected resource utilization.
         """
+        return True
 
     def build(self,
               project_path,
@@ -215,10 +222,7 @@ class VivadoProject:
                     This is a "kwargs" style argument. You can pass any number of named arguments.
 
         Return:
-            `dict`: A dictionary with build results. The dictionary contains these fields:
-                - `name`: The name of the build.
-                - `synthesized_size`: A dictionary with the utilization of primitives for the synthesized design.
-                - `implemented_size`: A dictionary with the utilization of primitives for the implemented design.
+            BuildResult: Result object with build information.
         """
         if output_path is None and not synth_only:
             raise ValueError("Must specify output_path when doing an implementation run")
@@ -231,7 +235,11 @@ class VivadoProject:
         # Run index is optional to specify at build-time
         run_index = self.default_run_index if run_index is None else run_index
 
-        # Send all available information to pre- and post build
+        # Make sure register packages are up to date
+        for module in self.modules:
+            module.create_regs_vhdl_package()
+
+        # Send all available information to pre- and post build functions
         pre_and_post_build_parameters.update(
             project_path=project_path,
             output_path=output_path,
@@ -241,11 +249,8 @@ class VivadoProject:
             num_threads=num_threads
         )
 
-        # Make sure register packages are up to date
-        for module in self.modules:
-            module.create_regs_vhdl_package()
-
-        self.pre_build(**pre_and_post_build_parameters)
+        result = BuildResult(self.name)
+        result.success = result.success and self.pre_build(**pre_and_post_build_parameters)
 
         build_vivado_project_tcl = self._build_tcl(project_path=project_path,
                                                    output_path=output_path,
@@ -255,19 +260,20 @@ class VivadoProject:
                                                    synth_only=synth_only)
         run_vivado_tcl(self._vivado_path, build_vivado_project_tcl)
 
-        results = dict()
-        results["name"] = self.name
-        results["synthesized_size"] = self._get_size(project_path, f"synth_{run_index}")
+        result.synthesized_size = self._get_size(project_path, f"synth_{run_index}")
 
         if not synth_only:
-            impl_folder = project_path / (self.name + ".runs") / f"impl_{run_index}"
-            shutil.copy2(impl_folder / (self.top + ".bit"), output_path / (self.name + ".bit"))
-            shutil.copy2(impl_folder / (self.top + ".bin"), output_path / (self.name + ".bin"))
-            results["implemented_size"] = self._get_size(project_path, f"impl_{run_index}")
+            impl_folder = project_path / f"{self.name}.runs" / f"impl_{run_index}"
+            shutil.copy2(impl_folder / f"{self.top}.bit", output_path / f"{self.name}.bit")
+            shutil.copy2(impl_folder / f"{self.top}.bin", output_path / f"{self.name}.bin")
+            result.implemented_size = self._get_size(project_path, f"impl_{run_index}")
 
-        self.post_build(**pre_and_post_build_parameters)
+        # Send result as well to the post-build function
+        pre_and_post_build_parameters.update(build_result=result)
 
-        return results
+        result.success = result.success and self.post_build(**pre_and_post_build_parameters)
+
+        return result
 
     def open(self, project_path):
         """
@@ -284,12 +290,8 @@ class VivadoProject:
         for the specified run.
         """
         utilization_parser = VivadoUtilizationParser()
-        result = dict()
-        file_path = project_path / (self.name + ".runs") / run / "hierarchical_utilization.rpt"
-        with open(file_path) as utilization_report:
-            report_as_string = utilization_report.read()
-            result = utilization_parser.get_size(report_as_string)
-        return result
+        report_as_string = read_file(project_path / f"{self.name}.runs" / run / "hierarchical_utilization.rpt")
+        return utilization_parser.get_size(report_as_string)
 
     def __str__(self):
         result = str(self.__class__.__name__)
@@ -314,3 +316,24 @@ class VivadoNetlistProject(VivadoProject):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.is_netlist_build = True
+
+
+class BuildResult:
+
+    """
+    Attributes:
+        project_name (`str`): The name of the build.
+        success (`bool`): True if the build and all pre- and post hooks succeeded.
+        synthesized_size (`dict`): A dictionary with the utilization of primitives for the synthesized design.
+        implemented_size (`dict`): A dictionary with the utilization of primitives for the implemented design.
+    """
+
+    def __init__(self, name):
+        """
+        Arguments:
+            name (`str`): The name of the build.
+        """
+        self.name = name
+        self.success = True
+        self.synthesized_size = None
+        self.implemented_size = None
