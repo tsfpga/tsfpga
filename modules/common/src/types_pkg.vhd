@@ -15,8 +15,6 @@ package types_pkg is
 
   type boolean_vec_t is array (integer range <>) of boolean;
 
-  type signed_vec_t is array (integer range <>) of signed;
-
   function to_sl(value : boolean) return std_logic;
   function to_bool(value : std_logic) return boolean;
   function to_int(value : boolean) return integer;
