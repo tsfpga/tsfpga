@@ -135,6 +135,7 @@ package axi_pkg is
   type axi_s2m_w_t is record
     ready : std_logic;
   end record;
+  type axi_s2m_w_vec_t is array (integer range <>) of axi_s2m_w_t;
 
   constant axi_s2m_w_init : axi_s2m_w_t := (ready => '0');
 
@@ -183,6 +184,7 @@ package axi_pkg is
   type axi_m2s_r_t is record
     ready : std_logic;
   end record;
+  type axi_m2s_r_vec_t is array (integer range <>) of axi_m2s_r_t;
 
   constant axi_m2s_r_init : axi_m2s_r_t := (ready => '0');
 
