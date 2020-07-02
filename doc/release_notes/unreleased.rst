@@ -5,3 +5,4 @@ Breaking changes
 * Change register definition file from JSON (``regs_<name>.json``) to TOML (``regs_<name>.toml``).
 * Build result, as returned by :meth:`.VivadoProject.build`, is now a :class:`.BuildResult` object instead of a ``dict``.
 * The hooks :meth:`.VivadoProject.pre_build` and :meth:`.VivadoProject.post_build` must now return ``True`` upon success.
+* Rename ``types_pkg.natural_vector`` to ``natural_vec_t`` and ``types_pkg.positive_vector`` to ``positive_vec_t``.

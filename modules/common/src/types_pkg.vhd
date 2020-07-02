@@ -10,8 +10,8 @@ use ieee.std_logic_1164.all;
 package types_pkg is
 
   -- Similar to integer_vector available in VHDL
-  type natural_vector is array (integer range <>) of natural;
-  type positive_vector is array (integer range <>) of positive;
+  type natural_vec_t is array (integer range <>) of natural;
+  type positive_vec_t is array (integer range <>) of positive;
 
   type boolean_vec_t is array (integer range <>) of boolean;
 
