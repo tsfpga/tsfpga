@@ -39,6 +39,8 @@ begin
   main : process
     variable value : signed(5 - 1 downto 0);
     variable value_slv : unsigned(8 - 1 downto 0);
+    constant some_integer_vector : integer_vector(0 to 3) := (-1, 4, 0, -7);
+    variable abs_vector_output : integer_vector(0 to 3);
   begin
     test_runner_setup(runner, runner_cfg);
 
@@ -108,6 +110,16 @@ begin
 
       check_false(is_power_of_two(15));
       check_false(is_power_of_two(17));
+
+    elsif run("abs_vector") then
+      abs_vector_output := abs_vector(some_integer_vector);
+      for idx in some_integer_vector'range loop
+        check_equal(abs_vector_output(idx), abs(some_integer_vector(idx)));
+      end loop;
+
+    elsif run("vector_sum") then
+      check_equal(vector_sum((0, 1, -4)), -3);
+      check_equal(vector_sum((4, 1, 3)), 8);
     end if;
 
     test_runner_cleanup(runner);

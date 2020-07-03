@@ -22,6 +22,9 @@ package math_pkg is
   function to_gray(value : unsigned) return std_logic_vector;
   function from_gray(code : std_logic_vector) return unsigned;
 
+  function abs_vector(vector : integer_vector) return integer_vector;
+  function vector_sum(vector : integer_vector) return integer;
+
 end package;
 
 package body math_pkg is
@@ -97,6 +100,24 @@ package body math_pkg is
       result(bit_num) := result(bit_num + 1) xor code(bit_num);
     end loop;
 
+    return result;
+  end function;
+
+  function abs_vector(vector : integer_vector) return integer_vector is
+    variable result : integer_vector(vector'range);
+  begin
+    for idx in vector'range loop
+      result(idx) := abs(vector(idx));
+    end loop;
+    return result;
+  end function;
+
+  function vector_sum(vector : integer_vector) return integer is
+    variable result : integer := 0;
+  begin
+    for idx in vector'range loop
+      result := result + vector(idx);
+    end loop;
     return result;
   end function;
 
