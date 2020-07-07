@@ -18,6 +18,7 @@ from vunit.color_printer import COLOR_PRINTER
 
 from tsfpga.build_project_list import BuildProjectList
 from tsfpga.system_utils import create_directory, delete
+from tsfpga.vivado_project import BuildResult
 
 from examples.tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
 
@@ -127,8 +128,8 @@ def build(args, project, project_path, output_path):
         project.create(project_path=project_path, ip_cache_path=args.ip_cache_path)
 
     if args.create_only:
-        # No build result available. Return empty dict.
-        return dict()
+        # Return BuildResult object with success, but no sizes.
+        return BuildResult(project.name)
 
     create_directory(output_path, empty=False)
     result = project.build(project_path=project_path,
@@ -143,7 +144,8 @@ def print_results(build_results):
     Print result summary. Return 0 if all passed otherwise non-zero.
     """
     name_length = max([len(build_result.name) for build_result in build_results])
-    separator = "=" * (len("pass") + 1 + name_length)
+    separator_length = max(len("pass") + 1 + name_length, 40)
+    separator = "=" * separator_length
 
     num_pass = 0
     num_fail = 0
