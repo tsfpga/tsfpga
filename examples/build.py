@@ -14,7 +14,7 @@ sys.path.append(str(PATH_TO_TSFPGA))
 PATH_TO_VUNIT = PATH_TO_TSFPGA.parent / "vunit"
 sys.path.append(str(PATH_TO_VUNIT))
 
-from vunit.color_printer import COLOR_PRINTER
+from vunit.color_printer import COLOR_PRINTER, NO_COLOR_PRINTER
 
 from tsfpga.build_project_list import BuildProjectList
 from tsfpga.system_utils import create_directory, delete
@@ -26,6 +26,9 @@ from examples.tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP
 def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
     parser = argparse.ArgumentParser("Create, synth and build an FPGA project",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("--no-color",
+                        action="store_true",
+                        help="disable color in printouts")
     parser.add_argument("--list-only",
                         action="store_true",
                         help="list the available projects")
@@ -120,7 +123,7 @@ def setup_and_run(modules, projects, args):
 
         collect_artifacts(project, output_path)
 
-    return print_results(build_results)
+    return print_results(build_results, args.no_color)
 
 
 def build(args, project, project_path, output_path):
@@ -139,10 +142,14 @@ def build(args, project, project_path, output_path):
     return result
 
 
-def print_results(build_results):
+def print_results(build_results, no_color):
     """
     Print result summary. Return 0 if all passed otherwise non-zero.
     """
+    printer = NO_COLOR_PRINTER if no_color else COLOR_PRINTER
+    green = COLOR_PRINTER.GREEN + COLOR_PRINTER.INTENSITY
+    red = COLOR_PRINTER.RED + COLOR_PRINTER.INTENSITY
+
     name_length = max([len(build_result.name) for build_result in build_results])
     separator_length = max(len("pass") + 1 + name_length, 40)
     separator = "=" * separator_length
@@ -155,10 +162,10 @@ def print_results(build_results):
     for build_result in build_results:
         if build_result.success:
             num_pass += 1
-            COLOR_PRINTER.write("pass", fg=COLOR_PRINTER.GREEN + COLOR_PRINTER.INTENSITY)
+            printer.write("pass", fg=green)
         else:
             num_fail += 1
-            COLOR_PRINTER.write("fail", fg=COLOR_PRINTER.RED + COLOR_PRINTER.INTENSITY)
+            printer.write("fail", fg=red)
 
         print(f" {build_result.name}")
 
@@ -176,18 +183,18 @@ def print_results(build_results):
 
     print(separator)
     if num_pass > 0:
-        COLOR_PRINTER.write("pass", fg=COLOR_PRINTER.GREEN + COLOR_PRINTER.INTENSITY)
+        printer.write("pass", fg=green)
         print(f" {num_pass} of {num_total}")
     if num_fail > 0:
-        COLOR_PRINTER.write("fail", fg=COLOR_PRINTER.RED + COLOR_PRINTER.INTENSITY)
+        printer.write("fail", fg=red)
         print(f" {num_fail} of {num_total}")
 
     print(separator)
     if num_fail == 0:
-        COLOR_PRINTER.write("All passed!", fg=COLOR_PRINTER.GREEN + COLOR_PRINTER.INTENSITY)
+        printer.write("All passed!", fg=green)
         print()
     else:
-        COLOR_PRINTER.write("Some failed!", fg=COLOR_PRINTER.RED + COLOR_PRINTER.INTENSITY)
+        printer.write("Some failed!", fg=red)
         print()
 
     return num_fail
