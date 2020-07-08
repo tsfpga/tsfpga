@@ -27,3 +27,14 @@ class Module(BaseModule):
 
             generics = dict(pipeline_output=pipeline_output)
             tb.add_config(name=name, generics=generics)
+
+        tb = vunit_proj.library(self.library_name).test_bench("tb_resync_cycles")
+        for active_high in [True, False]:
+            generics = dict(active_high=active_high, output_clock_is_faster=True)
+            tb.add_config(name=BaseModule.generics_to_string(generics), generics=generics)
+
+            generics = dict(active_high=active_high)
+            tb.add_config(name=BaseModule.generics_to_string(generics), generics=generics)
+
+            generics = dict(active_high=active_high, output_clock_is_slower=True)
+            tb.add_config(name=BaseModule.generics_to_string(generics), generics=generics)
