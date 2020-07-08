@@ -123,7 +123,9 @@ def setup_and_run(modules, projects, args):
 
         collect_artifacts(project, output_path)
 
-    return print_results(build_results, args.no_color)
+    if build_results:
+        return print_results(build_results, args.no_color)
+    return 0
 
 
 def build(args, project, project_path, output_path):
