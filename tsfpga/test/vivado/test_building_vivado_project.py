@@ -99,7 +99,13 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         constraints = [Constraint(constraint_file)]
 
         modules = get_modules([modules_folder, tsfpga.TSFPGA_MODULES])
-        self.proj = VivadoProject(name="test_proj", modules=modules, part="xc7z020clg400-1", constraints=constraints)
+        self.proj = VivadoProject(
+            name="test_proj",
+            modules=modules,
+            part="xc7z020clg400-1",
+            constraints=constraints,
+            # Faster
+            default_run_index=2)
         self.proj.create(self.project_folder)
 
         self.log_file = self.project_folder / "vivado.log"
@@ -112,14 +118,14 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
     def test_synth_project(self):
         build_result = self.proj.build(self.project_folder, synth_only=True)
         assert build_result.success
-        assert (self.runs_folder / "synth_1" / "hierarchical_utilization.rpt").exists()
+        assert (self.runs_folder / "synth_2" / "hierarchical_utilization.rpt").exists()
 
     def test_synth_should_fail_if_source_code_does_not_compile(self):
         create_file(self.top_file, "garbage\napa\nhest")
 
         with pytest.raises(CalledProcessError):
             self.proj.build(self.project_folder, synth_only=True)
-        assert file_contains_string(self.log_file, "\nERROR: Run synth_1 failed.")
+        assert file_contains_string(self.log_file, "\nERROR: Run synth_2 failed.")
 
     def test_synth_with_assert_false_should_fail(self):
         assert_false = """
@@ -137,7 +143,7 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
 
         assert (self.project_folder / (self.proj.name + ".bit")).exists()
         assert (self.project_folder / (self.proj.name + ".bin")).exists()
-        assert (self.runs_folder / "impl_1" / "hierarchical_utilization.rpt").exists()
+        assert (self.runs_folder / "impl_2" / "hierarchical_utilization.rpt").exists()
 
         # Sanity check some of the build result
         assert build_result.success
@@ -183,4 +189,23 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
             self.proj.build(self.project_folder, self.project_folder)
         assert file_contains_string(self.log_file, "\nERROR: Timing not OK after implementation run.")
 
-        assert (self.runs_folder / "impl_1" / "timing_summary.rpt").exists()
+        assert (self.runs_folder / "impl_2" / "timing_summary.rpt").exists()
+
+    def test_build_with_unhandled_clock_crossing_should_fail(self):
+        bad_resync = """
+  pipe_output : process
+  begin
+    wait until rising_edge(clk_out);
+    output <= input_p1;
+  end process;"""
+
+        top = self.top_template.format(code_block=bad_resync)
+        create_file(self.top_file, top)
+
+        with pytest.raises(CalledProcessError):
+            self.proj.build(self.project_folder, self.project_folder)
+        assert file_contains_string(self.log_file, "\nERROR: Unhandled clock crossing in synth_2 run.")
+
+        assert (self.runs_folder / "synth_2" / "hierarchical_utilization.rpt").exists()
+        assert (self.runs_folder / "synth_2" / "timing_summary.rpt").exists()
+        assert (self.runs_folder / "synth_2" / "clock_interaction.rpt").exists()

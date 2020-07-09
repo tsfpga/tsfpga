@@ -200,7 +200,15 @@ class VivadoTcl:
 
         return tcl
 
-    def build(self, project_file, output_path, num_threads, run_index, generics=None, synth_only=False):
+    def build(
+            self,
+            project_file,
+            output_path,
+            num_threads,
+            run_index,
+            generics=None,
+            synth_only=False,
+            analyze_clock_interaction=True):
         # Max value in Vivado 2017.4. set_param will give an error if higher number.
         num_threads = min(num_threads, 8)
 
@@ -212,7 +220,7 @@ class VivadoTcl:
         tcl += "\n"
         tcl += self._add_generics(generics)
         tcl += "\n"
-        tcl += self._synthesis(synth_run, num_threads)
+        tcl += self._synthesis(synth_run, num_threads, analyze_clock_interaction)
         tcl += "\n"
         if not synth_only:
             tcl += self._run(impl_run, num_threads, to_step="write_bitstream")
@@ -222,27 +230,25 @@ class VivadoTcl:
         tcl += "exit\n"
         return tcl
 
-    def _synthesis(self, run, num_threads):
+    def _synthesis(self, run, num_threads, analyze_clock_interaction):
         tcl = self._run(run, num_threads)
-        tcl += "\n"
-        tcl += f"open_run {run}\n"
-        tcl += f"set run_directory [get_property DIRECTORY [get_runs {run}]]\n"
-        tcl += "\n"
-        tcl += "set output_file [file join ${run_directory} \"hierarchical_utilization.rpt\"]\n"
-        tcl += "report_utilization -hierarchical -hierarchical_depth 4 -file ${output_file}\n"
-        tcl += "\n"
-        tcl += r"if {[regexp {\(unsafe\)} [report_clock_interaction -delay_type min_max -return_string]]} "
-        tcl += "{\n"
-        tcl += f"  puts \"ERROR: Unhandled clock crossing in {run} run. See reports in ${{run_directory}}\"\n"
-        tcl += "\n"
-        tcl += "  set output_file [file join ${run_directory} \"clock_interaction.rpt\"]\n"
-        tcl += "  report_clock_interaction -delay_type min_max -file ${output_file}\n"
-        tcl += "\n"
-        tcl += "  set output_file [file join ${run_directory} \"timing_summary.rpt\"]\n"
-        tcl += "  report_timing_summary -file ${output_file}\n"
-        tcl += "\n"
-        tcl += "  exit 1\n"
-        tcl += "}\n"
+        if analyze_clock_interaction:
+            tcl += "\n"
+            tcl += f"open_run {run}\n"
+            tcl += f"set run_directory [get_property DIRECTORY [get_runs {run}]]\n"
+            tcl += "\n"
+            tcl += r"if {[regexp {\(unsafe\)} [report_clock_interaction -delay_type min_max -return_string]]} "
+            tcl += "{\n"
+            tcl += f"  puts \"ERROR: Unhandled clock crossing in {run} run. See reports in ${{run_directory}}\"\n"
+            tcl += "\n"
+            tcl += "  set output_file [file join ${run_directory} \"clock_interaction.rpt\"]\n"
+            tcl += "  report_clock_interaction -delay_type min_max -file ${output_file}\n"
+            tcl += "\n"
+            tcl += "  set output_file [file join ${run_directory} \"timing_summary.rpt\"]\n"
+            tcl += "  report_timing_summary -file ${output_file}\n"
+            tcl += "\n"
+            tcl += "  exit 1\n"
+            tcl += "}\n"
         return tcl
 
     @staticmethod

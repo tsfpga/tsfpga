@@ -63,8 +63,10 @@ class VivadoProject:
         self.constraints = constraints
         self.default_run_index = default_run_index
         self.defined_at = defined_at
+
         # Will be set by child class when applicable
         self.is_netlist_build = False
+        self.analyze_clock_interaction = True
 
         self.top = name + "_top" if top is None else top
         self._vivado_path = vivado_path
@@ -86,8 +88,13 @@ class VivadoProject:
     def _setup_build_step_hooks(self, build_step_hooks_from_user):
         # Lists are immutable. Since we assign and modify this one we have to copy it.
         self.build_step_hooks = [] if build_step_hooks_from_user is None else build_step_hooks_from_user.copy()
-        self.build_step_hooks.append(BuildStepTclHook(TSFPGA_TCL / "vivado_impl_post.tcl",
-                                                      "STEPS.WRITE_BITSTREAM.TCL.PRE"))
+
+        self.build_step_hooks.append(BuildStepTclHook(
+            TSFPGA_TCL / "vivado_report_utilization.tcl", "STEPS.SYNTH_DESIGN.TCL.POST"))
+        self.build_step_hooks.append(BuildStepTclHook(
+            TSFPGA_TCL / "vivado_report_utilization.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE"))
+        self.build_step_hooks.append(BuildStepTclHook(
+            TSFPGA_TCL / "vivado_check_timing.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE"))
 
     def project_file(self, project_path):
         """
@@ -161,7 +168,8 @@ class VivadoProject:
             num_threads=num_threads,
             run_index=run_index,
             generics=all_generics,
-            synth_only=synth_only
+            synth_only=synth_only,
+            analyze_clock_interaction=self.analyze_clock_interaction
         )
         create_file(build_vivado_project_tcl, tcl)
 
@@ -313,9 +321,21 @@ class VivadoNetlistProject(VivadoProject):
     Used for handling Vivado build of a module without top level pinning.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(
+            self,
+            analyze_clock_interaction=True,
+            **kwargs):
+        """
+        Args:
+            analyze_clock_interaction (bool): Can optionally disable the check for unhandled
+                clock crossings. If this netlist build only has one clock domain the build
+                can be significantly sped up by disabling this feature.
+            kwargs: Other arguments accepted by :meth:`.VivadoProject.__init__`.
+        """
         super().__init__(**kwargs)
+
         self.is_netlist_build = True
+        self.analyze_clock_interaction = analyze_clock_interaction
 
 
 class BuildResult:

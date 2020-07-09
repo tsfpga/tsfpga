@@ -177,6 +177,8 @@ top level FPGA builds and netlist builds can be listed and built separately.
 .. autoclass:: tsfpga.vivado_project.VivadoNetlistProject()
     :members:
 
+    .. automethod:: __init__
+
 
 
 Build result
