@@ -101,7 +101,7 @@ def setup_and_run(modules, projects, args):
 
     if not args.project_filters:
         print("Must explicitly select builds. Available projects are:")
-        print(projects.list_projects(args.project_filters))
+        print(projects.list_projects(args.project_filters, args.netlist_builds))
         return -1
 
     build_results = []
