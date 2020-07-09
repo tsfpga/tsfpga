@@ -270,7 +270,7 @@ class VivadoProject:
 
         result.synthesis_size = self._get_size(project_path, f"synth_{run_index}")
 
-        if not synth_only:
+        if not (synth_only or self.is_netlist_build):
             impl_folder = project_path / f"{self.name}.runs" / f"impl_{run_index}"
             shutil.copy2(impl_folder / f"{self.top}.bit", output_path / f"{self.name}.bit")
             shutil.copy2(impl_folder / f"{self.top}.bin", output_path / f"{self.name}.bin")
