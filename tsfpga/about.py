@@ -40,4 +40,4 @@ The project is mature and used in many production environments.
 License
 -------
 
-This project is released under the terms of the BSD 3-Clause License. See ``license.txt`` for details."""
+This project is released under the terms of the BSD 3-Clause License. See ``license.txt`` for details.\n"""

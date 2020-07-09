@@ -26,6 +26,28 @@ def test_all_checked_in_files_are_properly_encoded():
         open_file_with_encoding(file)
 
 
+def check_file_ends_with_newline(file):
+    test_ok = True
+    with file.open() as file_handle:
+        file_data = file_handle.read()
+        if len(file_data) != 0:
+            if file_data[-1] != "\n":
+                print(f"File {file} didn't end with newline")
+                test_ok = False
+    return test_ok
+
+
+def test_all_checked_in_files_end_with_newline():
+    """
+    All checked in non-empty files should end with a UNIX style line break (\n).
+    Otherwise UNIX doesn't consider them actual text files.
+    """
+    test_ok = True
+    for file in files_to_test():
+        test_ok &= check_file_ends_with_newline(file)
+    assert test_ok
+
+
 def check_file_for_tab_character(file):
     test_ok = True
     with file.open() as file_handle:
