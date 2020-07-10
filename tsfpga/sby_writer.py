@@ -15,13 +15,13 @@ class SbyWriter:
             top,
             generics,
             formal_settings,
-            compilation_outputs,
+            compiled_libraries,
             src_files):
         """
         Create Symbiyosys script. This script will run ghdl --synth
         """
 
-        p_args = [f"-P{compilation_output}" for compilation_output in compilation_outputs]
+        p_args = [f"-P{compiled_library}" for compiled_library in compiled_libraries]
         g_args = []
         for key in iter(generics):
             g_args.append("-g" + str(key) + "=" + str(generics[key]))

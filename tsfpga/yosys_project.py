@@ -2,9 +2,10 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-import subprocess
 from os import makedirs
 from os.path import exists
+
+from vunit.ostools import Process
 
 from tsfpga.sby_writer import SbyWriter
 
@@ -17,17 +18,15 @@ class YosysProject:
 
     def __init__(
             self,
-            modules,
             top=None,
             generics=None,
             formal_settings=None,
     ):
-        self.modules = modules
         self.top = top
         self.generics = generics
         self.formal_settings = formal_settings
 
-    def run_formal(self, project_path, src_files, compilation_outputs):
+    def run_formal(self, project_path, src_files, compiled_libraries):
         if not exists(project_path):
             makedirs(project_path)
 
@@ -37,8 +36,16 @@ class YosysProject:
             self.top,
             self.generics,
             self.formal_settings,
-            compilation_outputs,
+            compiled_libraries,
             src_files)
 
         sby_cmd = ["sby", "--yosys", "yosys -m ghdl", "-f", str(run_symbiyosys_sby)]
-        return subprocess.call(sby_cmd)
+
+        try:
+            proc = Process(sby_cmd)
+            proc.consume_output()
+            status = True
+        except Process.NonZeroExitCode:
+            status = False
+
+        return status

@@ -2,7 +2,8 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 # @eine has made a docker image that runs smoothly, run for example with:
-#   docker run --rm --interactive --tty --volume ~/work/repo:/repo --workdir /repo/tsfpga ghdl/synth:formal /bin/bash
+#   docker run --rm --interactive --tty --volume $(pwd)/..:$(pwd)/.. --workdir $(pwd) ghdl/synth:formal /bin/bash
+#   apt update && apt install -y python3-pip && python3 -m pip install toml colorama
 #   python3 examples/formal.py
 # ------------------------------------------------------------------------------
 
@@ -30,6 +31,21 @@ def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
                         type=Path,
                         default=default_temp_dir / "formal_project",
                         help="the formal project will be placed here")
+    parser.add_argument("test_filters",
+                        nargs="*",
+                        default="*",
+                        help="Tests to run")
+    parser.add_argument("--num-threads",
+                        type=int,
+                        default=8,
+                        help="number of threads to use when building project")
+    parser.add_argument("--verbose",
+                        action="store_true",
+                        help="print all build output, even if the run is successful")
+    parser.add_argument("--quiet",
+                        action="store_true",
+                        help="do not print any build output, even if the run has failed")
+
     args = parser.parse_args()
 
     return args
@@ -45,10 +61,17 @@ def main():
         module.setup_formal(formal_project)
 
     if args.list_only:
-        formal_project.list_tests()
+        formal_project.list_tests(args.test_filters)
         return
 
-    formal_project.run()
+    all_build_ok = formal_project.run(
+        num_threads=args.num_threads,
+        verbose=args.verbose,
+        quiet=args.quiet,
+        test_filters=args.test_filters)
+
+    if not all_build_ok:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
