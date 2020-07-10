@@ -53,3 +53,13 @@ class Module(BaseModule):
 
     def add_config(self, test, generics):
         test.add_config(self.generics_to_string(generics), generics)
+
+    def setup_formal(self, formal_proj, **kwargs):
+        depth = 4
+        for (almost_full_level, almost_empty_level) in [(depth - 1, 0), (depth, 1)]:
+            generics = dict(
+                width=3,
+                depth=depth,
+                almost_full_level=almost_full_level,
+                almost_empty_level=almost_empty_level)
+            formal_proj.add_config(top="fifo", generics=generics)

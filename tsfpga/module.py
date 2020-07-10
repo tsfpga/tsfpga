@@ -152,6 +152,15 @@ class BaseModule:
                 location of test files, etc.
         """
 
+    def setup_formal(self, formal_proj, **kwargs):
+        """
+        Setup this module's formal tests.
+
+        .. Note::
+            This default method does nothing. Should be overridden by modules that
+            utilize formal verification.
+        """
+
     def get_ip_core_files(self):
         """
         Return:

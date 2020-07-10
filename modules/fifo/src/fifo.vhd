@@ -157,4 +157,34 @@ begin
     end process;
   end block;
 
+
+  ------------------------------------------------------------------------------
+  psl_block : block
+  begin
+    -- psl default clock is rising_edge (clk);
+    --
+    -- After a write, read_valid should be high after two cycles
+    -- psl assert always
+    --       (write_valid and write_ready) |=> next[1] (read_valid);
+    --
+    -- After a read, write_ready should be high after one cycle
+    -- psl assert always
+    --       (read_valid and read_ready) |=> (write_ready);
+    --
+    -- If read_valid taken high, it must remain so until
+    -- read_ready was high as well high.
+    -- psl assert always
+    --       (read_valid) |-> (read_valid) until (read_ready);
+
+    -- The formal verification flow doesn't handle generics very well, so the
+    -- check below is only done if the depth is 4.
+    gen_if_depth_4 : if depth = 4 generate
+    begin
+      -- Check that write_ready is deasserted after 4 consecutive writes
+      -- without reads.
+      -- psl assert always
+      --       {(write_valid and not read_ready)}[*4] |=> (not write_ready);
+    end generate;
+  end block;
+
 end architecture;
