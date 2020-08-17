@@ -2,8 +2,8 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from tsfpga.vivado_simlib_ghdl import VivadoSimlibGhdl
-from tsfpga.vivado_simlib_commercial import VivadoSimlibCommercial
+from .simlib_commercial import VivadoSimlibCommercial
+from .simlib_ghdl import VivadoSimlibGhdl
 
 
 class VivadoSimlib:

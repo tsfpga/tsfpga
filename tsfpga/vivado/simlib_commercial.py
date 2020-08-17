@@ -6,8 +6,8 @@ import hashlib
 from pathlib import Path
 
 from tsfpga.system_utils import create_file
-from tsfpga.vivado_simlib_common import VivadoSimlibCommon
-from tsfpga.vivado_utils import get_vivado_path, run_vivado_tcl, to_tcl_path
+from .common import get_vivado_path, run_vivado_tcl, to_tcl_path
+from .simlib_common import VivadoSimlibCommon
 
 
 class VivadoSimlibCommercial(VivadoSimlibCommon):

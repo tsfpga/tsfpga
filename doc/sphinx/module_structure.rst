@@ -126,7 +126,7 @@ Scoped constraints
 ------------------
 
 Scoped constraints are constraint files that are applied in Vivado relative to a certain entity.
-This is handled in :meth:`build projects <tsfpga.vivado_project.VivadoProject>` using the :meth:`Constraint <tsfpga.constraint.Constraint>` class.
+This is handled in :meth:`build projects <tsfpga.vivado.project.VivadoProject>` using the :meth:`Constraint <tsfpga.constraint.Constraint>` class.
 Constraint files in the ``scoped_constraints`` directory will be automatically added to :ref:`build projects <build>` as scoped constraints.
 
 The name of a scoped constraint file must be the same as the entity name and source file name.

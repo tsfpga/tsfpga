@@ -31,7 +31,7 @@ pytest:
     - python3 -m pip install --requirement requirements_develop.txt > /dev/null
     - python3 -m pylint --version
     - python3 -m pycodestyle --version
-    - python3 -m pytest -v --cov tsfpga --cov-report xml:generated/python_coverage.xml --cov-report html:generated/python_coverage_html --ignore=tsfpga/test/vivado/ tsfpga/
+    - python3 -m pytest -v --cov tsfpga --cov-report xml:generated/python_coverage.xml --cov-report html:generated/python_coverage_html --ignore=tests/vivado tests
   artifacts:
     paths:
       - generated/python_coverage.xml

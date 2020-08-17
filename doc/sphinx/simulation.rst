@@ -122,7 +122,7 @@ Vivado simulation libraries
 Compiled Vivado simulation libraries (unisim, xpm, etc.) are often need in the simulation project.
 The ``VivadoSimlib`` class provides an easy interface for handling simlib.
 
-.. autoclass:: tsfpga.vivado_simlib.VivadoSimlib()
+.. autoclass:: tsfpga.vivado.simlib.VivadoSimlib()
     :members:
 
 There are different implementations depending on the simulator currently in use.
@@ -132,7 +132,7 @@ For GHDL the implementation contains hard coded ghdl compile calls of the needed
 All implementations are interface compatible with the :class:`.VivadoSimlibCommon` class.
 They will only do a recompile when necessary (new Vivado or simulator version, etc.).
 
-.. autoclass:: tsfpga.vivado_simlib_common.VivadoSimlibCommon()
+.. autoclass:: tsfpga.vivado.simlib_common.VivadoSimlibCommon()
     :members:
 
 Adding simlib to a simulation project using this class is achieved by simply doing:
@@ -140,7 +140,7 @@ Adding simlib to a simulation project using this class is achieved by simply doi
 .. code-block:: python
     :caption: Adding simlib to the simulation project in ``simulate.py``.
 
-    from tsfpga.vivado_simlib import VivadoSimlib
+    from tsfpga.vivado.simlib import VivadoSimlib
 
     ...
 
@@ -173,7 +173,7 @@ This project shall then be used to generate the simulation models for the IP cor
 .. note::
     The :ref:`folder structure <ip_cores_folder>` must be followed for this to work.
 
-.. autoclass:: tsfpga.vivado_ip_cores.VivadoIpCores()
+.. autoclass:: tsfpga.vivado.ip_cores.VivadoIpCores()
     :members:
 
     .. automethod:: __init__
@@ -183,7 +183,7 @@ Adding IP cores to a simulation project can be done like this:
 .. code-block:: python
     :caption: Adding Vivado IP cores to a simulation project in ``simulate.py``.
 
-    from tsfpga.vivado_ip_cores import VivadoIpCores
+    from tsfpga.vivado.ip_cores import VivadoIpCores
     from vunit.vivado.vivado import create_compile_order_file, add_from_compile_order_file
 
     ...

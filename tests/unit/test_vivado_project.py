@@ -5,7 +5,7 @@
 import pytest
 
 from tsfpga.system_utils import create_directory
-from tsfpga.vivado_project import VivadoProject
+from tsfpga.vivado.project import VivadoProject
 
 
 def test_create_should_raise_exception_if_project_path_already_exists(tmp_path):

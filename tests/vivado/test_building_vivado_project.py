@@ -12,8 +12,8 @@ import tsfpga
 from tsfpga.constraint import Constraint
 from tsfpga.module import get_modules
 from tsfpga.system_utils import create_file, run_command
-from tsfpga.test import file_contains_string
-from tsfpga.vivado_project import VivadoProject
+from tsfpga.vivado.project import VivadoProject
+from tests import file_contains_string
 
 
 def test_building_artyz7_project(tmp_path):

@@ -6,9 +6,9 @@ import re
 import subprocess
 from pathlib import Path
 
-from tsfpga.vivado_utils import get_vivado_path
 from tsfpga.system_utils import create_directory
-from tsfpga.vivado_simlib_common import VivadoSimlibCommon
+from .common import get_vivado_path
+from .simlib_common import VivadoSimlibCommon
 
 
 class VivadoSimlibGhdl(VivadoSimlibCommon):

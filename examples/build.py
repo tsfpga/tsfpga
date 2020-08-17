@@ -18,7 +18,7 @@ from vunit.color_printer import COLOR_PRINTER, NO_COLOR_PRINTER
 
 from tsfpga.build_project_list import BuildProjectList
 from tsfpga.system_utils import create_directory, delete
-from tsfpga.vivado_project import BuildResult
+from tsfpga.vivado.project import BuildResult
 
 from examples.tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
 

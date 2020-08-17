@@ -16,7 +16,7 @@ REPO_ROOT = (THIS_DIR / "..").resolve()
 TSFPGA_PATH = REPO_ROOT / "tsfpga"
 TSFPGA_DOC = REPO_ROOT / "doc"
 TSFPGA_MODULES = REPO_ROOT / "modules"
-TSFPGA_TCL = THIS_DIR / "tcl"
+TSFPGA_TCL = THIS_DIR / "vivado" / "tcl"
 TSFPGA_GENERATED = REPO_ROOT / "generated"
 
 TSFPGA_EXAMPLES = REPO_ROOT / "examples"

@@ -3,8 +3,8 @@
 # ------------------------------------------------------------------------------
 
 from tsfpga.system_utils import create_file
-from tsfpga.test import file_equals
 from tsfpga.fix_lint import fix_trailing_whitespace, fix_tabs
+from tests import file_equals
 
 
 def test_fix_trailing_whitespace(tmp_path):

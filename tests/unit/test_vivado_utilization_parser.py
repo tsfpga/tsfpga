@@ -2,7 +2,7 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from tsfpga.vivado_utilization_parser import VivadoUtilizationParser
+from tsfpga.vivado.utilization_parser import VivadoUtilizationParser
 
 
 def test_get_size():

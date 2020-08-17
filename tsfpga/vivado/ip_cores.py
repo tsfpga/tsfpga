@@ -5,7 +5,7 @@
 import hashlib
 
 from tsfpga.system_utils import create_file, delete, read_file
-from tsfpga.vivado_project import VivadoProject
+from .project import VivadoProject
 
 
 class VivadoIpCores:

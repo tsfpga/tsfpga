@@ -6,7 +6,7 @@ from pathlib import Path
 
 from tsfpga.constraint import Constraint
 from tsfpga.module import BaseModule
-from tsfpga.vivado_project import VivadoProject
+from tsfpga.vivado.project import VivadoProject
 
 from examples.tsfpga_example_env import get_tsfpga_modules
 

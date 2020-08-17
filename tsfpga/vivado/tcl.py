@@ -2,8 +2,8 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from tsfpga.vivado_utils import to_tcl_path
 from tsfpga.system_utils import create_file
+from .common import to_tcl_path
 
 
 class VivadoTcl:

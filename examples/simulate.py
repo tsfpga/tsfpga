@@ -17,9 +17,9 @@ from vunit.vivado.vivado import create_compile_order_file, add_from_compile_orde
 
 import tsfpga
 import tsfpga.create_vhdl_ls_config
-from tsfpga.vivado_ip_cores import VivadoIpCores
-from tsfpga.vivado_simlib import VivadoSimlib
 from tsfpga.system_utils import create_directory
+from tsfpga.vivado.ip_cores import VivadoIpCores
+from tsfpga.vivado.simlib import VivadoSimlib
 
 from examples.tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
 

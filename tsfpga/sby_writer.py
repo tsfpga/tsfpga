@@ -2,6 +2,7 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
+
 class SbyWriter:
     """
     Writes a Symbioyosys script file

@@ -11,9 +11,9 @@ import pytest
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
 from tsfpga.module import get_modules
 from tsfpga.system_utils import create_file
-from tsfpga.vivado_tcl import VivadoTcl
-from tsfpga.vivado_utils import to_tcl_path
-from tsfpga.test.test_utils import file_contains_string
+from tsfpga.vivado.common import to_tcl_path
+from tsfpga.vivado.tcl import VivadoTcl
+from tests import file_contains_string
 
 
 def test_set_create_run_index():

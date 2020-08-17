@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from tsfpga.vivado_simlib import VivadoSimlib
+from tsfpga.vivado.simlib import VivadoSimlib
 
 
 @pytest.mark.usefixtures("fixture_tmp_path")
@@ -59,14 +59,14 @@ class TestVivadoSimlibCommercial(TestCase):
     @staticmethod
     def assert_should_compile(vivado_simlib):
         assert vivado_simlib.compile_is_needed
-        with patch("tsfpga.vivado_simlib_commercial.run_vivado_tcl", autospec=True) as mock:
+        with patch("tsfpga.vivado.simlib_commercial.run_vivado_tcl", autospec=True) as mock:
             vivado_simlib.compile_if_needed()
             mock.assert_called_once()
 
     @staticmethod
     def assert_should_not_compile(vivado_simlib):
         assert not vivado_simlib.compile_is_needed
-        with patch("tsfpga.vivado_simlib_commercial.run_vivado_tcl", autospec=True) as mock:
+        with patch("tsfpga.vivado.simlib_commercial.run_vivado_tcl", autospec=True) as mock:
             vivado_simlib.compile_if_needed()
             mock.assert_not_called()
 
@@ -87,7 +87,7 @@ class TestVivadoSimlibGhdl(TestCase):
         self.vivado_simlib = self.get_vivado_simlib()
 
     def get_vivado_simlib(self, ghdl_version_string="GHDL 0.36 ..."):
-        with patch("tsfpga.vivado_simlib_ghdl.subprocess.check_output") as check_output:
+        with patch("tsfpga.vivado.simlib_ghdl.subprocess.check_output") as check_output:
             check_output.return_value = ghdl_version_string.encode("UTF-8")
 
             simulator_class = MagicMock()
@@ -124,13 +124,13 @@ class TestVivadoSimlibGhdl(TestCase):
     @staticmethod
     def assert_should_compile(vivado_simlib):
         assert vivado_simlib.compile_is_needed
-        with patch("tsfpga.vivado_simlib_ghdl.VivadoSimlibGhdl._compile", autospec=True) as mock:
+        with patch("tsfpga.vivado.simlib_ghdl.VivadoSimlibGhdl._compile", autospec=True) as mock:
             vivado_simlib.compile_if_needed()
             mock.assert_called_once()
 
     @staticmethod
     def assert_should_not_compile(vivado_simlib):
         assert not vivado_simlib.compile_is_needed
-        with patch("tsfpga.vivado_simlib_ghdl.VivadoSimlibGhdl._compile", autospec=True) as mock:
+        with patch("tsfpga.vivado.simlib_ghdl.VivadoSimlibGhdl._compile", autospec=True) as mock:
             vivado_simlib.compile_if_needed()
             mock.assert_not_called()

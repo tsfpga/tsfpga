@@ -6,10 +6,10 @@ import shutil
 
 from tsfpga import TSFPGA_TCL
 from tsfpga.system_utils import create_file, read_file
-from tsfpga.vivado_utilization_parser import VivadoUtilizationParser
-from tsfpga.vivado_tcl import VivadoTcl
-from tsfpga.vivado_utils import run_vivado_tcl, run_vivado_gui
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
+from .tcl import VivadoTcl
+from .utilization_parser import VivadoUtilizationParser
+from .common import run_vivado_tcl, run_vivado_gui
 
 
 class VivadoProject:
@@ -344,8 +344,10 @@ class BuildResult:
     Attributes:
         project_name (`str`): The name of the build.
         success (`bool`): True if the build and all pre- and post hooks succeeded.
-        synthesis_size (`dict`): A dictionary with the utilization of primitives for the synthesized design.
-        implementation_size (`dict`): A dictionary with the utilization of primitives for the implemented design.
+        synthesis_size (`dict`): A dictionary with the utilization of primitives for the
+            synthesized design. Will be ``None`` if synthesis failed or did not run.
+        implementation_size (`dict`): A dictionary with the utilization of primitives for
+            the implemented design. Will be ``None`` if implementation failed or did not run.
     """
 
     def __init__(self, name):

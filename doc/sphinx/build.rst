@@ -21,7 +21,7 @@ Vivado project class
 Build projects targetting Xilinx Vivado are represented using this class.
 Continue reading this page for explanations on how to use it and the different parameters.
 
-.. autoclass:: tsfpga.vivado_project.VivadoProject()
+.. autoclass:: tsfpga.vivado.project.VivadoProject()
     :members:
 
     .. automethod:: __init__
@@ -174,7 +174,7 @@ The only real difference from the base class :class:`.VivadoProject` is that
 IO buffers are not included and no pinning is needed. By separating these builds into separate classes,
 top level FPGA builds and netlist builds can be listed and built separately.
 
-.. autoclass:: tsfpga.vivado_project.VivadoNetlistProject()
+.. autoclass:: tsfpga.vivado.project.VivadoNetlistProject()
     :members:
 
     .. automethod:: __init__
@@ -184,7 +184,7 @@ top level FPGA builds and netlist builds can be listed and built separately.
 Build result
 ------------
 
-.. autoclass:: tsfpga.vivado_project.BuildResult()
+.. autoclass:: tsfpga.vivado.project.BuildResult()
     :members:
 
     .. automethod:: __init__

@@ -35,6 +35,7 @@ Register examples
 Example register code generation from the `ddr_buffer example module <https://gitlab.com/tsfpga/tsfpga/-/tree/master/examples/modules/ddr_buffer>`__.
 
 
+.. _toml_file:
 
 TOML file
 _________
