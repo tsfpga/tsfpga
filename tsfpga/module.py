@@ -210,14 +210,32 @@ class BaseModule:
         return []
 
     @staticmethod
-    def generics_to_string(generics):
+    def test_case_name(name=None, generics=None):
         """
-        Pack generics in a string. Useful for naming test cases and build projects.
+        Costruct a string suitable for naming test cases.
 
-        Args:
-            generics (dict): Generic values to be packed.
+        Example result: MyName.GenericA_ValueA.GenericB_ValueB
         """
-        return ".".join([f"{key}_{value}" for key, value in generics.items()])
+        if name:
+            test_case_name = name
+        else:
+            test_case_name = ""
+
+        if generics:
+            generics_string = ".".join([f"{key}_{value}" for key, value in generics.items()])
+            if test_case_name:
+                test_case_name = f"{name}.{generics_string}"
+            else:
+                test_case_name = generics_string
+
+        return test_case_name
+
+    def add_config(self, test, name=None, generics=None):
+        """
+        Add config for VUnit test case. Wrapper that sets a suitable name.
+        """
+        name = self.test_case_name(name, generics)
+        test.add_config(name=name, generics=generics)
 
     def __str__(self):
         return f"{self.name}:{self.path}"

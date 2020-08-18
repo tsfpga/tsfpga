@@ -66,8 +66,11 @@ def test_can_cast_to_string_without_error():
     str(BaseModule(Path("dummy"), "dummy"))
 
 
-def test_generics_to_string():
-    assert BaseModule.generics_to_string(dict(apa=3, hest_zebra="foo")) == "apa_3.hest_zebra_foo"
+def test_test_case_name():
+    assert BaseModule.test_case_name(
+        generics=dict(apa=3, hest_zebra="foo")) == "apa_3.hest_zebra_foo"
+    assert BaseModule.test_case_name(
+        name="foo", generics=dict(apa=3, hest_zebra="bar")) == "foo.apa_3.hest_zebra_bar"
 
 
 @pytest.mark.usefixtures("fixture_tmp_path")

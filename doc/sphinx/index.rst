@@ -4,7 +4,8 @@
     :hidden:
 
     simulation
-    build
+    fpga_build
+    netlist_build
     module_structure
     registers
     contributing

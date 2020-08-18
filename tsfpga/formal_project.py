@@ -27,9 +27,8 @@ class FormalConfig:
         self.formal_settings = dict(engine_command=engine_command, mode=mode, depth=depth)
 
     @property
-    def testname(self):
-        generics_part_of_name = BaseModule.generics_to_string(self.generics)
-        return f"{self.top}.{generics_part_of_name}"
+    def test_name(self):
+        return BaseModule.test_case_name(self.top, self.generics)
 
 
 class FormalProject:
@@ -47,7 +46,7 @@ class FormalProject:
         print(80 * "=")
         print("Available tests:")
         for config in self.config_list:
-            print(config.testname)
+            print(config.test_name)
         print(80 * "=")
 
     def run(self):
@@ -84,7 +83,7 @@ class FormalProject:
                 formal_settings=config.formal_settings
             )
 
-            yosys_project_path = self.project_path / config.testname
+            yosys_project_path = self.project_path / config.test_name
             result += project.run_formal(
                 project_path=yosys_project_path,
                 src_files=src_files,

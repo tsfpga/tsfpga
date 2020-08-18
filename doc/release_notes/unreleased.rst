@@ -1,3 +1,7 @@
+Added
+
+* Add automatic size checkers for netlist builds: :ref:`size_checkers`.
+
 Breaking changes
 
 * Change address types (in ``axi_pkg``, ``axil_pkg`` and ``addr_pkg``) to be ``unsigned`` rather than ``std_logic_vector``.

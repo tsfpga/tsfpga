@@ -121,7 +121,8 @@ def setup_and_run(modules, projects, args):
         if args.create_only or args.synth_only:
             continue
 
-        collect_artifacts(project, output_path)
+        if not project.is_netlist_build:
+            collect_artifacts(project, output_path)
 
     if build_results:
         return print_results(build_results, args.no_color)
@@ -225,14 +226,14 @@ def generate_registers(modules, output_path):
 
 def collect_artifacts(project, output_path):
     version = "0.0.0.0"
-    release_dir = create_directory(output_path / (project.name + "-" + version), empty=True)
+    release_dir = create_directory(output_path / f"{project.name}-{version}", empty=True)
     print(f"Creating release in {release_dir.resolve()}.zip")
 
     generate_registers(project.modules, release_dir / "registers")
-    copy2(output_path / (project.name + ".bit"), release_dir)
-    copy2(output_path / (project.name + ".bin"), release_dir)
-    if (output_path / (project.name + ".xsa")).exists():
-        copy2(output_path / (project.name + ".xsa"), release_dir)
+    copy2(output_path / f"{project.name }.bit", release_dir)
+    copy2(output_path / f"{project.name}.bin", release_dir)
+    if (output_path / f"{project.name}.xsa").exists():
+        copy2(output_path / f"{project.name}.xsa", release_dir)
 
     make_archive(release_dir, "zip", release_dir)
 

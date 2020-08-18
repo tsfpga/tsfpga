@@ -7,9 +7,9 @@ import shutil
 from tsfpga import TSFPGA_TCL
 from tsfpga.system_utils import create_file, read_file
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
-from .tcl import VivadoTcl
-from .utilization_parser import VivadoUtilizationParser
 from .common import run_vivado_tcl, run_vivado_gui
+from .size_checker import UtilizationParser
+from .tcl import VivadoTcl
 
 
 class VivadoProject:
@@ -232,6 +232,8 @@ class VivadoProject:
         Return:
             BuildResult: Result object with build information.
         """
+        synth_only = synth_only or self.is_netlist_build
+
         if output_path is None and not synth_only:
             raise ValueError("Must specify output_path when doing an implementation run")
 
@@ -270,7 +272,7 @@ class VivadoProject:
 
         result.synthesis_size = self._get_size(project_path, f"synth_{run_index}")
 
-        if not (synth_only or self.is_netlist_build):
+        if not synth_only:
             impl_folder = project_path / f"{self.name}.runs" / f"impl_{run_index}"
             shutil.copy2(impl_folder / f"{self.top}.bit", output_path / f"{self.name}.bit")
             shutil.copy2(impl_folder / f"{self.top}.bin", output_path / f"{self.name}.bin")
@@ -297,9 +299,9 @@ class VivadoProject:
         Reads the hierarchical utilization report and returns the top level size
         for the specified run.
         """
-        utilization_parser = VivadoUtilizationParser()
-        report_as_string = read_file(project_path / f"{self.name}.runs" / run / "hierarchical_utilization.rpt")
-        return utilization_parser.get_size(report_as_string)
+        report_as_string = read_file(
+            project_path / f"{self.name}.runs" / run / "hierarchical_utilization.rpt")
+        return UtilizationParser.get_size(report_as_string)
 
     def __str__(self):
         result = str(self.__class__.__name__)
@@ -324,18 +326,47 @@ class VivadoNetlistProject(VivadoProject):
     def __init__(
             self,
             analyze_clock_interaction=True,
+            result_size_checkers=None,
             **kwargs):
         """
         Args:
             analyze_clock_interaction (bool): Can optionally disable the check for unhandled
                 clock crossings. If this netlist build only has one clock domain the build
                 can be significantly sped up by disabling this feature.
+            result_size_checkers (list(:class:`.SizeChecker`)): Size checkers that will be
+                executed after a succesful build. Is used to automatically check that
+                resource utilization is not greater than expected.
             kwargs: Other arguments accepted by :meth:`.VivadoProject.__init__`.
         """
         super().__init__(**kwargs)
 
         self.is_netlist_build = True
         self.analyze_clock_interaction = analyze_clock_interaction
+        self.result_size_checkers = [] if result_size_checkers is None else result_size_checkers
+
+    def build(self, **kwargs):  # pylint: disable=arguments-differ
+        """
+        Build the project.
+
+        Args:
+            kwargs: All arguments as accepted by :meth:`.VivadoProject.build`.
+        """
+        result = super().build(**kwargs)
+        result.success = result.success and self._check_size(result)
+
+        return result
+
+    def _check_size(self, build_result):
+        if not build_result.success:
+            print(f"Can not do post_build size check for {self.name} since it did not succeed.")
+            return False
+
+        success = True
+        for result_size_checker in self.result_size_checkers:
+            result = result_size_checker.check(build_result.synthesis_size)
+            success = success and result
+
+        return success
 
 
 class BuildResult:

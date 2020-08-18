@@ -1,7 +1,7 @@
 .. _build:
 
-Build flow
-==========
+FPGA build flow
+===============
 
 This page shows how to use FPGA build projects with tsfpga.
 
@@ -156,25 +156,6 @@ Scripts like these are passed to the :class:`.VivadoProject` using this class.
 It is possible to add more than one hook per step.
 
 .. autoclass:: tsfpga.build_step_tcl_hook.BuildStepTclHook()
-    :members:
-
-    .. automethod:: __init__
-
-
-
-Netlist build projects
-----------------------
-
-tsfpga defines a class for builds that are not meant to result in a binary.
-These builds are typically used to quickly get information about timing or resource utilization for a module.
-In your ``build.py`` it is possible to parameterize many builds via generics and synthesize them in parallel.
-The results can then be aggregated to form a report about e.g. resource utilization for your module.
-
-The only real difference from the base class :class:`.VivadoProject` is that
-IO buffers are not included and no pinning is needed. By separating these builds into separate classes,
-top level FPGA builds and netlist builds can be listed and built separately.
-
-.. autoclass:: tsfpga.vivado.project.VivadoNetlistProject()
     :members:
 
     .. automethod:: __init__
