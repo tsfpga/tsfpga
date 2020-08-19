@@ -78,7 +78,6 @@ class Module(BaseModule):
             part=part,
             top="fifo_netlist_build_wrapper",
             generics=generics,
-            analyze_clock_interaction=False,
             result_size_checkers=[
                 TotalLuts(EqualTo(16)),
                 LogicLuts(EqualTo(16)),
@@ -97,7 +96,6 @@ class Module(BaseModule):
             part=part,
             top="fifo",
             generics=generics,
-            analyze_clock_interaction=False,
             result_size_checkers=[
                 TotalLuts(EqualTo(29)),
                 LogicLuts(EqualTo(29)),

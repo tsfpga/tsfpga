@@ -325,14 +325,16 @@ class VivadoNetlistProject(VivadoProject):
 
     def __init__(
             self,
-            analyze_clock_interaction=True,
+            analyze_clock_interaction=False,
             result_size_checkers=None,
             **kwargs):
         """
         Args:
-            analyze_clock_interaction (bool): Can optionally disable the check for unhandled
-                clock crossings. If this netlist build only has one clock domain the build
-                can be significantly sped up by disabling this feature.
+            analyze_clock_interaction (bool): Analysis of clock interaction, i.e. checking
+                for unhandled clock crossings, is disabled by default. Enabling it will add
+                significant build time (can be as much as +40%). Also, in order for clock
+                interction check to work, the clocks have to be created using a constraint
+                file.
             result_size_checkers (list(:class:`.SizeChecker`)): Size checkers that will be
                 executed after a succesful build. Is used to automatically check that
                 resource utilization is not greater than expected.
