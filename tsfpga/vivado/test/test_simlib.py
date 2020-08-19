@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from tsfpga.vivado.simlib import VivadoSimlib
+from tsfpga.test.conftest import fixture_tmp_path  # pylint: disable=unused-import
 
 
 @pytest.mark.usefixtures("fixture_tmp_path")

@@ -13,7 +13,8 @@ from tsfpga.module import get_modules
 from tsfpga.system_utils import create_file
 from tsfpga.vivado.common import to_tcl_path
 from tsfpga.vivado.tcl import VivadoTcl
-from tests import file_contains_string
+from tsfpga.test import file_contains_string
+from tsfpga.test.conftest import fixture_tmp_path  # pylint: disable=unused-import
 
 
 def test_set_create_run_index():

@@ -12,7 +12,7 @@ sys.path.append(str(PATH_TO_TSFPGA.resolve()))
 
 from tsfpga.git_utils import find_git_files
 from tsfpga.system_utils import create_file, read_file
-from tests.lint.test_copyright import CopyrightHeader, files_to_check_for_copyright_header
+from tsfpga.test.lint.test_copyright import CopyrightHeader, files_to_check_for_copyright_header
 
 
 RE_TRAILING_WHITESPACE = re.compile(" +\n", re.DOTALL)
