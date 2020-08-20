@@ -1,10 +1,10 @@
 -- -----------------------------------------------------------------------------
 -- Copyright (c) Lukas Vik. All rights reserved.
 -- -----------------------------------------------------------------------------
--- @brief Resynchronizes a bit, so that the output bit is asserted as many
+-- Resynchronizes a bit, so that the output bit is asserted as many
 -- clock cycles as the input bit.
 --
--- @details This module counts each clk_in cycle the input bit is asserted.
+-- This module counts each clk_in cycle the input bit is asserted.
 -- The counter is resynchronized to clk_out, and used as a reference to know
 -- how many clk_out cycles the output bit should be asserted.
 -- The module may fail when clk_out is slower than clk_in and the input is

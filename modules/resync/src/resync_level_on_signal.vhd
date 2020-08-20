@@ -1,9 +1,9 @@
 -- -----------------------------------------------------------------------------
 -- Copyright (c) Lukas Vik. All rights reserved.
 -- -----------------------------------------------------------------------------
--- @brief Sample a bit from one clock domain to another.
+-- Sample a bit from one clock domain to another.
 --
--- @details This modules does not utilize any meta stability protection.
+-- This modules does not utilize any meta stability protection.
 -- It is up to the user to ensure that data_in is stable when sample_value is asserted.
 -- -----------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@ library common;
 use common.attribute_pkg.all;
 
 
-entity resync_on_signal is
+entity resync_level_on_signal is
   generic (
     default_value : std_logic := '0'
   );
@@ -27,7 +27,7 @@ entity resync_on_signal is
   );
 end entity;
 
-architecture a of resync_on_signal is
+architecture a of resync_level_on_signal is
   signal data_in_int : std_logic;
   attribute dont_touch of data_in_int : signal is "true"; -- Keep net so that we can apply constraint
 begin

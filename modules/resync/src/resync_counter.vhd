@@ -1,10 +1,10 @@
 -- -----------------------------------------------------------------------------
 -- Copyright (c) Lukas Vik. All rights reserved.
 -- -----------------------------------------------------------------------------
--- @brief Synchronize a counter value between two domains
+-- Synchronize a counter value between two domains
 --
--- @details This module assumes that the input counter value only increments
--- and decrements in steps of one
+-- This module assumes that the input counter value only increments
+-- and decrements in steps of one.
 -- -----------------------------------------------------------------------------
 
 library ieee;

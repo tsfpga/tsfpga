@@ -1,9 +1,9 @@
 -- -----------------------------------------------------------------------------
 -- Copyright (c) Lukas Vik. All rights reserved.
 -- -----------------------------------------------------------------------------
--- @brief A robust way of resyncing a pulse signal from one clock domain to another.
+-- A robust way of resyncing a pulse signal from one clock domain to another.
 --
--- @details This modules features a feedback input gating which makes it robust in all configurations.
+-- This modules features a feedback input gating which makes it robust in all configurations.
 -- Without input gating, if multiple pulses arrive close to each other, pulse overload will occur and
 -- some or even all of them can be missed and not arrive on the output.
 -- With input gating, if multiple pulses arrive one and only one will arrive on the output.
@@ -51,6 +51,7 @@ begin
   ------------------------------------------------------------------------------
   level_in_resync_inst : entity work.resync_level
   port map (
+    clk_in => clk_in,
     data_in => level_in,
 
     clk_out => clk_out,
@@ -61,6 +62,7 @@ begin
   ------------------------------------------------------------------------------
   level_out_resync_inst : entity work.resync_level
   port map (
+    clk_in => clk_out,
     data_in => level_out,
 
     clk_out => clk_in,
