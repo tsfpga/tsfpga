@@ -12,13 +12,11 @@ import sys
 
 PATH_TO_TSFPGA = Path(__file__).parent.parent.resolve()
 sys.path.append(str(PATH_TO_TSFPGA))
-import tsfpga
-
-PATH_TO_VUNIT = tsfpga.REPO_ROOT.parent / "vunit"
+PATH_TO_VUNIT = PATH_TO_TSFPGA.parent / "vunit"
 sys.path.append(str(PATH_TO_VUNIT))
 
 from tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
-
+import tsfpga
 from tsfpga.formal_project import FormalProject
 
 

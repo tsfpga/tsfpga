@@ -253,7 +253,7 @@ def load_toml_file(toml_file):
         return toml.loads(raw_toml)
     except toml.TomlDecodeError as exception_info:
         message = f"Error while parsing TOML file {toml_file}:\n{exception_info}"
-        raise ValueError(message)
+        raise ValueError(message) from exception_info
 
 
 def from_toml(module_name, toml_file, default_registers=None):
