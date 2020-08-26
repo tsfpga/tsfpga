@@ -18,13 +18,30 @@ class FormalConfig:
             self,
             top,
             generics,
-            engine_command="smtbmc z3",
+            engine_command="smtbmc",
+            solver_command="z3",
             mode="bmc",
             depth=20
     ):
+        """
+        Args:
+            top (str): Name of top level entity.
+            generics (dict): Generics that will be applied to the top level.
+            engine_command (str): Engine command, e.g. ``smtbmc --syn --nopresat``
+            solver_command (str): Solver command, e.g.
+                ``z3 rewriter.cache_all=true opt.enable_sat=true``
+            mode (str): Typically ``bmc`` or ``prove``.
+            depth (int): In ``bmc`` mode, this parameter is the depth of the bounded model
+                check. In ``prove`` mode it is ignored for all engines except ``smtbmc``
+                where it is used as the depth for k-induction.
+        """
         self.top = top
         self.generics = generics
-        self.formal_settings = dict(engine_command=engine_command, mode=mode, depth=depth)
+        self.formal_settings = dict(
+            engine_command=engine_command,
+            solver_command=solver_command,
+            mode=mode,
+            depth=depth)
 
     @property
     def test_name(self):

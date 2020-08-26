@@ -35,7 +35,7 @@ class SbyWriter:
         sby += f"depth {str(formal_settings['depth'])} \n"
         sby += "\n"
         sby += "[engines]\n"
-        sby += f"{formal_settings['engine_command']} \n"
+        sby += f"{formal_settings['engine_command']} {formal_settings['solver_command']}\n"
         sby += "\n"
         sby += "[script]\n"
         sby += f"{' '.join(ghdl_synth_cmd)} \n"
