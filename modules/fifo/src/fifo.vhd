@@ -37,7 +37,7 @@ entity fifo is
     read_ready : in std_logic;
     -- '1' if FIFO is not empty
     read_valid : out std_logic := '0';
-    read_data : out std_logic_vector(width - 1 downto 0);
+    read_data : out std_logic_vector(width - 1 downto 0) := (others => '0');
     -- Must set enable_last generic in order to use this
     read_last : out std_logic := '0';
     -- '1' if there are almost_empty_level or fewer words available to read
@@ -134,7 +134,7 @@ begin
     signal mem : mem_t(0 to depth - 1) := (others => (others => '0'));
     attribute ram_style of mem : signal is to_attribute(ram_type);
 
-    signal memory_read_data, memory_write_data : word_t;
+    signal memory_read_data, memory_write_data : word_t := (others => '0');
   begin
 
     read_data <= memory_read_data(read_data'range);
@@ -160,21 +160,47 @@ begin
 
   ------------------------------------------------------------------------------
   psl_block : block
+    signal first_cycle : std_logic := '1';
+    signal fill_level : unsigned(read_addr'range);
   begin
-    -- psl default clock is rising_edge (clk);
+
+    fill_level <= write_addr - read_addr;
+
+    ctrl : process
+    begin
+      wait until rising_edge(clk);
+      first_cycle <= '0';
+    end process;
+
+    -- psl default clock is rising_edge(clk);
     --
-    -- After a write, read_valid should be high after two cycles
-    -- psl assert always
-    --       (write_valid and write_ready) |=> next[1] (read_valid);
+    -- psl level_port_same_as_fill_level : assert always
+    --   level = fill_level;
     --
-    -- After a read, write_ready should be high after one cycle
-    -- psl assert always
-    --       (read_valid and read_ready) |=> (write_ready);
+    -- Constrains start state of read_addr and write_addr to be valid.
+    -- psl level_within_range : assert always
+    --   fill_level <= depth;
     --
-    -- If read_valid taken high, it must remain so until
-    -- read_ready was high as well high.
-    -- psl assert always
-    --       (read_valid) |-> (read_valid) until (read_ready);
+    -- To constrain start state. Otherwise read_valid can start as one, and a read
+    -- transaction occur, despite FIFO being empty.
+    -- psl not_read_valid_unless_data_in_fifo : assert always
+    --   not (read_valid = '1' and fill_level = 0);
+    --
+    -- Latency since data must propagate through BRAM.
+    -- psl read_valid_goes_high_two_cycles_after_write : assert always
+    --   (write_valid and write_ready) |=> next[1] (read_valid);
+    --
+    -- psl write_ready_goes_high_one_cycle_after_read : assert always
+    --   (read_valid and read_ready) |=> (write_ready);
+    --
+    -- psl read_valid_stays_high_until_read_ready : assert always
+    --   (read_valid) |-> (read_valid) until (read_ready);
+    --
+    -- psl data_should_be_stable_until_handshake_transaction : assert always
+    --   (not first_cycle) and prev(read_valid and not read_ready) -> stable(read_data);
+    --
+    -- psl last_should_be_stable_until_handshake_transaction : assert always
+    --   (not first_cycle) and prev(read_valid and not read_ready) -> stable(read_last);
 
     -- The formal verification flow doesn't handle generics very well, so the
     -- check below is only done if the depth is 4.

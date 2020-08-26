@@ -61,8 +61,14 @@ class Module(BaseModule):
                 width=3,
                 depth=depth,
                 almost_full_level=almost_full_level,
-                almost_empty_level=almost_empty_level)
-            formal_proj.add_config(top="fifo", generics=generics)
+                almost_empty_level=almost_empty_level,
+                enable_last=True)
+            formal_proj.add_config(
+                top="fifo",
+                generics=generics,
+                engine_command="smtbmc",
+                solver_command="z3",
+                mode="prove")
 
     def get_build_projects(self):
         projects = []
