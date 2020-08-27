@@ -6,3 +6,6 @@ Breaking changes
 
 * Rename ``resync_on_signal`` to ``resync_level_on_signal`` and ``resync_slv_on_signal`` to ``resync_slv_level_on_signal``.
   This is more descriptive and follows the naming of the other resync blocks.
+* The generated register HTML page no longer supports markdown flavor of using underscores to annotate.
+  Instead use **\*\*double asterisks for bold\*\*** and *\*single asterisks for emphasis\**.
+  This change is done to make it easier to refer to other registers/constants/signals who very often have underscores in their name.
