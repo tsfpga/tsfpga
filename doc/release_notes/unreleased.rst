@@ -1,6 +1,8 @@
 Added
 
 * Add optional ``clk_in`` port to ``resync_level`` which enables a more deterministic latency constraint.
+* Add support for HTML paragraph breaks in register/bit descriptions.
+  Consecutive newlines will be converted to paragraph breaks.
 
 Breaking changes
 

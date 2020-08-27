@@ -4,7 +4,9 @@
 
 [register.status.bits]
 
-idle = "'1' when the module is inactive and a new run can be launched. '0' when the module is working."
+idle = """'1' when the module is inactive and a new run can be launched.
+
+'0' when the module is working."""
 
 
 ################################################################################

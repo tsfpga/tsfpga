@@ -101,8 +101,10 @@ _________
 A complete HTML page can be generated, with register details as well as textual description of the different register modes.
 
 .. note::
-   Markdown syntax can be used in register and bit descriptions to annotate, which will be converted to appropriate HTML tags.
-   Supports bold with double asterisks or underscores, and italics with a single asterisk or underscore.
+   Markdown/reStructuredText syntax can be used in register and bit descriptions, which will be converted to appropriate HTML tags.
+   Text can be set bold with double asterisks, and italicised with a single asterisk.
+   A paragraph break can be inserted with consecutive newlines.
+
 
 Generated HTML file :download:`here <../../generated/registers/doc/ddr_buffer_regs.html>`
 

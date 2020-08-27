@@ -177,14 +177,14 @@ th {
 </head>
 <body>
   <h1>{title}</h1>
-  <p>This document is a specification of the PS interface of the {self.module_name} module.</p>
+  <p>This document is a specification for the register interface of the FPGA module <b>{self.module_name}</b>.</p>
+  <p>{self.generated_info}</p>
   <h2>Register modes</h2>
   <p>The following register modes are available.</p>
 {self._get_mode_descriptions()}
   <h2>Register list</h2>
   <p>The following registers make up the register map for the {self.module_name} module.</p>
 {self._get_table(register_objects)}
-<p>{self.generated_info}</p>
 </body>
 </html>"""
 

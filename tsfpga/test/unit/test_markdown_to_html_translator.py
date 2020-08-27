@@ -42,6 +42,23 @@ class TestMarkdownToHtmlTranslator(unittest.TestCase):
         text = r"Part of this sentence should have an *\** in italics"
         assert expected in self.markdown_to_html.translate(text)
 
+    def test_line_breaks(self):
+        expected = "Two empty lines<br />\n<br />\nbetween paragraphs."
+        text = "Two empty lines\n\nbetween paragraphs."
+        assert expected in self.markdown_to_html.translate(text)
+
+        expected = "Three empty lines<br />\n<br />\nbetween paragraphs."
+        text = "Three empty lines\n\n\nbetween paragraphs."
+        assert expected in self.markdown_to_html.translate(text)
+
+        expected = r"Escaped \n\n\n should not result in paragraph break."
+        text = r"Escaped \n\n\n should not result in paragraph break."
+        assert expected in self.markdown_to_html.translate(text)
+
+        expected = "One empty line means same paragraph."
+        text = "One empty line\nmeans same paragraph."
+        assert expected in self.markdown_to_html.translate(text)
+
     def test_literal_underscore_can_be_used(self):
         # We do not translate underscores, unlike some markdown
         expected = "This sentence <b>contains_underscores</b> in some_places"
