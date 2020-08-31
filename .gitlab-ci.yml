@@ -54,16 +54,18 @@ pytest:
       - generated/python_coverage_html
 
 
-simulate:
-  stage: test
-  script:
-    - python3 -m pip install --requirement requirements_develop.txt > /dev/null
-    - ghdl --version
-    - python3 examples/simulate.py --num-threads 4 --vivado-skip
-  artifacts:
-    paths:
-      - generated/vhdl_coverage.xml
-      - generated/vhdl_coverage_html
+# TODO jobs temporarily disabled awaiting https://github.com/ghdl/docker/issues/31
+
+# simulate:
+#   stage: test
+#   script:
+#     - python3 -m pip install --requirement requirements_develop.txt > /dev/null
+#     - ghdl --version
+#     - python3 examples/simulate.py --num-threads 4 --vivado-skip
+#   artifacts:
+#     paths:
+#       - generated/vhdl_coverage.xml
+#       - generated/vhdl_coverage_html
 
 
 build_pypi:
@@ -77,17 +79,17 @@ build_pypi:
       - dist
 
 
-build_pages:
-  # Uses coverage artifacts from the pytest and simulate jobs in the previous stage
-  stage: build_documentation
-  script:
-    - apt-get update -qq > /dev/null
-    - apt-get install -y -qq git > /dev/null
-    - python3 -m pip install --requirement requirements_develop.txt > /dev/null
-    - python3 tools/build_docs.py
-  artifacts:
-    paths:
-      - generated/sphinx_html
+# build_pages:
+#   # Uses coverage artifacts from the pytest and simulate jobs in the previous stage
+#   stage: build_documentation
+#   script:
+#     - apt-get update -qq > /dev/null
+#     - apt-get install -y -qq git > /dev/null
+#     - python3 -m pip install --requirement requirements_develop.txt > /dev/null
+#     - python3 tools/build_docs.py
+#   artifacts:
+#     paths:
+#       - generated/sphinx_html
 
 
 deploy_pypi:
@@ -105,14 +107,14 @@ deploy_pypi:
     - python3 -m twine upload dist/*
 
 
-pages:
-  # Job name "pages" is magic in gitlab. Will deploy content of the "public" folder to the website.
-  # Uses artifacts from the build_pages job run in the previous stage.
-  stage: deploy
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-  script:
-    - mv generated/sphinx_html public
-  artifacts:
-    paths:
-      - public
+# pages:
+#   # Job name "pages" is magic in gitlab. Will deploy content of the "public" folder to the website.
+#   # Uses artifacts from the build_pages job run in the previous stage.
+#   stage: deploy
+#   rules:
+#     - if: '$CI_COMMIT_BRANCH == "master"'
+#   script:
+#     - mv generated/sphinx_html public
+#   artifacts:
+#     paths:
+#       - public
