@@ -196,11 +196,14 @@ begin
     -- psl read_valid_stays_high_until_read_ready : assert always
     --   (read_valid) |-> (read_valid) until (read_ready);
     --
-    -- psl data_should_be_stable_until_handshake_transaction : assert always
+    -- psl read_data_should_be_stable_until_handshake_transaction : assert always
     --   (not first_cycle) and prev(read_valid and not read_ready) -> stable(read_data);
     --
-    -- psl last_should_be_stable_until_handshake_transaction : assert always
+    -- psl read_last_should_be_stable_until_handshake_transaction : assert always
     --   (not first_cycle) and prev(read_valid and not read_ready) -> stable(read_last);
+    --
+    -- psl read_valid_may_fall_only_after_handshake_transaction : assert always
+    --   first_cycle = '0' and fell(read_valid) -> prev(read_ready);
 
     -- The formal verification flow doesn't handle generics very well, so the
     -- check below is only done if the depth is 4.
