@@ -277,6 +277,10 @@ def from_toml(module_name, toml_file, default_registers=None):
         for name, items in toml_data["register_array"].items():
             _parse_register_array(name, items, register_list, names_taken, toml_file)
 
+    if "constant" in toml_data:
+        for name, items in toml_data["constant"].items():
+            register_list.constants.append(Constant(name=name, value=items["value"]))
+
     return register_list
 
 

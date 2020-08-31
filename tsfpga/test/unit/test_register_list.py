@@ -372,3 +372,17 @@ dummy = 3
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
         assert str(exception_info.value) == f"Error while parsing register hest in array test_array in {self.toml_file}:\nUnknown key dummy"
+
+    def test_constants_in_toml(self):
+        extras = """
+[constant.data_width]
+
+value = 0xf
+"""
+        data = self.toml_data % extras
+        create_file(self.toml_file, data)
+
+        register_list = from_toml(self.module_name, self.toml_file)
+        assert len(register_list.constants) == 1
+        assert register_list.constants[0].name == "data_width"
+        assert register_list.constants[0].value == 15

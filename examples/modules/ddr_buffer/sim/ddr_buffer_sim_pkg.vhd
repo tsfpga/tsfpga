@@ -19,7 +19,6 @@ use common.addr_pkg.all;
 library reg_file;
 use reg_file.reg_operations_pkg.all;
 
-use work.ddr_buffer_pkg.all;
 use work.ddr_buffer_regs_pkg.all;
 
 
@@ -38,7 +37,8 @@ package body ddr_buffer_sim_pkg is
                                 memory : in memory_t;
                                 rnd : inout RandomPType;
                                 regs_base_address : in addr_t := (others => '0')) is
-    constant burst_length_bytes : integer := burst_length_beats * (axi_width / 8);
+    constant burst_length_bytes : integer :=
+      ddr_buffer_constant_burst_length_beats * (ddr_buffer_constant_axi_data_width / 8);
     variable memory_data : integer_array_t := null_integer_array;
     variable buf : buffer_t;
   begin

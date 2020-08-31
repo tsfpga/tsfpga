@@ -43,3 +43,14 @@ description = "Where to read data from."
 mode= "r_w"
 description = "Where to write data."
 
+
+################################################################################
+[constant.axi_data_width]
+
+value = 64
+
+
+################################################################################
+[constant.burst_length_beats]
+
+value = 16
