@@ -9,9 +9,11 @@ stages:
 
 workflow:
   rules:
-    # Run pipeline for scheduled (nightly master runs) and for merge requests.
+    # Run pipeline for scheduled (nightly master runs), for merge requests, and
+    # when triggered manually on the web.
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
     # Pushes to master (a succesful merge request is also a "push") should run so
     # that new website is deployed.
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "master"'
