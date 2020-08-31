@@ -9,7 +9,7 @@ from shutil import copy2, make_archive
 import sys
 
 
-PATH_TO_TSFPGA = Path(__file__).parent.parent
+PATH_TO_TSFPGA = Path(__file__).parent.parent.resolve()
 sys.path.append(str(PATH_TO_TSFPGA))
 PATH_TO_VUNIT = PATH_TO_TSFPGA.parent / "vunit"
 sys.path.append(str(PATH_TO_VUNIT))
@@ -37,7 +37,7 @@ def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
                         help="open an existing project in the GUI")
     parser.add_argument("--use-existing-project",
                         action="store_true",
-                        help="build an existing project (do not create)")
+                        help="build an existing project, or create it first if it does not exist")
     parser.add_argument("--generate-registers-only",
                         action="store_true",
                         help="only generate the register artifacts (C/C++ code, HTML, ...) for inspection")
@@ -130,7 +130,7 @@ def setup_and_run(modules, projects, args):
 
 
 def build(args, project, project_path, output_path):
-    if not args.use_existing_project:
+    if not (args.use_existing_project and project_path.exists()):
         project.create(project_path=project_path, ip_cache_path=args.ip_cache_path)
 
     if args.create_only:
