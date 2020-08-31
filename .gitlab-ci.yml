@@ -40,6 +40,8 @@ pytest:
   script:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git g++ > /dev/null
+    # Install wheel first, so that wrapt is installed correctly afterwards
+    - python3 -m pip install wheel > /dev/null
     - python3 -m pip install --requirement requirements_develop.txt > /dev/null
     - python3 -m pylint --version
     - python3 -m pycodestyle --version
