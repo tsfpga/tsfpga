@@ -72,12 +72,9 @@ def main():
     if vunit_proj.simulator_supports_coverage():
         vunit_proj.set_compile_option("enable_coverage", True)
         vunit_proj.set_sim_option("enable_coverage", True)
+
         vunit_proj.main(post_run=merge_ghdl_coverage)
     else:
-        # Don't enable psl when running with coverage, as the gcc
-        # backend seems to have some issues with psl
-        vunit_proj.set_compile_option("ghdl.a_flags", ["-fpsl"])
-
         vunit_proj.main()
 
 
