@@ -1,9 +1,17 @@
 -- -----------------------------------------------------------------------------
 -- Copyright (c) Lukas Vik. All rights reserved.
 -- -----------------------------------------------------------------------------
--- Simple N-to-1 interconnect for connecting multiple AXI masters to one port.
+-- Simple N-to-1 crossbar for connecting multiple AXI masters to one port.
 --
--- Uses round-robin scheduling for the inputs.
+-- Uses round-robin scheduling for the inputs. It is simple in the sense that
+-- there is no separation of AXI channels with separate queues.
+-- After a channel has been selected for address transaction, the crossbar is
+-- locked on that channel until it has finished it's response transaction.
+-- After that the crossbar moves on to do a new address transaction on, possibly,
+-- another channel.
+--
+-- Due to this it has a very small logic footprint but will never reach full
+-- utilization of the data channels.
 -- -----------------------------------------------------------------------------
 
 library ieee;
@@ -16,7 +24,7 @@ library common;
 use common.types_pkg.all;
 
 
-entity axi_interconnect is
+entity axi_simple_crossbar is
   generic(
     num_inputs : integer
   );
@@ -37,7 +45,7 @@ entity axi_interconnect is
   );
 end entity;
 
-architecture a of axi_interconnect is
+architecture a of axi_simple_crossbar is
 
   constant no_input_selected : integer := inputs_read_m2s'high + 1;
 

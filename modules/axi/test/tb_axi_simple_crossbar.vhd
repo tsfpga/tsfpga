@@ -20,14 +20,14 @@ use axi.axil_pkg.all;
 library bfm;
 
 
-entity tb_axi_interconnect is
+entity tb_axi_simple_crossbar is
   generic(
     runner_cfg : string;
     test_axi_lite : boolean
   );
 end entity;
 
-architecture tb of tb_axi_interconnect is
+architecture tb of tb_axi_simple_crossbar is
 
   constant num_inputs : integer := 4;
   constant clk_period : time := 5 ns;
@@ -169,7 +169,7 @@ begin
     );
 
     ------------------------------------------------------------------------------
-    dut : entity work.axil_interconnect
+    dut : entity work.axil_simple_crossbar
       generic map(
         num_inputs => num_inputs
       )
@@ -235,7 +235,7 @@ begin
       );
 
     ------------------------------------------------------------------------------
-    dut : entity work.axi_interconnect
+    dut : entity work.axi_simple_crossbar
       generic map(
         num_inputs => num_inputs
       )

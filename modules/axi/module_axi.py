@@ -37,7 +37,7 @@ class Module(BaseModule):
         tb.add_config(name="synchronous", generics=dict(depth=16, asynchronous=False))
         tb.add_config(name="asynchronous", generics=dict(depth=16, asynchronous=True))
 
-        tb = vunit_proj.library(self.library_name).test_bench("tb_axi_interconnect")
+        tb = vunit_proj.library(self.library_name).test_bench("tb_axi_simple_crossbar")
         tb.add_config(name="axi_lite", generics=dict(test_axi_lite=True))
         tb.add_config(name="axi", generics=dict(test_axi_lite=False))
 

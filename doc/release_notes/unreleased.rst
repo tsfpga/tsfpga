@@ -11,3 +11,5 @@ Breaking changes
 * The generated register HTML page no longer supports markdown flavor of using underscores to annotate.
   Instead use **\*\*double asterisks for bold\*\*** and *\*single asterisks for emphasis\**.
   This change is done to make it easier to refer to other registers/constants/signals who very often have underscores in their name.
+* Rename ``axi_interconnect`` to ``axi_simple_crossbar`` and ``axil_interconnect`` to ``axil_simple_crossbar``.
+  This naming is factual (it is a crossbar, not an interconnect) and more descriptive.

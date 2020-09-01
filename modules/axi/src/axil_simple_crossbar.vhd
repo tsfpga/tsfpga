@@ -1,9 +1,17 @@
 -- -----------------------------------------------------------------------------
 -- Copyright (c) Lukas Vik. All rights reserved.
 -- -----------------------------------------------------------------------------
--- Simple N-to-1 interconnect for connecting multiple AXI-Lite masters to one port.
+-- Simple N-to-1 crossbar for connecting multiple AXI-Lite masters to one port.
 --
--- Uses round-robin scheduling for the inputs.
+-- Uses round-robin scheduling for the inputs. It is simple in the sense that
+-- there is no separation of AXI channels with separate queues.
+-- After a channel has been selected for address transaction, the crossbar is
+-- locked on that channel until it has finished it's response transaction.
+-- After that the crossbar moves on to do a new address transaction on, possibly,
+-- another channel.
+--
+-- Due to this it has a very small logic footprint but will never reach full
+-- utilization of the data channels.
 -- -----------------------------------------------------------------------------
 
 library ieee;
@@ -17,7 +25,7 @@ library common;
 use common.types_pkg.all;
 
 
-entity axil_interconnect is
+entity axil_simple_crossbar is
   generic(
     num_inputs : integer
   );
@@ -38,7 +46,7 @@ entity axil_interconnect is
   );
 end entity;
 
-architecture a of axil_interconnect is
+architecture a of axil_simple_crossbar is
   signal inputs_read_axi_m2s : axi_read_m2s_vec_t(0 to num_inputs - 1) := (others => axi_read_m2s_init);
   signal inputs_read_axi_s2m : axi_read_s2m_vec_t(0 to num_inputs - 1) := (others => axi_read_s2m_init);
 
@@ -119,7 +127,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axi_interconnect_inst : entity work.axi_interconnect
+  axi_simple_crossbar_inst : entity work.axi_simple_crossbar
     generic map (
       num_inputs => num_inputs
     )
