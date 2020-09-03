@@ -22,11 +22,11 @@ entity axi_write_throttle is
   port(
     clk : in std_logic;
     --
-    left_m2s : in axi_write_m2s_t := axi_write_m2s_init;
-    left_s2m : out axi_write_s2m_t := axi_write_s2m_init;
+    input_m2s : in axi_write_m2s_t := axi_write_m2s_init;
+    input_s2m : out axi_write_s2m_t := axi_write_s2m_init;
     --
-    right_m2s : out axi_write_m2s_t := axi_write_m2s_init;
-    right_s2m : in axi_write_s2m_t := axi_write_s2m_init
+    throttled_m2s : out axi_write_m2s_t := axi_write_m2s_init;
+    throttled_s2m : in axi_write_s2m_t := axi_write_s2m_init
   );
 end entity;
 
@@ -40,13 +40,13 @@ begin
   assign : process(all)
     variable block_address_transactions : boolean;
   begin
-    right_m2s <= left_m2s;
-    left_s2m <= right_s2m;
+    throttled_m2s <= input_m2s;
+    input_s2m <= throttled_s2m;
 
     block_address_transactions := num_outstanding >= max_num_outstanding_transactions;
     if block_address_transactions then
-      right_m2s.aw.valid <= '0';
-      left_s2m.aw.ready <= '0';
+      throttled_m2s.aw.valid <= '0';
+      input_s2m.aw.ready <= '0';
     end if;
   end process;
 
@@ -57,8 +57,8 @@ begin
     wait until rising_edge(clk);
 
     num_outstanding <= num_outstanding
-      + to_int(right_m2s.aw.valid and right_s2m.aw.ready)
-      - to_int(left_m2s.b.ready and left_s2m.b.valid);
+      + to_int(throttled_m2s.aw.valid and throttled_s2m.aw.ready)
+      - to_int(input_m2s.b.ready and input_s2m.b.valid);
   end process;
 
 end architecture;
