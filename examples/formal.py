@@ -35,7 +35,7 @@ def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
                         nargs="*",
                         default="*",
                         help="Tests to run")
-    parser.add_argument("--num-threads",
+    parser.add_argument("--num-threads", "-p",
                         type=int,
                         default=8,
                         help="number of threads to use when building project")
