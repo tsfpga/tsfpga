@@ -14,12 +14,14 @@ from tsfpga.register_list import get_default_registers
 TSFPGA_EXAMPLES_TEMP_DIR = tsfpga.TSFPGA_GENERATED
 
 
-def get_tsfpga_modules(modules_folders=None):
+def get_tsfpga_modules(modules_folders=None, names_include=None, names_avoid=None):
     """
     Wrapper of the regular get_modules call with correct settings for tsfpga modules.
     """
     modules_folders = tsfpga.ALL_TSFPGA_MODULES_FOLDERS if modules_folders is None \
         else modules_folders
     return get_modules(modules_folders,
+                       names_include=names_include,
+                       names_avoid=names_avoid,
                        library_name_has_lib_suffix=False,
                        default_registers=get_default_registers())
