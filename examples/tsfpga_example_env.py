@@ -14,7 +14,7 @@ from tsfpga.register_list import get_default_registers
 TSFPGA_EXAMPLES_TEMP_DIR = tsfpga.TSFPGA_GENERATED
 
 
-def get_tsfpga_modules(modules_folders, names_include=None, names_avoid=None):
+def get_tsfpga_modules(modules_folders=None, names_include=None, names_avoid=None):
     """
     Wrapper of the regular get_modules call with correct settings for tsfpga modules.
     """
