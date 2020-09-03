@@ -56,7 +56,7 @@ class FormalProject:
 
     def __init__(self, project_path, modules):
         self._formal_config_list = []
-        self.project_path = project_path
+        self.project_path = project_path.resolve()
         self.modules = modules
 
     def add_config(self, **kwargs):

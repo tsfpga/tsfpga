@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------
 # @eine has made a docker image that runs smoothly, run for example with:
 #   docker run --rm --interactive --tty --volume $(pwd)/..:$(pwd)/.. --workdir $(pwd) ghdl/synth:formal /bin/bash
-#   apt update && apt install -y python3-pip && python3 -m pip install toml colorama
+#   apt update && apt install --yes python3-pip && python3 -m pip install toml colorama
 #   python3 examples/formal.py
 # ------------------------------------------------------------------------------
 
@@ -56,7 +56,7 @@ def main():
     modules = get_tsfpga_modules([tsfpga.TSFPGA_MODULES])
     formal_project = FormalProject(
         modules=modules,
-        project_path=TSFPGA_EXAMPLES_TEMP_DIR / args.project_path)
+        project_path=args.project_path)
     for module in modules:
         module.setup_formal(formal_project)
 
