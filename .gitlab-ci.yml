@@ -75,6 +75,14 @@ build_pypi:
       - dist
 
 
+formal:
+  image: tsfpga/formal
+  stage: test
+  script:
+    - ghdl --version
+    - python3 examples/formal.py --num-threads 4
+
+
 build_pages:
   # Uses coverage artifacts from the pytest and simulate jobs in the previous stage
   stage: build_documentation
