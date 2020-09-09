@@ -44,7 +44,9 @@ end entity;
 
 architecture a of axi_write_throttle is
 
-  subtype data_counter_t is integer range 0 to data_fifo_depth;
+  -- Since W transactions can happen before AW transaction,
+  -- the counters can become negative as well.
+  subtype data_counter_t is integer range -data_fifo_depth to data_fifo_depth;
 
   -- Data beats that are available in the FIFO, but have not yet been claimed by
   -- an address transaction.
