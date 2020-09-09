@@ -221,7 +221,8 @@ def generate_registers(modules, output_path):
             module.registers.create_cpp_header(output_path / "cpp" / "include")
             module.registers.create_cpp_implementation(output_path / "cpp")
             module.registers.create_html_page(output_path / "doc")
-            module.registers.create_html_table(output_path / "doc" / "tables")
+            module.registers.create_html_register_table(output_path / "doc" / "tables")
+            module.registers.create_html_constant_table(output_path / "doc" / "tables")
 
 
 def collect_artifacts(project, output_path):

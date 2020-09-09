@@ -183,3 +183,8 @@ The following classes are used to handle registers in the tsfpga python package.
     :members:
 
     .. automethod:: __init__
+
+.. autoclass:: tsfpga.register_types.Constant()
+    :members:
+
+    .. automethod:: __init__

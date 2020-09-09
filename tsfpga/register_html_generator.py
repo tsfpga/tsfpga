@@ -13,120 +13,26 @@ class RegisterHtmlGenerator:
         self.generated_info = generated_info
         self._markdown_to_html = MarkdownToHtmlTranslator()
 
-    @staticmethod
-    def _comment(comment):
-        return f"<!-- {comment} -->\n"
-
-    def _file_header(self):
-        return self._comment(self.generated_info)
-
-    @staticmethod
-    def _to_readable_address(address):
-        num_nibbles_needed = 4
-        formatting_string = "0x{:0%iX}" % num_nibbles_needed
-        return formatting_string.format(address)
-
-    def _annotate_register(self, register, register_array_index=None, array_index_increment=None):
-        if register_array_index is None:
-            address_readable = self._to_readable_address(register.address)
-        else:
-            register_address = self._to_readable_address(4 * register_array_index)
-            address_increment = self._to_readable_address(4 * array_index_increment)
-            address_readable = f"{register_address} + i &times; {address_increment}"
-        description = self._markdown_to_html.translate(register.description)
-        html = f"""
-  <tr>
-    <td><strong>{register.name}</strong></td>
-    <td>{address_readable}</td>
-    <td>{REGISTER_MODES[register.mode].mode_readable}</td>
-    <td>{register.default_value}</td>
-    <td>{description}</td>
-  </tr>"""
-
-        return html
-
-    def _annotate_bit(self, bit):
-        description = self._markdown_to_html.translate(bit.description)
-        html = f"""
-  <tr>
-    <td>&nbsp;&nbsp;<em>{bit.name}</em></td>
-    <td>{bit.index}</td>
-    <td></td>
-    <td></td>
-    <td>{description}</td>
-  </tr>"""
-
-        return html
-
-    def _get_table(self, register_objects):
-        html = """
-<table>
-<thead>
-  <tr>
-    <th>Name</th>
-    <th>Address</th>
-    <th>Mode</th>
-    <th>Default value</th>
-    <th>Description</th>
-  </tr>
-</thead>
-<tbody>"""
-
-        for register_object in register_objects:
-            if isinstance(register_object, Register):
-                html += self._annotate_register(register_object)
-                for bit in register_object.bits:
-                    html += self._annotate_bit(bit)
-            else:
-                html += f"""
-  <tr>
-    <td colspan="5" class="array_header">Register array <strong>{register_object.name}</strong>, repeated {register_object.length} times</td>
-  </tr>"""
-                array_index_increment = len(register_object.registers)
-                for register in register_object.registers:
-                    register_index = register_object.base_index + register.index
-                    html += self._annotate_register(register, register_index, array_index_increment)
-                html += f"""
-  <tr>
-    <td colspan="5" class="array_header">End register array <strong>{register_object.name}</strong></td>
-  </tr>"""
-
-        html += """
-</tbody>
-</table>"""
-
-        return html
-
-    def get_table(self, register_objects):
+    def get_register_table(self, register_objects):
         html = self._file_header()
-        html += self._get_table(register_objects)
+        html += self._get_register_table(register_objects)
         return html
 
-    @staticmethod
-    def _get_mode_descriptions():
-        html = """
-<table>
-<thead>
-  <tr>
-    <th>Mode</th>
-    <th>Description</th>
-  </tr>
-</thead>
-<tbody>"""
+    def get_constant_table(self, constants):
+        if not constants:
+            return ""
 
-        for mode in REGISTER_MODES.values():
-            html += f"""
-<tr>
-  <td>{mode.mode_readable}</td>
-  <td>{mode.description}</td>
-</tr>
-"""
-        html += """
-</tbody>
-</table>"""
+        html = self._file_header()
+        html += self._get_constant_table(constants)
         return html
 
-    def get_page(self, register_objects, table_style=None, font_style=None, extra_style=""):
+    # pylint: disable=too-many-arguments
+    def get_page(self,
+                 register_objects,
+                 constants,
+                 table_style=None,
+                 font_style=None,
+                 extra_style=""):
         title = f"Documentation of {self.module_name} registers"
 
         if font_style is None:
@@ -182,10 +88,153 @@ th {
   <h2>Register modes</h2>
   <p>The following register modes are available.</p>
 {self._get_mode_descriptions()}
-  <h2>Register list</h2>
-  <p>The following registers make up the register map for the {self.module_name} module.</p>
-{self._get_table(register_objects)}
+  <h2>Registers</h2>
+  <p>The following registers make up the register map.</p>
+{self._get_register_table(register_objects)}
+"""
+
+        if constants:
+            html += f"""
+  <h2>Constants</h2>
+  <p>The following constants are part of the register interface.</p>
+{self._get_constant_table(constants)}"""
+
+        html += """
 </body>
 </html>"""
 
+        return html
+
+    @staticmethod
+    def _comment(comment):
+        return f"<!-- {comment} -->\n"
+
+    def _file_header(self):
+        return self._comment(self.generated_info)
+
+    @staticmethod
+    def _to_readable_address(address):
+        num_nibbles_needed = 4
+        formatting_string = "0x{:0%iX}" % num_nibbles_needed
+        return formatting_string.format(address)
+
+    def _annotate_register(self, register, register_array_index=None, array_index_increment=None):
+        if register_array_index is None:
+            address_readable = self._to_readable_address(register.address)
+        else:
+            register_address = self._to_readable_address(4 * register_array_index)
+            address_increment = self._to_readable_address(4 * array_index_increment)
+            address_readable = f"{register_address} + i &times; {address_increment}"
+        description = self._markdown_to_html.translate(register.description)
+        html = f"""
+  <tr>
+    <td><strong>{register.name}</strong></td>
+    <td>{address_readable}</td>
+    <td>{REGISTER_MODES[register.mode].mode_readable}</td>
+    <td>{register.default_value}</td>
+    <td>{description}</td>
+  </tr>"""
+
+        return html
+
+    def _annotate_bit(self, bit):
+        description = self._markdown_to_html.translate(bit.description)
+        html = f"""
+  <tr>
+    <td>&nbsp;&nbsp;<em>{bit.name}</em></td>
+    <td>{bit.index}</td>
+    <td></td>
+    <td></td>
+    <td>{description}</td>
+  </tr>"""
+
+        return html
+
+    def _get_register_table(self, register_objects):
+        html = """
+<table>
+<thead>
+  <tr>
+    <th>Name</th>
+    <th>Address</th>
+    <th>Mode</th>
+    <th>Default value</th>
+    <th>Description</th>
+  </tr>
+</thead>
+<tbody>"""
+
+        for register_object in register_objects:
+            if isinstance(register_object, Register):
+                html += self._annotate_register(register_object)
+                for bit in register_object.bits:
+                    html += self._annotate_bit(bit)
+            else:
+                html += f"""
+  <tr>
+    <td colspan="5" class="array_header">Register array <strong>{register_object.name}</strong>, repeated {register_object.length} times</td>
+  </tr>"""
+                array_index_increment = len(register_object.registers)
+                for register in register_object.registers:
+                    register_index = register_object.base_index + register.index
+                    html += self._annotate_register(register, register_index, array_index_increment)
+                html += f"""
+  <tr>
+    <td colspan="5" class="array_header">End register array <strong>{register_object.name}</strong></td>
+  </tr>"""
+
+        html += """
+</tbody>
+</table>"""
+
+        return html
+
+    def _get_constant_table(self, constants):
+        html = """
+<table>
+<thead>
+  <tr>
+    <th>Name</th>
+    <th>Value</th>
+    <th>Description</th>
+  </tr>
+</thead>
+<tbody>"""
+
+        for constant in constants:
+            description = self._markdown_to_html.translate(constant.description)
+            html += f"""
+  <tr>
+    <td><strong>{constant.name}</strong></td>
+    <td>{constant.value}</td>
+    <td>{description}</td>
+  </tr>"""
+
+        html += """
+</tbody>
+</table>"""
+        return html
+
+    @staticmethod
+    def _get_mode_descriptions():
+        html = """
+<table>
+<thead>
+  <tr>
+    <th>Mode</th>
+    <th>Description</th>
+  </tr>
+</thead>
+<tbody>"""
+
+        for mode in REGISTER_MODES.values():
+            html += f"""
+<tr>
+  <td>{mode.mode_readable}</td>
+  <td>{mode.description}</td>
+</tr>
+"""
+        html += """
+</tbody>
+</table>"""
         return html

@@ -185,16 +185,18 @@ class RegisterList:
     def create_html_page(self, output_path):
         """
         Create a documentation HTML page with register and field information. Will include the
-        table created by :meth:`.create_html_table`.
+        tables created by :meth:`.create_html_register_table` and :meth:`.create_html_constant_table`.
 
         Args:
             output_path (`pathlib.Path`): Result will be placed here.
         """
         output_file = output_path / (self.name + "_regs.html")
         register_html_generator = RegisterHtmlGenerator(self.name, self.generated_source_info())
-        create_file(output_file, register_html_generator.get_page(self.register_objects))
+        create_file(
+            output_file,
+            register_html_generator.get_page(self.register_objects, self.constants))
 
-    def create_html_table(self, output_path):
+    def create_html_register_table(self, output_path):
         """
         Create documentation HTML table with register and field information.
 
@@ -203,7 +205,18 @@ class RegisterList:
         """
         output_file = output_path / (self.name + "_regs_table.html")
         register_html_generator = RegisterHtmlGenerator(self.name, self.generated_source_info())
-        create_file(output_file, register_html_generator.get_table(self.register_objects))
+        create_file(output_file, register_html_generator.get_register_table(self.register_objects))
+
+    def create_html_constant_table(self, output_path):
+        """
+        Create documentation HTML table with constant information.
+
+        Args:
+            output_path (`pathlib.Path`): Result will be placed here.
+        """
+        output_file = output_path / (self.name + "_regs_constant_table.html")
+        register_html_generator = RegisterHtmlGenerator(self.name, self.generated_source_info())
+        create_file(output_file, register_html_generator.get_constant_table(self.constants))
 
     def copy_source_definition(self, output_path):
         """
