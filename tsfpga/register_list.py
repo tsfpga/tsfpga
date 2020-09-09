@@ -101,6 +101,21 @@ class RegisterList:
         """
         self.constants.append(Constant(name, value))
 
+    def get_constant(self, name):
+        """
+        Get a constant from this list.
+
+        Args:
+            name (str): The name of the constant.
+        Return:
+            :class:`.Constant`: The constant. ``None`` if no constant matched.
+        """
+        for constant in self.constants:
+            if constant.name == name:
+                return constant
+
+        return None
+
     def create_vhdl_package(self, output_path):
         """
         Create a VHDL package file with register and field definitions.

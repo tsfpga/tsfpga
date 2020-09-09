@@ -57,10 +57,14 @@ def test_header_constants():
     registers.add_constant("test", 123)
     registers.add_constant("hest", 456)
 
-    assert registers.constants[0].name == "test"
-    assert registers.constants[0].value == 123
-    assert registers.constants[1].name == "hest"
-    assert registers.constants[1].value == 456
+    assert len(registers.constants) == 2
+
+    assert registers.get_constant("test").name == "test"
+    assert registers.get_constant("test").value == 123
+    assert registers.get_constant("hest").name == "hest"
+    assert registers.get_constant("hest").value == 456
+
+    assert registers.get_constant("apa") is None
 
 
 @pytest.mark.usefixtures("fixture_tmp_path")
