@@ -91,15 +91,16 @@ class RegisterList:
 
         return None
 
-    def add_constant(self, name, value):
+    def add_constant(self, name, value, description=None):
         """
         Add a constant. Will be available in the generated packages and headers.
 
         Args:
             name (str): The name of the constant.
             length (int): The constant value (signed).
+            description (str): Textual description for the constant.
         """
-        self.constants.append(Constant(name, value))
+        self.constants.append(Constant(name, value, description))
 
     def get_constant(self, name):
         """
@@ -271,6 +272,11 @@ def load_toml_file(toml_file):
         raise ValueError(message) from exception_info
 
 
+RECOGNIZED_CONSTANT_ITEMS = {"value", "description"}
+RECOGNIZED_REGISTER_ITEMS = {"mode", "default_value", "description", "bits"}
+RECOGNIZED_REGISTER_ARRAY_ITEMS = {"array_length", "register"}
+
+
 def from_toml(module_name, toml_file, default_registers=None):
     toml_data = load_toml_file(toml_file)
     register_list = RegisterList(module_name, toml_file)
@@ -294,17 +300,26 @@ def from_toml(module_name, toml_file, default_registers=None):
 
     if "constant" in toml_data:
         for name, items in toml_data["constant"].items():
-            register_list.constants.append(Constant(name=name, value=items["value"]))
+            _parse_constant(name, items, register_list, toml_file)
 
     return register_list
 
 
-RECOGNIZED_REGISTER_ITEMS = {"mode", "default_value", "description", "bits"}
-RECOGNIZED_REGISTER_ARRAY_ITEMS = {"array_length", "register"}
+def _parse_constant(name, items, register_list, toml_file):
+    constant = Constant(name=name, value=items["value"])
+
+    for item_name, item_value in items.items():
+        if item_name not in RECOGNIZED_CONSTANT_ITEMS:
+            message = f"Error while parsing constant {name} in {toml_file}:\nUnknown key {item_name}"
+            raise ValueError(message)
+
+        if item_name == "description":
+            constant.description = item_value
+
+    register_list.constants.append(constant)
+
 
 # pylint: disable=too-many-arguments
-
-
 def _parse_plain_register(name, items, register_list, default_register_names, names_taken, toml_file):
     if "array_length" in items:
         message = f"Plain register {name} in {toml_file} can not have array_length attribute"

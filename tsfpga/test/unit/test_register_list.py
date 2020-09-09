@@ -55,14 +55,17 @@ def test_invalid_register_mode_should_raise_exception():
 def test_header_constants():
     registers = RegisterList(None, None)
     registers.add_constant("test", 123)
-    registers.add_constant("hest", 456)
+    registers.add_constant("hest", 456, "hest is best!")
 
     assert len(registers.constants) == 2
 
     assert registers.get_constant("test").name == "test"
     assert registers.get_constant("test").value == 123
+    assert registers.get_constant("test").description == ""
+
     assert registers.get_constant("hest").name == "hest"
     assert registers.get_constant("hest").value == 456
+    assert registers.get_constant("hest").description == "hest is best!"
 
     assert registers.get_constant("apa") is None
 
@@ -382,6 +385,7 @@ dummy = 3
 [constant.data_width]
 
 value = 0xf
+description = "the width"
 """
         data = self.toml_data % extras
         create_file(self.toml_file, data)
@@ -390,3 +394,18 @@ value = 0xf
         assert len(register_list.constants) == 1
         assert register_list.constants[0].name == "data_width"
         assert register_list.constants[0].value == 15
+        assert register_list.constants[0].description == "the width"
+
+    def test_unknown_constant_field_should_raise_exception(self):
+        extras = """
+[constant.data_width]
+
+value = 0xf
+default_value = 0xf
+"""
+        data = self.toml_data % extras
+        create_file(self.toml_file, data)
+
+        with pytest.raises(ValueError) as exception_info:
+            from_toml(self.module_name, self.toml_file)
+        assert str(exception_info.value) == f"Error while parsing constant data_width in {self.toml_file}:\nUnknown key default_value"

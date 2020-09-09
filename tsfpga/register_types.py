@@ -156,6 +156,13 @@ class RegisterArray:
 
 class Constant:
 
-    def __init__(self, name, value):
+    def __init__(self, name, value, description=None):
+        """
+        Args:
+            name (str): The name of the constant.
+            length (int): The constant value (signed).
+            description (str): Textual description for the constant.
+        """
         self.name = name
         self.value = value
+        self.description = "" if description is None else description
