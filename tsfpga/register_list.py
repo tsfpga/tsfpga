@@ -99,8 +99,12 @@ class RegisterList:
             name (str): The name of the constant.
             length (int): The constant value (signed).
             description (str): Textual description for the constant.
+        Return:
+            :class:`.Constant`: The constant object that was created.
         """
-        self.constants.append(Constant(name, value, description))
+        constant = Constant(name, value, description)
+        self.constants.append(constant)
+        return constant
 
     def get_constant(self, name):
         """
