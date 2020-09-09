@@ -21,8 +21,6 @@ class RegisterCGenerator(RegisterCodeGenerator):
 #define {define_name}
 #pragma pack(push, 1)
 
-#include <stdint.h>
-
 {self._register_struct(register_objects)}
 {self._register_defines(register_objects)}\
 {self._constants(constants)}

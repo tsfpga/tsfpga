@@ -33,8 +33,9 @@ class TestRegisterCompilation(unittest.TestCase):
     def test_compiling_c_header(self):
         main_file = self.working_dir / "main.c"
         main = """\
-#include "artyz7_regs.h"
 #include <assert.h>
+#include <stdint.h>
+#include "artyz7_regs.h"
 
 int main()
 {
