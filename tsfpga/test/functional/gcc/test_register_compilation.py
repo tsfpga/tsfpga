@@ -54,8 +54,8 @@ int main()
   regs.dummy_regs[0].configuration = ARTYZ7_DUMMY_REGS_CONFIGURATION_ENABLE;
   regs.dummy_regs[3].settings = (1 << ARTYZ7_DUMMY_REGS_CONFIGURATION_ENABLE_BIT);
 
-  assert(ARTYZ7_CONSTANT_DATA_WIDTH == 24);
-  assert(ARTYZ7_CONSTANT_DECREMENT == -8);
+  assert(ARTYZ7_DATA_WIDTH == 24);
+  assert(ARTYZ7_DECREMENT == -8);
 
   return 0;
 }

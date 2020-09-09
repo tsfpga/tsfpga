@@ -101,5 +101,5 @@ class RegisterCGenerator(RegisterCodeGenerator):
     def _constants(self, constants):
         c_code = ""
         for constant in constants:
-            c_code += f"#define {self.module_name.upper()}_CONSTANT_{constant.name.upper()} ({constant.value})\n"
+            c_code += f"#define {self.module_name.upper()}_{constant.name.upper()} ({constant.value})\n"
         return c_code
