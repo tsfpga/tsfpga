@@ -203,7 +203,7 @@ class RegisterList:
         Args:
             output_path (`pathlib.Path`): Result will be placed here.
         """
-        output_file = output_path / (self.name + "_regs_table.html")
+        output_file = output_path / (self.name + "_register_table.html")
         register_html_generator = RegisterHtmlGenerator(self.name, self.generated_source_info())
         create_file(output_file, register_html_generator.get_register_table(self.register_objects))
 
@@ -214,7 +214,7 @@ class RegisterList:
         Args:
             output_path (`pathlib.Path`): Result will be placed here.
         """
-        output_file = output_path / (self.name + "_regs_constant_table.html")
+        output_file = output_path / (self.name + "_constant_table.html")
         register_html_generator = RegisterHtmlGenerator(self.name, self.generated_source_info())
         create_file(output_file, register_html_generator.get_constant_table(self.constants))
 

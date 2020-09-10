@@ -48,9 +48,14 @@ description = "Where to write data."
 [constant.axi_data_width]
 
 value = 64
+description = "Data width of the AXI port used by this module."
 
 
 ################################################################################
 [constant.burst_length_beats]
 
 value = 16
+description = """
+The burst length, in number of beats, that will be used by this module.
+This value, in conjunction with **axi_data_width** gives the size of the memory buffer that will be used.
+"""
