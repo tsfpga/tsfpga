@@ -230,12 +230,15 @@ class BaseModule:
 
         return test_case_name
 
-    def add_config(self, test, name=None, generics=None):
+    def add_config(self, test, name=None, generics=None, pre_config=None, post_check=None):
         """
         Add config for VUnit test case. Wrapper that sets a suitable name.
         """
         name = self.test_case_name(name, generics)
-        test.add_config(name=name, generics=generics)
+        test.add_config(name=name,
+                        generics=generics,
+                        pre_config=pre_config,
+                        post_check=post_check)
 
     def __str__(self):
         return f"{self.name}:{self.path}"
