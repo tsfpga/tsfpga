@@ -230,6 +230,7 @@ class BaseModule:
 
         return test_case_name
 
+    # pylint: disable=too-many-arguments
     def add_config(self, test, name=None, generics=None, pre_config=None, post_check=None):
         """
         Add config for VUnit test case. Wrapper that sets a suitable name.
