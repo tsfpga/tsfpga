@@ -4,10 +4,10 @@
 -- Performs throttling of an AXI bus by limiting the number of outstanding
 -- transactions.
 --
--- This entity is to be used in conjuctin with a data FIFO on the input.w side.
--- Using the level from that FIFO, the throttling will make sure that address
--- transactions are not until all data for that transaction is available in
--- the FIFO, to avoid stalling the throttled_m2s.w channel.
+-- This entity is to be used in conjuction with a data FIFO on the input.w side.
+-- Using the level from that FIFO, the throttling will make sure that an address
+-- transactio is not done until all data for that transaction is available in
+-- the FIFO. This avoids stalling on the throttled_m2s.w channel.
 --
 -- To achieve this it keeps track of the number of outstanding beats
 -- that have been negotiated but not yet sent.
