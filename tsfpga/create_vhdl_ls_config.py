@@ -20,7 +20,7 @@ def create_configuration(output_path,
     Execution of this function takes roughly 12 ms for a large project (62 modules and a
     VUnit project).
 
-    Args:
+    Arguments:
         output_path (`pathlib.Path`): Output folder.
         modules: A list of Module objects.
         vunit_proj: A VUnit project.

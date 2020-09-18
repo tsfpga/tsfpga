@@ -64,7 +64,7 @@ def find_git_files(file_endings_include=None,
                    directory=REPO_ROOT,
                    exclude_directories=None):
     """
-    Args:
+    Arguments:
         file_endings_include (str or tuple(str)). Only files with these endings will be included.
         file_endings_avoid (str or tuple(str)): String or tuple of strings. Files with these endings will not be included.
         directory (`pathlib.Path`): Search in this directory.

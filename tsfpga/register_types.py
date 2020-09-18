@@ -31,7 +31,7 @@ class Bit:
 
     def __init__(self, name, index, description):
         """
-        Args:
+        Arguments:
             name (str): The name of the bit.
             index (int): The zero-based index of this bit within the register.
             description (str): Textual bit description.
@@ -50,7 +50,7 @@ class Register:
     # pylint: disable=too-many-arguments
     def __init__(self, name, index, mode, description=None, default_value=None):
         """
-        Args:
+        Arguments:
             name (str): The name of the register.
             index (int): The zero-based index of this register in its register list.
             mode (str): A valid register mode.
@@ -71,7 +71,7 @@ class Register:
         """
         Append a bit to this register.
 
-        Args:
+        Arguments:
             name (str): The name of the bit.
             description (str): Description of the bit.
         Return:
@@ -114,7 +114,7 @@ class RegisterArray:
 
     def __init__(self, name, base_index, length):
         """
-        Args:
+        Arguments:
             name (str): The name of this register array.
             base_index (int): The zero-based index of the first register of this array in
                 the register list.
@@ -129,7 +129,7 @@ class RegisterArray:
         """
         Append a register to this array.
 
-        Args:
+        Arguments:
             name (str): The name of the register.
             mode (str): A valid register mode.
             description (str): Textual register description.
@@ -158,7 +158,7 @@ class Constant:
 
     def __init__(self, name, value, description=None):
         """
-        Args:
+        Arguments:
             name (str): The name of the constant.
             length (int): The constant value (signed).
             description (str): Textual description for the constant.

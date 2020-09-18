@@ -20,7 +20,7 @@ class BaseModule:
 
     def __init__(self, path, library_name, default_registers=None):
         """
-        Args:
+        Arguments:
             path (`pathlib.Path`): Path to the module folder.
             library_name (str): VHDL library name.
             default_registers (list(Register)): Default registers.
@@ -83,7 +83,8 @@ class BaseModule:
         Override this method and implement the desired behavior in a child class.
 
         .. Note::
-            This default method does nothing and can be safely overridden.
+            This default method does nothing. Shall be overridden by modules that utilize
+            this mechanism,
         """
 
     def create_regs_vhdl_package(self):
@@ -111,7 +112,7 @@ class BaseModule:
 
     def get_simulation_files(self, include_tests=True):
         """
-        Args:
+        Arguments:
             include_tests (bool): When False the test folder is not included.
                 The use case of include_tests is when testing a primary module
                 that depends on other secondary modules, we may want to compile
@@ -119,7 +120,7 @@ class BaseModule:
                 test files (``test`` folder).
 
                 .. Note::
-                    `test` files are considered private to the module and should never be used by
+                    The ``test`` files are considered private to the module and should never be used by
                     other modules.
 
         Return:
@@ -145,7 +146,7 @@ class BaseModule:
             This default method does nothing. Should be overridden by modules that have
             any test benches that operate via generics.
 
-        Args:
+        Arguments:
             vunit_proj: The VUnit project that is used to run simulation.
             kwargs: Use this to pass an arbitrary list of arguments from your ``simulate.py``
                 to the module where you set up your tests. This could be, e.g., data dimensions,
@@ -159,6 +160,22 @@ class BaseModule:
         .. Note::
             This default method does nothing. Should be overridden by modules that
             utilize formal verification.
+        """
+
+    def pre_build_hook(self, project, **kwargs):
+        """
+        This method will be called before an FPGA build is run. A typical use case for this
+        mechanism is to set a register constant or default value based on the generics that
+        are passed to the project. Could also be used to, e.g., generate BRAM init files
+        based on project information, etc.
+
+        .. Note::
+            This default method does nothing. Should be overridden by modules that
+            utilize this mechanism.
+
+        Arguments:
+            project (.VivadoProject): The project that is being built.
+            kwargs: All parameters that are sent to the :meth:`.VivadoProject.build` method.
         """
 
     def get_ip_core_files(self):
@@ -202,7 +219,8 @@ class BaseModule:
         Get FPGA build projects defined by this module.
 
         .. Note::
-            Should be overridden by modules that set up build projects.
+            This default method does nothing. Should be overridden by modules that set up
+            build projects.
 
         Return:
             list(:class:`.VivadoProject`): FPGA build projects.
@@ -212,7 +230,7 @@ class BaseModule:
     @staticmethod
     def test_case_name(name=None, generics=None):
         """
-        Costruct a string suitable for naming test cases.
+        Construct a string suitable for naming test cases.
 
         Example result: MyName.GenericA_ValueA.GenericB_ValueB
         """
@@ -269,7 +287,7 @@ def get_modules(modules_folders,
     """
     Get a list of Module objects based on the source code folders.
 
-    Args:
+    Arguments:
         modules_folders (list(`pathlib.Path`)): A list of paths where your modules are located.
         names_include (list(str)): If specified, only modules with these names will be included.
         names_avoid (list(str)): If specified, modules with these names will be discarded.

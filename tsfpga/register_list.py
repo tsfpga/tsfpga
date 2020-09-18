@@ -25,7 +25,7 @@ class RegisterList:
 
     def __init__(self, name, source_definition_file):
         """
-        Args:
+        Arguments:
             name (str): The name of this register list. Typically the name of the module that uses it.
             source_definition_file (`pathlib.Path`): The TOML source file that defined this register list.
         """
@@ -38,7 +38,7 @@ class RegisterList:
         """
         Append a register to this list.
 
-        Args:
+        Arguments:
             name (str): The name of the register.
             mode (str): A valid register mode.
             description (str): Textual register description.
@@ -60,7 +60,7 @@ class RegisterList:
         """
         Append a register array to this list.
 
-        Args:
+        Arguments:
             name (str): The name of the register array.
             length (int): The number of times the register sequence shall be repeated.
         Return:
@@ -80,7 +80,7 @@ class RegisterList:
         Get a register from this list. Will only find single registers, not registers in a
         register array.
 
-        Args:
+        Arguments:
             name (str): The name of the register.
         Return:
             :class:`.Register`: The register. ``None`` if no register matched.
@@ -95,7 +95,7 @@ class RegisterList:
         """
         Add a constant. Will be available in the generated packages and headers.
 
-        Args:
+        Arguments:
             name (str): The name of the constant.
             length (int): The constant value (signed).
             description (str): Textual description for the constant.
@@ -110,7 +110,7 @@ class RegisterList:
         """
         Get a constant from this list.
 
-        Args:
+        Arguments:
             name (str): The name of the constant.
         Return:
             :class:`.Constant`: The constant. ``None`` if no constant matched.
@@ -130,7 +130,7 @@ class RegisterList:
         Necessary since this one is often used in real time (before simulations, etc..) and not in
         one-off scenarios like the others (when making a release).
 
-        Args:
+        Arguments:
             output_path (`pathlib.Path`): Result will be placed here.
         """
         register_vhdl_generator = RegisterVhdlGenerator(self.name, self.generated_info())
@@ -141,7 +141,7 @@ class RegisterList:
         """
         Create a C header file with register and field definitions.
 
-        Args:
+        Arguments:
             output_path (`pathlib.Path`): Result will be placed here.
         """
         output_file = output_path / (self.name + "_regs.h")
@@ -153,7 +153,7 @@ class RegisterList:
         Create a C++ class interface header file, with register and field definitions. The interface header
         contains only virtual methods.
 
-        Args:
+        Arguments:
             output_path (`pathlib.Path`): Result will be placed here.
         """
         output_file = output_path / ("i_" + self.name + ".h")
@@ -164,7 +164,7 @@ class RegisterList:
         """
         Create a C++ class header file.
 
-        Args:
+        Arguments:
             output_path (`pathlib.Path`): Result will be placed here.
         """
         output_file = output_path / (self.name + ".h")
@@ -175,7 +175,7 @@ class RegisterList:
         """
         Create a C++ class implementation file.
 
-        Args:
+        Arguments:
             output_path (`pathlib.Path`): Result will be placed here.
         """
         output_file = output_path / (self.name + ".cpp")
@@ -187,7 +187,7 @@ class RegisterList:
         Create a documentation HTML page with register and field information. Will include the
         tables created by :meth:`.create_html_register_table` and :meth:`.create_html_constant_table`.
 
-        Args:
+        Arguments:
             output_path (`pathlib.Path`): Result will be placed here.
         """
         output_file = output_path / (self.name + "_regs.html")
@@ -200,7 +200,7 @@ class RegisterList:
         """
         Create documentation HTML table with register and field information.
 
-        Args:
+        Arguments:
             output_path (`pathlib.Path`): Result will be placed here.
         """
         output_file = output_path / (self.name + "_register_table.html")
@@ -211,7 +211,7 @@ class RegisterList:
         """
         Create documentation HTML table with constant information.
 
-        Args:
+        Arguments:
             output_path (`pathlib.Path`): Result will be placed here.
         """
         output_file = output_path / (self.name + "_constant_table.html")
@@ -222,7 +222,7 @@ class RegisterList:
         """
         Copy the TOML file that created this register list.
 
-        Args:
+        Arguments:
             output_path (`pathlib.Path`): Result will be placed here.
         """
         create_directory(output_path, empty=False)

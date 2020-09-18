@@ -28,7 +28,7 @@ class FormalConfig:
             depth=20
     ):
         """
-        Args:
+        Arguments:
             top (str): Name of top level entity.
             generics (dict): Generics that will be applied to the top level.
             engine_command (str): Engine command, e.g. ``smtbmc --syn --nopresat``

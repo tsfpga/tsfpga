@@ -245,10 +245,6 @@ class VivadoProject:
         # Run index is optional to specify at build-time
         run_index = self.default_run_index if run_index is None else run_index
 
-        # Make sure register packages are up to date
-        for module in self.modules:
-            module.create_regs_vhdl_package()
-
         # Send all available information to pre- and post build functions
         pre_and_post_build_parameters.update(
             project_path=project_path,
@@ -258,6 +254,12 @@ class VivadoProject:
             synth_only=synth_only,
             num_threads=num_threads
         )
+
+        for module in self.modules:
+            module.pre_build_hook(project=self, **pre_and_post_build_parameters)
+
+            # Make sure register packages are up to date
+            module.create_regs_vhdl_package()
 
         result = BuildResult(self.name)
         result.success = result.success and self.pre_build(**pre_and_post_build_parameters)

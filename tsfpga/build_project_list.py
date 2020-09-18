@@ -13,7 +13,7 @@ class BuildProjectList:
 
     def __init__(self, modules):
         """
-        Args:
+        Arguments:
             modules (list(:class:`.BaseModule`)): Module objects that can define build projects.
         """
         self._modules = modules
@@ -22,7 +22,7 @@ class BuildProjectList:
         """
         Get projects matching any of the specified filters.
 
-        Args:
+        Arguments:
             project_filters (list(str)): Project name filters.
             include_netlist_not_top_builds: Set True to get only netlist builds instead of only top level builds.
 
@@ -40,7 +40,7 @@ class BuildProjectList:
         """
         Returns a string with a list of the projects matching the specified filters.
 
-        Args:
+        Arguments:
             project_filters (list(str)): Project name filters.
             include_netlist_not_top_builds (bool): Set True to get only netlist builds (:class:`.VivadoNetlistProject`)
                 instead of only top level builds (:class:`.VivadoProject`).
