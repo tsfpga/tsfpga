@@ -18,7 +18,10 @@ use axi.axil_pkg.all;
 entity axi_to_axil_vec is
   generic (
     axil_slaves : addr_and_mask_vec_t;
-    clocks_are_the_same : boolean_vector(axil_slaves'range) := (others => true)
+    clocks_are_the_same : boolean_vector(axil_slaves'range) := (others => true);
+    pipeline : boolean := false;
+    -- Only needed if pipeline is enabled
+    data_width : positive := 32
   );
   port (
     clk_axi : in std_logic;
@@ -33,8 +36,10 @@ end entity;
 
 architecture a of axi_to_axil_vec is
 
-  signal axil_m2s : axil_m2s_t;
-  signal axil_s2m : axil_s2m_t;
+  signal axil_m2s, axil_pipelined_m2s : axil_m2s_t := axil_m2s_init;
+  signal axil_s2m, axil_pipelined_s2m : axil_s2m_t := axil_s2m_init;
+
+  constant addr_width : positive := addr_bits_needed(axil_slaves);
 
 begin
 
@@ -55,6 +60,29 @@ begin
 
 
   ------------------------------------------------------------------------------
+  pipeline_gen : if pipeline generate
+    axil_pipeline_inst : entity work.axil_pipeline
+      generic map (
+        data_width => data_width,
+        addr_width => addr_width
+      )
+      port map (
+        clk => clk_axi,
+        --
+        master_m2s => axil_m2s,
+        master_s2m => axil_s2m,
+        --
+        slave_m2s => axil_pipelined_m2s,
+        slave_s2m => axil_pipelined_s2m
+      );
+
+  else generate
+    axil_pipelined_m2s <= axil_m2s;
+    axil_s2m <= axil_pipelined_s2m;
+
+  end generate;
+
+  ------------------------------------------------------------------------------
   axil_to_vec_inst : entity work.axil_to_vec
     generic map (
       axil_slaves => axil_slaves,
@@ -62,8 +90,8 @@ begin
     )
     port map (
       clk_axil => clk_axi,
-      axil_m2s => axil_m2s,
-      axil_s2m => axil_s2m,
+      axil_m2s => axil_pipelined_m2s,
+      axil_s2m => axil_pipelined_s2m,
 
       clk_axil_vec => clk_axil_vec,
       axil_m2s_vec => axil_m2s_vec,

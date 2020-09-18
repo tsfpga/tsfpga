@@ -26,6 +26,7 @@ library bfm;
 
 entity tb_axi_to_axil_vec is
   generic (
+    pipeline : boolean;
     runner_cfg : string
   );
 end entity;
@@ -144,7 +145,9 @@ begin
   dut : entity work.axi_to_axil_vec
   generic map (
     axil_slaves => axil_slaves,
-    clocks_are_the_same => clocks_are_the_same
+    clocks_are_the_same => clocks_are_the_same,
+    pipeline => pipeline,
+    data_width => reg_width
   )
   port map (
     clk_axi => clk_axi,

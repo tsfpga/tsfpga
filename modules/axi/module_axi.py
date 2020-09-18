@@ -27,6 +27,10 @@ class Module(BaseModule):
                 name = "data_width_%i" % data_width
                 tb.add_config(name=name, generics=dict(data_width=data_width))
 
+        tb = vunit_proj.library(self.library_name).test_bench("tb_axi_to_axil_vec")
+        self.add_config(tb, generics=dict(pipeline=True))
+        self.add_config(tb, generics=dict(pipeline=False))
+
         tb = vunit_proj.library(self.library_name).test_bench("tb_axil_cdc")
         tb.add_config(name="master_clk_fast", generics=dict(master_clk_fast=True))
         tb.add_config(name="slave_clk_fast", generics=dict(slave_clk_fast=True))
