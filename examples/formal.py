@@ -1,9 +1,9 @@
 # ------------------------------------------------------------------------------
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
-# @eine has made a docker image that runs smoothly, run for example with:
-#   docker run --rm --interactive --tty --volume $(pwd)/..:$(pwd)/.. --workdir $(pwd) ghdl/synth:formal /bin/bash
-#   apt update && apt install --yes python3-pip && python3 -m pip install toml colorama
+# The tsfpga/formal docker image can be used to run this file.
+# Run for example with:
+#   docker run --rm --interactive --tty --volume $(pwd)/..:$(pwd)/.. --workdir $(pwd) tsfpga/formal /bin/bash
 #   python3 examples/formal.py
 # ------------------------------------------------------------------------------
 
