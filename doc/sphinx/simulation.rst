@@ -5,8 +5,8 @@ Simulation flow
 
 This page shows how to run simulations using tsfpga and VUnit.
 
-As far as simulations go tsfpga can be seen as layer on top of VUnit.
-Tsfpga helps manage the inputs to the simulation project: source files, test benches, :ref:`test configurations <local_configuration>`, :ref:`register code generation <registers>`, :ref:`IP cores <vivado_ip_cores>`, :ref:`simlib <vivado_simlib>`, ...
+As far as simulations go tsfpga can be seen as a layer on top of VUnit.
+tsfpga helps manage the inputs to the simulation project: source files, test benches, :ref:`test configurations <local_configuration>`, :ref:`register code generation <registers>`, :ref:`IP cores <vivado_ip_cores>`, :ref:`simlib <vivado_simlib>`, ...
 All features of VUnit are available as they are, and all simulators are supported (ghdl as well as commercial).
 
 
@@ -32,6 +32,8 @@ If the source code is roughly organized along the :ref:`folder structure <folder
         for hdl_file in module.get_simulation_files():
              vunit_library.add_source_file(hdl_file.path)
         module.setup_simulations(vunit_proj)
+
+    vunit_proj.main()
 
 The call to :ref:`get_modules() <get_modules>` creates :ref:`module objects <module_objects>` from the directory structure of the folders listed in the argument.
 The library name is deduced from the name of each module folder.

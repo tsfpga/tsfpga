@@ -15,8 +15,8 @@ Some functions in tsfpga require that modules use a certain folder structure.
 For example, if we want to set up :ref:`local test configurations <local_configuration>` we
 must use a file called exactly ``module_<name>.py`` in the root of the module.
 
-Additionally the :class:`get_modules() <tsfpga.module.get_modules>` function in tsfpga, which creates
-:meth:`module objects <tsfpga.module.BaseModule>` from a source tree, will look for source files only in certain sub-directories.
+Additionally the :meth:`get_modules() <tsfpga.module.get_modules>` function in tsfpga, which creates
+:class:`module objects <tsfpga.module.BaseModule>` from a source tree, will look for source files only in certain sub-directories.
 
 Below is a recommended folder structure.
 The different files and folders are explained further down.

@@ -69,7 +69,7 @@ class FormalProject:
             print(test.name)
         print(f"Listed {test_list.num_tests} tests")
 
-    def run(self, num_threads, verbose, quiet, test_filters):
+    def run(self, num_threads=1, verbose=False, quiet=False, test_filters=None):
         # First, compile the source code and assign the compile result information to the
         # test objects.
         src_files, compiled_libraries = self._compile_source_code()

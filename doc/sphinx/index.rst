@@ -5,6 +5,7 @@
 
     simulation
     fpga_build
+    formal
     netlist_build
     module_structure
     registers
