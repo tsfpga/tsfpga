@@ -139,10 +139,13 @@ class VivadoProject:
             project_path (`pathlib.Path`): Path where the project shall be placed.
             ip_cache_path (`pathlib.Path`): Path to a folder where the Vivado IP cache can be placed.
                 If omitted, the Vivado IP cache mechanism will not be enabled.
+
+        Returns:
+            bool: True if everything went well.
         """
         print(f"Creating Vivado project in {project_path}")
         create_vivado_project_tcl = self._create_tcl(project_path, ip_cache_path)
-        run_vivado_tcl(self._vivado_path, create_vivado_project_tcl)
+        return run_vivado_tcl(self._vivado_path, create_vivado_project_tcl)
 
     def _build_tcl(self, project_path, output_path, num_threads, run_index, generics, synth_only):
         """
@@ -222,7 +225,7 @@ class VivadoProject:
 
                 Compare to the create-time generics argument in :meth:`.__init__`.
             synth_only (bool): Run synthesis and then stop.
-            num_threads (int): Number of parallell threads to use during run.
+            num_threads (int): Number of parallel threads to use during run.
             pre_and_post_build_parameters: Additional parameters that will be
                 sent to pre- and post build functions.
 
@@ -262,7 +265,9 @@ class VivadoProject:
             module.create_regs_vhdl_package()
 
         result = BuildResult(self.name)
-        result.success = result.success and self.pre_build(**pre_and_post_build_parameters)
+        if not self.pre_build(**pre_and_post_build_parameters):
+            result.success = False
+            return result
 
         build_vivado_project_tcl = self._build_tcl(project_path=project_path,
                                                    output_path=output_path,
@@ -270,7 +275,10 @@ class VivadoProject:
                                                    run_index=run_index,
                                                    generics=generics,
                                                    synth_only=synth_only)
-        run_vivado_tcl(self._vivado_path, build_vivado_project_tcl)
+
+        if not run_vivado_tcl(self._vivado_path, build_vivado_project_tcl):
+            result.success = False
+            return result
 
         result.synthesis_size = self._get_size(project_path, f"synth_{run_index}")
 
@@ -280,10 +288,11 @@ class VivadoProject:
             shutil.copy2(impl_folder / f"{self.top}.bin", output_path / f"{self.name}.bin")
             result.implementation_size = self._get_size(project_path, f"impl_{run_index}")
 
-        # Send result as well to the post-build function
+        # Send the result object, along with everything else, to the post-build function
         pre_and_post_build_parameters.update(build_result=result)
 
-        result.success = result.success and self.post_build(**pre_and_post_build_parameters)
+        if not self.post_build(**pre_and_post_build_parameters):
+            result.success = False
 
         return result
 
@@ -293,8 +302,11 @@ class VivadoProject:
 
         Args:
             project_path (`pathlib.Path`): A path containing a Vivado project.
+
+        Returns:
+            bool: True if everything went well.
         """
-        run_vivado_gui(self._vivado_path, self.project_file(project_path))
+        return run_vivado_gui(self._vivado_path, self.project_file(project_path))
 
     def _get_size(self, project_path, run):
         """

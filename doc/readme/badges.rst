@@ -14,7 +14,7 @@
 
 .. |pic_license| image:: https://tsfpga.com/badges/license.svg
   :alt: License
-  :target: https://gitlab.com/tsfpga/tsfpga/-/blob/master/license.txt
+  :target: https://tsfpga.com/license_information.html
 
 .. |pic_python_line_coverage| image:: https://tsfpga.com/badges/python_coverage.svg
   :alt: Python line coverage

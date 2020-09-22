@@ -1,6 +1,16 @@
 .. include:: ../../generated/sphinx/index.rst
 
 .. toctree::
+    :caption: About
+    :hidden:
+
+    license_information
+    contributing
+    release_notes
+
+
+.. toctree::
+    :caption: Technical documentation
     :hidden:
 
     simulation
@@ -9,5 +19,3 @@
     netlist_build
     module_structure
     registers
-    contributing
-    release_notes

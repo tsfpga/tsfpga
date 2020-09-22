@@ -51,3 +51,4 @@ class SpecialVivadoProject(VivadoProject):
 
     def post_build(self, output_path, **kwargs):  # pylint: disable=arguments-differ
         print(f"We can do useful things here. In the output path {output_path} for example")
+        return True

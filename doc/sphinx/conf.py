@@ -14,6 +14,8 @@ import sys
 
 TSFPGA_ROOT = Path(__file__).parent.parent.parent
 sys.path.append(str(TSFPGA_ROOT))
+PATH_TO_VUNIT = TSFPGA_ROOT.parent / "vunit"
+sys.path.append(str(PATH_TO_VUNIT.resolve()))
 
 
 # -- Project information -----------------------------------------------------

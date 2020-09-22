@@ -4,7 +4,8 @@
 
 from pathlib import Path
 from shutil import which
-import subprocess
+
+from vunit.ostools import Process
 
 
 def run_vivado_tcl(vivado_path, tcl_file, no_log_file=False):
@@ -12,18 +13,30 @@ def run_vivado_tcl(vivado_path, tcl_file, no_log_file=False):
     Setting cwd ensures that any .log or .jou files produced are placed in
     the same directory as the TCL file that produced them.
 
-    Subprocess has to be run with shell=True on Windows where vivado is a bat file.
-
     Args:
         vivado_path (`pathlib.Path`): Path to Vivado executable. Can set to None
             to use whatever version is in PATH.
         tcl_file (`pathlib.Path`): Path to TCL file.
+
+    Return:
+        bool: True if everything went well.
     """
     tcl_file = tcl_file.resolve()
-    cmd = f"{get_vivado_path(vivado_path)} -mode batch -notrace -source {tcl_file}"
+
+    cmd = [str(get_vivado_path(vivado_path)),
+           "-mode",
+           "batch",
+           "-notrace",
+           "-source",
+           str(tcl_file)]
     if no_log_file:
-        cmd += " -nojournal -nolog"
-    subprocess.check_call(cmd, cwd=tcl_file.parent, shell=True)
+        cmd += ["-nojournal", "-nolog"]
+
+    try:
+        Process(cmd, cwd=tcl_file.parent).consume_output()
+    except Process.NonZeroExitCode:
+        return False
+    return True
 
 
 def run_vivado_gui(vivado_path, project_file):
@@ -31,18 +44,28 @@ def run_vivado_gui(vivado_path, project_file):
     Setting cwd ensures that any .log or .jou files produced are placed in
     the same directory as the project.
 
-    Subprocess has to be run with shell=True on Windows where vivado is a bat file.
-
     Args:
         vivado_path (`pathlib.Path`): Path to Vivado executable. Can set to None
             to use whatever version is in PATH.
         project_file (`pathlib.Path`): Path to a project .xpr file.
+
+    Return:
+        bool: True if everything went well.
     """
     project_file = project_file.resolve()
-    cmd = f"{get_vivado_path(vivado_path)} -mode gui {project_file}"
     if not project_file.exists():
         raise FileNotFoundError(f"Project does not exist: {project_file}")
-    subprocess.check_call(cmd, cwd=project_file.parent, shell=True)
+
+    cmd = [str(get_vivado_path(vivado_path)),
+           "-mode",
+           "gui",
+           str(project_file)]
+
+    try:
+        Process(cmd, cwd=project_file.parent).consume_output()
+    except Process.NonZeroExitCode:
+        return False
+    return True
 
 
 def get_vivado_path(vivado_path=None):

@@ -8,7 +8,6 @@ class SbyWriter:
     Writes a Symbioyosys script file
     """
 
-    # pylint: disable=too-many-arguments
     @staticmethod
     def write_sby(
             output_path,

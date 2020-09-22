@@ -2,7 +2,6 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from subprocess import CalledProcessError
 import sys
 import unittest
 
@@ -22,13 +21,14 @@ def test_building_artyz7_project(tmp_path):
         sys.executable,
         build_py,
         "artyz7",
-        "--project-path", tmp_path,
-        "--output-path", tmp_path
+        "--projects-path", tmp_path / "projects",
+        "--output-path", tmp_path / "artifacts"
     ]
     run_command(cmd, cwd=tsfpga.REPO_ROOT)
-    assert (tmp_path / "artyz7.bit").exists()
-    assert (tmp_path / "artyz7.bin").exists()
-    assert (tmp_path / "artyz7.xsa").exists()
+    assert (tmp_path / "artifacts" / "artyz7" / "artyz7.bit").exists()
+    assert (tmp_path / "artifacts" / "artyz7" / "artyz7.bin").exists()
+    assert (tmp_path / "artifacts" / "artyz7" / "artyz7.xsa").exists()
+    assert (tmp_path / "artifacts" / "artyz7" / "artyz7-0.0.0.0.zip").exists()
 
 
 @pytest.mark.usefixtures("fixture_tmp_path")
@@ -106,7 +106,7 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
             constraints=constraints,
             # Faster
             default_run_index=2)
-        self.proj.create(self.project_folder)
+        assert self.proj.create(self.project_folder)
 
         self.log_file = self.project_folder / "vivado.log"
 
@@ -123,8 +123,8 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
     def test_synth_should_fail_if_source_code_does_not_compile(self):
         create_file(self.top_file, "garbage\napa\nhest")
 
-        with pytest.raises(CalledProcessError):
-            self.proj.build(self.project_folder, synth_only=True)
+        build_result = self.proj.build(self.project_folder, synth_only=True)
+        assert not build_result.success
         assert file_contains_string(self.log_file, "\nERROR: Run synth_2 failed.")
 
     def test_synth_with_assert_false_should_fail(self):
@@ -134,8 +134,8 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         top = self.top_template.format(code_block=assert_false)
         create_file(self.top_file, top)
 
-        with pytest.raises(CalledProcessError):
-            self.proj.build(self.project_folder, synth_only=True, run_index=2)
+        build_result = self.proj.build(self.project_folder, synth_only=True, run_index=2)
+        assert not build_result.success
         assert file_contains_string(self.log_file, "RTL assertion: \"Assertion violation.\"")
 
     def test_build_project(self):
@@ -185,8 +185,8 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         top = self.top_template.format(code_block=bad_timing)
         create_file(self.top_file, top)
 
-        with pytest.raises(CalledProcessError):
-            self.proj.build(self.project_folder, self.project_folder)
+        build_result = self.proj.build(self.project_folder, self.project_folder)
+        assert not build_result.success
         assert file_contains_string(self.log_file, "\nERROR: Timing not OK after implementation run.")
 
         assert (self.runs_folder / "impl_2" / "timing_summary.rpt").exists()
@@ -202,8 +202,8 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         top = self.top_template.format(code_block=bad_resync)
         create_file(self.top_file, top)
 
-        with pytest.raises(CalledProcessError):
-            self.proj.build(self.project_folder, self.project_folder)
+        build_result = self.proj.build(self.project_folder, self.project_folder)
+        assert not build_result.success
         assert file_contains_string(self.log_file, "\nERROR: Unhandled clock crossing in synth_2 run.")
 
         assert (self.runs_folder / "synth_2" / "hierarchical_utilization.rpt").exists()

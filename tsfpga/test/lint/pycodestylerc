@@ -3,4 +3,6 @@ max-line-length = 150
 
 # E402 = Wrong import order. Pycodestylerc does not usually allow us doing sys.path.append(...) before import.
 # W503 = Line break before binary operator. This is how it should be. W504 is respected. https://github.com/PyCQA/pycodestyle/pull/502
-ignore=E402,W503
+# E722 = Do not use bare 'except'. Triggers in VUnit code.
+# W504 = Line break after binary operator. Triggers in VUnit code.
+ignore=E402,W503,E722,W504

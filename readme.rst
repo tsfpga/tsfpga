@@ -17,7 +17,7 @@ About tsfpga
 
 .. |pic_license| image:: https://tsfpga.com/badges/license.svg
   :alt: License
-  :target: https://gitlab.com/tsfpga/tsfpga/-/blob/master/license.txt
+  :target: https://tsfpga.com/license_information.html
 
 .. |pic_python_line_coverage| image:: https://tsfpga.com/badges/python_coverage.svg
   :alt: Python line coverage
@@ -44,15 +44,9 @@ Key features
 * Automatically adds build/simulation sources if a recognized folder structure is used.
 * Enables local VUnit configuration setup without multiple ``run.py``.
 * Handling of IP cores and simlib for your simulation project, with automatic re-compile when necessary.
-* Complete Vivado build system.
+* Python-based parallel Vivado build system.
 * Register code generation from TOML: VHDL package, HTML documentation, C header, C++ class.
 * VHDL AXI components that enable the register bus: AXI-to-AXI-Lite converter, AXI-Lite interconnect, AXI-Lite mux (splitter), AXI-Lite clock domain crossing, AXI-Lite generic register file.
 
 The maintainers place high focus on quality, with everything having good unit test coverage and a though-out structure.
 The project is mature and used in many production environments.
-
-
-License
--------
-
-This project is released under the terms of the BSD 3-Clause License. See ``license.txt`` for details.

@@ -80,7 +80,7 @@ ____________
 
 The VHDL package file is designed to be used with the generic AXI-Lite register file `available in tsfpga <https://gitlab.com/tsfpga/tsfpga/-/tree/master/modules/reg_file>`__.
 
-.. literalinclude:: ../../examples/modules/ddr_buffer/ddr_buffer_regs_pkg.vhd
+.. literalinclude:: ../../generated/registers/vhdl/ddr_buffer_regs_pkg.vhd
    :caption: ddr_buffer_regs_pkg.vhd
    :language: vhdl
 

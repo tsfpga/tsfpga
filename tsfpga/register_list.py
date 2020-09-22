@@ -336,7 +336,6 @@ def _parse_constant(name, items, register_list, toml_file):
     register_list.constants.append(constant)
 
 
-# pylint: disable=too-many-arguments
 def _parse_plain_register(name, items, register_list, default_register_names, names_taken, toml_file):
     if "array_length" in items:
         message = f"Plain register {name} in {toml_file} can not have array_length attribute"

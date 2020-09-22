@@ -26,7 +26,6 @@ class RegisterHtmlGenerator:
         html += self._get_constant_table(constants)
         return html
 
-    # pylint: disable=too-many-arguments
     def get_page(self,
                  register_objects,
                  constants,

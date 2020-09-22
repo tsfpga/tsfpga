@@ -4,12 +4,57 @@ FPGA build flow
 ===============
 
 In tsfpga the build projects are set up by the modules.
-Any module can set up a build project as long as they follow the :ref:`folder structure <folder_structure_project>`.
+Any module can :ref:`set up  a build project <example_project_class>` as long as they follow the :ref:`folder structure <folder_structure_project>`.
 The build project is represented using a :class:`Python class <.VivadoProject>` that abstracts all settings and operations.
 
-An example of how a module sets up build projects is found :ref:`here <example_project_class>`.
 
-The projects are available in a :ref:`project list <project_list>` and are built using a user-created :ref:`build.py <example_build_py>`.
+
+.. _example_build_py:
+
+Minimal build.py example
+------------------------
+
+Given that we follow the :ref:`folder structure <folder_structure>`, and have and least one module that :ref:`sets up  build projects <example_project_class>`, we can utilize a ``build.py`` like this:
+
+.. code-block:: python
+    :caption: Minimal ``build.py`` file.
+
+    from pathlib import Path
+    from tsfpga.build_project_list import BuildProjectList
+    from tsfpga.module import get_modules
+
+    my_modules_folders = [
+        Path("path/to/my/modules"),
+    ]
+    modules = get_modules(my_modules_folders)
+    build_path = Path("my_generated_build_projects")
+    projects = BuildProjectList(modules, "artyz7*")
+    projects.create_unless_exists(project_paths=build_path, num_parallel_builds=4)
+    projects.build(project_path=build_path, num_parallel_builds=4, num_threads_per_build=6)
+
+Of course this is incredibly simplified and hard-coded, but it does show the interface to the tsfpga classes.
+The :class:`.BuildProjectList` class will work on a list of :class:`build project objects <.VivadoProject>` as supplied by the modules.
+
+An example output from this script is shown below.
+It shows to build projects being launched in parallel, and then finishing and roughly the same time.
+
+.. code-block:: REST
+
+    [/home/lukas/work/repo/tsfpga]$ python examples/build.py
+    Starting artyz7
+    Output file: /home/lukas/work/repo/tsfpga/generated/projects/artyz7/output.txt
+    Starting artyz7_dummy
+    Output file: /home/lukas/work/repo/tsfpga/generated/projects/artyz7_dummy/output.txt
+    pass (P=1 S=0 F=0 T=2) artyz7 (234.3 seconds)
+
+    pass (P=2 S=0 F=0 T=2) artyz7_dummy (237.3 seconds)
+    [/home/lukas/work/repo/tsfpga]$
+
+Note that before a project is built a :ref:`register generation <registers>` is run, so that the project is built using up-to-date register definitions.
+
+Of course a more realistic ``build.py`` would be a little more verbose.
+It would probably feature command line arguments that control the behavior, output paths, etc.
+And example of this, which also features release artifact packaging, is available in the `repo <https://gitlab.com/tsfpga/tsfpga/-/blob/master/examples/build.py>`__.
 
 
 
@@ -17,7 +62,7 @@ Vivado project class
 --------------------
 
 Build projects targetting Xilinx Vivado are represented using this class.
-Continue reading this page for explanations on how to use it and the different parameters.
+The modules that define build projects should set up objects of this type, see :ref:`example_project_class`.
 
 .. autoclass:: tsfpga.vivado.project.VivadoProject()
     :members:
@@ -89,40 +134,6 @@ For the second project we additionally have to specify the ``top`` name.
 In the first one it is inferred from the project name to be ``artyz7_top``, whereas in the second one we have to specify it explicitly.
 
 
-.. _example_build_py:
-
-Example build.py
-----------------
-
-A ``build.py`` in a simplified and hard-coded fashion could look something like this:
-
-.. code-block:: python
-    :caption: Minimal ``build.py`` file.
-
-    from pathlib import Path
-    from tsfpga.build_project_list import BuildProjectList
-    from tsfpga.module import get_modules
-
-    my_modules_folders = [
-        Path("path/to/my/modules"),
-    ]
-    modules = get_modules(my_modules_folders)
-    build_path = Path("build_projects")
-    for project in BuildProjectList(modules).get_projects("artyz7*"):
-        project.create(project_path=build_path / project.name)
-        project.build(project_path=build_path / project.name, output_path=build_path / project.name / "artifacts")
-
-Of course this is incredibly simplified, but it does show the interface to the tsfpga classes.
-The :class:`.BuildProjectList` function :meth:`.BuildProjectList.get_projects` will return a list of :class:`build project objects <.VivadoProject>` that match the given pattern.
-With this objects the ``create()`` and ``build()`` functions are available.
-
-Note that before a project is built a :ref:`register generation <registers>` is run, so that the project is built using up-to-date register definitions.
-
-Of course a more realistic ``build.py`` would be a little more verbose.
-It would probably feature command line arguments that control the behavior, output paths, etc.
-And example of this, which also features release artifact packaging, is available in the `repo <https://gitlab.com/tsfpga/tsfpga/-/blob/master/examples/build.py>`__.
-
-
 
 .. _pre_post_build:
 
@@ -138,6 +149,9 @@ So in our :ref:`example build.py <example_build_py>` above we could have passed 
 
 Constraint files
 -----------------------
+
+Constraints are added to the :class:`.VivadoProject` when :ref:`setting up the project <example_project_class>`.
+They are abstracted using this class.
 
 .. autoclass:: tsfpga.constraint.Constraint()
     :members:
@@ -163,6 +177,9 @@ It is possible to add more than one hook per step.
 Build result
 ------------
 
+The :meth:`.VivadoProject.build` and :meth:`.VivadoProject.create` methods will return an object like this upon completion.
+It can be inspected to see if the run passed or failed, and what the resource utilization of the build is.
+
 .. autoclass:: tsfpga.vivado.project.BuildResult()
     :members:
 
@@ -174,6 +191,9 @@ Build result
 
 FPGA build project list
 -----------------------
+
+Wrapper class around :class:`build projects <.VivadoProject>` that provides a simple interface, along with build parallelization.
+See :ref:`example_build_py` for usage example.
 
 .. autoclass:: tsfpga.build_project_list.BuildProjectList()
     :members:

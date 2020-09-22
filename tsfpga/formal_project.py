@@ -172,7 +172,7 @@ class FormalTestCase:
     def run(self, output_path, read_output):  # pylint: disable=unused-argument
         """
         VUnit test runner sends another argument "read_output" which we don't use.
-        It can be usd to read back the STDOUTput from a test. Typically used in a post
+        It can be used to read back the STDOUTput from a test. Typically used in a post
         test hook.
         """
         # If these have not been set there is something procedurally wrong

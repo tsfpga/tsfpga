@@ -47,7 +47,6 @@ class Register:
     Used to represent a register and its fields.
     """
 
-    # pylint: disable=too-many-arguments
     def __init__(self, name, index, mode, description=None, default_value=None):
         """
         Arguments:

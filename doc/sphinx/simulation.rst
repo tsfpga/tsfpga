@@ -11,8 +11,8 @@ All features of VUnit are available as they are, and all simulators are supporte
 
 
 
-Minimal example
----------------
+Minimal simulate.py example
+---------------------------
 
 If the source code is roughly organized along the :ref:`folder structure <folder_structure>`, running simulations using tsfpga and VUnit is as simple as:
 

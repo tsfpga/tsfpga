@@ -3,80 +3,213 @@
 # ------------------------------------------------------------------------------
 
 import unittest
-
+from unittest.mock import MagicMock
 import pytest
 
 from tsfpga.build_project_list import BuildProjectList
+from tsfpga.system_utils import create_directory
 
 
+# pylint: disable=too-many-instance-attributes
+@pytest.mark.usefixtures("fixture_tmp_path")
 class TestBuildProjectList(unittest.TestCase):
 
+    tmp_path = None
+
+    @staticmethod
+    def _get_mocks(name, is_netlist_build):
+        project = MagicMock()
+        project.name = name
+        project.__str__.return_value = f"MockProject {name}"
+        project.is_netlist_build = is_netlist_build
+
+        module = MagicMock()
+        module.name = name
+        module.get_build_projects.return_value = [project]
+
+        return module, project
+
     def setUp(self):
-        modules = [DummyModule("one"), DummyModule("two")]
-        modules += [DummyNetlistModule("three"), DummyNetlistModule("four"), DummyNetlistModule("five")]
-        self.projects = BuildProjectList(modules)
+        self.module_one, self.project_one = self._get_mocks("one", False)
+        self.module_two, self.project_two = self._get_mocks("two", False)
 
-    def test_get_project(self):
-        projects = self.projects.get_projects(["one"], False)
-        assert len(projects) == 1
-        expected = {"one"}
-        assert {project.name for project in projects} == expected
+        self.module_three, self.project_three = self._get_mocks("three", True)
+        self.module_four, self.project_four = self._get_mocks("four", True)
 
-        projects = self.projects.get_projects(["*o*"], False)
-        assert len(projects) == 2
-        expected = {"one", "two"}
-        assert {project.name for project in projects} == expected
+        self.modules = [
+            self.module_one, self.module_two, self.module_three, self.module_four]
 
-        projects = self.projects.get_projects(["*o*"], True)
-        assert len(projects) == 1
-        expected = {"four"}
-        assert {project.name for project in projects} == expected
+    def test_can_list_without_error(self):
+        list_str = str(BuildProjectList(self.modules))
+        assert "one" in list_str
+        assert "two" in list_str
 
-        projects = self.projects.get_projects(["*e*"], True)
-        assert len(projects) == 2
-        expected = {"three", "five"}
-        assert {project.name for project in projects} == expected
+    def test_project_filtering(self):
+        project_list = BuildProjectList(self.modules)
+        assert len(project_list.projects) == 2
+        assert self.project_one in project_list.projects
+        assert self.project_two in project_list.projects
 
-        projects = self.projects.get_projects(["four", "*e*"], True)
-        assert len(projects) == 3
-        expected = {"three", "four", "five"}
-        assert {project.name for project in projects} == expected
+        project_list = BuildProjectList(self.modules,
+                                        project_filters=["apa", "*ne", "three", "four"])
+        assert len(project_list.projects) == 1
+        assert self.project_one in project_list.projects
 
-    def test_get_project_with_name_that_does_not_exist_shall_raise_exception(self):
-        with pytest.raises(ValueError) as exception_info:
-            self.projects.get_projects(["f"], False)
-        assert str(exception_info.value) == "Could not find projects with filters: ['f']"
-        with pytest.raises(ValueError) as exception_info:
-            self.projects.get_projects(["one"], True)
-        assert str(exception_info.value) == "Could not find projects with filters: ['one']"
-        with pytest.raises(ValueError) as exception_info:
-            self.projects.get_projects(["three"], False)
-        assert str(exception_info.value) == "Could not find projects with filters: ['three']"
+        project_list = BuildProjectList(self.modules, include_netlist_not_top_builds=True)
+        assert len(project_list.projects) == 2
+        assert self.project_three in project_list.projects
+        assert self.project_four in project_list.projects
 
-    def test_can_cast_to_string_without_error(self):
-        str(self.projects)
+        project_list = BuildProjectList(self.modules,
+                                        include_netlist_not_top_builds=True,
+                                        project_filters=["apa", "one", "two", "thr*"])
+        assert len(project_list.projects) == 1
+        assert self.project_three in project_list.projects
 
+    def test_create(self):
+        project_list = BuildProjectList(self.modules, project_filters=["one", "two"])
+        assert project_list.create(
+            projects_path=self.tmp_path / "projects_path",
+            num_parallel_builds=2,
+            ip_cache_path=self.tmp_path / "ip_cache_path",
+        )
 
-class DummyModule:
+        self.project_one.create.assert_called_once_with(
+            project_path=self.tmp_path / "projects_path" / "one" / "project",
+            ip_cache_path=self.tmp_path / "ip_cache_path"
+        )
 
-    def __init__(self, name):
-        self.name = name
+        self.project_two.create.assert_called_once_with(
+            project_path=self.tmp_path / "projects_path" / "two" / "project",
+            ip_cache_path=self.tmp_path / "ip_cache_path"
+        )
 
-    def get_build_projects(self):
-        return [DummyBuildProject(self.name, False)]
+        self.project_three.create.assert_not_called()
+        self.project_four.create.assert_not_called()
 
+    def test_create_unless_exists(self):
+        project_list = BuildProjectList(self.modules, project_filters=["one"])
+        assert project_list.create_unless_exists(
+            projects_path=self.tmp_path / "projects_path",
+            num_parallel_builds=2,
+            ip_cache_path=self.tmp_path / "ip_cache_path",
+        )
 
-class DummyNetlistModule:
+        self.project_one.create.assert_called_once_with(
+            project_path=self.tmp_path / "projects_path" / "one" / "project",
+            ip_cache_path=self.tmp_path / "ip_cache_path"
+        )
 
-    def __init__(self, name):
-        self.name = name
+        # Create project file manually
+        create_directory(self.tmp_path / "projects_path" / "one" / "project")
+        (self.tmp_path / "projects_path" / "one" / "project" / "one.xpr").write_text("")
 
-    def get_build_projects(self):
-        return [DummyBuildProject(self.name, True)]
+        assert project_list.create_unless_exists(
+            projects_path=self.tmp_path / "projects_path",
+            num_parallel_builds=2,
+            ip_cache_path=self.tmp_path / "ip_cache_path",
+        )
 
+        # Still only called once after second create_unless_exists()
+        self.project_one.create.assert_called_once()
 
-class DummyBuildProject:
+        self.project_two.create.assert_not_called()
+        self.project_three.create.assert_not_called()
+        self.project_four.create.assert_not_called()
 
-    def __init__(self, name, is_netlist_build):
-        self.name = name
-        self.is_netlist_build = is_netlist_build
+    def test_build(self):
+        project_list = BuildProjectList(self.modules, project_filters=["one"])
+        assert project_list.build(
+            projects_path=self.tmp_path / "projects_path",
+            num_parallel_builds=2,
+            num_threads_per_build=4,
+            other_build_argument=True
+        )
+
+        self.project_one.build.assert_called_once_with(
+            project_path=self.tmp_path / "projects_path" / "one" / "project",
+            output_path=self.tmp_path / "projects_path" / "one" / "project",
+            num_threads=4,
+            other_build_argument=True
+        )
+
+    def test_build_fail_should_return_false(self):
+        project_list = BuildProjectList(self.modules, project_filters=["one"])
+        self.project_one.build.return_value = MagicMock()
+        self.project_one.build.return_value.success = False
+
+        assert not project_list.build(
+            projects_path=self.tmp_path / "projects_path",
+            num_parallel_builds=2,
+            num_threads_per_build=4,
+            other_build_argument=True
+        )
+
+    def test_build_with_output_path(self):
+        project_list = BuildProjectList(self.modules, project_filters=["one"])
+        assert project_list.build(
+            projects_path=self.tmp_path / "projects_path",
+            num_parallel_builds=2,
+            num_threads_per_build=4,
+            output_path=self.tmp_path / "output_path")
+
+        self.project_one.build.assert_called_once_with(
+            project_path=self.tmp_path / "projects_path" / "one" / "project",
+            output_path=self.tmp_path / "output_path" / "one",
+            num_threads=4
+        )
+
+    def test_build_with_collect_artifacts(self):
+        project_list = BuildProjectList(self.modules, project_filters=["one"])
+        collect_artifacts = MagicMock()
+        assert project_list.build(
+            projects_path=self.tmp_path / "projects_path",
+            num_parallel_builds=2,
+            num_threads_per_build=4,
+            collect_artifacts=collect_artifacts
+        )
+
+        collect_artifacts.assert_called_once_with(
+            project=self.project_one,
+            output_path=self.tmp_path / "projects_path" / "one" / "project"
+        )
+
+    def test_build_with_collect_artifacts_and_output_path(self):
+        project_list = BuildProjectList(self.modules, project_filters=["one"])
+        collect_artifacts = MagicMock()
+        assert project_list.build(
+            projects_path=self.tmp_path / "projects_path",
+            num_parallel_builds=2,
+            num_threads_per_build=4,
+            output_path=self.tmp_path / "output_path",
+            collect_artifacts=collect_artifacts
+        )
+
+        collect_artifacts.assert_called_once_with(
+            project=self.project_one,
+            output_path=self.tmp_path / "output_path" / "one"
+        )
+
+    def test_build_with_collect_artifacts_return_false_should_fail_build(self):
+        project_list = BuildProjectList(self.modules, project_filters=["one"])
+        collect_artifacts = MagicMock()
+        collect_artifacts.return_value = False
+        assert not project_list.build(
+            projects_path=self.tmp_path / "projects_path",
+            num_parallel_builds=2,
+            num_threads_per_build=4,
+            collect_artifacts=collect_artifacts
+        )
+
+    def test_open(self):
+        project_list = BuildProjectList(self.modules, include_netlist_not_top_builds=True)
+        assert project_list.open(projects_path=self.tmp_path / "projects_path")
+
+        self.project_three.open.assert_called_once_with(
+            project_path=self.tmp_path / "projects_path" / "three" / "project"
+        )
+        self.project_four.open.assert_called_once_with(
+            project_path=self.tmp_path / "projects_path" / "four" / "project"
+        )
+        self.project_one.open.assert_not_called()
+        self.project_two.open.assert_not_called()

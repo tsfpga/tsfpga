@@ -18,7 +18,6 @@ import tsfpga
 from tsfpga.about import get_short_doc, get_doc
 from tsfpga.system_utils import create_directory, create_file, delete, read_file
 
-
 SPHINX_HTML = tsfpga.TSFPGA_GENERATED / "sphinx_html"
 
 
@@ -91,7 +90,7 @@ def generate_sphinx_index():
     """
     Generate index.rst for sphinx. Also verify that readme.rst in the project is identical.
 
-    Rst file inclusion in readme.rst does not work with on gitlab unfortunately, hence this
+    Rst file inclusion in readme.rst does not work on gitlab unfortunately, hence this
     cumbersome handling of syncing documentation.
     """
     rst_head = """\
