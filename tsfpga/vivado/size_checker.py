@@ -17,7 +17,7 @@ class UtilizationParser():
         Takes a hierarchical utilization report as a string and returns the top level size
         for the specified run.
 
-        Args:
+        Arguments:
             report (string): A string containing the entire Vivado hierarchical utilization report.
         """
         result = dict()
@@ -50,7 +50,7 @@ class LessThan:
 
     def __init__(self, value):
         """
-        Args:
+        Arguments:
             value (int): The result size value shall be less than this.
         """
         self.value = value
@@ -71,7 +71,7 @@ class EqualTo:
 
     def __init__(self, value):
         """
-        Args:
+        Arguments:
             value (int): The result size value shall be equal to this.
         """
         self.value = value
@@ -96,7 +96,7 @@ class SizeChecker:
 
     def __init__(self, limit):
         """
-        Args:
+        Arguments:
             limit: The limit that the specified resource shall be checked against. Should
                 be e.g. a :class:`LessThan` object.
         """
@@ -104,7 +104,7 @@ class SizeChecker:
 
     def check(self, result_size):
         """
-        Args:
+        Arguments:
             result_size (dict): A size dictionary as found in the :class:`.BuildResult`
                 object.
         """

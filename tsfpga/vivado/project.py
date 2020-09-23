@@ -33,7 +33,7 @@ class VivadoProject:
             defined_at=None,
     ):
         """
-        Args:
+        Arguments:
             name (str): Project name.
             modules (list(:class:`Module <.BaseModule>`)): Modules that shall be included in the project.
             part (str): Part identification.
@@ -98,7 +98,7 @@ class VivadoProject:
 
     def project_file(self, project_path):
         """
-        Args:
+        Arguments:
             project_path (`pathlib.Path`): A path containing a Vivado project.
         Return:
             `pathlib.Path`: The project file of this project, in the given folder
@@ -135,7 +135,7 @@ class VivadoProject:
         """
         Create a Vivado project
 
-        Args:
+        Arguments:
             project_path (`pathlib.Path`): Path where the project shall be placed.
             ip_cache_path (`pathlib.Path`): Path to a folder where the Vivado IP cache can be placed.
                 If omitted, the Vivado IP cache mechanism will not be enabled.
@@ -185,7 +185,7 @@ class VivadoProject:
 
         Shall return ``True`` upon success and ``False`` upon failure.
 
-        Args:
+        Arguments:
             kwargs: Will have all the :meth:`.build` parameters in it. Including additional parameters
                 from the user.
         """
@@ -198,7 +198,7 @@ class VivadoProject:
 
         Shall return ``True`` upon success and ``False`` upon failure.
 
-        Args:
+        Arguments:
             kwargs: Will have all the :meth:`.build` parameters in it. Including additional parameters
                 from the user. Will also include ``build_result`` with implemented/synthesized size,
                 which can be used for asserting the expected resource utilization.
@@ -216,7 +216,7 @@ class VivadoProject:
         """
         Build a Vivado project
 
-        Args:
+        Arguments:
             project_path (`pathlib.Path`): A path containing a Vivado project.
             output_path (`pathlib.Path`): Results (bit file, ...) will be placed here.
             run_index (int): Select Vivado run (synth_X and impl_X) to build with.
@@ -300,7 +300,7 @@ class VivadoProject:
         """
         Open the project in Vivado GUI.
 
-        Args:
+        Arguments:
             project_path (`pathlib.Path`): A path containing a Vivado project.
 
         Returns:
@@ -343,7 +343,7 @@ class VivadoNetlistProject(VivadoProject):
             result_size_checkers=None,
             **kwargs):
         """
-        Args:
+        Arguments:
             analyze_clock_interaction (bool): Analysis of clock interaction, i.e. checking
                 for unhandled clock crossings, is disabled by default. Enabling it will add
                 significant build time (can be as much as +40%). Also, in order for clock
@@ -364,7 +364,7 @@ class VivadoNetlistProject(VivadoProject):
         """
         Build the project.
 
-        Args:
+        Arguments:
             kwargs: All arguments as accepted by :meth:`.VivadoProject.build`.
         """
         result = super().build(**kwargs)

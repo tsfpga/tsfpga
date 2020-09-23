@@ -21,7 +21,7 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
 
     def __init__(self, output_path, vunit_proj, simulator_interface, vivado_path):
         """
-        Args:
+        Arguments:
             output_path (`pathlib.Path`): The compiled simlib will be placed here.
             vunit_proj: The VUnit project that is used to run simulation.
             simulator_interface: A VUnit SimulatorInterface class.

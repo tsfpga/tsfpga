@@ -18,7 +18,7 @@ class VivadoIpCores:
 
     def __init__(self, modules, output_path, part_name):
         """
-        Args:
+        Arguments:
             modules (list(:class:`Module <.BaseModule>`)): IP cores from  these modules will be included.
             output_path (`pathlib.Path`): The Vivado project will be placed here.
             part_name (str): Vivado part name to be used for the project.

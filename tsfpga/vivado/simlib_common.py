@@ -101,7 +101,7 @@ class VivadoSimlibCommon:
         """
         Unpack compiled simlib from an existing archive.
 
-        Args:
+        Arguments:
             archive (`pathlib.Path`): Path to a zip archive with previously compiled simlib.
         """
         with zipfile.ZipFile(archive, "r") as zip_handle:

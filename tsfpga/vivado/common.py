@@ -13,7 +13,7 @@ def run_vivado_tcl(vivado_path, tcl_file, no_log_file=False):
     Setting cwd ensures that any .log or .jou files produced are placed in
     the same directory as the TCL file that produced them.
 
-    Args:
+    Arguments:
         vivado_path (`pathlib.Path`): Path to Vivado executable. Can set to None
             to use whatever version is in PATH.
         tcl_file (`pathlib.Path`): Path to TCL file.
@@ -44,7 +44,7 @@ def run_vivado_gui(vivado_path, project_file):
     Setting cwd ensures that any .log or .jou files produced are placed in
     the same directory as the project.
 
-    Args:
+    Arguments:
         vivado_path (`pathlib.Path`): Path to Vivado executable. Can set to None
             to use whatever version is in PATH.
         project_file (`pathlib.Path`): Path to a project .xpr file.
@@ -72,7 +72,7 @@ def get_vivado_path(vivado_path=None):
     """
     Wrapper to get a ``pathlib.Path`` to vivado executable.
 
-    Args:
+    Arguments:
         vivado_path (`pathlib.Path`): Path to vivado executable. Set to None to use whatever
             is available in PATH.
     """
