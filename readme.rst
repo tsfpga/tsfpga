@@ -31,7 +31,7 @@ About tsfpga
   :alt: VHDL branch coverage
   :target: https://tsfpga.com/vhdl_coverage_html
 
-Tsfpga is a project platform for modern FPGA development.
+tsfpga is a development platform that aims to streamline all aspects of your FPGA project.
 With its python build/simulation flow, along with complementary VHDL components, it is perfect for CI/CD and test-driven development.
 Focus has been placed on flexibility and modularization, achieving scalability even in very large multi-vendor code bases.
 
@@ -40,10 +40,11 @@ Focus has been placed on flexibility and modularization, achieving scalability e
 Key features
 ------------
 
-* Source code centric project structure: Build projects, test configurations, constraints, IP cores, etc. are handled "close" to the source code.
-* Complete Vivado build system.
-* Ideal for setting up VUnit simulation projects.
+* Source code centric project structure: Build projects, test configurations, constraints, IP cores, etc. are handled close to the source code.
+* Automatically adds build/simulation sources if a recognized folder structure is used.
+* Enables local VUnit configuration setup without multiple ``run.py``.
 * Handling of IP cores and simlib for your simulation project, with automatic re-compile when necessary.
+* Complete Vivado build system.
 * Register code generation from TOML: VHDL package, HTML documentation, C header, C++ class.
 * VHDL AXI components that enable the register bus: AXI-to-AXI-Lite converter, AXI-Lite interconnect, AXI-Lite mux (splitter), AXI-Lite clock domain crossing, AXI-Lite generic register file.
 

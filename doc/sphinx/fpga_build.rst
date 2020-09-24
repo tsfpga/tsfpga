@@ -3,8 +3,6 @@
 FPGA build flow
 ===============
 
-This page shows how to use FPGA build projects with tsfpga.
-
 In tsfpga the build projects are set up by the modules.
 Any module can set up a build project as long as they follow the :ref:`folder structure <folder_structure_project>`.
 The build project is represented using a :class:`Python class <.VivadoProject>` that abstracts all settings and operations.

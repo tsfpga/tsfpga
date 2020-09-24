@@ -3,9 +3,8 @@
 Netlist builds
 ==============
 
-Netlist builds are a class of builds that are not meant to result in a binary.
-They are typically used to quickly get information about timing or resource utilization for a module/entity.
-A netlist build will run the create and synthesis steps of a normal build.
+Feedback on timing and resource utilization may be critical in the design of a component.
+tsfpga allows running netlist builds, which will run synthesis on individual components or your full project.
 The build result can be checked towards expected resource utilization figures by attaching :ref:`size_checkers`.
 
 Resource utilization if often critical in FPGA projects.

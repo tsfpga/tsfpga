@@ -3,8 +3,6 @@
 Formal verification flow
 ========================
 
-This page shows how to run formal verification through tsfpga.
-
 tsfpga acts on top of several tools to run formal verification:
 
 * VUnit is used to handle compilation of the source files
