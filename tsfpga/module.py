@@ -138,7 +138,7 @@ class BaseModule:
 
         return self.get_synthesis_files() + self._get_hdl_file_list(test_folders)
 
-    def setup_simulations(self, vunit_proj, **kwargs):
+    def setup_vunit(self, vunit_proj, **kwargs):
         """
         Setup local configuration of this module's test benches.
 
@@ -153,6 +153,11 @@ class BaseModule:
                 location of test files, etc.
         """
 
+    # pylint: disable=unused-argument,no-self-use
+    def setup_simulations(self, vunit_proj, **kwargs):
+        print("DEPRECATED: Calling deprecated BaseModule.setup_simulations(). "
+              "Use BaseModule.setup_vunit() instead.")
+
     def setup_formal(self, formal_proj, **kwargs):
         """
         Setup this module's formal tests.
@@ -160,6 +165,12 @@ class BaseModule:
         .. Note::
             This default method does nothing. Should be overridden by modules that
             utilize formal verification.
+
+        Arguments:
+            formal_proj: The formal project that is being used.
+            kwargs: Use this to pass an arbitrary list of arguments from your ``formal.py``
+                to the module where you set up your tests. This could be, e.g., data dimensions,
+                location of test files, etc.
         """
 
     def pre_build_hook(self, project, **kwargs):

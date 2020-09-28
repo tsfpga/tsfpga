@@ -67,7 +67,7 @@ def main():
                 vunit_library.add_source_file(hdl_file.path)
             else:
                 assert False, f"Can not handle this file: {hdl_file}"
-        module.setup_simulations(vunit_proj)
+        module.setup_vunit(vunit_proj)
 
     if vunit_proj.simulator_supports_coverage():
         vunit_proj.set_compile_option("enable_coverage", True)

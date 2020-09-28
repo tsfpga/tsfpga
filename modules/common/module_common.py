@@ -7,7 +7,7 @@ from tsfpga.module import BaseModule
 
 class Module(BaseModule):
 
-    def setup_simulations(self, vunit_proj, **kwargs):
+    def setup_vunit(self, vunit_proj, **kwargs):
         tb = vunit_proj.library(self.library_name).test_bench("tb_width_conversion")
 
         for input_width in [8, 16, 32]:

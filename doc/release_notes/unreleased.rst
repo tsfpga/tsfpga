@@ -14,3 +14,4 @@ Breaking changes
 * Rename ``axi_interconnect`` to ``axi_simple_crossbar`` and ``axil_interconnect`` to ``axil_simple_crossbar``.
   This naming is factual (it is a crossbar, not an interconnect) and more descriptive.
 * Rename ``RegisterList.create_html_table()`` to :meth:`.RegisterList.create_html_register_table`.
+* Deprecate ``BaseModule.setup_simulations()`` in favor of :meth:`.BaseModule.setup_vunit`.

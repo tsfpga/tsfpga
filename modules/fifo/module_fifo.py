@@ -10,7 +10,7 @@ from examples.tsfpga_example_env import get_tsfpga_modules
 
 class Module(BaseModule):
 
-    def setup_simulations(self, vunit_proj, **kwargs):
+    def setup_vunit(self, vunit_proj, **kwargs):
         for test in vunit_proj.library(self.library_name).test_bench("tb_afifo").get_tests():
             for read_clock_is_faster in [True, False]:
                 original_generics = dict(read_clock_is_faster=read_clock_is_faster)

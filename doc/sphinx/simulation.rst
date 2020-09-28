@@ -31,7 +31,7 @@ If the source code is roughly organized along the :ref:`folder structure <folder
         vunit_library = vunit_proj.add_library(module.library_name)
         for hdl_file in module.get_simulation_files():
              vunit_library.add_source_file(hdl_file.path)
-        module.setup_simulations(vunit_proj)
+        module.setup_vunit(vunit_proj)
 
     vunit_proj.main()
 
@@ -43,12 +43,12 @@ Source files, packages and testbenches are collected from a few standard locatio
     If you use a different folder structure within the modules than what is currently supported by tsfpga, feel free to create an `issue <https://gitlab.com/tsfpga/tsfpga/issues>`__ or a merge request.
 
 
-The ``module.get_simulation_files()`` call returns a list of files (:ref:`HdlFile objects <hdl_file>`) that are to be included in the simulation project.
+The :meth:`module.get_simulation_files() <.BaseModule.get_simulation_files>` call returns a list of files (:ref:`HdlFile objects <hdl_file>`) that are to be included in the simulation project.
 This includes source files and packages as well as test files.
-If you use :ref:`register code generation <registers>`, the call to ``module.get_simulation_files()`` will generate a new VHDL package so that you are always simulating with an up-to-date register definition.
+If you use :ref:`register code generation <registers>`, the call will generate a new VHDL package so that you are always simulating with an up-to-date register definition.
 
 Actually even this example is not truly minimal.
-The call to ``module.setup_simulations()`` does nothing in default setup, but is used to set up :ref:`local configuration of test cases <local_configuration>` later.
+The call to :meth:`module.setup_vunit() <.BaseModule.setup_vunit>` does nothing in default setup, but is used to set up :ref:`local configuration of test cases <local_configuration>` later.
 
 
 
@@ -84,7 +84,7 @@ We would create the file ``modules/fifo/module_fifo.py``, and fill it with somet
 
     class Module(BaseModule):
 
-        def setup_simulations(self, vunit_proj, **kwargs):
+        def setup_vunit(self, vunit_proj, **kwargs):
             tb = vunit_proj.library(self.library_name).test_bench("tb_fifo")
             for width in [8, 24]:
                 for depth in [16, 1024]:
@@ -101,15 +101,15 @@ This will result in the tests
     fifo.tb_fifo.width_24.depth_1024.all
 
 So what happens here is that we created a class ``Module`` that inherits from :ref:`BaseModule <module_objects>`.
-In this class we override the ``setup_simulations()`` method, which does nothing in the parent class, to set up our simulation configurations.
+In this class we override the ``setup_vunit()`` method, which does nothing in the parent class, to set up our simulation configurations.
 The :ref:`get_modules() <get_modules>` call used in our ``simulate.py`` will recognize that this module has a Python file to set up it's own class.
 When creating module objects the function will then use the user-specified class for this module.
-Later in ``simulate.py`` when ``setup_simulations()`` is run, the code we specified above will be run.
+Later in ``simulate.py`` when ``setup_vunit()`` is run, the code we specified above will be run.
 
 .. note::
     Note that the class must be called exactly ``Module``.
 
-There is also a ``kwargs`` argument available in the ``setup_simulations()`` signature which can be used to send arbitrary parameters from ``simulate.py`` to the module.
+There is also a ``kwargs`` argument available in the ``setup_vunit()`` signature which can be used to send arbitrary parameters from ``simulate.py`` to the module.
 This can be used for example to point out the location of test data.
 Or maybe select some test mode with a parameter to our ``simulate.py``.
 This is pure Python so we can get as fancy as we want to.
