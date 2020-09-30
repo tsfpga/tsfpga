@@ -11,7 +11,7 @@ import pytest
 
 import tsfpga
 from tsfpga.git_utils import find_git_files
-from tsfpga.system_utils import create_file
+from tsfpga.system_utils import create_file, delete
 
 
 THIS_DIR = Path(__file__).parent
@@ -30,32 +30,35 @@ def test_pylint():
     run_pylint(files)
 
 
-def run_pycodestyle(files):
-    config = THIS_DIR / "pycodestylerc"
-    command = [sys.executable, "-m", "pycodestyle", f"--config={config}"] + files
-
-    subprocess.check_call(command)
+def test_black_formatting():
+    command = [sys.executable, "-m", "black", "--check", "tsfpga"]
+    subprocess.check_call(command, cwd=tsfpga.REPO_ROOT)
 
 
-def test_pycodestyle():
-    files = list(find_git_files(file_endings_include="py"))
-    run_pycodestyle(files)
+def test_flake8_lint():
+    command = [sys.executable, "-m", "flake8", "tsfpga"]
+    subprocess.check_call(command, cwd=tsfpga.REPO_ROOT)
 
 
-@pytest.mark.usefixtures("fixture_tmp_path")
 class TestPythonLintFunctions(unittest.TestCase):
-
-    tmp_path = None
-
     def setUp(self):
-        self.file = self.tmp_path / "dummy_python_file.py"
+        self.file = THIS_DIR / "dummy_python_file.py"
         ugly_code = "aa  =\ndef bb:\ncc  = 3"
         create_file(self.file, ugly_code)
+
+    def tearDown(self):
+        delete(self.file)
 
     def test_pylint_should_raise_exception_if_there_are_ugly_files(self):
         with pytest.raises(subprocess.CalledProcessError):
             run_pylint([self.file])
 
-    def test_pycodestyle_should_raise_exception_if_there_are_ugly_files(self):
+    @staticmethod
+    def test_flake8_lint_should_raise_exception_if_there_are_ugly_files():
         with pytest.raises(subprocess.CalledProcessError):
-            run_pycodestyle([self.file])
+            test_flake8_lint()
+
+    @staticmethod
+    def test_black_formatting_should_raise_exception_if_there_are_ugly_files():
+        with pytest.raises(subprocess.CalledProcessError):
+            test_black_formatting()

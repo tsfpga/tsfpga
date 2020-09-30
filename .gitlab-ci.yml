@@ -57,7 +57,7 @@ pytest:
 simulate:
   stage: test
   script:
-    - python3 -m pip install --requirement requirements_develop.txt > /dev/null
+    - python3 -m pip install toml > /dev/null
     - ghdl --version
     - python3 examples/simulate.py --num-threads 4 --vivado-skip
   artifacts:
