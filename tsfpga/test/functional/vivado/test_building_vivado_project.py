@@ -21,8 +21,10 @@ def test_building_artyz7_project(tmp_path):
         sys.executable,
         build_py,
         "artyz7",
-        "--projects-path", tmp_path / "projects",
-        "--output-path", tmp_path / "artifacts"
+        "--projects-path",
+        tmp_path / "projects",
+        "--output-path",
+        tmp_path / "artifacts",
     ]
     run_command(cmd, cwd=tsfpga.REPO_ROOT)
     assert (tmp_path / "artifacts" / "artyz7" / "artyz7.bit").exists()
@@ -94,8 +96,7 @@ set_property -dict {package_pin T16 iostandard lvcmos33} [get_ports output]
 create_clock -period 4 -name clk_in [get_ports clk_in]
 create_clock -period 4 -name clk_out [get_ports clk_out]
 """
-        constraint_file = \
-            create_file(modules_folder / "apa" / "test_proj_pinning.tcl", constraint)
+        constraint_file = create_file(modules_folder / "apa" / "test_proj_pinning.tcl", constraint)
         constraints = [Constraint(constraint_file)]
 
         modules = get_modules([modules_folder, tsfpga.TSFPGA_MODULES])
@@ -105,7 +106,8 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
             part="xc7z020clg400-1",
             constraints=constraints,
             # Faster
-            default_run_index=2)
+            default_run_index=2,
+        )
         assert self.proj.create(self.project_folder)
 
         self.log_file = self.project_folder / "vivado.log"
@@ -136,7 +138,7 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
 
         build_result = self.proj.build(self.project_folder, synth_only=True, run_index=2)
         assert not build_result.success
-        assert file_contains_string(self.log_file, "RTL assertion: \"Assertion violation.\"")
+        assert file_contains_string(self.log_file, 'RTL assertion: "Assertion violation."')
 
     def test_build_project(self):
         build_result = self.proj.build(self.project_folder, self.project_folder)
@@ -187,7 +189,9 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
 
         build_result = self.proj.build(self.project_folder, self.project_folder)
         assert not build_result.success
-        assert file_contains_string(self.log_file, "\nERROR: Timing not OK after implementation run.")
+        assert file_contains_string(
+            self.log_file, "\nERROR: Timing not OK after implementation run."
+        )
 
         assert (self.runs_folder / "impl_2" / "timing_summary.rpt").exists()
 
@@ -204,7 +208,9 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
 
         build_result = self.proj.build(self.project_folder, self.project_folder)
         assert not build_result.success
-        assert file_contains_string(self.log_file, "\nERROR: Unhandled clock crossing in synth_2 run.")
+        assert file_contains_string(
+            self.log_file, "\nERROR: Unhandled clock crossing in synth_2 run."
+        )
 
         assert (self.runs_folder / "synth_2" / "hierarchical_utilization.rpt").exists()
         assert (self.runs_folder / "synth_2" / "timing_summary.rpt").exists()

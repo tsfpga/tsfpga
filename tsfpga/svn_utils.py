@@ -24,7 +24,9 @@ def svn_commands_are_available(cwd=None):
 
 def check_that_svn_commands_are_available(cwd=None):
     if not svn_commands_are_available(cwd):
-        mesg = "Could not run svn. Is the command available on PATH? Is the script called from a repo?"
+        mesg = (
+            "Could not run svn. Is the command available on PATH? Is the script called from a repo?"
+        )
         raise RuntimeError(mesg)
 
 

@@ -4,7 +4,9 @@
 
 
 def get_slogan():
-    return "tsfpga is a development platform that aims to streamline all aspects of your FPGA project."
+    return (
+        "tsfpga is a development platform that aims to streamline all aspects of your FPGA project."
+    )
 
 
 def get_short_doc():

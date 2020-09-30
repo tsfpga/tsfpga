@@ -6,7 +6,6 @@ from tsfpga.module import BaseModule
 
 
 class Module(BaseModule):
-
     def setup_vunit(self, vunit_proj, **kwargs):
         tb = vunit_proj.library(self.library_name).test_bench("tb_axi_pkg")
         for data_width in [32, 64]:

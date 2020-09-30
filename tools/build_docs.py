@@ -44,12 +44,13 @@ def main():
 
 
 def arguments():
-    parser = argparse.ArgumentParser("Build sphinx documentation",
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        "Build sphinx documentation", formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
 
-    parser.add_argument("--skip-coverage",
-                        action="store_true",
-                        help="skip handling of coverage reports")
+    parser.add_argument(
+        "--skip-coverage", action="store_true", help="skip handling of coverage reports"
+    )
     return parser.parse_args()
 
 
@@ -143,7 +144,6 @@ def get_release_notes_files():
 
 
 class Release:
-
     def __init__(self, release_notes_file):
         self.release_notes_file = release_notes_file
 
@@ -159,30 +159,16 @@ class Release:
 
     @staticmethod
     def get_git_date_from_tag(tag):
-        cmd = [
-            "git",
-            "show",
-            "-s",
-            "--format=%at",
-            tag
-        ]
+        cmd = ["git", "show", "-s", "--format=%at", tag]
         timestamp = datetime.fromtimestamp(int(check_output(cmd).decode().strip()))
         return f"{timestamp.day} {timestamp:%B} {timestamp.year}".lower()
 
 
 def build_information_badges(output_path):
-    badge_svg = badge(
-        left_text="pip install",
-        right_text="tsfpga",
-        right_color="blue"
-    )
+    badge_svg = badge(left_text="pip install", right_text="tsfpga", right_color="blue")
     create_file(output_path / "pip_install.svg", badge_svg)
 
-    badge_svg = badge(
-        left_text="license",
-        right_text="BSD 3-Clause",
-        right_color="blue"
-    )
+    badge_svg = badge(left_text="license", right_text="BSD 3-Clause", right_color="blue")
     create_file(output_path / "license.svg", badge_svg)
 
     badge_svg = badge(
@@ -222,7 +208,7 @@ def build_python_coverage_badge(output_path):
         logo="https://upload.wikimedia.org/wikipedia/commons/0/0a/Python.svg",
         embed_logo=True,
         left_link="https://tsfpga.com/python_coverage_html",
-        right_link="https://tsfpga.com/python_coverage_html"
+        right_link="https://tsfpga.com/python_coverage_html",
     )
     create_file(output_path / "python_coverage.svg", badge_svg)
 
@@ -248,7 +234,7 @@ def build_vhdl_line_coverage_badge(xml_root, output_path):
         logo="http://vunit.github.io/_static/VUnit_logo_420x420.png",
         embed_logo=True,
         left_link="https://tsfpga.com/vhdl_coverage_html",
-        right_link="https://tsfpga.com/vhdl_coverage_html"
+        right_link="https://tsfpga.com/vhdl_coverage_html",
     )
     create_file(output_path / "vhdl_line_coverage.svg", badge_svg)
 
@@ -265,7 +251,7 @@ def build_vhdl_branch_coverage_badge(xml_root, output_path):
         logo="http://vunit.github.io/_static/VUnit_logo_420x420.png",
         embed_logo=True,
         left_link="https://tsfpga.com/vhdl_coverage_html",
-        right_link="https://tsfpga.com/vhdl_coverage_html"
+        right_link="https://tsfpga.com/vhdl_coverage_html",
     )
     create_file(output_path / "vhdl_branch_coverage.svg", badge_svg)
 
@@ -287,14 +273,18 @@ def build_sphinx():
 
 def copy_python_coverage_to_html_output():
     coverage_html = tsfpga.TSFPGA_GENERATED / "python_coverage_html"
-    assert (coverage_html / "index.html").exists(), "Run pytest with coverage before building documentation"
+    assert (
+        coverage_html / "index.html"
+    ).exists(), "Run pytest with coverage before building documentation"
 
     shutil.copytree(coverage_html, SPHINX_HTML / "python_coverage_html")
 
 
 def copy_vhdl_coverage_to_html_output():
     coverage_html = tsfpga.TSFPGA_GENERATED / "vhdl_coverage_html"
-    assert (coverage_html / "index.html").exists(), "Run simulate.py with GHDL coverage before building documentation"
+    assert (
+        coverage_html / "index.html"
+    ).exists(), "Run simulate.py with GHDL coverage before building documentation"
 
     shutil.copytree(coverage_html, SPHINX_HTML / "vhdl_coverage_html")
 

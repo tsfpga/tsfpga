@@ -18,14 +18,18 @@ def test_file_list_filtering(tmp_path):
     create_directory(path / "folder_should_not_be_included")
     create_file(path / "should_not_be_included.apa")
 
-    synth_files = [create_file(path / "syn.v"),
-                   create_file(path / "rtl" / "syn.v"),
-                   create_file(path / "src" / "syn.vhd"),
-                   create_file(path / "hdl" / "rtl" / "syn.vhd"),
-                   create_file(path / "hdl" / "package" / "syn.vhd")]
+    synth_files = [
+        create_file(path / "syn.v"),
+        create_file(path / "rtl" / "syn.v"),
+        create_file(path / "src" / "syn.vhd"),
+        create_file(path / "hdl" / "rtl" / "syn.vhd"),
+        create_file(path / "hdl" / "package" / "syn.vhd"),
+    ]
 
-    test_files = [create_file(path / "test" / "test.v"),
-                  create_file(path / "rtl" / "tb" / "test.vhd")]
+    test_files = [
+        create_file(path / "test" / "test.v"),
+        create_file(path / "rtl" / "tb" / "test.vhd"),
+    ]
 
     sim_files = [create_file(path / "sim" / "sim.vhd")]
 
@@ -67,10 +71,13 @@ def test_can_cast_to_string_without_error():
 
 
 def test_test_case_name():
-    assert BaseModule.test_case_name(
-        generics=dict(apa=3, hest_zebra="foo")) == "apa_3.hest_zebra_foo"
-    assert BaseModule.test_case_name(
-        name="foo", generics=dict(apa=3, hest_zebra="bar")) == "foo.apa_3.hest_zebra_bar"
+    assert (
+        BaseModule.test_case_name(generics=dict(apa=3, hest_zebra="foo")) == "apa_3.hest_zebra_foo"
+    )
+    assert (
+        BaseModule.test_case_name(name="foo", generics=dict(apa=3, hest_zebra="bar"))
+        == "foo.apa_3.hest_zebra_bar"
+    )
 
 
 @pytest.mark.usefixtures("fixture_tmp_path")
@@ -94,9 +101,9 @@ class TestGetModules(TestCase):
         assert set(module.name for module in modules) == set(["c"])
 
     def test_name_filtering_include_and_avoid(self):
-        modules = get_modules(self.modules_folders,
-                              names_include=["a", "c"],
-                              names_avoid=["b", "c"])
+        modules = get_modules(
+            self.modules_folders, names_include=["a", "c"], names_avoid=["b", "c"]
+        )
         assert set(module.name for module in modules) == set(["a"])
 
     def test_library_name_does_not_have_lib_suffix(self):
@@ -121,8 +128,8 @@ class Module(BaseModule):
     def id(self):
         return """
 
-        create_file(self.tmp_path / "a" / "module_a.py", module_file_content + "\"a\"")
-        create_file(self.tmp_path / "b" / "module_b.py", module_file_content + "\"b\"")
+        create_file(self.tmp_path / "a" / "module_a.py", module_file_content + '"a"')
+        create_file(self.tmp_path / "b" / "module_b.py", module_file_content + '"b"')
 
         modules = get_modules(self.modules_folders)
 
@@ -174,4 +181,5 @@ class Module(BaseModule):
         with pytest.raises(ValueError) as exception_info:
             module.get_synthesis_files()
         assert str(exception_info.value).startswith(
-            f"DEPRECATED: Using deprecated json file name: {json_file}")
+            f"DEPRECATED: Using deprecated json file name: {json_file}"
+        )

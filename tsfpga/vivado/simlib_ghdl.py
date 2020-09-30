@@ -43,7 +43,12 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
         self._compile_unifast(vivado_libraries_path / "unifast" / "primitive")
 
     def _compile_unisim(self, library_path):
-        for vhd_file_base in ["unisim_VPKG", "unisim_VCOMP", "retarget_VCOMP", "unisim_retarget_VCOMP"]:
+        for vhd_file_base in [
+            "unisim_VPKG",
+            "unisim_VCOMP",
+            "retarget_VCOMP",
+            "unisim_retarget_VCOMP",
+        ]:
             vhd_file = library_path / (vhd_file_base + ".vhd")
             assert vhd_file.exists, vhd_file
             self._compile_ghdl_file(vhd_file, "unisim")
@@ -97,7 +102,7 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
             "--warn-binding",
             "--mb-comments",
             "--work=" + library_name,
-            str(vhd_file.resolve())
+            str(vhd_file.resolve()),
         ]
         subprocess.check_call(cmd, cwd=self._output_path)
 

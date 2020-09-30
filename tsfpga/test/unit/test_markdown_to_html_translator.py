@@ -8,7 +8,6 @@ from tsfpga.markdown_to_html_translator import MarkdownToHtmlTranslator
 
 
 class TestMarkdownToHtmlTranslator(unittest.TestCase):
-
     def setUp(self):
         self.markdown_to_html = MarkdownToHtmlTranslator()
 
@@ -30,11 +29,15 @@ class TestMarkdownToHtmlTranslator(unittest.TestCase):
         text = r"Part of this sentence \*should be surrounded\* by asterisks"
         assert expected in self.markdown_to_html.translate(text)
 
-        expected = "Part of this sentence <em>*should be in italics and surrounded*</em> by asterisks"
+        expected = (
+            "Part of this sentence <em>*should be in italics and surrounded*</em> by asterisks"
+        )
         text = r"Part of this sentence *\*should be in italics and surrounded\** by asterisks"
         assert expected in self.markdown_to_html.translate(text)
 
-        expected = "Part of this sentence *<em>should be in italics and surrounded</em>* by asterisks"
+        expected = (
+            "Part of this sentence *<em>should be in italics and surrounded</em>* by asterisks"
+        )
         text = r"Part of this sentence \**should be in italics and surrounded*\* by asterisks"
         assert expected in self.markdown_to_html.translate(text)
 

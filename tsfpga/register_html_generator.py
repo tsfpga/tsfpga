@@ -7,7 +7,6 @@ from tsfpga.register_types import Register, REGISTER_MODES
 
 
 class RegisterHtmlGenerator:
-
     def __init__(self, module_name, generated_info):
         self.module_name = module_name
         self.generated_info = generated_info
@@ -26,12 +25,9 @@ class RegisterHtmlGenerator:
         html += self._get_constant_table(constants)
         return html
 
-    def get_page(self,
-                 register_objects,
-                 constants,
-                 table_style=None,
-                 font_style=None,
-                 extra_style=""):
+    def get_page(
+        self, register_objects, constants, table_style=None, font_style=None, extra_style=""
+    ):
         title = f"Documentation of {self.module_name} registers"
 
         if font_style is None:

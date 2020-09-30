@@ -19,18 +19,18 @@ class VivadoProject:
 
     # pylint: disable=too-many-arguments,too-many-instance-attributes
     def __init__(
-            self,
-            name,
-            modules,
-            part,
-            top=None,
-            generics=None,
-            constraints=None,
-            tcl_sources=None,
-            build_step_hooks=None,
-            vivado_path=None,
-            default_run_index=1,
-            defined_at=None,
+        self,
+        name,
+        modules,
+        part,
+        top=None,
+        generics=None,
+        constraints=None,
+        tcl_sources=None,
+        build_step_hooks=None,
+        vivado_path=None,
+        default_run_index=1,
+        defined_at=None,
     ):
         """
         Arguments:
@@ -87,14 +87,25 @@ class VivadoProject:
 
     def _setup_build_step_hooks(self, build_step_hooks_from_user):
         # Lists are immutable. Since we assign and modify this one we have to copy it.
-        self.build_step_hooks = [] if build_step_hooks_from_user is None else build_step_hooks_from_user.copy()
+        self.build_step_hooks = (
+            [] if build_step_hooks_from_user is None else build_step_hooks_from_user.copy()
+        )
 
-        self.build_step_hooks.append(BuildStepTclHook(
-            TSFPGA_TCL / "vivado_report_utilization.tcl", "STEPS.SYNTH_DESIGN.TCL.POST"))
-        self.build_step_hooks.append(BuildStepTclHook(
-            TSFPGA_TCL / "vivado_report_utilization.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE"))
-        self.build_step_hooks.append(BuildStepTclHook(
-            TSFPGA_TCL / "vivado_check_timing.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE"))
+        self.build_step_hooks.append(
+            BuildStepTclHook(
+                TSFPGA_TCL / "vivado_report_utilization.tcl", "STEPS.SYNTH_DESIGN.TCL.POST"
+            )
+        )
+        self.build_step_hooks.append(
+            BuildStepTclHook(
+                TSFPGA_TCL / "vivado_report_utilization.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE"
+            )
+        )
+        self.build_step_hooks.append(
+            BuildStepTclHook(
+                TSFPGA_TCL / "vivado_check_timing.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE"
+            )
+        )
 
     def project_file(self, project_path):
         """
@@ -125,7 +136,7 @@ class VivadoProject:
             tcl_sources=self.tcl_sources,
             build_step_hooks=self.build_step_hooks,
             ip_cache_path=ip_cache_path,
-            disable_io_buffers=self.is_netlist_build
+            disable_io_buffers=self.is_netlist_build,
         )
         create_file(create_vivado_project_tcl, tcl)
 
@@ -153,7 +164,9 @@ class VivadoProject:
         """
         project_file = self.project_file(project_path)
         if not project_file.exists():
-            raise ValueError(f"Project file does not exist in the specified location: {project_file}")
+            raise ValueError(
+                f"Project file does not exist in the specified location: {project_file}"
+            )
 
         if self.static_generics is None:
             all_generics = generics
@@ -172,7 +185,7 @@ class VivadoProject:
             run_index=run_index,
             generics=all_generics,
             synth_only=synth_only,
-            analyze_clock_interaction=self.analyze_clock_interaction
+            analyze_clock_interaction=self.analyze_clock_interaction,
         )
         create_file(build_vivado_project_tcl, tcl)
 
@@ -205,14 +218,16 @@ class VivadoProject:
         """
         return True
 
-    def build(self,
-              project_path,
-              output_path=None,
-              run_index=None,
-              generics=None,
-              synth_only=False,
-              num_threads=12,
-              **pre_and_post_build_parameters):
+    def build(
+        self,
+        project_path,
+        output_path=None,
+        run_index=None,
+        generics=None,
+        synth_only=False,
+        num_threads=12,
+        **pre_and_post_build_parameters,
+    ):
         """
         Build a Vivado project
 
@@ -255,7 +270,7 @@ class VivadoProject:
             run_index=run_index,
             generics=generics,
             synth_only=synth_only,
-            num_threads=num_threads
+            num_threads=num_threads,
         )
 
         for module in self.modules:
@@ -269,12 +284,14 @@ class VivadoProject:
             result.success = False
             return result
 
-        build_vivado_project_tcl = self._build_tcl(project_path=project_path,
-                                                   output_path=output_path,
-                                                   num_threads=num_threads,
-                                                   run_index=run_index,
-                                                   generics=generics,
-                                                   synth_only=synth_only)
+        build_vivado_project_tcl = self._build_tcl(
+            project_path=project_path,
+            output_path=output_path,
+            num_threads=num_threads,
+            run_index=run_index,
+            generics=generics,
+            synth_only=synth_only,
+        )
 
         if not run_vivado_tcl(self._vivado_path, build_vivado_project_tcl):
             result.success = False
@@ -314,7 +331,8 @@ class VivadoProject:
         for the specified run.
         """
         report_as_string = read_file(
-            project_path / f"{self.name}.runs" / run / "hierarchical_utilization.rpt")
+            project_path / f"{self.name}.runs" / run / "hierarchical_utilization.rpt"
+        )
         return UtilizationParser.get_size(report_as_string)
 
     def __str__(self):
@@ -326,7 +344,9 @@ class VivadoProject:
         if self.static_generics is None:
             generics = "-"
         else:
-            generics = ", ".join([f"{name}={value}" for name, value in self.static_generics.items()])
+            generics = ", ".join(
+                [f"{name}={value}" for name, value in self.static_generics.items()]
+            )
         result += "\nGenerics:  " + generics
 
         return result
@@ -337,11 +357,7 @@ class VivadoNetlistProject(VivadoProject):
     Used for handling Vivado build of a module without top level pinning.
     """
 
-    def __init__(
-            self,
-            analyze_clock_interaction=False,
-            result_size_checkers=None,
-            **kwargs):
+    def __init__(self, analyze_clock_interaction=False, result_size_checkers=None, **kwargs):
         """
         Arguments:
             analyze_clock_interaction (bool): Analysis of clock interaction, i.e. checking

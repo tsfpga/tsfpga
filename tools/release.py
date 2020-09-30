@@ -15,16 +15,18 @@ REPO_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
 import tsfpga
-from tsfpga.git_utils import find_git_files, git_local_changes_are_present, list_current_tags, list_tags
+from tsfpga.git_utils import (
+    find_git_files,
+    git_local_changes_are_present,
+    list_current_tags,
+    list_tags,
+)
 from tsfpga.system_utils import create_file, read_file, run_command
 
 
 def main():
     parser = argparse.ArgumentParser(description="Make a release commit and tag")
-    parser.add_argument("version",
-                        nargs=1,
-                        type=str,
-                        help="version number MAJOR.MINOR.PATCH")
+    parser.add_argument("version", nargs=1, type=str, help="version number MAJOR.MINOR.PATCH")
     version = parser.parse_args().version[0]
 
     git_tag = verify_version_number(version)
@@ -71,7 +73,7 @@ def update_version_number(version, file):
     if parse(old_version) >= parse(version):
         sys.exit(f"New version is not greater than old version {old_version}")
 
-    updated_file = version_regexp.sub(f"\n__version__ = \"{version}\"\n", data)
+    updated_file = version_regexp.sub(f'\n__version__ = "{version}"\n', data)
     create_file(file, updated_file)
 
 

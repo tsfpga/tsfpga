@@ -6,11 +6,13 @@ from pathlib import Path
 import toml
 
 
-def create_configuration(output_path,
-                         modules=None,
-                         vunit_proj=None,
-                         vivado_location=None,
-                         ip_core_vivado_project_sources_directory=None):
+def create_configuration(
+    output_path,
+    modules=None,
+    vunit_proj=None,
+    vivado_location=None,
+    ip_core_vivado_project_sources_directory=None,
+):
     """
     Create a configuration file (vhdl_ls.toml) for the rust_hdl VHDL Language Server.
 
@@ -35,19 +37,25 @@ def create_configuration(output_path,
     if modules is not None:
         for module in modules:
             vhd_file_wildcard = module.path.resolve() / "**" / "*.vhd"
-            toml_data["libraries"][module.library_name] = dict(
-                files=[str(vhd_file_wildcard)])
+            toml_data["libraries"][module.library_name] = dict(files=[str(vhd_file_wildcard)])
 
     if vunit_proj is not None:
         for source_file in vunit_proj.get_compile_order():
             if source_file.library.name not in toml_data["libraries"]:
-                toml_data["libraries"][source_file.library.name] = dict(
-                    files=[])
+                toml_data["libraries"][source_file.library.name] = dict(files=[])
             toml_data["libraries"][source_file.library.name]["files"].append(
-                str(Path(source_file.name).resolve()))
+                str(Path(source_file.name).resolve())
+            )
 
     if vivado_location is not None:
-        vcomponents_package = vivado_location.parent.parent / "data" / "vhdl" / "src" / "unisims" / "unisim_retarget_VCOMP.vhd"
+        vcomponents_package = (
+            vivado_location.parent.parent
+            / "data"
+            / "vhdl"
+            / "src"
+            / "unisims"
+            / "unisim_retarget_VCOMP.vhd"
+        )
         if not vcomponents_package.exists():
             raise FileNotFoundError(f"Could not find unisim file: {vcomponents_package}")
 

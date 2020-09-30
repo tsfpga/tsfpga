@@ -44,7 +44,12 @@ def fix_lint(files, tab_width):
 
 def arguments():
     parser = argparse.ArgumentParser("Automatically fix some lint problems")
-    parser.add_argument("--tab-width", type=int, default=2, help="number of spaces to use when replacing tab characters")
+    parser.add_argument(
+        "--tab-width",
+        type=int,
+        default=2,
+        help="number of spaces to use when replacing tab characters",
+    )
     parser.add_argument("files", nargs="*", help="fixup these specific files")
     return parser.parse_args()
 

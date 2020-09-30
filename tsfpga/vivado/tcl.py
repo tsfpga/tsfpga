@@ -11,22 +11,27 @@ class VivadoTcl:
     Class with methods for translating a set of sources into Vivado TCL
     """
 
-    def __init__(self, name,):
+    def __init__(
+        self,
+        name,
+    ):
         self.name = name
 
     # pylint: disable=too-many-arguments
-    def create(self,
-               project_folder,
-               modules,
-               part,
-               top,
-               run_index,
-               generics=None,
-               constraints=None,
-               tcl_sources=None,
-               build_step_hooks=None,
-               ip_cache_path=None,
-               disable_io_buffers=True):
+    def create(
+        self,
+        project_folder,
+        modules,
+        part,
+        top,
+        run_index,
+        generics=None,
+        constraints=None,
+        tcl_sources=None,
+        build_step_hooks=None,
+        ip_cache_path=None,
+        disable_io_buffers=True,
+    ):
         tcl = f"create_project {self.name} {to_tcl_path(project_folder)} -part {part}\n"
         tcl += "set_property target_language VHDL [current_project]\n"
         if ip_cache_path is not None:
@@ -78,8 +83,10 @@ class VivadoTcl:
                     # to handle, since I have no use case for it at the moment.
 
             if vhdl_files:
-                tcl += "read_vhdl -library %s -vhdl2008 {%s}\n" % \
-                    (module.library_name, " ".join(vhdl_files))
+                tcl += "read_vhdl -library %s -vhdl2008 {%s}\n" % (
+                    module.library_name,
+                    " ".join(vhdl_files),
+                )
             if verilog_source_files:
                 tcl += "read_verilog {%s}\n" % " ".join(verilog_source_files)
 
@@ -118,7 +125,9 @@ class VivadoTcl:
                 tcl_file = hooks[0].tcl_file
             else:
                 tcl_file = project_folder / ("hook_" + step.replace(".", "_") + ".tcl")
-                source_hooks_tcl = "".join([f"source {to_tcl_path(hook.tcl_file)}\n" for hook in hooks])
+                source_hooks_tcl = "".join(
+                    [f"source {to_tcl_path(hook.tcl_file)}\n" for hook in hooks]
+                )
                 create_file(tcl_file, source_hooks_tcl)
 
             # Add to fileset to enable archive and other project based functionality
@@ -191,7 +200,9 @@ class VivadoTcl:
             managed_flags = "" if file.endswith("xdc") else "-unmanaged "
 
             tcl += f"read_xdc {ref_flags}{managed_flags}{file}\n"
-            tcl += f"set_property PROCESSING_ORDER {constraint.processing_order} [get_files {file}]\n"
+            tcl += (
+                f"set_property PROCESSING_ORDER {constraint.processing_order} [get_files {file}]\n"
+            )
 
             if constraint.used_in == "impl":
                 tcl += f"set_property used_in_synthesis false [get_files {file}]\n"
@@ -201,14 +212,15 @@ class VivadoTcl:
         return tcl
 
     def build(
-            self,
-            project_file,
-            output_path,
-            num_threads,
-            run_index,
-            generics=None,
-            synth_only=False,
-            analyze_clock_interaction=True):
+        self,
+        project_file,
+        output_path,
+        num_threads,
+        run_index,
+        generics=None,
+        synth_only=False,
+        analyze_clock_interaction=True,
+    ):
         # Max value in Vivado 2017.4. set_param will give an error if higher number.
         num_threads = min(num_threads, 8)
 
@@ -239,12 +251,12 @@ class VivadoTcl:
             tcl += "\n"
             tcl += r"if {[regexp {\(unsafe\)} [report_clock_interaction -delay_type min_max -return_string]]} "
             tcl += "{\n"
-            tcl += f"  puts \"ERROR: Unhandled clock crossing in {run} run. See reports in ${{run_directory}}\"\n"
+            tcl += f'  puts "ERROR: Unhandled clock crossing in {run} run. See reports in ${{run_directory}}"\n'
             tcl += "\n"
-            tcl += "  set output_file [file join ${run_directory} \"clock_interaction.rpt\"]\n"
+            tcl += '  set output_file [file join ${run_directory} "clock_interaction.rpt"]\n'
             tcl += "  report_clock_interaction -delay_type min_max -file ${output_file}\n"
             tcl += "\n"
-            tcl += "  set output_file [file join ${run_directory} \"timing_summary.rpt\"]\n"
+            tcl += '  set output_file [file join ${run_directory} "timing_summary.rpt"]\n'
             tcl += "  report_timing_summary -file ${output_file}\n"
             tcl += "\n"
             tcl += "  exit 1\n"
@@ -259,8 +271,8 @@ class VivadoTcl:
         tcl += f"launch_runs {run} -jobs {num_threads}{to_step}\n"
         tcl += "wait_on_run %s\n" % run
         tcl += "\n"
-        tcl += "if {[get_property PROGRESS [get_runs %s]] != \"100%%\"} {\n" % run
-        tcl += f"  puts \"ERROR: Run {run} failed.\"\n"
+        tcl += 'if {[get_property PROGRESS [get_runs %s]] != "100%%"} {\n' % run
+        tcl += f'  puts "ERROR: Run {run} failed."\n'
         tcl += "  exit 1\n"
         tcl += "}\n"
         return tcl

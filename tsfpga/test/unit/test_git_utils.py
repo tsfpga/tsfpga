@@ -8,10 +8,12 @@ import unittest
 
 import pytest
 
-from tsfpga.git_utils import (check_that_git_commands_are_available,
-                              find_git_files,
-                              get_git_commit,
-                              git_local_changes_are_present)
+from tsfpga.git_utils import (
+    check_that_git_commands_are_available,
+    find_git_files,
+    get_git_commit,
+    git_local_changes_are_present,
+)
 from tsfpga.system_utils import create_file, delete, run_command, system_is_windows
 
 
@@ -28,7 +30,7 @@ def test_this_file_is_listed_by_find_git_files_with_argument():
     # Test with string as well as tuple
     git_files = find_git_files(file_endings_include="py")
     assert THIS_FILE in git_files
-    git_files = find_git_files(file_endings_include=("py", ))
+    git_files = find_git_files(file_endings_include=("py",))
     assert THIS_FILE in git_files
 
 
@@ -41,7 +43,7 @@ def test_this_file_is_not_listed_by_find_git_files_with_file_endings_avoid():
     # Test with string as well as tuple
     git_files = find_git_files(file_endings_avoid="py")
     assert THIS_FILE not in git_files
-    git_files = find_git_files(file_endings_avoid=("py", ))
+    git_files = find_git_files(file_endings_avoid=("py",))
     assert THIS_FILE not in git_files
 
 

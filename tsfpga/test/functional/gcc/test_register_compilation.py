@@ -65,12 +65,7 @@ int main()
         self.registers.create_c_header(self.include_dir)
 
         executable = self.working_dir / "artyz7.o"
-        cmd = [
-            "gcc",
-            main_file,
-            f"-o{executable}",
-            f"-I{self.include_dir}"
-        ]
+        cmd = ["gcc", main_file, f"-o{executable}", f"-I{self.include_dir}"]
         run_command(cmd)
         run_command([executable])
 
@@ -113,13 +108,7 @@ int main()
         cpp_class_file = self.working_dir / "artyz7.cpp"
 
         executable = self.working_dir / "artyz7.o"
-        cmd = [
-            "g++",
-            main_file,
-            cpp_class_file,
-            f"-o{executable}",
-            f"-I{self.include_dir}"
-        ]
+        cmd = ["g++", main_file, cpp_class_file, f"-o{executable}", f"-I{self.include_dir}"]
         run_command(cmd)
         run_command([executable])
 
@@ -148,13 +137,7 @@ int main()
         cpp_class_file = self.working_dir / "artyz7.cpp"
 
         executable = self.working_dir / "artyz7.o"
-        cmd = [
-            "g++",
-            main_file,
-            cpp_class_file,
-            f"-o{executable}",
-            f"-I{self.include_dir}"
-        ]
+        cmd = ["g++", main_file, cpp_class_file, f"-o{executable}", f"-I{self.include_dir}"]
         run_command(cmd)
 
         process = subprocess.Popen([executable], stderr=subprocess.PIPE)

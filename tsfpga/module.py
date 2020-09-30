@@ -49,7 +49,9 @@ class BaseModule:
         """
         Return a list of HDL file objects.
         """
-        return [HdlFile(filename) for filename in self._get_file_list(folders, HdlFile.file_endings)]
+        return [
+            HdlFile(filename) for filename in self._get_file_list(folders, HdlFile.file_endings)
+        ]
 
     @property
     def registers(self):
@@ -62,11 +64,16 @@ class BaseModule:
 
         toml_file = self.path / (f"regs_{self.name}.toml")
         if toml_file.exists():
-            self._registers = from_toml(self.name, toml_file, copy.deepcopy(self._default_registers))
+            self._registers = from_toml(
+                self.name, toml_file, copy.deepcopy(self._default_registers)
+            )
             self.registers_hook()
             return self._registers
 
-        for deprecated_json_file in [self.path / f"{self.name}_regs.json", self.path / f"regs_{self.name}.json"]:
+        for deprecated_json_file in [
+            self.path / f"{self.name}_regs.json",
+            self.path / f"regs_{self.name}.json",
+        ]:
             if deprecated_json_file.exists():
                 message = f"DEPRECATED: Using deprecated json file name: {deprecated_json_file}"
                 message += f"\nDEPRECATED: Use TOML file instead: {toml_file}"
@@ -133,8 +140,7 @@ class BaseModule:
         ]
 
         if include_tests:
-            test_folders += [self.path / "rtl" / "tb",
-                             self.path / "test"]
+            test_folders += [self.path / "rtl" / "tb", self.path / "test"]
 
         return self.get_synthesis_files() + self._get_hdl_file_list(test_folders)
 
@@ -155,8 +161,10 @@ class BaseModule:
 
     # pylint: disable=unused-argument,no-self-use
     def setup_simulations(self, vunit_proj, **kwargs):
-        print("DEPRECATED: Calling deprecated BaseModule.setup_simulations(). "
-              "Use BaseModule.setup_vunit() instead.")
+        print(
+            "DEPRECATED: Calling deprecated BaseModule.setup_simulations(). "
+            "Use BaseModule.setup_vunit() instead."
+        )
 
     def setup_formal(self, formal_proj, **kwargs):
         """
@@ -197,7 +205,7 @@ class BaseModule:
         folders = [
             self.path / "ip_cores",
         ]
-        file_endings = ("tcl")
+        file_endings = "tcl"
         return self._get_file_list(folders, file_endings)
 
     def get_scoped_constraints(self):
@@ -220,7 +228,9 @@ class BaseModule:
             for constraint_file in constraint_files:
                 # Scoped constraints often depend on clocks having been created by another constraint
                 # file before they can work. Set processing order to "late" to make this more probable.
-                constraint = Constraint(constraint_file, scoped_constraint=True, processing_order="late")
+                constraint = Constraint(
+                    constraint_file, scoped_constraint=True, processing_order="late"
+                )
                 constraint.validate_scoped_entity(synthesis_files)
                 constraints.append(constraint)
         return constraints
@@ -264,10 +274,7 @@ class BaseModule:
         Add config for VUnit test case. Wrapper that sets a suitable name.
         """
         name = self.test_case_name(name, generics)
-        test.add_config(name=name,
-                        generics=generics,
-                        pre_config=pre_config,
-                        post_check=post_check)
+        test.add_config(name=name, generics=generics, pre_config=pre_config, post_check=post_check)
 
     def __str__(self):
         return f"{self.name}:{self.path}"
@@ -289,11 +296,13 @@ def get_module_object(path, name, library_name_has_lib_suffix, default_registers
     return BaseModule(path, library_name, default_registers)
 
 
-def get_modules(modules_folders,
-                names_include=None,
-                names_avoid=None,
-                library_name_has_lib_suffix=False,
-                default_registers=None):
+def get_modules(
+    modules_folders,
+    names_include=None,
+    names_avoid=None,
+    library_name_has_lib_suffix=False,
+    default_registers=None,
+):
     """
     Get a list of Module objects based on the source code folders.
 
@@ -313,11 +322,13 @@ def get_modules(modules_folders,
 
     for module_folder in iterate_module_folders(modules_folders):
         module_name = module_folder.name
-        if (names_include is None or module_name in names_include) \
-                and (names_avoid is None or module_name not in names_avoid):
-            modules.append(get_module_object(module_folder,
-                                             module_name,
-                                             library_name_has_lib_suffix,
-                                             default_registers))
+        if (names_include is None or module_name in names_include) and (
+            names_avoid is None or module_name not in names_avoid
+        ):
+            modules.append(
+                get_module_object(
+                    module_folder, module_name, library_name_has_lib_suffix, default_registers
+                )
+            )
 
     return modules

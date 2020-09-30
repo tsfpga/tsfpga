@@ -9,13 +9,7 @@ class SbyWriter:
     """
 
     @staticmethod
-    def write_sby(
-            output_path,
-            top,
-            generics,
-            formal_settings,
-            compiled_libraries,
-            src_files):
+    def write_sby(output_path, top, generics, formal_settings, compiled_libraries, src_files):
         """
         Create Symbiyosys script. This script will run ghdl --synth
         """

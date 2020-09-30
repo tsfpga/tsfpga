@@ -135,7 +135,9 @@ class RegisterList:
         """
         register_vhdl_generator = RegisterVhdlGenerator(self.name, self.generated_info())
         with (output_path / (self.name + "_regs_pkg.vhd")).open("w") as file_handle:
-            file_handle.write(register_vhdl_generator.get_package(self.register_objects, self.constants))
+            file_handle.write(
+                register_vhdl_generator.get_package(self.register_objects, self.constants)
+            )
 
     def create_c_header(self, output_path):
         """
@@ -146,7 +148,9 @@ class RegisterList:
         """
         output_file = output_path / (self.name + "_regs.h")
         register_c_generator = RegisterCGenerator(self.name, self.generated_source_info())
-        create_file(output_file, register_c_generator.get_header(self.register_objects, self.constants))
+        create_file(
+            output_file, register_c_generator.get_header(self.register_objects, self.constants)
+        )
 
     def create_cpp_interface(self, output_path):
         """
@@ -158,7 +162,9 @@ class RegisterList:
         """
         output_file = output_path / ("i_" + self.name + ".h")
         register_cpp_generator = RegisterCppGenerator(self.name, self.generated_source_info())
-        create_file(output_file, register_cpp_generator.get_interface(self.register_objects, self.constants))
+        create_file(
+            output_file, register_cpp_generator.get_interface(self.register_objects, self.constants)
+        )
 
     def create_cpp_header(self, output_path):
         """
@@ -193,8 +199,8 @@ class RegisterList:
         output_file = output_path / (self.name + "_regs.html")
         register_html_generator = RegisterHtmlGenerator(self.name, self.generated_source_info())
         create_file(
-            output_file,
-            register_html_generator.get_page(self.register_objects, self.constants))
+            output_file, register_html_generator.get_page(self.register_objects, self.constants)
+        )
 
     def create_html_register_table(self, output_path):
         """
@@ -262,17 +268,26 @@ def get_default_registers():
     registers = [
         Register("config", 0, "r_w", "Configuration register."),
         Register(
-            "command", 1, "wpulse",
+            "command",
+            1,
+            "wpulse",
             "When this register is written, all '1's in the written word will be asserted for one "
-            "clock cycle in the FPGA logic."),
+            "clock cycle in the FPGA logic.",
+        ),
         Register("status", 2, "r", "Status register."),
         Register(
-            "irq_status", 3, "r_wpulse",
+            "irq_status",
+            3,
+            "r_wpulse",
             "Reading a '1' in this register means the corresponding interrupt has triggered. Writing "
-            "to this register will clear the interrupts where there is a '1' in the written word."),
+            "to this register will clear the interrupts where there is a '1' in the written word.",
+        ),
         Register(
-            "irq_mask", 4, "r_w",
-            "A '1' in this register means that the corresponding interrupt is enabled. ")
+            "irq_mask",
+            4,
+            "r_w",
+            "A '1' in this register means that the corresponding interrupt is enabled. ",
+        ),
     ]
     return registers
 
@@ -309,7 +324,8 @@ def from_toml(module_name, toml_file, default_registers=None):
     if "register" in toml_data:
         for name, items in toml_data["register"].items():
             _parse_plain_register(
-                name, items, register_list, default_register_names, names_taken, toml_file)
+                name, items, register_list, default_register_names, names_taken, toml_file
+            )
 
     if "register_array" in toml_data:
         for name, items in toml_data["register_array"].items():
@@ -327,7 +343,9 @@ def _parse_constant(name, items, register_list, toml_file):
 
     for item_name, item_value in items.items():
         if item_name not in RECOGNIZED_CONSTANT_ITEMS:
-            message = f"Error while parsing constant {name} in {toml_file}:\nUnknown key {item_name}"
+            message = (
+                f"Error while parsing constant {name} in {toml_file}:\nUnknown key {item_name}"
+            )
             raise ValueError(message)
 
         if item_name == "description":
@@ -336,7 +354,9 @@ def _parse_constant(name, items, register_list, toml_file):
     register_list.constants.append(constant)
 
 
-def _parse_plain_register(name, items, register_list, default_register_names, names_taken, toml_file):
+def _parse_plain_register(
+    name, items, register_list, default_register_names, names_taken, toml_file
+):
     if "array_length" in items:
         message = f"Plain register {name} in {toml_file} can not have array_length attribute"
         raise ValueError(message)
@@ -347,7 +367,9 @@ def _parse_plain_register(name, items, register_list, default_register_names, na
         # change the mode.
         register = register_list.get_register(name)
         if "mode" in items:
-            message = f"Overloading register {name} in {toml_file}, one can not change mode from default"
+            message = (
+                f"Overloading register {name} in {toml_file}, one can not change mode from default"
+            )
             raise ValueError(message)
     else:
         # If it is a new register however the mode has to be specified.
@@ -357,7 +379,9 @@ def _parse_plain_register(name, items, register_list, default_register_names, na
 
     for item_name, item_value in items.items():
         if item_name not in RECOGNIZED_REGISTER_ITEMS:
-            message = f"Error while parsing register {name} in {toml_file}:\nUnknown key {item_name}"
+            message = (
+                f"Error while parsing register {name} in {toml_file}:\nUnknown key {item_name}"
+            )
             raise ValueError(message)
         if item_name == "default_value":
             register.default_value = item_value
@@ -383,8 +407,10 @@ def _parse_register_array(name, items, register_list, names_taken, toml_file):
 
     for item_name in items:
         if item_name not in RECOGNIZED_REGISTER_ARRAY_ITEMS:
-            message = f"Error while parsing register array {name} in {toml_file}:\n"\
+            message = (
+                f"Error while parsing register array {name} in {toml_file}:\n"
                 f"Unknown key {item_name}"
+            )
             raise ValueError(message)
 
     length = items["array_length"]
@@ -398,8 +424,10 @@ def _parse_register_array(name, items, register_list, names_taken, toml_file):
 
         for register_item_name, register_item_value in register_items.items():
             if register_item_name not in RECOGNIZED_REGISTER_ITEMS:
-                message = f"Error while parsing register {register_name} in array {name} in " \
+                message = (
+                    f"Error while parsing register {register_name} in array {name} in "
                     f"{toml_file}:\nUnknown key {register_item_name}"
+                )
                 raise ValueError(message)
             if register_item_name == "default_value":
                 register.default_value = register_item_value

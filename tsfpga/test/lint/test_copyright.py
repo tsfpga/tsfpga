@@ -12,13 +12,15 @@ from tsfpga.git_utils import find_git_files
 
 
 class CopyrightHeader:
-
     def __init__(self, file, copyright_holder, copyright_text_lines=None):
         self._file = file
         self.comment_character = self._get_comment_character()
-        self.separator_line = f"{self.comment_character} " + "-" * (79 - len(self.comment_character))
+        self.separator_line = f"{self.comment_character} " + "-" * (
+            79 - len(self.comment_character)
+        )
         self.expected_copyright_header = self._get_expected_copyright_header(
-            copyright_holder, copyright_text_lines)
+            copyright_holder, copyright_text_lines
+        )
 
     def check_file(self):
         """
@@ -37,7 +39,9 @@ class CopyrightHeader:
 
     def _get_expected_copyright_header(self, copyright_holder, copyright_text_lines):
         header = f"{self.separator_line}\n"
-        header += f"{self.comment_character} Copyright (c) {copyright_holder}. All rights reserved.\n"
+        header += (
+            f"{self.comment_character} Copyright (c) {copyright_holder}. All rights reserved.\n"
+        )
         if copyright_text_lines:
             header += f"{self.comment_character}\n"
             for copyright_text_line in copyright_text_lines:
@@ -52,7 +56,11 @@ class CopyrightHeader:
             return "--"
         if self._file.name.endswith(".tcl"):
             return "#"
-        if self._file.name.endswith(".c") or self._file.name.endswith(".cpp") or self._file.name.endswith(".h"):
+        if (
+            self._file.name.endswith(".c")
+            or self._file.name.endswith(".cpp")
+            or self._file.name.endswith(".h")
+        ):
             return "//"
         raise RuntimeError(f"Could not decide file ending of {self._file}")
 
@@ -72,7 +80,9 @@ def files_to_check_for_copyright_header():
     file_endings = (".py", ".vhd", ".tcl")
     exclude_directories = [TSFPGA_EXAMPLE_MODULES / "artyz7" / "tcl"]
     for file_ending in file_endings:
-        for file in find_git_files(file_endings_include=file_ending, exclude_directories=exclude_directories):
+        for file in find_git_files(
+            file_endings_include=file_ending, exclude_directories=exclude_directories
+        ):
             yield file
 
 
@@ -82,7 +92,9 @@ def test_copyright_header_of_all_checked_in_files():
         copyright_header_checker = CopyrightHeader(file, "Lukas Vik")
         if not copyright_header_checker.check_file():
             test_ok = False
-            print(f"Fail for {file}.\nExpected:\n{copyright_header_checker.expected_copyright_header}")
+            print(
+                f"Fail for {file}.\nExpected:\n{copyright_header_checker.expected_copyright_header}"
+            )
     assert test_ok
 
 

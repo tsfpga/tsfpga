@@ -8,7 +8,6 @@ from tsfpga.register_types import Register, RegisterArray
 
 
 class RegisterVhdlGenerator(RegisterCodeGenerator):
-
     def __init__(self, module_name, generated_info):
         self.module_name = module_name
         self.generated_info = generated_info
@@ -32,7 +31,9 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
         vhdl = ""
         for register, register_array in self._iterate_registers(register_objects):
             if register_array is None:
-                vhdl += f"  constant {self._register_name(register)} : integer := {register.index};\n"
+                vhdl += (
+                    f"  constant {self._register_name(register)} : integer := {register.index};\n"
+                )
             else:
                 vhdl += f"  {self._register_function_signature(register, register_array)};\n"
 
@@ -61,13 +62,19 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
             if isinstance(register_object, Register):
                 idx = self._register_name(register_object)
                 register_definitions.append(f"  (idx => {idx}, reg_type => {register_object.mode})")
-                default_values.append(f"  std_logic_vector(to_signed({register_object.default_value}, 32))")
+                default_values.append(
+                    f"  std_logic_vector(to_signed({register_object.default_value}, 32))"
+                )
             else:
                 for array_index in range(register_object.length):
                     for register in register_object.registers:
                         idx = f"{self._register_name(register, register_object)}({array_index})"
-                        register_definitions.append(f"  (idx => {idx}, reg_type => {register.mode})")
-                        default_values.append(f"  std_logic_vector(to_signed({register.default_value}, 32))")
+                        register_definitions.append(
+                            f"  (idx => {idx}, reg_type => {register.mode})"
+                        )
+                        default_values.append(
+                            f"  std_logic_vector(to_signed({register.default_value}, 32))"
+                        )
 
         last_index = register_objects[-1].index
         vhdl = f"  constant {map_name} : reg_definition_vec_t(0 to {last_index}) := (\n  "
@@ -102,7 +109,7 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
                     vhdl += f"  {self._register_function_signature(register, register_object)} is\n"
                     vhdl += "  begin\n"
                     vhdl += f"    assert array_index < {array_length} \n"
-                    vhdl += "      report \"Array index out of bounds: \" & to_string(array_index)\n"
+                    vhdl += '      report "Array index out of bounds: " & to_string(array_index)\n'
                     vhdl += "      severity failure;\n"
                     vhdl += f"    return {register_object.base_index} + array_index * {num_registers} + {register.index};\n"
                     vhdl += "  end function;\n\n"

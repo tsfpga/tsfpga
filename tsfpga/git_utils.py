@@ -38,7 +38,9 @@ def get_git_sha(cwd=None):
 def git_local_changes_are_present(cwd=None):
     command = ["git", "diff-index", "--quiet", "HEAD", "--"]
     try:
-        subprocess.check_call(command, cwd=cwd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.check_call(
+            command, cwd=cwd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
     except subprocess.CalledProcessError:
         return True
     return False
@@ -47,7 +49,9 @@ def git_local_changes_are_present(cwd=None):
 def git_commands_are_available(cwd=None):
     command = ["git", "rev-parse", "--is-inside-work-tree"]
     try:
-        subprocess.check_call(command, cwd=cwd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.check_call(
+            command, cwd=cwd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
     except subprocess.CalledProcessError:
         return False
     return True
@@ -55,14 +59,18 @@ def git_commands_are_available(cwd=None):
 
 def check_that_git_commands_are_available(cwd=None):
     if not git_commands_are_available(cwd):
-        mesg = "Could not run git. Is the command available on PATH? Is the script called from a repo?"
+        mesg = (
+            "Could not run git. Is the command available on PATH? Is the script called from a repo?"
+        )
         raise RuntimeError(mesg)
 
 
-def find_git_files(file_endings_include=None,
-                   file_endings_avoid=None,
-                   directory=REPO_ROOT,
-                   exclude_directories=None):
+def find_git_files(
+    file_endings_include=None,
+    file_endings_avoid=None,
+    directory=REPO_ROOT,
+    exclude_directories=None,
+):
     """
     Arguments:
         file_endings_include (str or tuple(str)). Only files with these endings will be included.
@@ -70,8 +78,11 @@ def find_git_files(file_endings_include=None,
         directory (`pathlib.Path`): Search in this directory.
         exclude_directories (list(`pathlib.Path`)): Files in these directories will not be included.
     """
-    exclude_directories = [] if exclude_directories is None else \
-        [exclude_directory.resolve() for exclude_directory in exclude_directories]
+    exclude_directories = (
+        []
+        if exclude_directories is None
+        else [exclude_directory.resolve() for exclude_directory in exclude_directories]
+    )
 
     command = ["git", "ls-files"]
     output = subprocess.check_output(command, cwd=directory, universal_newlines=True)
@@ -88,8 +99,9 @@ def find_git_files(file_endings_include=None,
         assert file.exists()  # Make sure concatenation of relative path worked
 
         if file.is_file():  # "git ls-files" also lists submodule folders
-            if (file_endings_include is None or file.name.endswith(file_endings_include)) \
-                    and (file_endings_avoid is None or not file.name.endswith(file_endings_avoid)):
+            if (file_endings_include is None or file.name.endswith(file_endings_include)) and (
+                file_endings_avoid is None or not file.name.endswith(file_endings_avoid)
+            ):
                 if not _file_is_in_directory(file, exclude_directories):
                     yield file
 

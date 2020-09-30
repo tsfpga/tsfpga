@@ -18,9 +18,11 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
 
     _libraries = ["unisim", "secureip", "unimacro", "unifast", "xpm"]
 
-    _tcl = "set_param general.maxthreads 4\n" \
-        "compile_simlib -simulator {simulator_name} -simulator_exec_path {{{simulator_folder}}} " \
+    _tcl = (
+        "set_param general.maxthreads 4\n"
+        "compile_simlib -simulator {simulator_name} -simulator_exec_path {{{simulator_folder}}} "
         "-family all -language all -library all -no_ip_compile -dir {{{output_path}}} -force"
+    )
 
     def __init__(self, output_path, vunit_proj, simulator_interface, vivado_path):
         """
@@ -34,17 +36,20 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
         self._vivado_path = get_vivado_path(vivado_path)
 
         # Vivado uses a different name for Riviera-PRO
-        self._simulator_name = "riviera" if simulator_interface.name == "rivierapro" \
-            else simulator_interface.name
+        self._simulator_name = (
+            "riviera" if simulator_interface.name == "rivierapro" else simulator_interface.name
+        )
         self._simulator_folder = Path(simulator_interface.find_prefix())
 
         self._output_path = output_path / self._get_version_tag()
 
     def _compile(self):
         tcl_file = self._output_path / "compile_simlib.tcl"
-        tcl = self._tcl.format(simulator_name=self._simulator_name,
-                               simulator_folder=to_tcl_path(self._simulator_folder),
-                               output_path=to_tcl_path(self._output_path))
+        tcl = self._tcl.format(
+            simulator_name=self._simulator_name,
+            simulator_folder=to_tcl_path(self._simulator_folder),
+            output_path=to_tcl_path(self._output_path),
+        )
         create_file(tcl_file, tcl)
         run_vivado_tcl(self._vivado_path, tcl_file)
 

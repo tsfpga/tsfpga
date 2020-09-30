@@ -37,7 +37,9 @@ class Constraint:
         """
         if self.ref is not None:
             if not any([source_file.path.stem == self.ref] for source_file in source_files):
-                raise FileNotFoundError(f"Could not find a matching entity file for scoped constraint file {self.file}")
+                raise FileNotFoundError(
+                    f"Could not find a matching entity file for scoped constraint file {self.file}"
+                )
         return True
 
     def __str__(self):

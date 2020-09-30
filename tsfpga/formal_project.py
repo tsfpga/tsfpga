@@ -19,13 +19,7 @@ class FormalConfig:
 
     # pylint: disable=too-many-arguments
     def __init__(
-            self,
-            top,
-            generics,
-            engine_command="smtbmc",
-            solver_command="z3",
-            mode="bmc",
-            depth=20
+        self, top, generics, engine_command="smtbmc", solver_command="z3", mode="bmc", depth=20
     ):
         """
         Arguments:
@@ -42,10 +36,8 @@ class FormalConfig:
         self.top = top
         self.generics = generics
         self.formal_settings = dict(
-            engine_command=engine_command,
-            solver_command=solver_command,
-            mode=mode,
-            depth=depth)
+            engine_command=engine_command, solver_command=solver_command, mode=mode, depth=depth
+        )
 
     @property
     def test_name(self):
@@ -53,7 +45,6 @@ class FormalConfig:
 
 
 class FormalProject:
-
     def __init__(self, project_path, modules):
         self._formal_config_list = []
         self.project_path = project_path.resolve()
@@ -77,8 +68,10 @@ class FormalProject:
         for test in test_list:
             # 'test' in this context is a TestCaseWrapper object.
             # Access the member to get the FormalTestCase object.
-            test._test_case.set_src_files(src_files)  # pylint: disable=protected-access
-            test._test_case.set_compiled_libraries(compiled_libraries)  # pylint: disable=protected-access
+            # pylint: disable=protected-access
+            test._test_case.set_src_files(src_files)
+            # pylint: disable=protected-access
+            test._test_case.set_compiled_libraries(compiled_libraries)
 
         if verbose:
             verbosity = TestRunner.VERBOSITY_VERBOSE
@@ -93,7 +86,8 @@ class FormalProject:
             report=report,
             output_path=self.project_path,
             verbosity=verbosity,
-            num_threads=num_threads)
+            num_threads=num_threads,
+        )
         test_runner.run(test_list)
 
         return report.all_ok()
@@ -142,7 +136,6 @@ class FormalProject:
 
 
 class FormalTestCase:
-
     def __init__(self, formal_config):
         self._formal_config = formal_config
         self._src_files = None
@@ -184,13 +177,14 @@ class FormalTestCase:
         project = YosysProject(
             top=self._formal_config.top,
             generics=self._formal_config.generics,
-            formal_settings=self._formal_config.formal_settings
+            formal_settings=self._formal_config.formal_settings,
         )
 
         return project.run_formal(
             project_path=output_path,
             src_files=self._src_files,
-            compiled_libraries=self._compiled_libraries)
+            compiled_libraries=self._compiled_libraries,
+        )
 
     @property
     def name(self):

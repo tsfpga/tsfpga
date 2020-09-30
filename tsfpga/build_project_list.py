@@ -21,11 +21,9 @@ class BuildProjectList:
     Enables building many projects in parallel.
     """
 
-    def __init__(self,
-                 modules,
-                 project_filters=None,
-                 include_netlist_not_top_builds=False,
-                 no_color=False):
+    def __init__(
+        self, modules, project_filters=None, include_netlist_not_top_builds=False, no_color=False
+    ):
         """
         Arguments:
             modules (list(:class:`.BaseModule`)): Module objects that can define build
@@ -38,8 +36,9 @@ class BuildProjectList:
         """
         self._modules = modules
         self._no_color = no_color
-        self.projects = list(self._iterate_projects(
-            project_filters, include_netlist_not_top_builds))
+        self.projects = list(
+            self._iterate_projects(project_filters, include_netlist_not_top_builds)
+        )
 
     def __str__(self):
         """
@@ -47,10 +46,7 @@ class BuildProjectList:
         """
         return "\n\n".join([str(project) for project in self.projects])
 
-    def create(self,
-               projects_path,
-               num_parallel_builds,
-               **kwargs):
+    def create(self, projects_path, num_parallel_builds, **kwargs):
         """
         Create build project on disk for all the projects in the list.
 
@@ -69,19 +65,16 @@ class BuildProjectList:
         """
         build_wrappers = []
         for project in self.projects:
-            build_wrapper = BuildProjectCreateWrapper(
-                project, **kwargs)
+            build_wrapper = BuildProjectCreateWrapper(project, **kwargs)
             build_wrappers.append(build_wrapper)
 
         return self._run_build_wrappers(
             projects_path=projects_path,
             build_wrappers=build_wrappers,
-            num_parallel_builds=num_parallel_builds)
+            num_parallel_builds=num_parallel_builds,
+        )
 
-    def create_unless_exists(self,
-                             projects_path,
-                             num_parallel_builds,
-                             **kwargs):
+    def create_unless_exists(self, projects_path, num_parallel_builds, **kwargs):
         """
         Create build project for all the projects in the list, unless the project already
         exists.
@@ -108,15 +101,18 @@ class BuildProjectList:
         return self._run_build_wrappers(
             projects_path=projects_path,
             build_wrappers=build_wrappers,
-            num_parallel_builds=num_parallel_builds)
+            num_parallel_builds=num_parallel_builds,
+        )
 
-    def build(self,
-              projects_path,
-              num_parallel_builds,
-              num_threads_per_build,
-              output_path=None,
-              collect_artifacts=None,
-              **kwargs):
+    def build(
+        self,
+        projects_path,
+        num_parallel_builds,
+        num_threads_per_build,
+        output_path=None,
+        collect_artifacts=None,
+        **kwargs
+    ):
         """
         Build all the projects in the list.
 
@@ -151,8 +147,9 @@ class BuildProjectList:
             bool: True if everything went well.
         """
         if collect_artifacts:
-            thread_safe_collect_artifacts = \
-                ThreadSafeCollectArtifacts(collect_artifacts).collect_artifacts
+            thread_safe_collect_artifacts = ThreadSafeCollectArtifacts(
+                collect_artifacts
+            ).collect_artifacts
         else:
             thread_safe_collect_artifacts = None
 
@@ -168,13 +165,15 @@ class BuildProjectList:
                 output_path=this_projects_output_path,
                 collect_artifacts=thread_safe_collect_artifacts,
                 num_threads=num_threads_per_build,
-                **kwargs)
+                **kwargs
+            )
             build_wrappers.append(build_wrapper)
 
         return self._run_build_wrappers(
             projects_path=projects_path,
             build_wrappers=build_wrappers,
-            num_parallel_builds=num_parallel_builds)
+            num_parallel_builds=num_parallel_builds,
+        )
 
     def open(self, projects_path):
         """
@@ -195,7 +194,8 @@ class BuildProjectList:
             projects_path=projects_path,
             build_wrappers=build_wrappers,
             # For open there is no performance limitation. Set a high value.
-            num_parallel_builds=20)
+            num_parallel_builds=20,
+        )
 
     @staticmethod
     def _get_project_path(projects_path, project):
@@ -218,7 +218,8 @@ class BuildProjectList:
             report=report,
             output_path=projects_path,
             verbosity=verbosity,
-            num_threads=num_parallel_builds)
+            num_threads=num_parallel_builds,
+        )
         test_runner.run(test_list)
 
         return report.all_ok()
@@ -256,8 +257,7 @@ class BuildProjectCreateWrapper:
         VUnit test runner sends another argument "read_output" which we don't use.
         """
         this_projects_path = Path(output_path) / "project"
-        return self._project.create(project_path=this_projects_path,
-                                    **self._create_arguments)
+        return self._project.create(project_path=this_projects_path, **self._create_arguments)
 
 
 class BuildProjectBuildWrapper:
@@ -279,16 +279,15 @@ class BuildProjectBuildWrapper:
         VUnit test runner sends another argument "read_output" which we don't use.
         """
         this_projects_path = Path(output_path) / "project"
-        build_result = self._project.build(project_path=this_projects_path,
-                                           **self._build_arguments)
+        build_result = self._project.build(project_path=this_projects_path, **self._build_arguments)
 
         if not build_result.success:
             return build_result.success
 
         if self._collect_artifacts is not None:
             if not self._collect_artifacts(
-                    project=self._project,
-                    output_path=self._build_arguments["output_path"]):
+                project=self._project, output_path=self._build_arguments["output_path"]
+            ):
                 build_result.success = False
 
         return build_result.success

@@ -43,8 +43,9 @@ class TestVivadoSimlibCommercial(TestCase):
         self.assert_should_compile(self.vivado_simlib)
         self.assert_should_not_compile(self.vivado_simlib)
 
-        vivado_simlib = self.get_vivado_simlib("/opt/Aldec/Riviera-PRO-1975.01-x64/bin",
-                                               self.vivado_path)
+        vivado_simlib = self.get_vivado_simlib(
+            "/opt/Aldec/Riviera-PRO-1975.01-x64/bin", self.vivado_path
+        )
         self.assert_should_compile(vivado_simlib)
         self.assert_should_not_compile(vivado_simlib)
 
@@ -52,8 +53,9 @@ class TestVivadoSimlibCommercial(TestCase):
         self.assert_should_compile(self.vivado_simlib)
         self.assert_should_not_compile(self.vivado_simlib)
 
-        vivado_simlib = self.get_vivado_simlib(self.simulator_prefix,
-                                               Path("/tools/xilinx/Vivado/1337.2/bin/vivado"))
+        vivado_simlib = self.get_vivado_simlib(
+            self.simulator_prefix, Path("/tools/xilinx/Vivado/1337.2/bin/vivado")
+        )
         self.assert_should_compile(vivado_simlib)
         self.assert_should_not_compile(vivado_simlib)
 
@@ -99,7 +101,8 @@ class TestVivadoSimlibGhdl(TestCase):
             vunit_proj._simulator_class = simulator_class  # pylint: disable=protected-access
 
             vivado_simlib = VivadoSimlib.init(
-                self.output_path, vunit_proj, Path("/tools/xilinx/Vivado/2019.2/bin/vivado"))
+                self.output_path, vunit_proj, Path("/tools/xilinx/Vivado/2019.2/bin/vivado")
+            )
 
             return vivado_simlib
 
@@ -108,19 +111,25 @@ class TestVivadoSimlibGhdl(TestCase):
         self.assert_should_not_compile(self.vivado_simlib)
 
     def test_ghdl_version_string(self):
-        assert self.get_vivado_simlib(ghdl_version_string="GHDL 0.36 (v0.36) [Dunoon edition]"). \
-            artifact_name.endswith(".ghdl_0_36_v0_36")
-        assert self.get_vivado_simlib(ghdl_version_string="GHDL 0.36 [Dunoon edition]"). \
-            artifact_name.endswith(".ghdl_0_36")
-        assert self.get_vivado_simlib(ghdl_version_string="GHDL 0.36 (v0.36)"). \
-            artifact_name.endswith(".ghdl_0_36_v0_36")
-        assert self.get_vivado_simlib(ghdl_version_string="GHDL 0.36"). \
-            artifact_name.endswith(".ghdl_0_36")
+        assert self.get_vivado_simlib(
+            ghdl_version_string="GHDL 0.36 (v0.36) [Dunoon edition]"
+        ).artifact_name.endswith(".ghdl_0_36_v0_36")
+        assert self.get_vivado_simlib(
+            ghdl_version_string="GHDL 0.36 [Dunoon edition]"
+        ).artifact_name.endswith(".ghdl_0_36")
+        assert self.get_vivado_simlib(
+            ghdl_version_string="GHDL 0.36 (v0.36)"
+        ).artifact_name.endswith(".ghdl_0_36_v0_36")
+        assert self.get_vivado_simlib(ghdl_version_string="GHDL 0.36").artifact_name.endswith(
+            ".ghdl_0_36"
+        )
 
-        assert self.get_vivado_simlib(ghdl_version_string="GHDL 0.37-dev (v0.36-1605-ge4aa89cd) [Dunoon edition]"). \
-            artifact_name.endswith(".ghdl_0_37_dev_v0_36_1605_ge4aa89cd")
-        assert self.get_vivado_simlib(ghdl_version_string="GHDL 0.37-dev (v0.36-1605-ge4aa89cd)"). \
-            artifact_name.endswith(".ghdl_0_37_dev_v0_36_1605_ge4aa89cd")
+        assert self.get_vivado_simlib(
+            ghdl_version_string="GHDL 0.37-dev (v0.36-1605-ge4aa89cd) [Dunoon edition]"
+        ).artifact_name.endswith(".ghdl_0_37_dev_v0_36_1605_ge4aa89cd")
+        assert self.get_vivado_simlib(
+            ghdl_version_string="GHDL 0.37-dev (v0.36-1605-ge4aa89cd)"
+        ).artifact_name.endswith(".ghdl_0_37_dev_v0_36_1605_ge4aa89cd")
 
     @staticmethod
     def assert_should_compile(vivado_simlib):

@@ -47,7 +47,7 @@ def main():
             "Topic :: Software Development :: Testing",
             "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
         ],
-        zip_safe=False
+        zip_safe=False,
     )
 
 

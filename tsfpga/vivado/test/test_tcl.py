@@ -18,13 +18,7 @@ from tsfpga.test.conftest import fixture_tmp_path  # pylint: disable=unused-impo
 
 
 def test_set_create_run_index():
-    tcl = VivadoTcl(name="").create(
-        project_folder=Path(),
-        modules=[],
-        part="",
-        top="",
-        run_index=2
-    )
+    tcl = VivadoTcl(name="").create(project_folder=Path(), modules=[], part="", top="", run_index=2)
     assert "\ncurrent_run [get_runs synth_2]\n" in tcl
 
 
@@ -34,12 +28,7 @@ def test_static_generics():
     generics = OrderedDict(enable=True, disable=False, integer=123, slv="4'b0101")
 
     tcl = VivadoTcl(name="").create(
-        project_folder=Path(),
-        modules=[],
-        part="",
-        top="",
-        run_index=1,
-        generics=generics
+        project_folder=Path(), modules=[], part="", top="", run_index=1, generics=generics
     )
     expected = "\nset_property generic {enable=1'b1 disable=1'b0 integer=123 slv=4'b0101} [current_fileset]\n"
     assert expected in tcl
@@ -54,11 +43,15 @@ def test_build_step_hooks():
         part="part",
         top="",
         run_index=1,
-        build_step_hooks=[dummy, files]
+        build_step_hooks=[dummy, files],
     )
 
-    assert f"\nset_property STEPS.SYNTH_DESIGN.TCL.PRE {to_tcl_path(dummy.tcl_file)} ${{run}}\n" in tcl
-    assert f"\nset_property STEPS.ROUTE_DESIGN.TCL.PRE {to_tcl_path(files.tcl_file)} ${{run}}\n" in tcl
+    assert (
+        f"\nset_property STEPS.SYNTH_DESIGN.TCL.PRE {to_tcl_path(dummy.tcl_file)} ${{run}}\n" in tcl
+    )
+    assert (
+        f"\nset_property STEPS.ROUTE_DESIGN.TCL.PRE {to_tcl_path(files.tcl_file)} ${{run}}\n" in tcl
+    )
 
 
 def test_build_step_hooks_with_same_hook_step(tmp_path):
@@ -70,7 +63,7 @@ def test_build_step_hooks_with_same_hook_step(tmp_path):
         part="part",
         top="",
         run_index=1,
-        build_step_hooks=[dummy, files]
+        build_step_hooks=[dummy, files],
     )
 
     hook_file = tmp_path / "dummy_project_folder" / "hook_STEPS_SYNTH_DESIGN_TCL_PRE.tcl"
@@ -83,21 +76,12 @@ def test_build_step_hooks_with_same_hook_step(tmp_path):
 
 def test_ip_cache_location(tmp_path):
     tcl = VivadoTcl(name="").create(
-        project_folder=Path(),
-        modules=[],
-        part="part",
-        top="",
-        run_index=1
+        project_folder=Path(), modules=[], part="part", top="", run_index=1
     )
     assert "config_ip_cache" not in tcl
 
     tcl = VivadoTcl(name="").create(
-        project_folder=Path(),
-        modules=[],
-        part="part",
-        top="",
-        run_index=1,
-        ip_cache_path=tmp_path
+        project_folder=Path(), modules=[], part="part", top="", run_index=1, ip_cache_path=tmp_path
     )
     assert f"\nconfig_ip_cache -use_cache_location {to_tcl_path(tmp_path)}\n" in tcl
 
@@ -105,10 +89,7 @@ def test_ip_cache_location(tmp_path):
 def test_set_multiple_threads():
     num_threads = 2
     tcl = VivadoTcl(name="").build(
-        project_file=Path(),
-        output_path=Path(),
-        num_threads=num_threads,
-        run_index=1
+        project_file=Path(), output_path=Path(), num_threads=num_threads, run_index=1
     )
     assert "set_param general.maxThreads %d" % num_threads in tcl
     assert "launch_runs synth_1 -jobs %d" % num_threads in tcl
@@ -117,10 +98,7 @@ def test_set_multiple_threads():
 
 def test_set_build_run_index():
     tcl = VivadoTcl(name="").build(
-        project_file=Path(),
-        output_path=Path(),
-        num_threads=0,
-        run_index=1
+        project_file=Path(), output_path=Path(), num_threads=0, run_index=1
     )
     assert "impl_1" in tcl
     assert "synth_1" in tcl
@@ -128,10 +106,7 @@ def test_set_build_run_index():
     assert "synth_2" not in tcl
 
     tcl = VivadoTcl(name="").build(
-        project_file=Path(),
-        output_path=Path(),
-        num_threads=0,
-        run_index=2
+        project_file=Path(), output_path=Path(), num_threads=0, run_index=2
     )
     assert "impl_2" in tcl
     assert "synth_2" in tcl
@@ -145,7 +120,7 @@ def test_runtime_generics():
         output_path=Path(),
         num_threads=0,
         run_index=0,
-        generics=dict(dummy=True)
+        generics=dict(dummy=True),
     )
     expected = "\nset_property generic {dummy=1'b1} [current_fileset]\n"
     assert expected in tcl
@@ -163,10 +138,14 @@ class TestVivadoTcl(unittest.TestCase):
         # A library with some synth files and some test files
         self.a_vhd = to_tcl_path(create_file(self.modules_folder / "apa" / "a.vhd"))
         self.tb_a_vhd = to_tcl_path(create_file(self.modules_folder / "apa" / "test" / "tb_a.vhd"))
-        self.a_xdc = to_tcl_path(create_file(self.modules_folder / "apa" / "scoped_constraints" / "a.xdc"))
+        self.a_xdc = to_tcl_path(
+            create_file(self.modules_folder / "apa" / "scoped_constraints" / "a.xdc")
+        )
 
         self.b_v = to_tcl_path(create_file(self.modules_folder / "apa" / "b.v"))
-        self.b_tcl = to_tcl_path(create_file(self.modules_folder / "apa" / "scoped_constraints" / "b.tcl"))
+        self.b_tcl = to_tcl_path(
+            create_file(self.modules_folder / "apa" / "scoped_constraints" / "b.tcl")
+        )
 
         self.c_tcl = to_tcl_path(create_file(self.modules_folder / "apa" / "ip_cores" / "c.tcl"))
 
@@ -179,33 +158,21 @@ class TestVivadoTcl(unittest.TestCase):
 
     def test_only_synthesis_files_added_to_create_project_tcl(self):
         tcl = self.tcl.create(
-            project_folder=Path(),
-            modules=self.modules,
-            part="",
-            top="",
-            run_index=1
+            project_folder=Path(), modules=self.modules, part="", top="", run_index=1
         )
         assert self.a_vhd in tcl and self.b_v in tcl
         assert self.tb_a_vhd not in tcl and "tb_a.vhd" not in tcl
 
     def test_different_hdl_file_types(self):
         tcl = self.tcl.create(
-            project_folder=Path(),
-            modules=self.modules,
-            part="",
-            top="",
-            run_index=1
+            project_folder=Path(), modules=self.modules, part="", top="", run_index=1
         )
         assert f"read_vhdl -library apa -vhdl2008 {{{self.a_vhd}}}" in tcl
         assert f"read_verilog {{{self.b_v}}}" in tcl
 
     def test_constraints(self):
         tcl = self.tcl.create(
-            project_folder=Path(),
-            modules=self.modules,
-            part="part",
-            top="",
-            run_index=1
+            project_folder=Path(), modules=self.modules, part="part", top="", run_index=1
         )
 
         expected = "\nread_xdc -ref a %s\n" % self.a_xdc
@@ -215,21 +182,13 @@ class TestVivadoTcl(unittest.TestCase):
 
     def test_ip_core_files(self):
         tcl = self.tcl.create(
-            project_folder=Path(),
-            modules=self.modules,
-            part="part",
-            top="",
-            run_index=1
+            project_folder=Path(), modules=self.modules, part="part", top="", run_index=1
         )
         assert "\nsource -notrace %s\n" % self.c_tcl in tcl
 
     def test_empty_library_not_in_create_project_tcl(self):
         tcl = self.tcl.create(
-            project_folder=Path(),
-            modules=self.modules,
-            part="part",
-            top="",
-            run_index=1
+            project_folder=Path(), modules=self.modules, part="part", top="", run_index=1
         )
         assert "zebra" not in tcl
 
@@ -241,7 +200,7 @@ class TestVivadoTcl(unittest.TestCase):
             part="part",
             top="",
             run_index=1,
-            tcl_sources=extra_tcl_sources
+            tcl_sources=extra_tcl_sources,
         )
 
         for filename in extra_tcl_sources:
@@ -254,7 +213,7 @@ class TestVivadoTcl(unittest.TestCase):
             part="part",
             top="",
             run_index=1,
-            disable_io_buffers=True
+            disable_io_buffers=True,
         )
 
         no_io_buffers_tcl = "\nset_property -name {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} -value -no_iobuf -objects [get_runs synth_1]\n"
@@ -266,7 +225,7 @@ class TestVivadoTcl(unittest.TestCase):
             part="part",
             top="",
             run_index=1,
-            disable_io_buffers=False
+            disable_io_buffers=False,
         )
 
         assert no_io_buffers_tcl not in tcl

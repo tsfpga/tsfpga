@@ -14,7 +14,6 @@ THIS_FILE = Path(__file__)
 
 
 class Module(BaseModule):
-
     def get_build_projects(self):
         projects = []
 
@@ -25,30 +24,33 @@ class Module(BaseModule):
         pinning = Constraint(tcl_dir / "artyz7_pinning.tcl")
         block_design = tcl_dir / "block_design.tcl"
 
-        projects.append(VivadoProject(
-            name="artyz7",
-            modules=modules,
-            part=part,
-            tcl_sources=[block_design],
-            constraints=[pinning],
-            defined_at=THIS_FILE
-        ))
+        projects.append(
+            VivadoProject(
+                name="artyz7",
+                modules=modules,
+                part=part,
+                tcl_sources=[block_design],
+                constraints=[pinning],
+                defined_at=THIS_FILE,
+            )
+        )
 
-        projects.append(SpecialVivadoProject(
-            name="artyz7_dummy",
-            modules=modules,
-            part=part,
-            top="artyz7_top",
-            generics=dict(dummy=True, value=123),
-            constraints=[pinning],
-            tcl_sources=[block_design]
-        ))
+        projects.append(
+            SpecialVivadoProject(
+                name="artyz7_dummy",
+                modules=modules,
+                part=part,
+                top="artyz7_top",
+                generics=dict(dummy=True, value=123),
+                constraints=[pinning],
+                tcl_sources=[block_design],
+            )
+        )
 
         return projects
 
 
 class SpecialVivadoProject(VivadoProject):
-
     def post_build(self, output_path, **kwargs):  # pylint: disable=arguments-differ
         print(f"We can do useful things here. In the output path {output_path} for example")
         return True

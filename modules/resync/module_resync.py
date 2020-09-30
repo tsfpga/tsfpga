@@ -6,7 +6,6 @@ from tsfpga.module import BaseModule
 
 
 class Module(BaseModule):
-
     def setup_vunit(self, vunit_proj, **kwargs):
         tb = vunit_proj.library(self.library_name).test_bench("tb_resync_pulse")
         for input_pulse_overload in [True, False]:

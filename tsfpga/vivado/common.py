@@ -23,12 +23,14 @@ def run_vivado_tcl(vivado_path, tcl_file, no_log_file=False):
     """
     tcl_file = tcl_file.resolve()
 
-    cmd = [str(get_vivado_path(vivado_path)),
-           "-mode",
-           "batch",
-           "-notrace",
-           "-source",
-           str(tcl_file)]
+    cmd = [
+        str(get_vivado_path(vivado_path)),
+        "-mode",
+        "batch",
+        "-notrace",
+        "-source",
+        str(tcl_file),
+    ]
     if no_log_file:
         cmd += ["-nojournal", "-nolog"]
 
@@ -56,10 +58,7 @@ def run_vivado_gui(vivado_path, project_file):
     if not project_file.exists():
         raise FileNotFoundError(f"Project does not exist: {project_file}")
 
-    cmd = [str(get_vivado_path(vivado_path)),
-           "-mode",
-           "gui",
-           str(project_file)]
+    cmd = [str(get_vivado_path(vivado_path)), "-mode", "gui", str(project_file)]
 
     try:
         Process(cmd, cwd=project_file.parent).consume_output()

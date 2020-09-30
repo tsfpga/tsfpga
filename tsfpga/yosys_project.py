@@ -17,10 +17,10 @@ class YosysProject:
     """
 
     def __init__(
-            self,
-            top=None,
-            generics=None,
-            formal_settings=None,
+        self,
+        top=None,
+        generics=None,
+        formal_settings=None,
     ):
         self.top = top
         self.generics = generics
@@ -37,7 +37,8 @@ class YosysProject:
             self.generics,
             self.formal_settings,
             compiled_libraries,
-            src_files)
+            src_files,
+        )
 
         sby_cmd = ["sby", "--yosys", "yosys -m ghdl", "-f", str(run_symbiyosys_sby)]
 

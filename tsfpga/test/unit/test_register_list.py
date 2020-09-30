@@ -197,7 +197,9 @@ disable = "Disable things"
 
         with pytest.raises(ValueError) as exception_info:
             load_toml_file(self.toml_file)
-        assert str(exception_info.value).startswith(f"Error while parsing TOML file {self.toml_file}:\nKey name found without value.")
+        assert str(exception_info.value).startswith(
+            f"Error while parsing TOML file {self.toml_file}:\nKey name found without value."
+        )
 
     def test_plain_register_with_array_length_attribute_should_raise_exception(self):
         extras = """
@@ -211,7 +213,10 @@ array_length = 4
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
-        assert str(exception_info.value) == f"Plain register apa in {self.toml_file} can not have array_length attribute"
+        assert (
+            str(exception_info.value)
+            == f"Plain register apa in {self.toml_file} can not have array_length attribute"
+        )
 
     def test_register_array_but_no_array_length_attribute_should_raise_exception(self):
         extras = """
@@ -227,7 +232,10 @@ mode = "r_w"
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
-        assert str(exception_info.value) == f"Register array apa in {self.toml_file} does not have array_length attribute"
+        assert (
+            str(exception_info.value)
+            == f"Register array apa in {self.toml_file} does not have array_length attribute"
+        )
 
     def test_register_in_array_with_no_mode_attribute_should_raise_exception(self):
         extras = """
@@ -244,7 +252,10 @@ description = "nothing"
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
-        assert str(exception_info.value) == f"Register hest within array apa in {self.toml_file} does not have mode field"
+        assert (
+            str(exception_info.value)
+            == f"Register hest within array apa in {self.toml_file} does not have mode field"
+        )
 
     def test_no_mode_field_should_raise_exception(self):
         extras = """
@@ -257,7 +268,10 @@ description = "w"
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
-        assert str(exception_info.value) == f"Register apa in {self.toml_file} does not have mode field"
+        assert (
+            str(exception_info.value)
+            == f"Register apa in {self.toml_file} does not have mode field"
+        )
 
     def test_two_registers_with_same_name_should_raise_exception(self):
         extras = """
@@ -271,7 +285,8 @@ mode = "w"
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
         assert str(exception_info.value).startswith(
-            f"Error while parsing TOML file {self.toml_file}:\nWhat? irq already exists?")
+            f"Error while parsing TOML file {self.toml_file}:\nWhat? irq already exists?"
+        )
 
     def test_register_with_same_name_as_register_array_should_raise_exception(self):
         extras = """
@@ -303,7 +318,8 @@ test_bit = "Declaration 2"
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
         assert str(exception_info.value).startswith(
-            f"Error while parsing TOML file {self.toml_file}:\nDuplicate keys!")
+            f"Error while parsing TOML file {self.toml_file}:\nDuplicate keys!"
+        )
 
     def test_overriding_default_register(self):
         extras = """
@@ -328,7 +344,10 @@ mode = "w"
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file, get_test_default_registers())
-        assert str(exception_info.value) == f"Overloading register config in {self.toml_file}, one can not change mode from default"
+        assert (
+            str(exception_info.value)
+            == f"Overloading register config in {self.toml_file}, one can not change mode from default"
+        )
 
     def test_unknown_register_field_should_raise_exception(self):
         extras = """
@@ -342,7 +361,10 @@ dummy = 3
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
-        assert str(exception_info.value) == f"Error while parsing register test_reg in {self.toml_file}:\nUnknown key dummy"
+        assert (
+            str(exception_info.value)
+            == f"Error while parsing register test_reg in {self.toml_file}:\nUnknown key dummy"
+        )
 
     def test_unknown_register_array_field_should_raise_exception(self):
         extras = """
@@ -360,7 +382,10 @@ mode = "r"
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
-        assert str(exception_info.value) == f"Error while parsing register array test_array in {self.toml_file}:\nUnknown key dummy"
+        assert (
+            str(exception_info.value)
+            == f"Error while parsing register array test_array in {self.toml_file}:\nUnknown key dummy"
+        )
 
     def test_unknown_register_field_in_register_array_should_raise_exception(self):
         extras = """
@@ -378,7 +403,10 @@ dummy = 3
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
-        assert str(exception_info.value) == f"Error while parsing register hest in array test_array in {self.toml_file}:\nUnknown key dummy"
+        assert (
+            str(exception_info.value)
+            == f"Error while parsing register hest in array test_array in {self.toml_file}:\nUnknown key dummy"
+        )
 
     def test_constants_in_toml(self):
         extras = """
@@ -408,4 +436,7 @@ default_value = 0xf
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
-        assert str(exception_info.value) == f"Error while parsing constant data_width in {self.toml_file}:\nUnknown key default_value"
+        assert (
+            str(exception_info.value)
+            == f"Error while parsing constant data_width in {self.toml_file}:\nUnknown key default_value"
+        )

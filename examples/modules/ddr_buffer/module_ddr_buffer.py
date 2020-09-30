@@ -11,7 +11,6 @@ class Module(BaseModule):
 
     def registers_hook(self):
         self.registers.add_constant(
-            "version",
-            self.version,
-            f"Version number for the {self.name} module.")
+            "version", self.version, f"Version number for the {self.name} module."
+        )
         self.registers.get_register("version").default_value = int(self.version)

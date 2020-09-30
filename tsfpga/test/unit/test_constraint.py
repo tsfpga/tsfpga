@@ -22,7 +22,9 @@ def test_constraint():
 
 
 def test_scoped_constraint(tmp_path):
-    constraint = Constraint(tmp_path / "a" / "scoped_constraints" / "apa.tcl", scoped_constraint=True)
+    constraint = Constraint(
+        tmp_path / "a" / "scoped_constraints" / "apa.tcl", scoped_constraint=True
+    )
     assert constraint.ref == "apa"
 
     source_files = [HdlFile(tmp_path / "a" / "apa.vhd")]
@@ -30,7 +32,9 @@ def test_scoped_constraint(tmp_path):
 
 
 def test_matching_entity_not_existing_should_raise_exception(tmp_path):
-    constraint = Constraint(tmp_path / "a" / "scoped_constraints" / "dummy.tcl", scoped_constraint=True)
+    constraint = Constraint(
+        tmp_path / "a" / "scoped_constraints" / "dummy.tcl", scoped_constraint=True
+    )
     with pytest.raises(FileNotFoundError) as exception_info:
         constraint.validate_scoped_entity([])
     assert str(exception_info.value).startswith("Could not find a matching entity file")

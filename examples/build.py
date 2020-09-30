@@ -19,55 +19,62 @@ from examples.tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP
 
 
 def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
-    parser = argparse.ArgumentParser("Create, synth and build an FPGA project",
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("--no-color",
-                        action="store_true",
-                        help="disable color in printouts")
-    parser.add_argument("--list-only",
-                        action="store_true",
-                        help="list the available projects")
-    parser.add_argument("--open",
-                        action="store_true",
-                        help="open existing projects in the GUI")
-    parser.add_argument("--use-existing-project",
-                        action="store_true",
-                        help="build existing projects, or create first if they do not exist")
-    parser.add_argument("--generate-registers-only",
-                        action="store_true",
-                        help="only generate the register artifacts (C/C++ code, HTML, ...) for inspection")
-    parser.add_argument("--create-only",
-                        action="store_true",
-                        help="only create projects")
-    parser.add_argument("--synth-only",
-                        action="store_true",
-                        help="only synthesize projects")
-    parser.add_argument("--netlist-builds",
-                        action="store_true",
-                        help="list netlist build projects instead of top level build projects")
-    parser.add_argument("--projects-path",
-                        type=Path,
-                        default=default_temp_dir / "projects",
-                        help="the FPGA build projects will be placed here")
-    parser.add_argument("--ip-cache-path",
-                        type=Path,
-                        default=default_temp_dir / "vivado_ip_cache",
-                        help="location of Vivado IP cache")
-    parser.add_argument("--output-path",
-                        type=Path,
-                        required=False,
-                        help="the output products (bit file, ...) will be placed here")
-    parser.add_argument("--num-parallel-builds",
-                        type=int,
-                        default=2,
-                        help="Number of parallel builds to launch")
-    parser.add_argument("--num-threads-per-build",
-                        type=int,
-                        default=6,
-                        help="number of threads for each build process")
-    parser.add_argument("project_filters",
-                        nargs="*",
-                        help="filter for which projects to build. Can use wildcards. Leave empty for all.")
+    parser = argparse.ArgumentParser(
+        "Create, synth and build an FPGA project",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument("--no-color", action="store_true", help="disable color in printouts")
+    parser.add_argument("--list-only", action="store_true", help="list the available projects")
+    parser.add_argument("--open", action="store_true", help="open existing projects in the GUI")
+    parser.add_argument(
+        "--use-existing-project",
+        action="store_true",
+        help="build existing projects, or create first if they do not exist",
+    )
+    parser.add_argument(
+        "--generate-registers-only",
+        action="store_true",
+        help="only generate the register artifacts (C/C++ code, HTML, ...) for inspection",
+    )
+    parser.add_argument("--create-only", action="store_true", help="only create projects")
+    parser.add_argument("--synth-only", action="store_true", help="only synthesize projects")
+    parser.add_argument(
+        "--netlist-builds",
+        action="store_true",
+        help="list netlist build projects instead of top level build projects",
+    )
+    parser.add_argument(
+        "--projects-path",
+        type=Path,
+        default=default_temp_dir / "projects",
+        help="the FPGA build projects will be placed here",
+    )
+    parser.add_argument(
+        "--ip-cache-path",
+        type=Path,
+        default=default_temp_dir / "vivado_ip_cache",
+        help="location of Vivado IP cache",
+    )
+    parser.add_argument(
+        "--output-path",
+        type=Path,
+        required=False,
+        help="the output products (bit file, ...) will be placed here",
+    )
+    parser.add_argument(
+        "--num-parallel-builds", type=int, default=2, help="Number of parallel builds to launch"
+    )
+    parser.add_argument(
+        "--num-threads-per-build",
+        type=int,
+        default=6,
+        help="number of threads for each build process",
+    )
+    parser.add_argument(
+        "project_filters",
+        nargs="*",
+        help="filter for which projects to build. Can use wildcards. Leave empty for all.",
+    )
     args = parser.parse_args()
 
     return args
@@ -97,8 +104,7 @@ def setup_and_run(modules, projects, args):
     if args.generate_registers_only:
         # Generate register output from all modules. Note that this is not used by the
         # build flow or simulation flow, it is only for the user to inspect the artifacts.
-        generate_registers(modules=modules,
-                           output_path=args.projects_path.parent / "registers")
+        generate_registers(modules=modules, output_path=args.projects_path.parent / "registers")
         return 0
 
     if args.open:
@@ -109,12 +115,14 @@ def setup_and_run(modules, projects, args):
         create_ok = projects.create_unless_exists(
             projects_path=args.projects_path,
             num_parallel_builds=args.num_parallel_builds,
-            ip_cache_path=args.ip_cache_path)
+            ip_cache_path=args.ip_cache_path,
+        )
     else:
         create_ok = projects.create(
             projects_path=args.projects_path,
             num_parallel_builds=args.num_parallel_builds,
-            ip_cache_path=args.ip_cache_path)
+            ip_cache_path=args.ip_cache_path,
+        )
 
     if not create_ok:
         return 1
@@ -122,12 +130,14 @@ def setup_and_run(modules, projects, args):
     if args.create_only:
         return 0
 
-    build_ok = projects.build(projects_path=args.projects_path,
-                              collect_artifacts=collect_artifacts,
-                              num_parallel_builds=args.num_parallel_builds,
-                              output_path=args.output_path,
-                              synth_only=args.synth_only,
-                              num_threads_per_build=args.num_threads_per_build)
+    build_ok = projects.build(
+        projects_path=args.projects_path,
+        collect_artifacts=collect_artifacts,
+        num_parallel_builds=args.num_parallel_builds,
+        output_path=args.output_path,
+        synth_only=args.synth_only,
+        num_threads_per_build=args.num_threads_per_build,
+    )
 
     if build_ok:
         return 0

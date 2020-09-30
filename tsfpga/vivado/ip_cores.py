@@ -85,10 +85,7 @@ class VivadoIpCores:
             ip_tcl_files += module.get_ip_core_files()
 
         self._vivado_project = VivadoProject(
-            name=self._project_name,
-            modules=[],
-            part=self._part_name,
-            tcl_sources=ip_tcl_files
+            name=self._project_name, modules=[], part=self._part_name, tcl_sources=ip_tcl_files
         )
 
         self._hash = self._calculate_hash(ip_tcl_files)

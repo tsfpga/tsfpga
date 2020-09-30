@@ -7,7 +7,6 @@ from tsfpga.register_types import Register
 
 
 class RegisterCppGenerator(RegisterCodeGenerator):
-
     def __init__(self, module_name, generated_info):
         self.module_name = module_name
         self.generated_info = generated_info
@@ -27,7 +26,9 @@ class RegisterCppGenerator(RegisterCodeGenerator):
                 cpp_code += self._bit_constants(register_object)
             else:
                 constant_name = self._array_length_constant_name(register_object)
-                cpp_code += f"  static const size_t {constant_name} = {register_object.length}uL;\n\n"
+                cpp_code += (
+                    f"  static const size_t {constant_name} = {register_object.length}uL;\n\n"
+                )
 
                 for register in register_object.registers:
                     cpp_code += self._bit_constants(register, register_object.name)
@@ -97,7 +98,7 @@ class RegisterCppGenerator(RegisterCodeGenerator):
                 cpp_code += self._setter_function(register, register_array)
 
         cpp_code_top = f"{self._file_header()}\n"
-        cpp_code_top += f"#include \"include/{self.module_name}.h\"\n\n"
+        cpp_code_top += f'#include "include/{self.module_name}.h"\n\n'
 
         return cpp_code_top + self._with_namespace(cpp_code)
 
@@ -153,9 +154,13 @@ class RegisterCppGenerator(RegisterCodeGenerator):
         if register_array is None:
             cpp_code += f"  m_registers[{register.index}] = value;\n"
         else:
-            cpp_code += f"  assert(array_index < {self._array_length_constant_name(register_array)});\n"
-            cpp_code += f"  const size_t index = "\
+            cpp_code += (
+                f"  assert(array_index < {self._array_length_constant_name(register_array)});\n"
+            )
+            cpp_code += (
+                f"  const size_t index = "
                 f"{register_array.base_index} + array_index * {len(register_array.registers)} + {register.index};\n"
+            )
             cpp_code += "  m_registers[index] = value;\n"
         cpp_code += "}\n\n"
         return cpp_code
@@ -172,9 +177,13 @@ class RegisterCppGenerator(RegisterCodeGenerator):
         if register_array is None:
             cpp_code += f"  return m_registers[{register.index}];\n"
         else:
-            cpp_code += f"  assert(array_index < {self._array_length_constant_name(register_array)});\n"
-            cpp_code += f"  const size_t index = "\
+            cpp_code += (
+                f"  assert(array_index < {self._array_length_constant_name(register_array)});\n"
+            )
+            cpp_code += (
+                f"  const size_t index = "
                 f"{register_array.base_index} + array_index * {len(register_array.registers)} + {register.index};\n"
+            )
             cpp_code += "  return m_registers[index];\n"
         cpp_code += "}\n\n"
         return cpp_code

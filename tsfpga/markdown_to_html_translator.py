@@ -6,7 +6,6 @@ import re
 
 
 class MarkdownToHtmlTranslator:
-
     def __init__(self):
         self._compile_markdown_parser()
 
@@ -26,9 +25,11 @@ class MarkdownToHtmlTranslator:
 
         # These patterns match asterisks only if they are not preceded by \escape
         self.strong_pattern = re.compile(
-            not_escaped + double_asterisks + match_text + not_escaped + double_asterisks)
+            not_escaped + double_asterisks + match_text + not_escaped + double_asterisks
+        )
         self.em_pattern = re.compile(
-            not_escaped + single_asterisk + match_text + not_escaped + single_asterisk)
+            not_escaped + single_asterisk + match_text + not_escaped + single_asterisk
+        )
 
         # This pattern matches escaped asterisks
         self.escaped_literal_pattern = re.compile(r"\\(\*)")

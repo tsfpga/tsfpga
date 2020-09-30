@@ -4,7 +4,6 @@
 
 
 class Mode:
-
     def __init__(self, mode_readable, description):
         self.mode_readable = mode_readable
         self.description = description
@@ -13,13 +12,18 @@ class Mode:
 REGISTER_MODES = dict(
     r=Mode("Read", "Bus can read a value that fabric provides."),
     w=Mode("Write", "Bus can write a value that is available for fabric usage."),
-    r_w=Mode("Read, Write",
-             "Bus can write a value and read it back. The written value is available for fabric usage."),
-    wpulse=Mode("Write-pulse",
-                "Bus can write a value that is asserted for one clock cycle in fabric."),
-    r_wpulse=Mode("Read, Write-pulse",
-                  "Bus can read a value that fabric provides. "
-                  "Bus can write a value that is asserted for one clock cycle in fabric."),
+    r_w=Mode(
+        "Read, Write",
+        "Bus can write a value and read it back. The written value is available for fabric usage.",
+    ),
+    wpulse=Mode(
+        "Write-pulse", "Bus can write a value that is asserted for one clock cycle in fabric."
+    ),
+    r_wpulse=Mode(
+        "Read, Write-pulse",
+        "Bus can read a value that fabric provides. "
+        "Bus can write a value that is asserted for one clock cycle in fabric.",
+    ),
 )
 
 
@@ -154,7 +158,6 @@ class RegisterArray:
 
 
 class Constant:
-
     def __init__(self, name, value, description=None):
         """
         Arguments:

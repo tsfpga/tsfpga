@@ -36,8 +36,7 @@ class TestBuildProjectList(unittest.TestCase):
         self.module_three, self.project_three = self._get_mocks("three", True)
         self.module_four, self.project_four = self._get_mocks("four", True)
 
-        self.modules = [
-            self.module_one, self.module_two, self.module_three, self.module_four]
+        self.modules = [self.module_one, self.module_two, self.module_three, self.module_four]
 
     def test_can_list_without_error(self):
         list_str = str(BuildProjectList(self.modules))
@@ -50,8 +49,9 @@ class TestBuildProjectList(unittest.TestCase):
         assert self.project_one in project_list.projects
         assert self.project_two in project_list.projects
 
-        project_list = BuildProjectList(self.modules,
-                                        project_filters=["apa", "*ne", "three", "four"])
+        project_list = BuildProjectList(
+            self.modules, project_filters=["apa", "*ne", "three", "four"]
+        )
         assert len(project_list.projects) == 1
         assert self.project_one in project_list.projects
 
@@ -60,9 +60,11 @@ class TestBuildProjectList(unittest.TestCase):
         assert self.project_three in project_list.projects
         assert self.project_four in project_list.projects
 
-        project_list = BuildProjectList(self.modules,
-                                        include_netlist_not_top_builds=True,
-                                        project_filters=["apa", "one", "two", "thr*"])
+        project_list = BuildProjectList(
+            self.modules,
+            include_netlist_not_top_builds=True,
+            project_filters=["apa", "one", "two", "thr*"],
+        )
         assert len(project_list.projects) == 1
         assert self.project_three in project_list.projects
 
@@ -76,12 +78,12 @@ class TestBuildProjectList(unittest.TestCase):
 
         self.project_one.create.assert_called_once_with(
             project_path=self.tmp_path / "projects_path" / "one" / "project",
-            ip_cache_path=self.tmp_path / "ip_cache_path"
+            ip_cache_path=self.tmp_path / "ip_cache_path",
         )
 
         self.project_two.create.assert_called_once_with(
             project_path=self.tmp_path / "projects_path" / "two" / "project",
-            ip_cache_path=self.tmp_path / "ip_cache_path"
+            ip_cache_path=self.tmp_path / "ip_cache_path",
         )
 
         self.project_three.create.assert_not_called()
@@ -97,7 +99,7 @@ class TestBuildProjectList(unittest.TestCase):
 
         self.project_one.create.assert_called_once_with(
             project_path=self.tmp_path / "projects_path" / "one" / "project",
-            ip_cache_path=self.tmp_path / "ip_cache_path"
+            ip_cache_path=self.tmp_path / "ip_cache_path",
         )
 
         # Create project file manually
@@ -123,14 +125,14 @@ class TestBuildProjectList(unittest.TestCase):
             projects_path=self.tmp_path / "projects_path",
             num_parallel_builds=2,
             num_threads_per_build=4,
-            other_build_argument=True
+            other_build_argument=True,
         )
 
         self.project_one.build.assert_called_once_with(
             project_path=self.tmp_path / "projects_path" / "one" / "project",
             output_path=self.tmp_path / "projects_path" / "one" / "project",
             num_threads=4,
-            other_build_argument=True
+            other_build_argument=True,
         )
 
     def test_build_fail_should_return_false(self):
@@ -142,7 +144,7 @@ class TestBuildProjectList(unittest.TestCase):
             projects_path=self.tmp_path / "projects_path",
             num_parallel_builds=2,
             num_threads_per_build=4,
-            other_build_argument=True
+            other_build_argument=True,
         )
 
     def test_build_with_output_path(self):
@@ -151,12 +153,13 @@ class TestBuildProjectList(unittest.TestCase):
             projects_path=self.tmp_path / "projects_path",
             num_parallel_builds=2,
             num_threads_per_build=4,
-            output_path=self.tmp_path / "output_path")
+            output_path=self.tmp_path / "output_path",
+        )
 
         self.project_one.build.assert_called_once_with(
             project_path=self.tmp_path / "projects_path" / "one" / "project",
             output_path=self.tmp_path / "output_path" / "one",
-            num_threads=4
+            num_threads=4,
         )
 
     def test_build_with_collect_artifacts(self):
@@ -166,12 +169,12 @@ class TestBuildProjectList(unittest.TestCase):
             projects_path=self.tmp_path / "projects_path",
             num_parallel_builds=2,
             num_threads_per_build=4,
-            collect_artifacts=collect_artifacts
+            collect_artifacts=collect_artifacts,
         )
 
         collect_artifacts.assert_called_once_with(
             project=self.project_one,
-            output_path=self.tmp_path / "projects_path" / "one" / "project"
+            output_path=self.tmp_path / "projects_path" / "one" / "project",
         )
 
     def test_build_with_collect_artifacts_and_output_path(self):
@@ -182,12 +185,11 @@ class TestBuildProjectList(unittest.TestCase):
             num_parallel_builds=2,
             num_threads_per_build=4,
             output_path=self.tmp_path / "output_path",
-            collect_artifacts=collect_artifacts
+            collect_artifacts=collect_artifacts,
         )
 
         collect_artifacts.assert_called_once_with(
-            project=self.project_one,
-            output_path=self.tmp_path / "output_path" / "one"
+            project=self.project_one, output_path=self.tmp_path / "output_path" / "one"
         )
 
     def test_build_with_collect_artifacts_return_false_should_fail_build(self):
@@ -198,7 +200,7 @@ class TestBuildProjectList(unittest.TestCase):
             projects_path=self.tmp_path / "projects_path",
             num_parallel_builds=2,
             num_threads_per_build=4,
-            collect_artifacts=collect_artifacts
+            collect_artifacts=collect_artifacts,
         )
 
     def test_open(self):

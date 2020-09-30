@@ -40,4 +40,6 @@ def test_size_checker_less_than_pass(mock_stdout):
 def test_size_checker_equal_to_fail(mock_stdout):
     result_size = {"Total LUTs": 5}
     assert not TotalLuts(EqualTo(50)).check(result_size)
-    assert mock_stdout.getvalue() == "Result size check failed for Total LUTs. Got 5, expected 50.\n"
+    assert (
+        mock_stdout.getvalue() == "Result size check failed for Total LUTs. Got 5, expected 50.\n"
+    )

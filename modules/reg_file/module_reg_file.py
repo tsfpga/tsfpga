@@ -6,7 +6,6 @@ from tsfpga.module import BaseModule
 
 
 class Module(BaseModule):
-
     def setup_vunit(self, vunit_proj, **kwargs):
         tb = vunit_proj.library(self.library_name).test_bench("tb_axil_reg_file")
         tb.test("read_from_non_existent_register").set_generic("use_axil_bfm", False)
