@@ -25,7 +25,10 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
         return f"{self.module_name}_{register_array.name}_{register.name}"
 
     def _register_function_signature(self, register, register_array):
-        return f"function {self._register_name(register, register_array)}(array_index : natural) return integer"
+        return (
+            "function "
+            f"{self._register_name(register, register_array)}(array_index : natural) return integer"
+        )
 
     def _register_indexes(self, register_objects):
         vhdl = ""
@@ -82,7 +85,10 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
         vhdl += "\n  );\n"
         vhdl += "\n"
         vhdl += f"  subtype {self.module_name}_regs_t is reg_vec_t({map_name}'range);\n"
-        vhdl += f"  subtype {self.module_name}_reg_was_written_t is std_logic_vector({map_name}'range);\n"
+        vhdl += (
+            "  subtype "
+            f"{self.module_name}_reg_was_written_t is std_logic_vector({map_name}'range);\n"
+        )
         vhdl += f"  constant {self.module_name}_regs_init : {self.module_name}_regs_t := (\n  "
         vhdl += ",\n  ".join(default_values)
         vhdl += "\n  );\n"
@@ -111,7 +117,10 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
                     vhdl += f"    assert array_index < {array_length} \n"
                     vhdl += '      report "Array index out of bounds: " & to_string(array_index)\n'
                     vhdl += "      severity failure;\n"
-                    vhdl += f"    return {register_object.base_index} + array_index * {num_registers} + {register.index};\n"
+                    vhdl += (
+                        f"    return {register_object.base_index} + "
+                        f"array_index * {num_registers} + {register.index};\n"
+                    )
                     vhdl += "  end function;\n\n"
 
         return vhdl
@@ -119,7 +128,10 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
     def _constants(self, constants):
         vhdl = ""
         for constant in constants:
-            vhdl += f"  constant {self.module_name}_constant_{constant.name} : integer := {constant.value};\n"
+            vhdl += (
+                "  constant "
+                f"{self.module_name}_constant_{constant.name} : integer := {constant.value};\n"
+            )
         return vhdl
 
     def get_package(self, register_objects, constants):

@@ -127,8 +127,8 @@ class BaseModule:
                 test files (``test`` folder).
 
                 .. Note::
-                    The ``test`` files are considered private to the module and should never be used by
-                    other modules.
+                    The ``test`` files are considered private to the module and should never be used
+                    by other modules.
 
         Return:
             list(:class:`.HdlFile`): Files that should be included in a simulation project.
@@ -226,8 +226,9 @@ class BaseModule:
         if constraint_files:
             synthesis_files = self.get_synthesis_files()
             for constraint_file in constraint_files:
-                # Scoped constraints often depend on clocks having been created by another constraint
-                # file before they can work. Set processing order to "late" to make this more probable.
+                # Scoped constraints often depend on clocks having been created by another
+                # constraint file before they can work. Set processing order to "late" to make
+                # this more probable.
                 constraint = Constraint(
                     constraint_file, scoped_constraint=True, processing_order="late"
                 )

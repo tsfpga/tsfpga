@@ -55,7 +55,10 @@ class VivadoTcl:
         tcl += "reorder_files -auto -disable_unused\n"
         tcl += "\n"
         if disable_io_buffers:
-            tcl += f"set_property -name {{STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS}} -value -no_iobuf -objects [get_runs synth_{run_index}]"
+            tcl += (
+                "set_property -name {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} "
+                f"-value -no_iobuf -objects [get_runs synth_{run_index}]"
+            )
         tcl += "\n"
         tcl += "exit\n"
         return tcl
@@ -168,7 +171,8 @@ class VivadoTcl:
     @staticmethod
     def _add_generics(generics):
         """
-        Generics are set according to this weird format: https://www.xilinx.com/support/answers/52217.html
+        Generics are set according to this weird format:
+        https://www.xilinx.com/support/answers/52217.html
         """
         if generics is None:
             return ""
@@ -249,9 +253,15 @@ class VivadoTcl:
             tcl += f"open_run {run}\n"
             tcl += f"set run_directory [get_property DIRECTORY [get_runs {run}]]\n"
             tcl += "\n"
-            tcl += r"if {[regexp {\(unsafe\)} [report_clock_interaction -delay_type min_max -return_string]]} "
+            tcl += (
+                r"if {[regexp {\(unsafe\)} "
+                "[report_clock_interaction -delay_type min_max -return_string]]} "
+            )
             tcl += "{\n"
-            tcl += f'  puts "ERROR: Unhandled clock crossing in {run} run. See reports in ${{run_directory}}"\n'
+            tcl += (
+                f'  puts "ERROR: Unhandled clock crossing in {run} run. '
+                'See reports in ${run_directory}"\n'
+            )
             tcl += "\n"
             tcl += '  set output_file [file join ${run_directory} "clock_interaction.rpt"]\n'
             tcl += "  report_clock_interaction -delay_type min_max -file ${output_file}\n"

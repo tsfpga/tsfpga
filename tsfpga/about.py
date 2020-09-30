@@ -25,15 +25,17 @@ def get_doc():
     return """Key features
 ------------
 
-* Source code centric project structure: Build projects, test configurations, constraints, IP cores, etc. \
-are handled close to the source code.
+* Source code centric project structure: Build projects, test configurations, constraints, \
+IP cores, etc. are handled close to the source code.
 * Automatically adds build/simulation sources if a recognized folder structure is used.
 * Enables local VUnit configuration setup without multiple ``run.py``.
-* Handling of IP cores and simlib for your simulation project, with automatic re-compile when necessary.
+* Handling of IP cores and simlib for your simulation project, with automatic re-compile when \
+necessary.
 * Python-based parallel Vivado build system.
 * Register code generation from TOML: VHDL package, HTML documentation, C header, C++ class.
-* VHDL AXI components that enable the register bus: AXI-to-AXI-Lite converter, AXI-Lite interconnect, \
-AXI-Lite mux (splitter), AXI-Lite clock domain crossing, AXI-Lite generic register file.
+* VHDL AXI components that enable the register bus: AXI-to-AXI-Lite converter, \
+AXI-Lite interconnect, AXI-Lite mux (splitter), AXI-Lite clock domain crossing, AXI-Lite generic \
+register file.
 
 The maintainers place high focus on quality, with everything having good unit test coverage and a \
 though-out structure.

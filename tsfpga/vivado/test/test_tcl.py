@@ -14,7 +14,9 @@ from tsfpga.system_utils import create_file
 from tsfpga.vivado.common import to_tcl_path
 from tsfpga.vivado.tcl import VivadoTcl
 from tsfpga.test import file_contains_string
-from tsfpga.test.conftest import fixture_tmp_path  # pylint: disable=unused-import
+
+# pylint: disable=unused-import
+from tsfpga.test.conftest import fixture_tmp_path  # noqa: F401
 
 
 def test_set_create_run_index():
@@ -30,7 +32,10 @@ def test_static_generics():
     tcl = VivadoTcl(name="").create(
         project_folder=Path(), modules=[], part="", top="", run_index=1, generics=generics
     )
-    expected = "\nset_property generic {enable=1'b1 disable=1'b0 integer=123 slv=4'b0101} [current_fileset]\n"
+    expected = (
+        "\nset_property generic {enable=1'b1 disable=1'b0 integer=123 slv=4'b0101} "
+        "[current_fileset]\n"
+    )
     assert expected in tcl
 
 
@@ -216,7 +221,10 @@ class TestVivadoTcl(unittest.TestCase):
             disable_io_buffers=True,
         )
 
-        no_io_buffers_tcl = "\nset_property -name {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} -value -no_iobuf -objects [get_runs synth_1]\n"
+        no_io_buffers_tcl = (
+            "\nset_property -name {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} "
+            "-value -no_iobuf -objects [get_runs synth_1]\n"
+        )
         assert no_io_buffers_tcl in tcl
 
         tcl = self.tcl.create(

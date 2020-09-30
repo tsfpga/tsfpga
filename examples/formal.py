@@ -3,7 +3,8 @@
 # ------------------------------------------------------------------------------
 # The tsfpga/formal docker image can be used to run this file.
 # Run for example with:
-#   docker run --rm --interactive --tty --volume $(pwd)/..:$(pwd)/.. --workdir $(pwd) tsfpga/formal /bin/bash
+#   docker run --rm --interactive --tty --volume $(pwd)/..:$(pwd)/.. \
+#       --workdir $(pwd) tsfpga/formal /bin/bash
 #   python3 examples/formal.py
 # ------------------------------------------------------------------------------
 

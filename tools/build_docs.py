@@ -78,7 +78,10 @@ Release history and changelog for the tsfpga project.
         rst += "-" * len(heading) + "\n"
         rst += "\n"
         if previous_release_git_tag is not None:
-            diff_url = f"https://gitlab.com/tsfpga/tsfpga/-/compare/{previous_release_git_tag}...{release.git_tag}"
+            diff_url = (
+                "https://gitlab.com/tsfpga/tsfpga/-/compare/"
+                f"{previous_release_git_tag}...{release.git_tag}"
+            )
             rst += f"`Changes since previous release <{diff_url}>`__\n"
         rst += "\n"
         rst += read_file(release.release_notes_file)

@@ -17,8 +17,8 @@ def open_file_with_encoding(file):
 
 def test_all_checked_in_files_are_properly_encoded():
     """
-    To avoid problems with different editors and different file encodings, all checked in files should
-    contain only ASCII characters.
+    To avoid problems with different editors and different file encodings, all checked in files
+    should contain only ASCII characters.
 
     Avoid one of the documentation files that uses wonky characters to illustrate a directory tree.
     """
@@ -83,7 +83,8 @@ def check_file_for_carriage_return(file):
 def test_no_checked_in_files_contain_carriage_return():
     """
     All checked in files should use UNIX style line breaks (\n not \r\n).
-    Some Linux editors and tools will display or interpret the \r as something other than a line break.
+    Some Linux editors and tools will display or interpret the \r as something other than a line
+    break.
     """
     test_ok = True
     for file in files_to_test():
@@ -103,8 +104,8 @@ def check_file_for_trailing_whitespace(file):
 
 def test_no_checked_in_files_contain_trailing_whitespace():
     """
-    Trailing whitespace is not allowed.
-    Some motivation here: https://softwareengineering.stackexchange.com/questions/121555/why-is-trailing-whitespace-a-big-deal
+    Trailing whitespace is not allowed. Some motivation here:
+    https://softwareengineering.stackexchange.com/questions/121555/
     """
     test_ok = True
     for file in files_to_test():
@@ -123,7 +124,8 @@ def test_open_file_with_encoding_should_raise_exception_on_bad_file(tmp_path):
     """
     file = tmp_path / "temp_file_for_test.txt"
     with file.open("w", encoding="utf-8") as file_handle:
-        data = "\N{LATIN CAPITAL LETTER O WITH DIAERESIS}"  # Swedish word for island = non-ASCII character
+        # Swedish word for island = non-ASCII character
+        data = "\N{LATIN CAPITAL LETTER O WITH DIAERESIS}"
         file_handle.write(data)
 
     with pytest.raises(UnicodeDecodeError):

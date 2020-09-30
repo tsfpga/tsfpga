@@ -19,7 +19,8 @@ class Constraint:
             used_in (str): Optionally the constraint can be enabled only for "synth" or "impl".
             scoped_constraint (bool): If enabled the constraint file will be loaded with the "-ref"
                 argument in Vivado. An entity with the same name must exist.
-            processing_order (str): Optionally the processing order can be changed to "early" or "late".
+            processing_order (str): Optionally the processing order can be changed to "early" or
+                "late".
         """
         self.file = file
         self.used_in = used_in

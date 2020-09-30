@@ -11,7 +11,8 @@ from .project import VivadoProject
 class VivadoIpCores:
 
     """
-    Handle a list of IP core sources. Has a mechanism to detect whether a regenerate of IP files is needed.
+    Handle a list of IP core sources. Has a mechanism to detect whether a regenerate of IP files
+    is needed.
     """
 
     _project_name = "vivado_ip_project"
@@ -19,7 +20,8 @@ class VivadoIpCores:
     def __init__(self, modules, output_path, part_name):
         """
         Arguments:
-            modules (list(:class:`Module <.BaseModule>`)): IP cores from  these modules will be included.
+            modules (list(:class:`Module <.BaseModule>`)): IP cores from  these modules will be
+                included.
             output_path (`pathlib.Path`): The Vivado project will be placed here.
             part_name (str): Vivado part name to be used for the project.
         """

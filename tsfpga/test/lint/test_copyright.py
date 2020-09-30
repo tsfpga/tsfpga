@@ -24,7 +24,8 @@ class CopyrightHeader:
 
     def check_file(self):
         """
-        Copyright comments should be correct. It should be followed by a blank line or another comment.
+        Copyright comments should be correct. It should be followed by a blank line or another
+        comment.
         """
         copyright_header_re = self.expected_copyright_header.replace("(", "\\(").replace(")", "\\)")
         regexp = re.compile(copyright_header_re + rf"($|\n|{self.comment_character})")
@@ -66,7 +67,8 @@ class CopyrightHeader:
 
     def _is_suitable_for_insertion(self):
         """
-        If the file does not begin with a comment, we consired it suitable to insert a new copyright header comment.
+        If the file does not begin with a comment, we consired it suitable to insert a new copyright
+        header comment.
         """
         return not read_file(self._file).startswith(self.comment_character)
 

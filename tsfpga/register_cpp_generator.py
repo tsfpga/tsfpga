@@ -38,9 +38,15 @@ class RegisterCppGenerator(RegisterCodeGenerator):
         for register, register_array in self._iterate_registers(register_objects):
             cpp_code += "\n"
             if register.is_bus_readable:
-                cpp_code += f"  virtual uint32_t {self._getter_function_signature(register, register_array)} const = 0;\n"
+                cpp_code += (
+                    "  virtual uint32_t "
+                    f"{self._getter_function_signature(register, register_array)} const = 0;\n"
+                )
             if register.is_bus_writeable:
-                cpp_code += f"  virtual void {self._setter_function_signature(register, register_array)} const = 0;\n"
+                cpp_code += (
+                    "  virtual void "
+                    f"{self._setter_function_signature(register, register_array)} const = 0;\n"
+                )
 
         cpp_code += "};\n"
 
@@ -69,9 +75,15 @@ class RegisterCppGenerator(RegisterCodeGenerator):
         for register, register_array in self._iterate_registers(register_objects):
             cpp_code += "\n"
             if register.is_bus_readable:
-                cpp_code += f"  virtual uint32_t {self._getter_function_signature(register, register_array)} const override;\n"
+                cpp_code += (
+                    "  virtual uint32_t "
+                    f"{self._getter_function_signature(register, register_array)} const override;\n"
+                )
             if register.is_bus_writeable:
-                cpp_code += f"  virtual void {self._setter_function_signature(register, register_array)} const override;\n"
+                cpp_code += (
+                    "  virtual void "
+                    f"{self._setter_function_signature(register, register_array)} const override;\n"
+                )
 
         cpp_code += "};\n"
 
@@ -149,7 +161,11 @@ class RegisterCppGenerator(RegisterCodeGenerator):
         return f"{self._class_name}(volatile uint8_t *base_address)"
 
     def _setter_function(self, register, register_array):
-        cpp_code = f"void {self._class_name}::{self._setter_function_signature(register, register_array)} const\n"
+        cpp_code = (
+            "void "
+            f"{self._class_name}::{self._setter_function_signature(register, register_array)} "
+            "const\n"
+        )
         cpp_code += "{\n"
         if register_array is None:
             cpp_code += f"  m_registers[{register.index}] = value;\n"
@@ -158,8 +174,8 @@ class RegisterCppGenerator(RegisterCodeGenerator):
                 f"  assert(array_index < {self._array_length_constant_name(register_array)});\n"
             )
             cpp_code += (
-                f"  const size_t index = "
-                f"{register_array.base_index} + array_index * {len(register_array.registers)} + {register.index};\n"
+                f"  const size_t index = {register_array.base_index} "
+                f"+ array_index * {len(register_array.registers)} + {register.index};\n"
             )
             cpp_code += "  m_registers[index] = value;\n"
         cpp_code += "}\n\n"
@@ -172,7 +188,11 @@ class RegisterCppGenerator(RegisterCodeGenerator):
         return f"set_{register_array.name}_{register.name}(size_t array_index, uint32_t value)"
 
     def _getter_function(self, register, register_array):
-        cpp_code = f"uint32_t {self._class_name}::{self._getter_function_signature(register, register_array)} const\n"
+        cpp_code = (
+            "uint32_t "
+            f"{self._class_name}::{self._getter_function_signature(register, register_array)} "
+            "const\n"
+        )
         cpp_code += "{\n"
         if register_array is None:
             cpp_code += f"  return m_registers[{register.index}];\n"
@@ -181,8 +201,8 @@ class RegisterCppGenerator(RegisterCodeGenerator):
                 f"  assert(array_index < {self._array_length_constant_name(register_array)});\n"
             )
             cpp_code += (
-                f"  const size_t index = "
-                f"{register_array.base_index} + array_index * {len(register_array.registers)} + {register.index};\n"
+                f"  const size_t index = {register_array.base_index} "
+                f"+ array_index * {len(register_array.registers)} + {register.index};\n"
             )
             cpp_code += "  return m_registers[index];\n"
         cpp_code += "}\n\n"

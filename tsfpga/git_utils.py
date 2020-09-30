@@ -74,7 +74,8 @@ def find_git_files(
     """
     Arguments:
         file_endings_include (str or tuple(str)). Only files with these endings will be included.
-        file_endings_avoid (str or tuple(str)): String or tuple of strings. Files with these endings will not be included.
+        file_endings_avoid (str or tuple(str)): String or tuple of strings. Files with these endings
+            will not be included.
         directory (`pathlib.Path`): Search in this directory.
         exclude_directories (list(`pathlib.Path`)): Files in these directories will not be included.
     """
@@ -88,13 +89,14 @@ def find_git_files(
     output = subprocess.check_output(command, cwd=directory, universal_newlines=True)
     ls_files = output.split("\n")
 
-    # subprocess.check_output() returns a trailing "\n". The split() call will make that an empty object at the end of the list.
+    # subprocess.check_output() returns a trailing "\n".
+    # The split() call will make that an empty object at the end of the list.
     ls_files = ls_files[:-1]
 
     for file in ls_files:
-        # git ls-files returns paths relative to the working directory where it's called. Hence we prepend the cwd used.
-        # Normpath is necessary in windows where you can get a mix of slashes and backslashes which makes
-        # path comparisons sketchy
+        # git ls-files returns paths relative to the working directory where it's called. Hence we
+        # prepend the cwd used. Normpath is necessary in windows where you can get a mix of slashes
+        # and backslashes which makes path comparisons sketchy
         file = directory.joinpath(Path(file))
         assert file.exists()  # Make sure concatenation of relative path worked
 

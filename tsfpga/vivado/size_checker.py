@@ -26,8 +26,8 @@ class UtilizationParser:
             # Find the table line that is the top level
             if re.search(r"\(top\)", line):
                 # Parse the report, remove uninteresting fields and create dictionary
-                # Note that "|" is the column separator. Heading titles for the data is two lines above
-                # the row for the top level.
+                # Note that "|" is the column separator. Heading titles for the data is two lines
+                # above the row for the top level.
                 headers = [column_data.strip() for column_data in lines[idx - 2].split("|")]
                 numbers = [column_data.strip() for column_data in line.split("|")]
                 # The first columns contain entity name, etc. We only want the numbers

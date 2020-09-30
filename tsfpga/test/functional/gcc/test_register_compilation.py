@@ -90,7 +90,8 @@ int main()
   assert(artyz7.get_plain_dummy_reg() == 1337);
   assert(artyz7.get_dummy_regs_configuration(2) == 0xfeed);
   assert(artyz7.get_dummy_regs_settings(3) == 0);
-  assert(artyz7.get_dummy_regs_configuration(3) == fpga_regs::Artyz7::dummy_regs_configuration_enable);
+  assert(artyz7.get_dummy_regs_configuration(3) == \
+fpga_regs::Artyz7::dummy_regs_configuration_enable);
 
   assert(fpga_regs::Artyz7::dummy_regs_configuration_enable == 1);
   assert(fpga_regs::Artyz7::dummy_regs_configuration_disable == 2);

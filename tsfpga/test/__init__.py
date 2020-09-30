@@ -3,5 +3,4 @@
 # ------------------------------------------------------------------------------
 
 # pylint: disable=wildcard-import
-
-from .test_utils import *
+from .test_utils import *  # noqa: F401, F403

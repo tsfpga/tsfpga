@@ -346,7 +346,8 @@ mode = "w"
             from_toml(self.module_name, self.toml_file, get_test_default_registers())
         assert (
             str(exception_info.value)
-            == f"Overloading register config in {self.toml_file}, one can not change mode from default"
+            == f"Overloading register config in {self.toml_file}, one can not change mode "
+            "from default"
         )
 
     def test_unknown_register_field_should_raise_exception(self):
@@ -384,7 +385,8 @@ mode = "r"
             from_toml(self.module_name, self.toml_file)
         assert (
             str(exception_info.value)
-            == f"Error while parsing register array test_array in {self.toml_file}:\nUnknown key dummy"
+            == f"Error while parsing register array test_array in {self.toml_file}:\n"
+            "Unknown key dummy"
         )
 
     def test_unknown_register_field_in_register_array_should_raise_exception(self):
@@ -405,7 +407,8 @@ dummy = 3
             from_toml(self.module_name, self.toml_file)
         assert (
             str(exception_info.value)
-            == f"Error while parsing register hest in array test_array in {self.toml_file}:\nUnknown key dummy"
+            == f"Error while parsing register hest in array test_array in {self.toml_file}:\n"
+            "Unknown key dummy"
         )
 
     def test_constants_in_toml(self):
@@ -438,5 +441,6 @@ default_value = 0xf
             from_toml(self.module_name, self.toml_file)
         assert (
             str(exception_info.value)
-            == f"Error while parsing constant data_width in {self.toml_file}:\nUnknown key default_value"
+            == f"Error while parsing constant data_width in {self.toml_file}:\n"
+            "Unknown key default_value"
         )

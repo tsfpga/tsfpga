@@ -78,7 +78,8 @@ th {
 </head>
 <body>
   <h1>{title}</h1>
-  <p>This document is a specification for the register interface of the FPGA module <b>{self.module_name}</b>.</p>
+  <p>This document is a specification for the register interface of the FPGA module \
+<b>{self.module_name}</b>.</p>
   <p>{self.generated_info}</p>
   <h2>Register modes</h2>
   <p>The following register modes are available.</p>
@@ -167,7 +168,10 @@ th {
             else:
                 html += f"""
   <tr>
-    <td colspan="5" class="array_header">Register array <strong>{register_object.name}</strong>, repeated {register_object.length} times</td>
+    <td colspan="5" class="array_header">
+      Register array <strong>{register_object.name}</strong>, \
+repeated {register_object.length} times
+    </td>
   </tr>"""
                 array_index_increment = len(register_object.registers)
                 for register in register_object.registers:
@@ -175,7 +179,9 @@ th {
                     html += self._annotate_register(register, register_index, array_index_increment)
                 html += f"""
   <tr>
-    <td colspan="5" class="array_header">End register array <strong>{register_object.name}</strong></td>
+    <td colspan="5" class="array_header">
+      End register array <strong>{register_object.name}</strong>
+    </td>
   </tr>"""
 
         html += """

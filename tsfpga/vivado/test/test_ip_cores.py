@@ -9,7 +9,9 @@ import pytest
 from tsfpga.module import get_modules
 from tsfpga.system_utils import create_file, delete
 from tsfpga.vivado.ip_cores import VivadoIpCores
-from tsfpga.test.conftest import fixture_tmp_path  # pylint: disable=unused-import
+
+# pylint: disable=unused-import
+from tsfpga.test.conftest import fixture_tmp_path  # noqa: F401
 
 
 @pytest.mark.usefixtures("fixture_tmp_path")

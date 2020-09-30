@@ -78,8 +78,8 @@ class RegisterCGenerator(RegisterCodeGenerator):
             return f"#define {name}_ADDR ({addr}u)\n"
 
         c_code = (
-            f"#define {name}_ADDR(array_index) "
-            f"(4u * ({register_array.base_index}u + (array_index) * {len(register_array.registers)}u + {register.index}u))\n"
+            f"#define {name}_ADDR(array_index) (4u * ({register_array.base_index}u + "
+            f"(array_index) * {len(register_array.registers)}u + {register.index}u))\n"
         )
         return c_code
 

@@ -26,8 +26,10 @@ class RegisterList:
     def __init__(self, name, source_definition_file):
         """
         Arguments:
-            name (str): The name of this register list. Typically the name of the module that uses it.
-            source_definition_file (`pathlib.Path`): The TOML source file that defined this register list.
+            name (str): The name of this register list. Typically the name of the module that uses
+                it.
+            source_definition_file (`pathlib.Path`): The TOML source file that defined this
+                register list.
         """
         self.name = name
         self.source_definition_file = source_definition_file
@@ -125,10 +127,10 @@ class RegisterList:
         """
         Create a VHDL package file with register and field definitions.
 
-        This function assumes that the ``output_path`` folder already exists.
-        This assumption makes it slightly faster than the other functions that use ``create_file()``.
-        Necessary since this one is often used in real time (before simulations, etc..) and not in
-        one-off scenarios like the others (when making a release).
+        This function assumes that the ``output_path`` folder already exists. This assumption makes
+        it slightly faster than the other functions that use create_file()``. Necessary since this
+        one is often used in real time (before simulations, etc..) and not in one-off scenarios
+        like the others (when making a release).
 
         Arguments:
             output_path (`pathlib.Path`): Result will be placed here.
@@ -154,8 +156,8 @@ class RegisterList:
 
     def create_cpp_interface(self, output_path):
         """
-        Create a C++ class interface header file, with register and field definitions. The interface header
-        contains only virtual methods.
+        Create a C++ class interface header file, with register and field definitions. The
+        interface header contains only virtual methods.
 
         Arguments:
             output_path (`pathlib.Path`): Result will be placed here.
@@ -191,7 +193,8 @@ class RegisterList:
     def create_html_page(self, output_path):
         """
         Create a documentation HTML page with register and field information. Will include the
-        tables created by :meth:`.create_html_register_table` and :meth:`.create_html_constant_table`.
+        tables created by :meth:`.create_html_register_table` and
+        :meth:`.create_html_constant_table`.
 
         Arguments:
             output_path (`pathlib.Path`): Result will be placed here.
@@ -279,8 +282,9 @@ def get_default_registers():
             "irq_status",
             3,
             "r_wpulse",
-            "Reading a '1' in this register means the corresponding interrupt has triggered. Writing "
-            "to this register will clear the interrupts where there is a '1' in the written word.",
+            "Reading a '1' in this register means the corresponding interrupt has triggered. "
+            "Writing to this register will clear the interrupts where there is a '1' in the "
+            "written word.",
         ),
         Register(
             "irq_mask",
@@ -418,7 +422,10 @@ def _parse_register_array(name, items, register_list, names_taken, toml_file):
 
     for register_name, register_items in items["register"].items():
         if "mode" not in register_items:
-            message = f"Register {register_name} within array {name} in {toml_file} does not have mode field"
+            message = (
+                f"Register {register_name} within array {name} in {toml_file} "
+                "does not have mode field"
+            )
             raise ValueError(message)
         register = register_array.append_register(register_name, register_items["mode"])
 

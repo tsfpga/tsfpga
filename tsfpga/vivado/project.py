@@ -35,7 +35,8 @@ class VivadoProject:
         """
         Arguments:
             name (str): Project name.
-            modules (list(:class:`Module <.BaseModule>`)): Modules that shall be included in the project.
+            modules (list(:class:`Module <.BaseModule>`)): Modules that shall be included in the
+                project.
             part (str): Part identification.
             top (str): Name of top level entity. If left out, the top level name will be
                 inferred from the ``name``.
@@ -47,11 +48,13 @@ class VivadoProject:
             constraints (list(Constraint)): Constraints that will be applied to the project.
             tcl_sources (list(`pathlib.Path`)): A list of TCL files. Use for e.g. block design,
                 pinning, settings, etc.
-            build_step_hooks (list(BuildStepTclHook)): Build step hooks that will be applied to the project.
+            build_step_hooks (list(BuildStepTclHook)): Build step hooks that will be applied to the
+                project.
             vivado_path (`pathlib.Path`): A path to the Vivado executable. If omitted,
                 the default location from the system PATH will be used.
-            default_run_index (int): Default run index (synth_X and impl_X) that is set in the project.
-                Can also use the argumment to :meth:`build() <VivadoProject.build>` to specify at build-time.
+            default_run_index (int): Default run index (synth_X and impl_X) that is set in the
+                project. Can also use the argumment to :meth:`build() <VivadoProject.build>` to
+                specify at build-time.
             defined_at (`pathlib.Path`): Optional path to the file where you defined your
                 project. To get a useful ``build.py --list`` message. Is useful when you have many
                 projects set up.
@@ -148,8 +151,8 @@ class VivadoProject:
 
         Arguments:
             project_path (`pathlib.Path`): Path where the project shall be placed.
-            ip_cache_path (`pathlib.Path`): Path to a folder where the Vivado IP cache can be placed.
-                If omitted, the Vivado IP cache mechanism will not be enabled.
+            ip_cache_path (`pathlib.Path`): Path to a folder where the Vivado IP cache can be
+                placed. If omitted, the Vivado IP cache mechanism will not be enabled.
 
         Returns:
             bool: True if everything went well.
@@ -199,8 +202,8 @@ class VivadoProject:
         Shall return ``True`` upon success and ``False`` upon failure.
 
         Arguments:
-            kwargs: Will have all the :meth:`.build` parameters in it. Including additional parameters
-                from the user.
+            kwargs: Will have all the :meth:`.build` parameters in it. Including additional
+                parameters from the user.
         """
         return True
 
@@ -212,9 +215,10 @@ class VivadoProject:
         Shall return ``True`` upon success and ``False`` upon failure.
 
         Arguments:
-            kwargs: Will have all the :meth:`.build` parameters in it. Including additional parameters
-                from the user. Will also include ``build_result`` with implemented/synthesized size,
-                which can be used for asserting the expected resource utilization.
+            kwargs: Will have all the :meth:`.build` parameters in it. Including additional
+                parameters from the user. Will also include ``build_result`` with
+                implemented/synthesized size, which can be used for asserting the expected resource
+                utilization.
         """
         return True
 
