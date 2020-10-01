@@ -130,9 +130,12 @@ def setup_and_run(modules, projects, args):
     if args.create_only:
         return 0
 
+    # If doing only synthesis there are no artifacts to collect
+    collect_artifacts_function = None if args.synth_only else collect_artifacts
+
     build_ok = projects.build(
         projects_path=args.projects_path,
-        collect_artifacts=collect_artifacts,
+        collect_artifacts=collect_artifacts_function,
         num_parallel_builds=args.num_parallel_builds,
         output_path=args.output_path,
         synth_only=args.synth_only,
