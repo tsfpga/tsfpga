@@ -130,7 +130,7 @@ class TestBuildProjectList(unittest.TestCase):
 
         self.project_one.build.assert_called_once_with(
             project_path=self.tmp_path / "projects_path" / "one" / "project",
-            output_path=self.tmp_path / "projects_path" / "one" / "project",
+            output_path=self.tmp_path / "projects_path" / "one",
             num_threads=4,
             other_build_argument=True,
         )
@@ -174,7 +174,7 @@ class TestBuildProjectList(unittest.TestCase):
 
         collect_artifacts.assert_called_once_with(
             project=self.project_one,
-            output_path=self.tmp_path / "projects_path" / "one" / "project",
+            output_path=self.tmp_path / "projects_path" / "one",
         )
 
     def test_build_with_collect_artifacts_and_output_path(self):

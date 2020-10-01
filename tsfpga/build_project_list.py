@@ -94,7 +94,7 @@ class BuildProjectList:
         """
         build_wrappers = []
         for project in self.projects:
-            if not self._get_project_path(projects_path, project).exists():
+            if not (projects_path / project.name / "project").exists():
                 build_wrapper = BuildProjectCreateWrapper(project, **kwargs)
                 build_wrappers.append(build_wrapper)
 
@@ -158,7 +158,7 @@ class BuildProjectList:
             if output_path:
                 this_projects_output_path = output_path.resolve() / project.name
             else:
-                this_projects_output_path = self._get_project_path(projects_path, project)
+                this_projects_output_path = projects_path / project.name
 
             build_wrapper = BuildProjectBuildWrapper(
                 project,
@@ -196,13 +196,6 @@ class BuildProjectList:
             # For open there is no performance limitation. Set a high value.
             num_parallel_builds=20,
         )
-
-    @staticmethod
-    def _get_project_path(projects_path, project):
-        """
-        The hierarchy within the projects_path directory.
-        """
-        return projects_path.resolve() / project.name / "project"
 
     def _run_build_wrappers(self, projects_path, build_wrappers, num_parallel_builds):
         verbosity = BuildRunner.VERBOSITY_QUIET
