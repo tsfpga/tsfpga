@@ -58,7 +58,7 @@ class FormalProject:
         config = FormalConfig(**kwargs)
         self._formal_config_list.append(config)
 
-    def list_tests(self, test_filters):
+    def list_tests(self, test_filters="*"):
         test_list = self._create_test_list(test_filters)
         for test in test_list:
             print(test.name)
@@ -181,8 +181,10 @@ class FormalTestCase:
         test hook.
         """
         # If these have not been set there is something procedurally wrong
-        assert self._src_files
-        assert self._compiled_libraries
+        if self._src_files is None:
+            raise ValueError("FormalTestCase missing source files")
+        if self._compiled_libraries is None:
+            raise ValueError("FormalTestCase missing compiled libraries")
 
         output_path = Path(output_path)
 

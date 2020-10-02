@@ -13,10 +13,18 @@ class SbyWriter:
     """
 
     @staticmethod
-    def write_sby(output_path, top, generics, formal_settings, compiled_libraries, src_files):
+    def write_sby(output_path, top, formal_settings, compiled_libraries, src_files, generics=None):
         """
         Create SymbiYosys script. This script will run ghdl --synth
         """
+
+        # Validate formal_settings
+        valid_keys = set(["mode", "depth", "engine_command", "solver_command"])
+        if set(formal_settings.keys()) != valid_keys:
+            raise ValueError(
+                f"Unexpected keys. Got {formal_settings.keys()}, expected one of {valid_keys}"
+            )
+
         p_args = [f"-P{compiled_library}" for compiled_library in compiled_libraries]
         g_args = []
         if generics is not None:

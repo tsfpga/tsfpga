@@ -27,7 +27,7 @@ class YosysProject:
         formal_settings=None,
     ):
         self.top = top
-        self.generics = generics
+        self.generics = dict() if generics is None else generics
         self.formal_settings = formal_settings
 
     def run_formal(self, project_path, src_files, compiled_libraries):
@@ -36,12 +36,12 @@ class YosysProject:
 
         run_symbiyosys_sby = project_path / "run_symbiyosys.sby"
         SbyWriter.write_sby(
-            run_symbiyosys_sby,
-            self.top,
-            self.generics,
-            self.formal_settings,
-            compiled_libraries,
-            src_files,
+            output_path=run_symbiyosys_sby,
+            top=self.top,
+            formal_settings=self.formal_settings,
+            compiled_libraries=compiled_libraries,
+            src_files=src_files,
+            generics=self.generics,
         )
 
         sby_cmd = ["sby", "--yosys", "yosys -m ghdl", "-f", str(run_symbiyosys_sby)]
