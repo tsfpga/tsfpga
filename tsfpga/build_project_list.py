@@ -334,7 +334,7 @@ class BuildRunner(TestRunner):
         """
         Create the directory unless it already exists.
 
-        Original function wipes the path before running a test. We do not want to do
+        Original function wipes the path before running a test. We do not want to do that
         since e.g. a Vivado project takes a long time to create and might contain a state
         that the user wants to keep.
         """

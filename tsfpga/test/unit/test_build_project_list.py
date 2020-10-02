@@ -7,7 +7,9 @@ from unittest.mock import MagicMock
 import pytest
 
 from tsfpga.build_project_list import BuildProjectList
+from tsfpga.module import BaseModule
 from tsfpga.system_utils import create_directory
+from tsfpga.vivado.project import VivadoProject, BuildResult
 
 
 # pylint: disable=too-many-instance-attributes
@@ -18,12 +20,12 @@ class TestBuildProjectList(unittest.TestCase):
 
     @staticmethod
     def _get_mocks(name, is_netlist_build):
-        project = MagicMock()
+        project = MagicMock(spec=VivadoProject)
         project.name = name
         project.__str__.return_value = f"MockProject {name}"
         project.is_netlist_build = is_netlist_build
 
-        module = MagicMock()
+        module = MagicMock(spec=BaseModule)
         module.name = name
         module.get_build_projects.return_value = [project]
 
@@ -137,7 +139,7 @@ class TestBuildProjectList(unittest.TestCase):
 
     def test_build_fail_should_return_false(self):
         project_list = BuildProjectList(self.modules, project_filters=["one"])
-        self.project_one.build.return_value = MagicMock()
+        self.project_one.build.return_value = MagicMock(spec=BuildResult)
         self.project_one.build.return_value.success = False
 
         assert not project_list.build(

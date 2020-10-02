@@ -53,7 +53,7 @@ class VivadoProject:
             vivado_path (`pathlib.Path`): A path to the Vivado executable. If omitted,
                 the default location from the system PATH will be used.
             default_run_index (int): Default run index (synth_X and impl_X) that is set in the
-                project. Can also use the argumment to :meth:`build() <VivadoProject.build>` to
+                project. Can also use the argument to :meth:`build() <VivadoProject.build>` to
                 specify at build-time.
             defined_at (`pathlib.Path`): Optional path to the file where you defined your
                 project. To get a useful ``build.py --list`` message. Is useful when you have many
@@ -277,13 +277,16 @@ class VivadoProject:
             num_threads=num_threads,
         )
 
+        result = BuildResult(self.name)
+
         for module in self.modules:
-            module.pre_build_hook(project=self, **pre_and_post_build_parameters)
+            if not module.pre_build(project=self, **pre_and_post_build_parameters):
+                result.success = False
+                return result
 
             # Make sure register packages are up to date
             module.create_regs_vhdl_package()
 
-        result = BuildResult(self.name)
         if not self.pre_build(**pre_and_post_build_parameters):
             result.success = False
             return result

@@ -181,9 +181,9 @@ class BaseModule:
                 location of test files, etc.
         """
 
-    def pre_build_hook(self, project, **kwargs):
+    def pre_build(self, project, **kwargs):
         """
-        This method will be called before an FPGA build is run. A typical use case for this
+        This method hook will be called before an FPGA build is run. A typical use case for this
         mechanism is to set a register constant or default value based on the generics that
         are passed to the project. Could also be used to, e.g., generate BRAM init files
         based on project information, etc.
@@ -195,6 +195,9 @@ class BaseModule:
         Arguments:
             project (.VivadoProject): The project that is being built.
             kwargs: All parameters that are sent to the :meth:`.VivadoProject.build` method.
+
+        Return:
+            bool: True if everything went well.
         """
 
     def get_ip_core_files(self):
