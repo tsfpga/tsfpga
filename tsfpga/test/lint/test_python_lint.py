@@ -11,7 +11,7 @@ import pytest
 
 import tsfpga
 from tsfpga.git_utils import find_git_files
-from tsfpga.system_utils import create_file, delete
+from tsfpga.system_utils import create_file
 
 
 THIS_DIR = Path(__file__).parent
@@ -30,35 +30,33 @@ def test_pylint():
     run_pylint(files)
 
 
-def test_black_formatting():
-    command = [sys.executable, "-m", "black", "--check", "tsfpga"]
+def test_black_formatting(file_or_directory="tsfpga"):
+    command = [sys.executable, "-m", "black", "--check", file_or_directory]
     subprocess.check_call(command, cwd=tsfpga.REPO_ROOT)
 
 
-def test_flake8_lint():
-    command = [sys.executable, "-m", "flake8", "tsfpga"]
+def test_flake8_lint(file_or_directory="tsfpga"):
+    command = [sys.executable, "-m", "flake8", file_or_directory]
     subprocess.check_call(command, cwd=tsfpga.REPO_ROOT)
 
 
+@pytest.mark.usefixtures("fixture_tmp_path")
 class TestPythonLintFunctions(unittest.TestCase):
+    tmp_path = None
+
     def setUp(self):
-        self.file = THIS_DIR / "dummy_python_file.py"
+        self.file = self.tmp_path / "dummy_python_file.py"
         ugly_code = "aa  =\ndef bb:\ncc  = 3"
         create_file(self.file, ugly_code)
-
-    def tearDown(self):
-        delete(self.file)
 
     def test_pylint_should_raise_exception_if_there_are_ugly_files(self):
         with pytest.raises(subprocess.CalledProcessError):
             run_pylint([self.file])
 
-    @staticmethod
-    def test_flake8_lint_should_raise_exception_if_there_are_ugly_files():
+    def test_flake8_lint_should_raise_exception_if_there_are_ugly_files(self):
         with pytest.raises(subprocess.CalledProcessError):
-            test_flake8_lint()
+            test_flake8_lint(self.file)
 
-    @staticmethod
-    def test_black_formatting_should_raise_exception_if_there_are_ugly_files():
+    def test_black_formatting_should_raise_exception_if_there_are_ugly_files(self):
         with pytest.raises(subprocess.CalledProcessError):
-            test_black_formatting()
+            test_black_formatting(self.file)
