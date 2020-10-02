@@ -23,14 +23,7 @@ package reg_operations_pkg is
   constant regs_bus_master : bus_master_t := new_bus(
     data_length => 32, address_length => 32, logger => get_logger("regs_bus_master"));
 
-  -- Some common register operations. Some, e.g. write_command, rely on using the standard
-  -- register locations definded below as well as in registers.py.
-
-  constant config_reg : integer := 0;
-  constant command_reg : integer := 1;
-  constant status_reg : integer := 2;
-  constant irq_status_reg : integer := 3;
-  constant irq_mask_reg : integer := 4;
+  -- Some common register operations.
 
   procedure read_reg(
     signal net : inout network_t;
@@ -106,24 +99,6 @@ package reg_operations_pkg is
     signal net : inout network_t;
     reg_index : in integer;
     bit_index : in integer;
-    base_address : in addr_t := (others => '0');
-    bus_handle : in bus_master_t := regs_bus_master);
-
-  procedure write_command(
-    signal net : inout network_t;
-    bit : in integer;
-    base_address : in addr_t := (others => '0');
-    bus_handle : in bus_master_t := regs_bus_master);
-
-  procedure wait_for_any_status_bit(
-    signal net : inout network_t;
-    bits : in integer_vector;
-    base_address : in addr_t := (others => '0');
-    bus_handle : in bus_master_t := regs_bus_master);
-
-  procedure wait_for_status_bit(
-    signal net : inout network_t;
-    bit : in integer;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master);
 
@@ -288,45 +263,6 @@ package body reg_operations_pkg is
   begin
     -- Write with only the bit "bit_index" asserted.
     write_reg_bits(net, reg_index, (0 => bit_index), base_address, bus_handle);
-  end procedure;
-
-  procedure write_command(
-    signal net : inout network_t;
-    bit : in integer;
-    base_address : in addr_t := (others => '0');
-    bus_handle : in bus_master_t := regs_bus_master) is
-    variable register_value : reg_t := (others => '0');
-  begin
-    register_value(bit) := '1';
-    write_reg(net, command_reg, register_value, base_address, bus_handle);
-  end procedure;
-
-  procedure wait_for_any_status_bit(
-    signal net : inout network_t;
-    bits : in integer_vector;
-    base_address : in addr_t := (others => '0');
-    bus_handle : in bus_master_t := regs_bus_master) is
-    variable read_value : reg_t;
-  begin
-    -- Returns when any of the specified bits are asserted
-
-    read_loop : while true loop
-      read_reg(net, status_reg, read_value, base_address, bus_handle);
-      for bits_vector_loop_index in bits'range loop
-        if read_value(bits(bits_vector_loop_index)) = '1' then
-          exit read_loop;
-        end if;
-      end loop;
-    end loop;
-  end procedure;
-
-  procedure wait_for_status_bit(
-    signal net : inout network_t;
-    bit : in integer;
-    base_address : in addr_t := (others => '0');
-    bus_handle : in bus_master_t := regs_bus_master) is
-  begin
-    wait_for_any_status_bit(net, (0 => bit), base_address, bus_handle);
   end procedure;
 
   procedure wait_until_reg_equals(

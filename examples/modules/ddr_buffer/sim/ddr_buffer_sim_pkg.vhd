@@ -20,6 +20,7 @@ library reg_file;
 use reg_file.reg_operations_pkg.all;
 
 use work.ddr_buffer_regs_pkg.all;
+use work.example_reg_operations_pkg.all;
 
 
 package ddr_buffer_sim_pkg is

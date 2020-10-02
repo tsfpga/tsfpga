@@ -8,7 +8,8 @@ Common functions and definitions in the example build environment.
 
 import tsfpga
 from tsfpga.module import get_modules
-from tsfpga.register_list import get_default_registers
+
+from tsfpga.register_list import Register
 
 
 TSFPGA_EXAMPLES_TEMP_DIR = tsfpga.TSFPGA_GENERATED
@@ -28,3 +29,35 @@ def get_tsfpga_modules(modules_folders=None, names_include=None, names_avoid=Non
         library_name_has_lib_suffix=False,
         default_registers=get_default_registers(),
     )
+
+
+def get_default_registers():
+    """
+    tsfpga default registers
+    """
+    registers = [
+        Register("config", 0, "r_w", "Configuration register."),
+        Register(
+            "command",
+            1,
+            "wpulse",
+            "When this register is written, all '1's in the written word will be asserted for one "
+            "clock cycle in the FPGA logic.",
+        ),
+        Register("status", 2, "r", "Status register."),
+        Register(
+            "irq_status",
+            3,
+            "r_wpulse",
+            "Reading a '1' in this register means the corresponding interrupt has triggered. "
+            "Writing to this register will clear the interrupts where there is a '1' in the "
+            "written word.",
+        ),
+        Register(
+            "irq_mask",
+            4,
+            "r_w",
+            "A '1' in this register means that the corresponding interrupt is enabled. ",
+        ),
+    ]
+    return registers

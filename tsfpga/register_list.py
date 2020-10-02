@@ -264,38 +264,6 @@ class RegisterList:
         return f"{self.generated_info()} {info}"
 
 
-def get_default_registers():
-    """
-    tsfpga default registers
-    """
-    registers = [
-        Register("config", 0, "r_w", "Configuration register."),
-        Register(
-            "command",
-            1,
-            "wpulse",
-            "When this register is written, all '1's in the written word will be asserted for one "
-            "clock cycle in the FPGA logic.",
-        ),
-        Register("status", 2, "r", "Status register."),
-        Register(
-            "irq_status",
-            3,
-            "r_wpulse",
-            "Reading a '1' in this register means the corresponding interrupt has triggered. "
-            "Writing to this register will clear the interrupts where there is a '1' in the "
-            "written word.",
-        ),
-        Register(
-            "irq_mask",
-            4,
-            "r_w",
-            "A '1' in this register means that the corresponding interrupt is enabled. ",
-        ),
-    ]
-    return registers
-
-
 def load_toml_file(toml_file):
     if not toml_file.exists():
         raise FileNotFoundError(f"Requested TOML file does not exist: {toml_file}")
