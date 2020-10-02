@@ -35,7 +35,7 @@ def run_vivado_tcl(vivado_path, tcl_file, no_log_file=False):
         cmd += ["-nojournal", "-nolog"]
 
     try:
-        Process(cmd, cwd=tcl_file.parent).consume_output()
+        Process(args=cmd, cwd=tcl_file.parent).consume_output()
     except Process.NonZeroExitCode:
         return False
     return True
@@ -61,7 +61,7 @@ def run_vivado_gui(vivado_path, project_file):
     cmd = [str(get_vivado_path(vivado_path)), "-mode", "gui", str(project_file)]
 
     try:
-        Process(cmd, cwd=project_file.parent).consume_output()
+        Process(args=cmd, cwd=project_file.parent).consume_output()
     except Process.NonZeroExitCode:
         return False
     return True
