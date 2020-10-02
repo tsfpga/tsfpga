@@ -133,6 +133,10 @@ disable = "Disable things"
     def setUp(self):
         self.toml_file = create_file(self.tmp_path / "sensor_regs.toml", self.toml_data % "")
 
+    def create_toml_file(self, toml_data_extras):
+        data = self.toml_data % toml_data_extras
+        create_file(self.toml_file, data)
+
     def test_order_of_registers_and_bits(self):
         registers = from_toml(self.module_name, self.toml_file).register_objects
 
@@ -192,8 +196,7 @@ disable = "Disable things"
         assert str(exception_info.value) == f"Requested TOML file does not exist: {file}"
 
     def test_load_dirty_toml_file_should_raise_exception(self):
-        data = self.toml_data % "apa"
-        create_file(self.toml_file, data)
+        self.create_toml_file("apa")
 
         with pytest.raises(ValueError) as exception_info:
             load_toml_file(self.toml_file)
@@ -202,14 +205,14 @@ disable = "Disable things"
         )
 
     def test_plain_register_with_array_length_attribute_should_raise_exception(self):
-        extras = """
+        self.create_toml_file(
+            """
 [register.apa]
 
 mode = "r_w"
 array_length = 4
 """
-        data = self.toml_data % extras
-        create_file(self.toml_file, data)
+        )
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
@@ -219,7 +222,8 @@ array_length = 4
         )
 
     def test_register_array_but_no_array_length_attribute_should_raise_exception(self):
-        extras = """
+        self.create_toml_file(
+            """
 
 [register_array.apa]
 
@@ -227,8 +231,7 @@ array_length = 4
 
 mode = "r_w"
 """
-        data = self.toml_data % extras
-        create_file(self.toml_file, data)
+        )
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
@@ -238,7 +241,8 @@ mode = "r_w"
         )
 
     def test_register_in_array_with_no_mode_attribute_should_raise_exception(self):
-        extras = """
+        self.create_toml_file(
+            """
 [register_array.apa]
 
 array_length = 2
@@ -247,8 +251,7 @@ array_length = 2
 
 description = "nothing"
 """
-        data = self.toml_data % extras
-        create_file(self.toml_file, data)
+        )
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
@@ -258,13 +261,13 @@ description = "nothing"
         )
 
     def test_no_mode_field_should_raise_exception(self):
-        extras = """
+        self.create_toml_file(
+            """
 [register.apa]
 
 description = "w"
 """
-        data = self.toml_data % extras
-        create_file(self.toml_file, data)
+        )
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
@@ -274,13 +277,13 @@ description = "w"
         )
 
     def test_two_registers_with_same_name_should_raise_exception(self):
-        extras = """
+        self.create_toml_file(
+            """
 [register.irq]
 
 mode = "w"
 """
-        data = self.toml_data % extras
-        create_file(self.toml_file, data)
+        )
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
@@ -289,20 +292,21 @@ mode = "w"
         )
 
     def test_register_with_same_name_as_register_array_should_raise_exception(self):
-        extras = """
+        self.create_toml_file(
+            """
 [register.configuration]
 
 mode = "w"
 """
-        data = self.toml_data % extras
-        create_file(self.toml_file, data)
+        )
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
         assert str(exception_info.value) == f"Duplicate name configuration in {self.toml_file}"
 
     def test_two_bits_with_same_name_should_raise_exception(self):
-        extras = """
+        self.create_toml_file(
+            """
 [register.test_reg]
 
 mode = "w"
@@ -312,8 +316,7 @@ mode = "w"
 test_bit = "Declaration 1"
 test_bit = "Declaration 2"
 """
-        data = self.toml_data % extras
-        create_file(self.toml_file, data)
+        )
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
@@ -322,25 +325,25 @@ test_bit = "Declaration 2"
         )
 
     def test_overriding_default_register(self):
-        extras = """
+        self.create_toml_file(
+            """
 [register.config]
 
 description = "apa"
 """
-        data = self.toml_data % extras
-        create_file(self.toml_file, data)
+        )
         toml_registers = from_toml(self.module_name, self.toml_file, get_test_default_registers())
 
         assert toml_registers.get_register("config").description == "apa"
 
     def test_changing_mode_of_default_register_should_raise_exception(self):
-        extras = """
+        self.create_toml_file(
+            """
 [register.config]
 
 mode = "w"
 """
-        data = self.toml_data % extras
-        create_file(self.toml_file, data)
+        )
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file, get_test_default_registers())
@@ -351,14 +354,14 @@ mode = "w"
         )
 
     def test_unknown_register_field_should_raise_exception(self):
-        extras = """
+        self.create_toml_file(
+            """
 [register.test_reg]
 
 mode = "w"
 dummy = 3
 """
-        data = self.toml_data % extras
-        create_file(self.toml_file, data)
+        )
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
@@ -368,7 +371,8 @@ dummy = 3
         )
 
     def test_unknown_register_array_field_should_raise_exception(self):
-        extras = """
+        self.create_toml_file(
+            """
 [register_array.test_array]
 
 array_length = 2
@@ -378,8 +382,7 @@ dummy = 3
 
 mode = "r"
 """
-        data = self.toml_data % extras
-        create_file(self.toml_file, data)
+        )
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
@@ -390,7 +393,8 @@ mode = "r"
         )
 
     def test_unknown_register_field_in_register_array_should_raise_exception(self):
-        extras = """
+        self.create_toml_file(
+            """
 [register_array.test_array]
 
 array_length = 2
@@ -400,8 +404,7 @@ array_length = 2
 mode = "r"
 dummy = 3
 """
-        data = self.toml_data % extras
-        create_file(self.toml_file, data)
+        )
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
@@ -412,14 +415,14 @@ dummy = 3
         )
 
     def test_constants_in_toml(self):
-        extras = """
+        self.create_toml_file(
+            """
 [constant.data_width]
 
 value = 0xf
 description = "the width"
 """
-        data = self.toml_data % extras
-        create_file(self.toml_file, data)
+        )
 
         register_list = from_toml(self.module_name, self.toml_file)
         assert len(register_list.constants) == 1
@@ -428,14 +431,14 @@ description = "the width"
         assert register_list.constants[0].description == "the width"
 
     def test_unknown_constant_field_should_raise_exception(self):
-        extras = """
+        self.create_toml_file(
+            """
 [constant.data_width]
 
 value = 0xf
 default_value = 0xf
 """
-        data = self.toml_data % extras
-        create_file(self.toml_file, data)
+        )
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
