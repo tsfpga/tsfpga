@@ -4,7 +4,7 @@
 
 import copy
 import unittest
-
+from unittest.mock import patch
 import pytest
 
 from tsfpga.system_utils import create_file
@@ -38,7 +38,7 @@ def test_deep_copy_of_registers_actually_copies_everything():
 
 
 def test_invalid_register_mode_should_raise_exception():
-    registers = RegisterList(None, None)
+    registers = RegisterList(None, None, None)
     registers.append_register("test", "r_w")
 
     with pytest.raises(ValueError) as exception_info:
@@ -53,7 +53,7 @@ def test_invalid_register_mode_should_raise_exception():
 
 
 def test_header_constants():
-    registers = RegisterList(None, None)
+    registers = RegisterList(None, None, None)
     registers.add_constant("test", 123)
     registers.add_constant("hest", 456, "hest is best!")
 
@@ -70,6 +70,7 @@ def test_header_constants():
     assert registers.get_constant("apa") is None
 
 
+# pylint: disable=too-many-public-methods
 @pytest.mark.usefixtures("fixture_tmp_path")
 class TestRegisterList(unittest.TestCase):
 
@@ -133,8 +134,8 @@ disable = "Disable things"
     def setUp(self):
         self.toml_file = create_file(self.tmp_path / "sensor_regs.toml", self.toml_data % "")
 
-    def create_toml_file(self, toml_data_extras):
-        data = self.toml_data % toml_data_extras
+    def create_toml_file_with_extras(self, toml_extras):
+        data = self.toml_data % toml_extras
         create_file(self.toml_file, data)
 
     def test_order_of_registers_and_bits(self):
@@ -196,7 +197,7 @@ disable = "Disable things"
         assert str(exception_info.value) == f"Requested TOML file does not exist: {file}"
 
     def test_load_dirty_toml_file_should_raise_exception(self):
-        self.create_toml_file("apa")
+        self.create_toml_file_with_extras("apa")
 
         with pytest.raises(ValueError) as exception_info:
             load_toml_file(self.toml_file)
@@ -205,7 +206,7 @@ disable = "Disable things"
         )
 
     def test_plain_register_with_array_length_attribute_should_raise_exception(self):
-        self.create_toml_file(
+        self.create_toml_file_with_extras(
             """
 [register.apa]
 
@@ -222,9 +223,8 @@ array_length = 4
         )
 
     def test_register_array_but_no_array_length_attribute_should_raise_exception(self):
-        self.create_toml_file(
+        self.create_toml_file_with_extras(
             """
-
 [register_array.apa]
 
 [register_array.apa.register.hest]
@@ -241,7 +241,7 @@ mode = "r_w"
         )
 
     def test_register_in_array_with_no_mode_attribute_should_raise_exception(self):
-        self.create_toml_file(
+        self.create_toml_file_with_extras(
             """
 [register_array.apa]
 
@@ -261,7 +261,7 @@ description = "nothing"
         )
 
     def test_no_mode_field_should_raise_exception(self):
-        self.create_toml_file(
+        self.create_toml_file_with_extras(
             """
 [register.apa]
 
@@ -277,7 +277,7 @@ description = "w"
         )
 
     def test_two_registers_with_same_name_should_raise_exception(self):
-        self.create_toml_file(
+        self.create_toml_file_with_extras(
             """
 [register.irq]
 
@@ -292,7 +292,7 @@ mode = "w"
         )
 
     def test_register_with_same_name_as_register_array_should_raise_exception(self):
-        self.create_toml_file(
+        self.create_toml_file_with_extras(
             """
 [register.configuration]
 
@@ -305,7 +305,7 @@ mode = "w"
         assert str(exception_info.value) == f"Duplicate name configuration in {self.toml_file}"
 
     def test_two_bits_with_same_name_should_raise_exception(self):
-        self.create_toml_file(
+        self.create_toml_file_with_extras(
             """
 [register.test_reg]
 
@@ -325,7 +325,7 @@ test_bit = "Declaration 2"
         )
 
     def test_overriding_default_register(self):
-        self.create_toml_file(
+        self.create_toml_file_with_extras(
             """
 [register.config]
 
@@ -337,7 +337,7 @@ description = "apa"
         assert toml_registers.get_register("config").description == "apa"
 
     def test_changing_mode_of_default_register_should_raise_exception(self):
-        self.create_toml_file(
+        self.create_toml_file_with_extras(
             """
 [register.config]
 
@@ -354,7 +354,7 @@ mode = "w"
         )
 
     def test_unknown_register_field_should_raise_exception(self):
-        self.create_toml_file(
+        self.create_toml_file_with_extras(
             """
 [register.test_reg]
 
@@ -371,7 +371,7 @@ dummy = 3
         )
 
     def test_unknown_register_array_field_should_raise_exception(self):
-        self.create_toml_file(
+        self.create_toml_file_with_extras(
             """
 [register_array.test_array]
 
@@ -393,7 +393,7 @@ mode = "r"
         )
 
     def test_unknown_register_field_in_register_array_should_raise_exception(self):
-        self.create_toml_file(
+        self.create_toml_file_with_extras(
             """
 [register_array.test_array]
 
@@ -415,7 +415,7 @@ dummy = 3
         )
 
     def test_constants_in_toml(self):
-        self.create_toml_file(
+        self.create_toml_file_with_extras(
             """
 [constant.data_width]
 
@@ -431,7 +431,7 @@ description = "the width"
         assert register_list.constants[0].description == "the width"
 
     def test_unknown_constant_field_should_raise_exception(self):
-        self.create_toml_file(
+        self.create_toml_file_with_extras(
             """
 [constant.data_width]
 
@@ -447,3 +447,42 @@ default_value = 0xf
             == f"Error while parsing constant data_width in {self.toml_file}:\n"
             "Unknown key default_value"
         )
+
+    def test_create_vhdl_package_should_not_run_again_if_file_has_not_changed(self):
+        register_list = from_toml(self.module_name, self.toml_file)
+        register_list.create_vhdl_package(self.tmp_path)
+
+        register_list = from_toml(self.module_name, self.toml_file)
+        with patch(
+            "tsfpga.register_list.RegisterList._create_vhdl_package", autospec=True
+        ) as mocked_create_vhdl_package:
+            register_list.create_vhdl_package(self.tmp_path)
+            mocked_create_vhdl_package.assert_not_called()
+
+    def test_create_vhdl_package_should_run_again_if_file_has_changed(self):
+        register_list = from_toml(self.module_name, self.toml_file)
+        register_list.create_vhdl_package(self.tmp_path)
+
+        self.create_toml_file_with_extras("\n# Comment\n")
+        register_list = from_toml(self.module_name, self.toml_file)
+        with patch(
+            "tsfpga.register_list.RegisterList._create_vhdl_package", autospec=True
+        ) as mocked_create_vhdl_package:
+            register_list.create_vhdl_package(self.tmp_path)
+            mocked_create_vhdl_package.assert_called_once()
+
+    def test_create_vhdl_package_should_run_again_if_hash_can_not_be_read(self):
+        register_list = from_toml(self.module_name, self.toml_file)
+        register_list.create_vhdl_package(self.tmp_path)
+
+        # Overwrite the generated file
+        vhd_file = self.tmp_path / "sensor_regs_pkg.vhd"
+        assert vhd_file.exists()
+        create_file(vhd_file, contents="-- Mumbo jumbo\n")
+
+        register_list = from_toml(self.module_name, self.toml_file)
+        with patch(
+            "tsfpga.register_list.RegisterList._create_vhdl_package", autospec=True
+        ) as mocked_create_vhdl_package:
+            register_list.create_vhdl_package(self.tmp_path)
+            mocked_create_vhdl_package.assert_called_once()
