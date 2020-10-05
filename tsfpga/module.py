@@ -133,8 +133,6 @@ class BaseModule:
         Return:
             list(:class:`.HdlFile`): Files that should be included in a simulation project.
         """
-        self.create_regs_vhdl_package()
-
         test_folders = [
             self.path / "sim",
         ]
