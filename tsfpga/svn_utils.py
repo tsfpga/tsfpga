@@ -17,7 +17,7 @@ def get_svn_revision_information(cwd=None):
 def svn_commands_are_available(cwd=None):
     try:
         get_svn_revision(cwd)
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return False
     return True
 
