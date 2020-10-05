@@ -2,8 +2,8 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from tsfpga.register_code_generator import RegisterCodeGenerator
-from tsfpga.register_types import Register
+from .register_code_generator import RegisterCodeGenerator
+from .register_types import Register
 
 
 class RegisterCppGenerator(RegisterCodeGenerator):

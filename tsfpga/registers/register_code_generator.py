@@ -2,7 +2,7 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from tsfpga.register_types import Register
+from .register_types import Register
 
 
 class RegisterCodeGenerator:

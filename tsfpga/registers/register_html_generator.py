@@ -2,8 +2,8 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from tsfpga.markdown_to_html_translator import MarkdownToHtmlTranslator
-from tsfpga.register_types import Register, REGISTER_MODES
+from .markdown_to_html_translator import MarkdownToHtmlTranslator
+from .register_types import Register, REGISTER_MODES
 
 
 class RegisterHtmlGenerator:

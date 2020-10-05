@@ -165,28 +165,28 @@ Python abstraction
 
 The following classes are used to handle registers in the tsfpga python package.
 
-.. autoclass:: tsfpga.register_list.RegisterList()
+.. autoclass:: tsfpga.registers.register_list.RegisterList()
     :members:
 
     .. automethod:: __init__
 
 
-.. autoclass:: tsfpga.register_types.Register()
+.. autoclass:: tsfpga.registers.register_types.Register()
     :members:
 
     .. automethod:: __init__
 
-.. autoclass:: tsfpga.register_types.RegisterArray()
+.. autoclass:: tsfpga.registers.register_types.RegisterArray()
     :members:
 
     .. automethod:: __init__
 
-.. autoclass:: tsfpga.register_types.Bit()
+.. autoclass:: tsfpga.registers.register_types.Bit()
     :members:
 
     .. automethod:: __init__
 
-.. autoclass:: tsfpga.register_types.Constant()
+.. autoclass:: tsfpga.registers.register_types.Constant()
     :members:
 
     .. automethod:: __init__

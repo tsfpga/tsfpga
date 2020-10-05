@@ -9,7 +9,7 @@ Common functions and definitions in the example build environment.
 import tsfpga
 from tsfpga.module import get_modules
 
-from tsfpga.register_list import Register
+from tsfpga.registers.register_list import Register
 
 
 TSFPGA_EXAMPLES_TEMP_DIR = tsfpga.TSFPGA_GENERATED

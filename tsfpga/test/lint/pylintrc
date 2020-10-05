@@ -60,11 +60,13 @@ confidence=
 # wrong-import-position: We want to do sys.path.append(...) before import in some cases
 # import-error: Pylint does not recognise the sys.path.append(...) we do before import
 # duplicate-code: False positives...
+# relative-beyond-top-level: False positives in registers code
 
 disable=missing-docstring,
         wrong-import-position,
         import-error,
-        duplicate-code
+        duplicate-code,
+        relative-beyond-top-level
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

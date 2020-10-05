@@ -3,8 +3,8 @@
 # ------------------------------------------------------------------------------
 
 
-from tsfpga.register_code_generator import RegisterCodeGenerator
-from tsfpga.register_types import Register, RegisterArray
+from .register_code_generator import RegisterCodeGenerator
+from .register_types import Register, RegisterArray
 
 
 class RegisterVhdlGenerator(RegisterCodeGenerator):

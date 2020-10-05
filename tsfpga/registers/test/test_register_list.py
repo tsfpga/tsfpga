@@ -8,8 +8,8 @@ from unittest.mock import patch
 import pytest
 
 from tsfpga.system_utils import create_file
-from tsfpga.register_list import from_toml, load_toml_file, RegisterList
-from tsfpga.register_types import Register
+from tsfpga.registers.register_list import from_toml, load_toml_file, RegisterList
+from tsfpga.registers.register_types import Register
 
 
 def get_test_default_registers():
@@ -454,7 +454,7 @@ default_value = 0xf
 
         register_list = from_toml(self.module_name, self.toml_file)
         with patch(
-            "tsfpga.register_list.RegisterList._create_vhdl_package", autospec=True
+            "tsfpga.registers.register_list.RegisterList._create_vhdl_package", autospec=True
         ) as mocked_create_vhdl_package:
             register_list.create_vhdl_package(self.tmp_path)
             mocked_create_vhdl_package.assert_not_called()
@@ -466,7 +466,7 @@ default_value = 0xf
         self.create_toml_file_with_extras("\n# Comment\n")
         register_list = from_toml(self.module_name, self.toml_file)
         with patch(
-            "tsfpga.register_list.RegisterList._create_vhdl_package", autospec=True
+            "tsfpga.registers.register_list.RegisterList._create_vhdl_package", autospec=True
         ) as mocked_create_vhdl_package:
             register_list.create_vhdl_package(self.tmp_path)
             mocked_create_vhdl_package.assert_called_once()
@@ -482,7 +482,7 @@ default_value = 0xf
 
         register_list = from_toml(self.module_name, self.toml_file)
         with patch(
-            "tsfpga.register_list.RegisterList._create_vhdl_package", autospec=True
+            "tsfpga.registers.register_list.RegisterList._create_vhdl_package", autospec=True
         ) as mocked_create_vhdl_package:
             register_list.create_vhdl_package(self.tmp_path)
             mocked_create_vhdl_package.assert_called_once()

@@ -4,7 +4,7 @@
 
 import unittest
 
-from tsfpga.markdown_to_html_translator import MarkdownToHtmlTranslator
+from tsfpga.registers.markdown_to_html_translator import MarkdownToHtmlTranslator
 
 
 class TestMarkdownToHtmlTranslator(unittest.TestCase):

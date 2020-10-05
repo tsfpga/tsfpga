@@ -6,8 +6,8 @@ import copy
 
 from tsfpga.constraint import Constraint
 from tsfpga.hdl_file import HdlFile
-from tsfpga.register_list import from_toml
 from tsfpga.system_utils import load_python_module
+from tsfpga.registers.register_list import from_toml
 
 
 class BaseModule:

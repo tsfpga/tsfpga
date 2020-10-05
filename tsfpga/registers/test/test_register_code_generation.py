@@ -7,8 +7,8 @@ import unittest
 import pytest
 
 import tsfpga
-from tsfpga.register_list import from_toml
 from tsfpga.system_utils import create_directory
+from tsfpga.registers.register_list import from_toml
 
 from examples.tsfpga_example_env import get_default_registers
 

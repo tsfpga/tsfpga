@@ -10,13 +10,13 @@ from shutil import copy2
 import toml
 
 from tsfpga.git_utils import git_commands_are_available, get_git_commit
-from tsfpga.register_types import Constant, Register, RegisterArray
-from tsfpga.register_c_generator import RegisterCGenerator
-from tsfpga.register_cpp_generator import RegisterCppGenerator
-from tsfpga.register_html_generator import RegisterHtmlGenerator
-from tsfpga.register_vhdl_generator import RegisterVhdlGenerator
 from tsfpga.svn_utils import svn_commands_are_available, get_svn_revision_information
 from tsfpga.system_utils import create_directory, create_file, read_file
+from .register_types import Constant, Register, RegisterArray
+from .register_c_generator import RegisterCGenerator
+from .register_cpp_generator import RegisterCppGenerator
+from .register_html_generator import RegisterHtmlGenerator
+from .register_vhdl_generator import RegisterVhdlGenerator
 
 
 class RegisterList:
