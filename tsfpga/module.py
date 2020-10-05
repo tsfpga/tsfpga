@@ -199,6 +199,7 @@ class BaseModule:
         Return:
             bool: True if everything went well.
         """
+        return True
 
     def get_ip_core_files(self):
         """
