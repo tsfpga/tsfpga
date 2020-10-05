@@ -52,7 +52,7 @@ def git_commands_are_available(cwd=None):
         subprocess.check_call(
             command, cwd=cwd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
         )
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return False
     return True
 
