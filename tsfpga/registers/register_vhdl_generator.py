@@ -3,8 +3,9 @@
 # ------------------------------------------------------------------------------
 
 
+from .register import Register
+from .register_array import RegisterArray
 from .register_code_generator import RegisterCodeGenerator
-from .register_types import Register, RegisterArray
 
 
 class RegisterVhdlGenerator(RegisterCodeGenerator):

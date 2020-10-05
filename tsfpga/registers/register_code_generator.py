@@ -2,7 +2,7 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-from .register_types import Register
+from .register import Register
 
 
 class RegisterCodeGenerator:

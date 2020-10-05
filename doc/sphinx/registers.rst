@@ -171,22 +171,22 @@ The following classes are used to handle registers in the tsfpga python package.
     .. automethod:: __init__
 
 
-.. autoclass:: tsfpga.registers.register_types.Register()
+.. autoclass:: tsfpga.registers.register.Register()
     :members:
 
     .. automethod:: __init__
 
-.. autoclass:: tsfpga.registers.register_types.RegisterArray()
+.. autoclass:: tsfpga.registers.register_array.RegisterArray()
     :members:
 
     .. automethod:: __init__
 
-.. autoclass:: tsfpga.registers.register_types.Bit()
+.. autoclass:: tsfpga.registers.bit.Bit()
     :members:
 
     .. automethod:: __init__
 
-.. autoclass:: tsfpga.registers.register_types.Constant()
+.. autoclass:: tsfpga.registers.constant.Constant()
     :members:
 
     .. automethod:: __init__

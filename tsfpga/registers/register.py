@@ -3,6 +3,9 @@
 # ------------------------------------------------------------------------------
 
 
+from .bit import Bit
+
+
 class Mode:
     def __init__(self, mode_readable, description):
         self.mode_readable = mode_readable
@@ -25,24 +28,6 @@ REGISTER_MODES = dict(
         "Bus can write a value that is asserted for one clock cycle in fabric.",
     ),
 )
-
-
-class Bit:
-
-    """
-    Used to represent a bit in a register.
-    """
-
-    def __init__(self, name, index, description):
-        """
-        Arguments:
-            name (str): The name of the bit.
-            index (int): The zero-based index of this bit within the register.
-            description (str): Textual bit description.
-        """
-        self.name = name
-        self.index = index
-        self.description = description
 
 
 class Register:
@@ -107,64 +92,12 @@ class Register:
         """
         return self.mode in ["w", "r_w", "wpulse", "r_wpulse"]
 
-
-class RegisterArray:
-
-    """
-    Represent an array of registers. That is, a sequence of registers that shall be repeated a
-    number of times in a register list.
-    """
-
-    def __init__(self, name, base_index, length):
-        """
-        Arguments:
-            name (str): The name of this register array.
-            base_index (int): The zero-based index of the first register of this array in
-                the register list.
-            length (int): The number of times the register sequence shall be repeated.
-        """
-        self.name = name
-        self.base_index = base_index
-        self.length = length
-        self.registers = []
-
-    def append_register(self, name, mode, description=None, default_value=None):
-        """
-        Append a register to this array.
-
-        Arguments:
-            name (str): The name of the register.
-            mode (str): A valid register mode.
-            description (str): Textual register description.
-            default_value (int): Default value for the register (signed).
-        Return:
-            :class:`.Register`: The register object that was created.
-        """
-        index = len(self.registers)
-        register = Register(name, index, mode, description, default_value)
-
-        self.registers.append(register)
-        return register
-
-    @property
-    def index(self):
-        """
-        Property exists to be used analogously with ``Register.index``.
-
-        Return:
-            int: The highest index occupied by this array.
-        """
-        return self.base_index + self.length * len(self.registers) - 1
-
-
-class Constant:
-    def __init__(self, name, value, description=None):
-        """
-        Arguments:
-            name (str): The name of the constant.
-            length (int): The constant value (signed).
-            description (str): Textual description for the constant.
-        """
-        self.name = name
-        self.value = value
-        self.description = "" if description is None else description
+    def __repr__(self):
+        return f"""{self.__class__.__name__}(\
+name={self.name},\
+index={self.index},\
+mode={self.mode},\
+description={self.description},\
+default_value={self.default_value},\
+bits={','.join([repr(bit) for bit in self.bits])},\
+)"""
