@@ -80,6 +80,9 @@ ____________
 
 The VHDL package file is designed to be used with the generic AXI-Lite register file `available in tsfpga <https://gitlab.com/tsfpga/tsfpga/-/tree/master/modules/reg_file>`__.
 
+Since generation of VHDL packages is usually run in real time (e.g. before running a simulation) the speed of the tool is important.
+In order the save time, :meth:`.RegisterList.create_vhdl_package` maintains a hash of the register definitions, and will only generate the VHDL when necessary.
+
 .. literalinclude:: ../../generated/registers/vhdl/ddr_buffer_regs_pkg.vhd
    :caption: ddr_buffer_regs_pkg.vhd
    :language: vhdl

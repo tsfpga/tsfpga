@@ -133,13 +133,14 @@ class RegisterList:
         Create a VHDL package file with register and field definitions.
 
         This function assumes that the ``output_path`` folder already exists. This assumption makes
-        it slightly faster than the other functions that use create_file()``. Necessary since this
+        it slightly faster than the other functions that use ``create_file()``. Necessary since this
         one is often used in real time (before simulations, etc..) and not in one-off scenarios
         like the others (when making a release).
 
-        In order to save time, there is a mechanism to only generated the VHDL file when necessary.
-        If there is a file existing, that was created based on an identical TOML source, then
-        the file will not be re-generated.
+        In order to save time, there is a mechanism to only generate the VHDL file when necessary.
+        A hash of this register list object will be written to the file along with all the register
+        definitions. This hash will be inspected and compared, and the VHDL file will only be
+        generated again if something has changed.
 
         Arguments:
             output_path (`pathlib.Path`): Result will be placed here.
