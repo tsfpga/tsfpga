@@ -63,7 +63,7 @@ th {
   color: white;
 }"""
 
-        html = f"""
+        html = f"""\
 {self._file_header()}
 
 <!DOCTYPE html>
@@ -106,7 +106,7 @@ th {
         return f"<!-- {comment} -->\n"
 
     def _file_header(self):
-        return self._comment(self.generated_info)
+        return "".join([self._comment(header_line) for header_line in self.generated_info])
 
     @staticmethod
     def _to_readable_address(address):

@@ -33,7 +33,7 @@ class RegisterCGenerator(RegisterCodeGenerator):
         return f"/* {comment} */\n"
 
     def _file_header(self):
-        return self._comment(self.generated_info)
+        return "".join([self._comment(header_line) for header_line in self.generated_info])
 
     def _register_struct(self, register_objects):
         array_structs = ""

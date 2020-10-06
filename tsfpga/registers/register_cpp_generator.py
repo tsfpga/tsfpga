@@ -148,7 +148,7 @@ class RegisterCppGenerator(RegisterCodeGenerator):
         return f"/* {comment} */\n"
 
     def _file_header(self):
-        return self._comment(self.generated_info)
+        return "".join([self._comment(header_line) for header_line in self.generated_info])
 
     @staticmethod
     def _to_pascal_case(snake_string):

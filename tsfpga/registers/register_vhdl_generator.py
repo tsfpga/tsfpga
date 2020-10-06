@@ -18,7 +18,7 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
         return f"-- {comment}\n"
 
     def _header(self):
-        return self._comment(self.generated_info)
+        return "".join([self._comment(header_line) for header_line in self.generated_info])
 
     def _register_name(self, register, register_array=None):
         if register_array is None:
