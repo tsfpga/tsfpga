@@ -80,7 +80,7 @@ th {
   <h1>{title}</h1>
   <p>This document is a specification for the register interface of the FPGA module \
 <b>{self.module_name}</b>.</p>
-  <p>{self.generated_info}</p>
+  <p>{''.join(self.generated_info)}</p>
   <h2>Register modes</h2>
   <p>The following register modes are available.</p>
 {self._get_mode_descriptions()}
