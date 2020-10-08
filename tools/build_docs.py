@@ -6,11 +6,12 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 import shutil
-from subprocess import check_call, check_output
+from subprocess import check_call
 import sys
 from xml.etree import ElementTree
 
 from pybadges import badge
+from git import Repo
 
 REPO_ROOT = Path(__file__).parent.parent
 sys.path.append(str(REPO_ROOT))
@@ -162,9 +163,9 @@ class Release:
 
     @staticmethod
     def get_git_date_from_tag(tag):
-        cmd = ["git", "show", "-s", "--format=%at", tag]
-        timestamp = datetime.fromtimestamp(int(check_output(cmd).decode().strip()))
-        return f"{timestamp.day} {timestamp:%B} {timestamp.year}".lower()
+        timestamp = Repo(tsfpga.REPO_ROOT).tag(f"refs/tags/{tag}").commit.committed_date
+        time = datetime.fromtimestamp(timestamp)
+        return f"{time.day} {time:%B} {time.year}".lower()
 
 
 def build_information_badges(output_path):
