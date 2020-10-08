@@ -109,7 +109,7 @@ A complete HTML page can be generated, with register details as well as textual 
    A paragraph break can be inserted with consecutive newlines.
 
 
-Generated HTML file here: :download:`ddr_buffer_regs.html <../../generated/registers/doc/ddr_buffer_regs.html>`
+Generated HTML file here: :download:`ddr_buffer_regs.html <../../generated/registers/html/ddr_buffer_regs.html>`
 
 
 
@@ -119,9 +119,9 @@ ___________
 Optionally, only the tables with register and constant descriptions can be generated to HTML.
 These can then be included in a separate documentation flow.
 
-Generated HTML file here: :download:`ddr_buffer_register_table.html <../../generated/registers/doc/tables/ddr_buffer_register_table.html>`
+Generated HTML file here: :download:`ddr_buffer_register_table.html <../../generated/registers/html/tables/ddr_buffer_register_table.html>`
 
-Generated HTML file here: :download:`ddr_buffer_constant_table.html <../../generated/registers/doc/tables/ddr_buffer_constant_table.html>`
+Generated HTML file here: :download:`ddr_buffer_constant_table.html <../../generated/registers/html/tables/ddr_buffer_constant_table.html>`
 
 
 
