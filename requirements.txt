@@ -1,2 +1,3 @@
 toml
 vunit_hdl
+GitPython

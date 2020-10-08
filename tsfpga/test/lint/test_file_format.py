@@ -115,7 +115,11 @@ def test_no_checked_in_files_contain_trailing_whitespace():
 
 def files_to_test(exclude_directories=None):
     # Do not test binary image files
-    return find_git_files(exclude_directories=exclude_directories, file_endings_avoid="png")
+    return find_git_files(
+        directory=tsfpga.REPO_ROOT,
+        exclude_directories=exclude_directories,
+        file_endings_avoid="png",
+    )
 
 
 def test_open_file_with_encoding_should_raise_exception_on_bad_file(tmp_path):

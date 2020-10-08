@@ -26,7 +26,13 @@ def run_pylint(files):
 
 def test_pylint():
     # Exclude doc folder, since conf.py used by sphinx does not conform
-    files = list(find_git_files(file_endings_include="py", exclude_directories=[tsfpga.TSFPGA_DOC]))
+    files = list(
+        find_git_files(
+            directory=tsfpga.REPO_ROOT,
+            exclude_directories=[tsfpga.TSFPGA_DOC],
+            file_endings_include="py",
+        )
+    )
     run_pylint(files)
 
 

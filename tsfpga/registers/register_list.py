@@ -7,6 +7,7 @@ import datetime
 import re
 from shutil import copy2
 
+from pathlib import Path
 import toml
 
 from tsfpga.git_utils import git_commands_are_available, get_git_commit
@@ -293,8 +294,8 @@ class RegisterList:
         time_info = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
         commit_info = ""
-        if git_commands_are_available():
-            commit_info = f" at commit {get_git_commit()}"
+        if git_commands_are_available(directory=Path(".")):
+            commit_info = f" at commit {get_git_commit(directory=Path('.'))}"
         elif svn_commands_are_available():
             commit_info = f" at revision {get_svn_revision_information()}"
 

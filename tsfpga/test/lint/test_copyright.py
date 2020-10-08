@@ -6,7 +6,7 @@ import re
 
 import pytest
 
-from tsfpga import TSFPGA_EXAMPLE_MODULES
+import tsfpga
 from tsfpga.system_utils import create_file, read_file
 from tsfpga.git_utils import find_git_files
 
@@ -80,10 +80,12 @@ class CopyrightHeader:
 
 def files_to_check_for_copyright_header():
     file_endings = (".py", ".vhd", ".tcl")
-    exclude_directories = [TSFPGA_EXAMPLE_MODULES / "artyz7" / "tcl"]
+    exclude_directories = [tsfpga.TSFPGA_EXAMPLE_MODULES / "artyz7" / "tcl"]
     for file_ending in file_endings:
         for file in find_git_files(
-            file_endings_include=file_ending, exclude_directories=exclude_directories
+            directory=tsfpga.REPO_ROOT,
+            exclude_directories=exclude_directories,
+            file_endings_include=file_ending,
         ):
             yield file
 

@@ -10,6 +10,7 @@ import sys
 PATH_TO_TSFPGA = Path(__file__).parent.parent
 sys.path.append(str(PATH_TO_TSFPGA.resolve()))
 
+import tsfpga
 from tsfpga.git_utils import find_git_files
 from tsfpga.system_utils import create_file, read_file
 from tsfpga.test.lint.test_copyright import CopyrightHeader, files_to_check_for_copyright_header
@@ -57,7 +58,11 @@ def arguments():
 def main():
     args = arguments()
 
-    files = args.files if args.files else list(find_git_files(file_endings_avoid=(".png")))
+    files = (
+        args.files
+        if args.files
+        else list(find_git_files(directory=tsfpga.REPO_ROOT, file_endings_avoid=(".png")))
+    )
     fix_lint(files, args.tab_width)
 
     files = args.files if args.files else list(files_to_check_for_copyright_header())

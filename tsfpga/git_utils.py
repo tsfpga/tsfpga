@@ -7,10 +7,8 @@ from os.path import commonpath
 from pathlib import Path
 import subprocess
 
-from tsfpga import REPO_ROOT
 
-
-def get_git_commit(cwd=None):
+def get_git_commit(directory):
     """
     Generally, eight to ten characters are more than enough to be unique within a project.
     The linux kernel, one of the largest projects, needs 11.
@@ -20,56 +18,42 @@ def get_git_commit(cwd=None):
     if "GIT_COMMIT" in os.environ:
         return os.environ["GIT_COMMIT"][0:sha_length]
 
-    check_that_git_commands_are_available(cwd)
+    # Import fails if "git" executable is not available, hence it can not be on top level.
+    # This function should only be called if git is available.
+    # pylint: disable=import-outside-toplevel
+    from git import Repo
 
-    git_commit = get_git_sha(cwd)[0:sha_length]
-    if git_local_changes_are_present(cwd):
+    repo = Repo(directory)
+    git_commit = repo.head.commit.hexsha[0:sha_length]
+    if repo.is_dirty():
         git_commit += " (local changes present)"
 
     return git_commit
 
 
-def get_git_sha(cwd=None):
-    command = ["git", "rev-parse", "HEAD"]
-    output = subprocess.check_output(command, cwd=cwd, universal_newlines=True)
-    return output
-
-
-def git_local_changes_are_present(cwd=None):
-    command = ["git", "diff-index", "--quiet", "HEAD", "--"]
+def git_commands_are_available(directory):
+    """
+    True if "git" command executable is available, and ``directory`` is in a valid git repo.
+    """
     try:
-        subprocess.check_call(
-            command, cwd=cwd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-        )
-    except subprocess.CalledProcessError:
-        return True
-    return False
-
-
-def git_commands_are_available(cwd=None):
-    command = ["git", "rev-parse", "--is-inside-work-tree"]
-    try:
-        subprocess.check_call(
-            command, cwd=cwd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-        )
-    except (subprocess.CalledProcessError, FileNotFoundError):
+        # pylint: disable=import-outside-toplevel
+        from git import Repo, InvalidGitRepositoryError
+    except ImportError:
         return False
+
+    try:
+        Repo(directory, search_parent_directories=True)
+    except InvalidGitRepositoryError:
+        return False
+
     return True
 
 
-def check_that_git_commands_are_available(cwd=None):
-    if not git_commands_are_available(cwd):
-        mesg = (
-            "Could not run git. Is the command available on PATH? Is the script called from a repo?"
-        )
-        raise RuntimeError(mesg)
-
-
 def find_git_files(
+    directory,
+    exclude_directories=None,
     file_endings_include=None,
     file_endings_avoid=None,
-    directory=REPO_ROOT,
-    exclude_directories=None,
 ):
     """
     Arguments:
@@ -106,16 +90,6 @@ def find_git_files(
             ):
                 if not _file_is_in_directory(file, exclude_directories):
                     yield file
-
-
-def list_current_tags(cwd=REPO_ROOT):
-    command = ["git", "tag", "--list", "--points-at", "HEAD"]
-    return subprocess.check_output(command, cwd=cwd).decode().splitlines()
-
-
-def list_tags(cwd=REPO_ROOT):
-    command = ["git", "tag", "--list"]
-    return subprocess.check_output(command, cwd=cwd).decode().splitlines()
 
 
 def _file_is_in_directory(filename, directories):
