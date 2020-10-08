@@ -4,7 +4,7 @@
 
 from tsfpga.module import BaseModule
 from tsfpga.vivado.project import VivadoNetlistProject
-from tsfpga.vivado.size_checker import *  # pylint: disable=wildcard-import,unused-wildcard-import
+from tsfpga.vivado.size_checker import EqualTo, Ffs, LogicLuts, Ramb18, Ramb36, TotalLuts
 from examples.tsfpga_example_env import get_tsfpga_modules
 
 
