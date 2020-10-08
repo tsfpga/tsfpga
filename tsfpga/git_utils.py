@@ -87,7 +87,9 @@ def find_git_files(
         if (file_endings_include is None or path.name.endswith(file_endings_include)) and (
             file_endings_avoid is None or not path.name.endswith(file_endings_avoid)
         ):
-            if not _file_is_in_directory(path, exclude_directories):
+            if _file_is_in_directory(path, [directory]) and not _file_is_in_directory(
+                path, exclude_directories
+            ):
                 yield path
 
 
