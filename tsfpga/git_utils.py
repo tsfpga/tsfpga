@@ -5,7 +5,6 @@
 import os
 from os.path import commonpath
 from pathlib import Path
-import subprocess
 
 
 def get_git_commit(directory):
@@ -63,33 +62,33 @@ def find_git_files(
         directory (`pathlib.Path`): Search in this directory.
         exclude_directories (list(`pathlib.Path`)): Files in these directories will not be included.
     """
+
+    # Import fails if "git" executable is not available, hence it can not be on top level.
+    # This function should only be called if git is available.
+    # pylint: disable=import-outside-toplevel
+    from git import Repo
+
     exclude_directories = (
         []
         if exclude_directories is None
         else [exclude_directory.resolve() for exclude_directory in exclude_directories]
     )
 
-    command = ["git", "ls-files"]
-    output = subprocess.check_output(command, cwd=directory, universal_newlines=True)
-    ls_files = output.split("\n")
+    def list_paths(root_tree, path):
+        for blob in root_tree.blobs:
+            yield path / blob.name
+        for tree in root_tree.trees:
+            yield from list_paths(tree, path / tree.name)
 
-    # subprocess.check_output() returns a trailing "\n".
-    # The split() call will make that an empty object at the end of the list.
-    ls_files = ls_files[:-1]
+    repo = Repo(directory, search_parent_directories=True)
+    repo_root = Path(repo.git_dir).parent.resolve()
 
-    for file in ls_files:
-        # git ls-files returns paths relative to the working directory where it's called. Hence we
-        # prepend the cwd used. Normpath is necessary in windows where you can get a mix of slashes
-        # and backslashes which makes path comparisons sketchy
-        file = directory.joinpath(Path(file))
-        assert file.exists()  # Make sure concatenation of relative path worked
-
-        if file.is_file():  # "git ls-files" also lists submodule folders
-            if (file_endings_include is None or file.name.endswith(file_endings_include)) and (
-                file_endings_avoid is None or not file.name.endswith(file_endings_avoid)
-            ):
-                if not _file_is_in_directory(file, exclude_directories):
-                    yield file
+    for path in list_paths(repo.tree(), repo_root):
+        if (file_endings_include is None or path.name.endswith(file_endings_include)) and (
+            file_endings_avoid is None or not path.name.endswith(file_endings_avoid)
+        ):
+            if not _file_is_in_directory(path, exclude_directories):
+                yield path
 
 
 def _file_is_in_directory(filename, directories):
