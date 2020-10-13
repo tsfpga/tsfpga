@@ -1,9 +1,16 @@
 -- -----------------------------------------------------------------------------
 -- Copyright (c) Lukas Vik. All rights reserved.
 -- -----------------------------------------------------------------------------
--- @brief AXI-Lite 1-to-N mux.
+-- AXI-Lite 1-to-N mux.
 --
--- Will respond with AXI decode error if no slave matches.
+-- The slave_addrs generic is a list of base address configurations for the
+-- N slaves. Eeach entry consists of a base address, along with a mask that
+-- will be used to match the master address with a slave. Only the bits that
+-- are asserted in the mask are taken into account when matching.
+--
+-- If the address requested by the master does not match any slave, this entity
+-- will send AXI decode error on the response channel. There will still be
+-- proper AXI handshaking done, so the master will not be stalled.
 -- -----------------------------------------------------------------------------
 
 library ieee;
@@ -53,16 +60,21 @@ begin
   ------------------------------------------------------------------------------
   assign_s2m_read : process(all)
   begin
-    if read_slave_select = slave_decode_error_idx then
+    if read_slave_select = slave_not_selected_idx then
+      -- Wait for the master to assert address valid so that we can select the correct slave
+      axil_s2m.read.ar <= (ready => '0');
+      axil_s2m.read.r <= (valid => '0', others => (others => '-'));
+
+    elsif read_slave_select = slave_decode_error_idx then
+      -- Master requested a slave address that does not exist. Return decode error.
+      -- State machine will perform handshake on the different channels.
       axil_s2m.read.ar <= (ready => read_decode_error_s2m.ar.ready);
       axil_s2m.read.r <= (valid => read_decode_error_s2m.r.valid,
                           resp => axi_resp_decerr,
                           data => (others => '-'));
-    elsif read_slave_select = slave_not_selected_idx then
-      -- Wait for the master to assert address valid so that we can select the correct slave
-      axil_s2m.read.ar <= (ready => '0');
-      axil_s2m.read.r <= (valid => '0', others => (others => '-'));
+
     else
+      -- Connect the selected slave. State machine will un-select when all transactions are done.
       axil_s2m.read <= axil_s2m_vec(read_slave_select).read;
     end if;
   end process;
@@ -71,17 +83,22 @@ begin
   ------------------------------------------------------------------------------
   assign_s2m_write : process(all)
   begin
-    if write_slave_select = slave_decode_error_idx then
-      axil_s2m.write.aw <= (ready => write_decode_error_s2m.aw.ready);
-      axil_s2m.write.w <= (ready => write_decode_error_s2m.w.ready);
-      axil_s2m.write.b <= (valid => write_decode_error_s2m.b.valid,
-                           resp => axi_resp_decerr);
-    elsif write_slave_select = slave_not_selected_idx then
+    if write_slave_select = slave_not_selected_idx then
       -- Wait for the master to assert address valid so that we can select the correct slave
       axil_s2m.write.aw <= (ready => '0');
       axil_s2m.write.w <= (ready => '0');
       axil_s2m.write.b <= (valid => '0', others => (others => '-'));
+
+    elsif write_slave_select = slave_decode_error_idx then
+      -- Master requested a slave address that does not exist. Return decode error.
+      -- State machine will perform handshake on the different channels.
+      axil_s2m.write.aw <= (ready => write_decode_error_s2m.aw.ready);
+      axil_s2m.write.w <= (ready => write_decode_error_s2m.w.ready);
+      axil_s2m.write.b <= (valid => write_decode_error_s2m.b.valid,
+                           resp => axi_resp_decerr);
+
     else
+      -- Connect the selected slave. State machine will un-select when all transactions are done.
       axil_s2m.write <= axil_s2m_vec(write_slave_select).write;
     end if;
   end process;
@@ -123,6 +140,9 @@ begin
             decoded_idx := decode(axil_m2s.read.ar.addr, slave_addrs);
 
             if decoded_idx = decode_failed then
+              -- If there is no AXI-Lite slave on the requested address, we have to complete the
+              -- transaction via this state machine, as to not stall the AXI-Lite master.
+              -- Should return error on the response channel.
               read_slave_select <= slave_decode_error_idx;
 
               -- Complete the AR transaction.
@@ -135,6 +155,8 @@ begin
 
               state <= decode_error;
             else
+              -- If the requested address has a corresponding slave, select that and
+              -- wait until transaction is finished.
               read_slave_select <= decoded_idx;
               state <= reading;
             end if;
@@ -176,6 +198,9 @@ begin
             decoded_idx := decode(axil_m2s.write.aw.addr, slave_addrs);
 
             if decoded_idx = decode_failed then
+              -- If there is no AXI-Lite slave on the requested address, we have to complete the
+              -- transaction via this state machine, as to not stall the AXI-Lite master.
+              -- Should return error on the response channel.
               write_slave_select <= slave_decode_error_idx;
 
               -- Complete the AW transaction.
@@ -188,6 +213,8 @@ begin
 
               state <= decode_error_w;
             else
+              -- If the requested address has a corresponding slave, select that and
+              -- wait until transaction is finished.
               write_slave_select <= decoded_idx;
               state <= writing;
             end if;
