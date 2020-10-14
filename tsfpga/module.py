@@ -2,12 +2,10 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-import copy
-
 from tsfpga.constraint import Constraint
 from tsfpga.hdl_file import HdlFile
 from tsfpga.system_utils import load_python_module
-from tsfpga.registers.register_list import from_toml
+from tsfpga.registers.parser import from_toml
 
 
 class BaseModule:
@@ -29,7 +27,6 @@ class BaseModule:
         self.name = path.name
         self.library_name = library_name
 
-        # Note: Likely mutable object, need to create deep copy before using.
         self._default_registers = default_registers
         self._registers = None
 
@@ -64,9 +61,7 @@ class BaseModule:
 
         toml_file = self.path / (f"regs_{self.name}.toml")
         if toml_file.exists():
-            self._registers = from_toml(
-                self.name, toml_file, copy.deepcopy(self._default_registers)
-            )
+            self._registers = from_toml(self.name, toml_file, self._default_registers)
             self.registers_hook()
             return self._registers
 

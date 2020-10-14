@@ -9,7 +9,7 @@ import pytest
 
 import tsfpga
 from tsfpga.system_utils import create_file, run_command
-from tsfpga.registers.register_list import from_toml
+from tsfpga.registers.parser import from_toml
 
 
 @pytest.mark.usefixtures("fixture_tmp_path")
