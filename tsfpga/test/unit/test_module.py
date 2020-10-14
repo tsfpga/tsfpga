@@ -173,13 +173,3 @@ class Module(BaseModule):
         module.get_simulation_files()
 
         from_toml.assert_called_once_with("a", toml_file, mock.ANY)
-
-    def test_deprecated_register_json_file_should_raise_exception(self):
-        json_file = create_file(self.tmp_path / "a" / "regs_a.json")
-
-        module = get_modules(self.modules_folders, names_include=["a"])[0]
-        with pytest.raises(ValueError) as exception_info:
-            module.get_synthesis_files()
-        assert str(exception_info.value).startswith(
-            f"DEPRECATED: Using deprecated json file name: {json_file}"
-        )
