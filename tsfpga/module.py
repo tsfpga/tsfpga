@@ -70,15 +70,6 @@ class BaseModule:
             self.registers_hook()
             return self._registers
 
-        for deprecated_json_file in [
-            self.path / f"{self.name}_regs.json",
-            self.path / f"regs_{self.name}.json",
-        ]:
-            if deprecated_json_file.exists():
-                message = f"DEPRECATED: Using deprecated json file name: {deprecated_json_file}"
-                message += f"\nDEPRECATED: Use TOML file instead: {toml_file}"
-                raise ValueError(message)
-
         return None
 
     def registers_hook(self):
