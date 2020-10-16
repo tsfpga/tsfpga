@@ -24,8 +24,6 @@ By separating these builds into separate classes, top level FPGA builds and netl
 .. autoclass:: tsfpga.vivado.project.VivadoNetlistProject()
     :members:
 
-    .. automethod:: __init__
-
 
 
 .. _size_checkers:
@@ -54,9 +52,5 @@ See the repo for other examples.
 .. autoclass:: tsfpga.vivado.size_checker.SizeChecker()
     :members:
 
-    .. automethod:: __init__
-
 .. autoclass:: tsfpga.vivado.size_checker.LessThan()
     :members:
-
-    .. automethod:: __init__

@@ -155,8 +155,6 @@ ______________
 .. autoclass:: tsfpga.module.BaseModule()
     :members:
 
-    .. automethod:: __init__
-
 
 
 .. _hdl_file:
@@ -166,5 +164,3 @@ _______________
 
 .. autoclass:: tsfpga.hdl_file.HdlFile()
     :members:
-
-    .. automethod:: __init__

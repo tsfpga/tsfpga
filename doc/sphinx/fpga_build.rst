@@ -67,8 +67,6 @@ The modules that define build projects should set up objects of this type, see :
 .. autoclass:: tsfpga.vivado.project.VivadoProject()
     :members:
 
-    .. automethod:: __init__
-
 
 
 .. _example_project_class:
@@ -156,8 +154,6 @@ They are abstracted using this class.
 .. autoclass:: tsfpga.constraint.Constraint()
     :members:
 
-    .. automethod:: __init__
-
 
 
 Build step TCL hooks
@@ -170,8 +166,6 @@ It is possible to add more than one hook per step.
 .. autoclass:: tsfpga.build_step_tcl_hook.BuildStepTclHook()
     :members:
 
-    .. automethod:: __init__
-
 
 
 Build result
@@ -182,8 +176,6 @@ It can be inspected to see if the run passed or failed, and what the resource ut
 
 .. autoclass:: tsfpga.vivado.project.BuildResult()
     :members:
-
-    .. automethod:: __init__
 
 
 
@@ -197,6 +189,4 @@ See :ref:`example_build_py` for usage example.
 
 .. autoclass:: tsfpga.build_project_list.BuildProjectList()
     :members:
-
-    .. automethod:: __init__
 

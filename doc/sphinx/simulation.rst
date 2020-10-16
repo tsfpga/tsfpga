@@ -178,8 +178,6 @@ This project shall then be used to generate the simulation models for the IP cor
 .. autoclass:: tsfpga.vivado.ip_cores.VivadoIpCores()
     :members:
 
-    .. automethod:: __init__
-
 Adding IP cores to a simulation project can be done like this:
 
 .. code-block:: python
