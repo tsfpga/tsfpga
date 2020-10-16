@@ -24,7 +24,7 @@ Default registers
 -----------------
 
 A lot of projects use a few default registers in standard locations that shall be present in all modules.
-In order to achieve this, without having to duplicate names and descriptions in many places, there is a ``default_registers`` flag to the :ref:`get_modules() <get_modules>` function.
+In order to achieve this, without having to duplicate names and descriptions in many places, there is a ``default_registers`` flag to the :func:`.get_modules` function.
 Passing a list of :class:`.Register` objects will insert them in the register list of all modules that use registers.
 
 
@@ -160,26 +160,3 @@ A C header with register and field definitions can be generated.
 
 It provides two methods for usage: A struct that can be memory mapped, or address definitions that can be offset a base address.
 For the addresses, array registers use a macro with an array index argument.
-
-
-
-Python abstraction
-------------------
-
-The following classes are used to handle registers in the tsfpga python package.
-
-.. autoclass:: tsfpga.registers.register_list.RegisterList()
-    :members:
-
-
-.. autoclass:: tsfpga.registers.register.Register()
-    :members:
-
-.. autoclass:: tsfpga.registers.register_array.RegisterArray()
-    :members:
-
-.. autoclass:: tsfpga.registers.bit.Bit()
-    :members:
-
-.. autoclass:: tsfpga.registers.constant.Constant()
-    :members:

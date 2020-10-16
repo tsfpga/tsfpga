@@ -18,7 +18,7 @@ class UtilizationParser:
         for the specified run.
 
         Arguments:
-            report (string): A string containing the entire Vivado hierarchical utilization report.
+            report (str): A string containing the entire Vivado hierarchical utilization report.
         """
         result = dict()
         lines = report.split("\n")

@@ -58,17 +58,6 @@ And example of this, which also features release artifact packaging, is availabl
 
 
 
-Vivado project class
---------------------
-
-Build projects targetting Xilinx Vivado are represented using this class.
-The modules that define build projects should set up objects of this type, see :ref:`example_project_class`.
-
-.. autoclass:: tsfpga.vivado.project.VivadoProject()
-    :members:
-
-
-
 .. _example_project_class:
 
 Example project class creation
@@ -98,10 +87,10 @@ Source files, IP cores, scoped constraints, etc., from all these modules will be
 It can be a good idea to filter what modules are included here.
 If we have a huge module tree but our project only uses a subset of the modules, we might not want to slow down Vivado by adding everything.
 We might also use primitives and IP cores in some modules that are not available for the target part.
-This filtering of modules can be achieved using the arguments to :ref:`get_modules() <get_modules>`.
+This filtering of modules can be achieved using the arguments to :func:`.get_modules`.
 
-In this case we use a wrapper ``get_tsfpga_modules()`` around the :ref:`get_modules() <get_modules>` function.
-The wrapper sets the correct :ref:`get_modules() <get_modules>` flags (all modules paths, :ref:`default registers <default_registers>` and ``library_name_has_lib_suffix``).
+In this case we use a wrapper ``get_tsfpga_modules()`` around the :func:`.get_modules` function.
+The wrapper sets the correct flags (all modules paths, :ref:`default registers <default_registers>` and ``library_name_has_lib_suffix``).
 It is recommended to use a function like this so the arguments don't have to be repeated in many places.
 
 
@@ -145,37 +134,11 @@ So in our :ref:`example build.py <example_build_py>` above we could have passed 
 
 
 
-Constraint files
------------------------
+Build result with utilization numbers
+-------------------------------------
 
-Constraints are added to the :class:`.VivadoProject` when :ref:`setting up the project <example_project_class>`.
-They are abstracted using this class.
-
-.. autoclass:: tsfpga.constraint.Constraint()
-    :members:
-
-
-
-Build step TCL hooks
---------------------
-
-TCL scripts can be added as hooks to certain build steps in Vivado.
-Scripts like these are passed to the :class:`.VivadoProject` using this class.
-It is possible to add more than one hook per step.
-
-.. autoclass:: tsfpga.build_step_tcl_hook.BuildStepTclHook()
-    :members:
-
-
-
-Build result
-------------
-
-The :meth:`.VivadoProject.build` and :meth:`.VivadoProject.create` methods will return an object like this upon completion.
+The :meth:`.VivadoProject.build` method will return a :class:`.BuildResult` object upon completion.
 It can be inspected to see if the run passed or failed, and what the resource utilization of the build is.
-
-.. autoclass:: tsfpga.vivado.project.BuildResult()
-    :members:
 
 
 

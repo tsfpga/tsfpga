@@ -28,6 +28,7 @@ def main():
 
     generate_registers()
     generate_release_notes()
+    generate_apidoc()
     generate_sphinx_index()
     build_sphinx()
 
@@ -89,6 +90,24 @@ Release history and changelog for the tsfpga project.
         rst += "\n"
 
     create_file(tsfpga.TSFPGA_GENERATED / "sphinx" / "release_notes.rst", rst)
+
+
+def generate_apidoc():
+    output_path = delete(tsfpga.TSFPGA_GENERATED / "sphinx" / "apidoc")
+    cmd = [
+        sys.executable,
+        "-m",
+        "sphinx.ext.apidoc",
+        "-o",
+        str(output_path),
+        "tsfpga",
+        # Exclude test files
+        "**/test/**",
+        # Inherits from a VUnit class, which sphinx cant find.
+        # Might be possible to solve.
+        "tsfpga/build_project_list.py",
+    ]
+    check_call(cmd, cwd=tsfpga.REPO_ROOT)
 
 
 def generate_sphinx_index():

@@ -131,36 +131,3 @@ Constraint files in the ``scoped_constraints`` directory will be automatically a
 
 The name of a scoped constraint file must be the same as the entity name and source file name.
 In the example tree above there is a scoped constraint file ``sample_data.tcl`` that will be applied to ``sample_data.vhd``, which presumably contains an entity called ``sample_data``.
-
-
-
-.. _get_modules:
-
-The get_modules() method
-________________________
-
-A call to :ref:`get_modules() <get_modules>` creates :ref:`module objects <module_objects>` from the directory structure of the folders listed in the argument.
-The library name is deduced from the name of each module folder.
-Source files, packages and testbenches are collected from a few standard locations within the module folder.
-
-.. autofunction:: tsfpga.module.get_modules
-
-
-
-.. _module_objects:
-
-Module objects
-______________
-
-.. autoclass:: tsfpga.module.BaseModule()
-    :members:
-
-
-
-.. _hdl_file:
-
-HdlFile objects
-_______________
-
-.. autoclass:: tsfpga.hdl_file.HdlFile()
-    :members:

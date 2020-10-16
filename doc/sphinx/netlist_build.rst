@@ -17,12 +17,9 @@ Since these builds are typically very small, it is reasonable to parameterize ma
 Python class
 ------------
 
-The python class for netlist builds is a child class of :class:`.VivadoProject`.
+The python class for netlist builds, :class:`.VivadoNetlistProject`, is a child class of :class:`.VivadoProject`.
 The only real difference is that IO buffers are not included and no pinning/constraining is needed.
 By separating these builds into separate classes, top level FPGA builds and netlist builds can be listed and built separately.
-
-.. autoclass:: tsfpga.vivado.project.VivadoNetlistProject()
-    :members:
 
 
 
@@ -48,9 +45,5 @@ They are attached to a build in this fashion:
     )
 
 See the repo for other examples.
-
-.. autoclass:: tsfpga.vivado.size_checker.SizeChecker()
-    :members:
-
-.. autoclass:: tsfpga.vivado.size_checker.LessThan()
-    :members:
+There are checkers available for most of the Xilinx primitives, e.g. ``Total LUTs``, ``RABM18``, ``RAMB36`` as shown in the example.
+See the :mod:`API documentation <.size_checker>` for more.

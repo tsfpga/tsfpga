@@ -35,7 +35,7 @@ If the source code is roughly organized along the :ref:`folder structure <folder
 
     vunit_proj.main()
 
-The call to :ref:`get_modules() <get_modules>` creates :ref:`module objects <module_objects>` from the directory structure of the folders listed in the argument.
+The call to :func:`.get_modules` creates :class:`module objects <.BaseModule>` from the directory structure of the folders listed in the argument.
 The library name is deduced from the name of each module folder.
 Source files, packages and testbenches are collected from a few standard locations within the module folder.
 
@@ -43,7 +43,7 @@ Source files, packages and testbenches are collected from a few standard locatio
     If you use a different folder structure within the modules than what is currently supported by tsfpga, feel free to create an `issue <https://gitlab.com/tsfpga/tsfpga/issues>`__ or a merge request.
 
 
-The :meth:`module.get_simulation_files() <.BaseModule.get_simulation_files>` call returns a list of files (:ref:`HdlFile objects <hdl_file>`) that are to be included in the simulation project.
+The :meth:`module.get_simulation_files() <.BaseModule.get_simulation_files>` call returns a list of files (:class:`.HdlFile` objects) that are to be included in the simulation project.
 This includes source files and packages as well as test files.
 If you use :ref:`register code generation <registers>`, the call will generate a new VHDL package so that you are always simulating with an up-to-date register definition.
 
@@ -100,9 +100,9 @@ This will result in the tests
     fifo.tb_fifo.width_24.depth_16.all
     fifo.tb_fifo.width_24.depth_1024.all
 
-So what happens here is that we created a class ``Module`` that inherits from :ref:`BaseModule <module_objects>`.
+So what happens here is that we created a class ``Module`` that inherits from :class:`.BaseModule`.
 In this class we override the ``setup_vunit()`` method, which does nothing in the parent class, to set up our simulation configurations.
-The :ref:`get_modules() <get_modules>` call used in our ``simulate.py`` will recognize that this module has a Python file to set up it's own class.
+The :func:`.get_modules` call used in our ``simulate.py`` will recognize that this module has a Python file to set up it's own class.
 When creating module objects the function will then use the user-specified class for this module.
 Later in ``simulate.py`` when ``setup_vunit()`` is run, the code we specified above will be run.
 
@@ -122,10 +122,7 @@ Vivado simulation libraries
 ---------------------------
 
 Compiled Vivado simulation libraries (unisim, xpm, etc.) are often need in the simulation project.
-The ``VivadoSimlib`` class provides an easy interface for handling simlib.
-
-.. autoclass:: tsfpga.vivado.simlib.VivadoSimlib()
-    :members:
+The :class:`.VivadoSimlib` class provides an easy interface for handling simlib.
 
 There are different implementations depending on the simulator currently in use.
 The implementation for commercial simulators will compile simlib by calling Vivado with a TCL script containing a ``compile_simlib ...`` call.
@@ -133,9 +130,6 @@ For GHDL the implementation contains hard coded ghdl compile calls of the needed
 
 All implementations are interface compatible with the :class:`.VivadoSimlibCommon` class.
 They will only do a recompile when necessary (new Vivado or simulator version, etc.).
-
-.. autoclass:: tsfpga.vivado.simlib_common.VivadoSimlibCommon()
-    :members:
 
 Adding simlib to a simulation project using this class is achieved by simply doing:
 
@@ -168,15 +162,12 @@ The :meth:`from_archive <.VivadoSimlibCommon.from_archive>` and :meth:`to_archiv
 Simulating with Vivado IP cores
 -------------------------------
 
-There is a class available in tsfpga for handling the IP cores that shall be included in the simulation project.
+The :class:`.VivadoIpCores` class handles the IP cores that shall be included in a simulation project.
 From the list of modules it will create a Vivado project with all the IP cores.
 This project shall then be used to generate the simulation models for the IP cores, which shall then be added to the simulation project.
 
 .. note::
     The :ref:`folder structure <ip_cores_folder>` must be followed for this to work.
-
-.. autoclass:: tsfpga.vivado.ip_cores.VivadoIpCores()
-    :members:
 
 Adding IP cores to a simulation project can be done like this:
 

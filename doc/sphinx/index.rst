@@ -19,3 +19,11 @@
     netlist_build
     module_structure
     registers
+
+.. toctree::
+    :caption: API reference
+    :hidden:
+
+    api_reference/tsfpga
+    api_reference/tsfpga.registers
+    api_reference/tsfpga.vivado
