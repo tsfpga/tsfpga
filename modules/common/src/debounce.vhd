@@ -22,7 +22,7 @@ entity debounce is
   );
   port (
     -- Input value that may be metastable and noisy
-    noisy_input : std_logic := '0';
+    noisy_input : in std_logic := '0';
     --
     clk : in std_logic;
     stable_result : out std_logic := '0'
