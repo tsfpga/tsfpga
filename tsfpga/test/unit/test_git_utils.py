@@ -7,7 +7,7 @@ import os
 import unittest
 
 import pytest
-from git import Repo
+from git import Actor, Repo
 
 from tsfpga import REPO_ROOT, TSFPGA_MODULES
 from tsfpga.git_utils import (
@@ -90,11 +90,12 @@ class TestGitCommitWithLocalChanges(unittest.TestCase):
     def setUp(self):
         self.repo_path = self.tmp_path / "my_repo"
         self.repo = Repo.init(self.repo_path)
+        self.actor = Actor("A name", "an@email.com")
 
         initial_file = self.repo_path / "initial_commit_file.txt"
         create_file(initial_file)
         self.repo.index.add(str(initial_file))
-        self.repo.index.commit("Initial commit")
+        self.repo.index.commit("Initial commit", author=self.actor, committer=self.actor)
 
         self.trash_file = self.repo_path / "local_file_for_git_test.apa"
         create_file(self.trash_file)
@@ -118,5 +119,5 @@ class TestGitCommitWithLocalChanges(unittest.TestCase):
             os.environ["GIT_COMMIT"] = old_env
 
     def test_get_git_commit_without_local_changes(self):
-        self.repo.index.commit("Trash commit")
+        self.repo.index.commit("Trash commit", author=self.actor, committer=self.actor)
         assert not get_git_commit(directory=self.repo_path).endswith(self._local_changes_present)
