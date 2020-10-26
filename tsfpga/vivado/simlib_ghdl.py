@@ -45,8 +45,6 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
     def _compile_unisim(self, library_path):
         for vhd_file_base in [
             "unisim_VPKG",
-            "unisim_VCOMP",
-            "retarget_VCOMP",
             "unisim_retarget_VCOMP",
         ]:
             vhd_file = library_path / (vhd_file_base + ".vhd")
