@@ -134,6 +134,16 @@ class LogicLuts(SizeChecker):
     resource_name = "Logic LUTs"
 
 
+class DspBlocks(SizeChecker):
+
+    """
+    Vivado pre 2020.1 called this resource "DSP48 Blocks" in the utilization report. Another class
+    is kept for that purpose.
+    """
+
+    resource_name = "DSP Blocks"
+
+
 class Dsp48Blocks(SizeChecker):
 
     resource_name = "DSP48 Blocks"
