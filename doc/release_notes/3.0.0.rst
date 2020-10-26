@@ -3,6 +3,7 @@ Added
 * Add ``last`` flag and packet mode to asynchronous FIFO.
 * Add AXI FIFOs and CDCs.
 * Add class for :class:`Vivado netlist builds <.VivadoNetlistProject>`.
+* Add ``axi.axil_pipeline`` VHDL entity.
 
 Fixes
 
@@ -14,4 +15,4 @@ Breaking changes
 * Remove default values from AXI conversion functions in ``axi_pkg`` and ``axil_pkg``.
   The ``addr_width``, ``data_width`` and ``id_width`` always have to be specified.
 * Change ``ram_type`` generic of FIFOs and FIFO wrappers to be of type
-  ``attribute_pkg.ram_style_t`` instead of ``string``.
+  ``common.attribute_pkg.ram_style_t`` instead of ``string``.
