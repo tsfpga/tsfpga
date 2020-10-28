@@ -24,7 +24,7 @@ class VivadoSimlibCommon:
     def compile_if_needed(self):
         """
         Compile if needed (if :meth:`compile_is_needed <.compile_is_needed>` condition is not
-            fulfilled).
+        fulfilled).
         """
         if self.compile_is_needed:
             self.compile()
