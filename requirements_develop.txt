@@ -6,6 +6,7 @@ pybadges
 pylint
 pytest
 pytest-cov
+pytest-xdist
 sphinx
 sphinx-rtd-theme
 twine
