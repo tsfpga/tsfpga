@@ -149,7 +149,7 @@ default_value = 3
         data = self.toml_data + toml_extras
         return create_file(self.tmp_path / "sensor_regs.toml", data)
 
-    def test_create_vhdl_package_should_not_run_again_if_nothing_has_changed(self):
+    def test_create_vhdl_package_should_not_run_if_nothing_has_changed(self):
         register_list = from_toml(self.module_name, self.toml_file)
         register_list.add_constant(name="apa", value=3)
         register_list.create_vhdl_package(self.tmp_path)
@@ -162,7 +162,23 @@ default_value = 3
             register_list.create_vhdl_package(self.tmp_path)
             mocked_create_vhdl_package.assert_not_called()
 
-    def test_create_vhdl_package_should_run_again_if_file_has_changed(self):
+    def test_create_vhdl_package_should_run_if_hash_or_version_can_not_be_read(self):
+        register_list = from_toml(self.module_name, self.toml_file)
+        register_list.create_vhdl_package(self.tmp_path)
+
+        # Overwrite the generated file, without a valid header
+        vhd_file = self.tmp_path / "sensor_regs_pkg.vhd"
+        assert vhd_file.exists()
+        create_file(vhd_file, contents="-- Mumbo jumbo\n")
+
+        register_list = from_toml(self.module_name, self.toml_file)
+        with patch(
+            "tsfpga.registers.register_list.RegisterList._create_vhdl_package", autospec=True
+        ) as mocked_create_vhdl_package:
+            register_list.create_vhdl_package(self.tmp_path)
+            mocked_create_vhdl_package.assert_called_once()
+
+    def test_create_vhdl_package_should_run_again_if_toml_file_has_changed(self):
         register_list = from_toml(self.module_name, self.toml_file)
         register_list.create_vhdl_package(self.tmp_path)
 
@@ -192,18 +208,14 @@ value = 3
             register_list.create_vhdl_package(self.tmp_path)
             mocked_create_vhdl_package.assert_called_once()
 
-    def test_create_vhdl_package_should_run_again_if_hash_can_not_be_read(self):
+    def test_create_vhdl_package_should_run_again_if_version_is_changed(self):
         register_list = from_toml(self.module_name, self.toml_file)
         register_list.create_vhdl_package(self.tmp_path)
 
-        # Overwrite the generated file
-        vhd_file = self.tmp_path / "sensor_regs_pkg.vhd"
-        assert vhd_file.exists()
-        create_file(vhd_file, contents="-- Mumbo jumbo\n")
-
-        register_list = from_toml(self.module_name, self.toml_file)
         with patch(
             "tsfpga.registers.register_list.RegisterList._create_vhdl_package", autospec=True
-        ) as mocked_create_vhdl_package:
+        ) as mocked_create_vhdl_package, patch(
+            "tsfpga.registers.register_list.__version__", autospec=True
+        ) as _:
             register_list.create_vhdl_package(self.tmp_path)
             mocked_create_vhdl_package.assert_called_once()

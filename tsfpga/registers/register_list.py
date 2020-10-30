@@ -12,6 +12,7 @@ from pathlib import Path
 from tsfpga.git_utils import git_commands_are_available, get_git_commit
 from tsfpga.svn_utils import svn_commands_are_available, get_svn_revision_information
 from tsfpga.system_utils import create_directory, create_file, read_file
+from . import __version__
 from .constant import Constant
 from .register import Register
 from .register_array import RegisterArray
@@ -154,26 +155,32 @@ class RegisterList:
     def _should_create_vhdl_package(self, vhd_file, self_hash):
         if not vhd_file.exists():
             return True
-        if self_hash != self._find_hash_of_existing_vhdl_package(vhd_file):
+        if (self_hash, __version__) != self._find_hash_and_version_of_existing_vhdl_package(
+            vhd_file
+        ):
             return True
         return False
 
     @staticmethod
-    def _find_hash_of_existing_vhdl_package(vhd_file):
+    def _find_hash_and_version_of_existing_vhdl_package(vhd_file):
         """
-        Returns `None` if nothing found, otherwise the matching string.
+        Returns `None` if nothing found, otherwise the matching strings in a tuple.
         """
-        regexp = re.compile(r"\n-- Register hash ([0-9a-f]+)\.\n")
+        regexp = re.compile(
+            r"\n-- Register hash ([0-9a-f]+), generator version (\d+\.\d+\.\d+)\.\n"
+        )
         existing_file_content = read_file(vhd_file)
         match = regexp.search(existing_file_content)
         if match is None:
             return None
-        return match.group(1)
+        return match.group(1), match.group(2)
 
     def _create_vhdl_package(self, vhd_file, self_hash):
         print(f"Creating VHDL register package {vhd_file}")
         # Add a header line with the hash
-        generated_info = self._generated_source_info() + [f"Register hash {self_hash}."]
+        generated_info = self._generated_source_info() + [
+            f"Register hash {self_hash}, generator version {__version__}."
+        ]
         register_vhdl_generator = RegisterVhdlGenerator(self.name, generated_info)
         with vhd_file.open("w") as file_handle:
             file_handle.write(
