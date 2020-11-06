@@ -26,8 +26,9 @@ workflow:
 default:
   # Use docker image from ghdl project
   # Available at https://hub.docker.com/r/ghdl/vunit/
-  # Configured at https://github.com/ghdl/docker/tree/master/dockerfiles
-  image: ghdl/vunit:gcc-master
+  # Configured at https://github.com/ghdl/docker/
+  # Note that the mcode image is much smaller than the gcc image.
+  image: ghdl/vunit:mcode-master
   before_script:
     - python3 --version
     - export PYTHONPATH=$(pwd)/tsfpga
@@ -45,8 +46,6 @@ pytest:
     - python3 -m pip install --requirement requirements_develop.txt > /dev/null
     - python3 -m pylint --version
     - python3 -m pycodestyle --version
-    - git clone https://github.com/vunit/vunit ../vunit
-    - export PYTHONPATH=../vunit
     - python3 -m pytest -v --cov tsfpga --cov-report xml:generated/python_coverage.xml --cov-report html:generated/python_coverage_html --ignore=tsfpga/test/functional/vivado tsfpga
   artifacts:
     paths:
@@ -56,6 +55,8 @@ pytest:
 
 simulate:
   stage: test
+  # Code coverage needs the gcc backend.
+  image: ghdl/vunit:gcc-master
   script:
     - python3 -m pip install GitPython toml > /dev/null
     - ghdl --version
@@ -78,8 +79,8 @@ build_pypi:
 
 
 formal:
-  image: tsfpga/formal
   stage: test
+  image: tsfpga/formal
   script:
     - ghdl --version
     - python3 examples/formal.py --num-threads 4
