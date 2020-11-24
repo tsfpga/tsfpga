@@ -131,7 +131,9 @@ def setup_and_run(modules, projects, args):
         return 0
 
     # If doing only synthesis there are no artifacts to collect
-    collect_artifacts_function = None if args.synth_only else collect_artifacts
+    collect_artifacts_function = (
+        None if (args.synth_only or args.netlist_builds) else collect_artifacts
+    )
 
     build_ok = projects.build(
         projects_path=args.projects_path,
