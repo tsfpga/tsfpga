@@ -11,7 +11,6 @@ from vunit.test.runner import TestRunner
 from vunit.test.report import TestReport
 
 from tsfpga.yosys_project import YosysProject
-
 from tsfpga.module import BaseModule
 
 
@@ -156,6 +155,10 @@ class FormalTestCase:
 
         self.test_configuration = TestConfiguration()
 
+    @property
+    def name(self):
+        return self._formal_config.test_name
+
     def set_src_files(self, src_files):
         self._src_files = src_files
 
@@ -180,12 +183,32 @@ class FormalTestCase:
             formal_settings=self._formal_config.formal_settings,
         )
 
-        return project.run_formal(
+        test_ok = project.run_formal(
             project_path=output_path,
             src_files=self._src_files,
             compiled_libraries=self._compiled_libraries,
         )
 
-    @property
-    def name(self):
-        return self._formal_config.test_name
+        if not test_ok:
+            self._print_trace_help(output_path)
+
+        return test_ok
+
+    @staticmethod
+    def _print_trace_help(output_path):
+        """
+        Prints the location of trace files, if any available.
+        """
+        message = "\n\nFormal test case failed. "
+        vcd_files = output_path.glob("**/*.vcd")
+        if vcd_files:
+            message += "You might want to inspect the trace file(s):"
+            print(message)
+            for vcd_file in vcd_files:
+                print(f"  gtkwave {vcd_file} &")
+        else:
+            message += (
+                "There does not seem to be any trace files available for inspection. "
+                "Please see log output instead."
+            )
+            print(message)
