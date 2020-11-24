@@ -31,8 +31,9 @@ entity tb_afifo is
     almost_full_level : natural := 0;
     read_stall_probability_percent : integer := 0;
     write_stall_probability_percent : integer := 0;
-    enable_last : boolean := false;
     enable_packet_mode : boolean := false;
+    enable_last : boolean := false;
+    enable_drop_packet : boolean := false;
     runner_cfg : string
   );
 end entity;
@@ -49,6 +50,8 @@ architecture tb of tb_afifo is
 
   signal read_level, write_level : integer;
   signal read_almost_empty, write_almost_full : std_logic := '0';
+
+  signal drop_packet : std_logic := '0';
 
   signal has_gone_full_times, has_gone_empty_times : integer := 0;
 
@@ -153,6 +156,21 @@ begin
       wait until rising_edge(clk_read);
     end procedure;
 
+    procedure clear_queue(queue : queue_t) is
+      variable dummy : character;
+    begin
+      while not is_empty(queue) loop
+        dummy := unsafe_pop(queue);
+      end loop;
+    end procedure;
+
+    procedure pulse_drop_packet is
+    begin
+      drop_packet <= '1';
+      wait until rising_edge(clk_write);
+      drop_packet <= '0';
+    end procedure;
+
   begin
     test_runner_setup(runner, runner_cfg);
     rnd.InitSeed(rnd'instance_name);
@@ -185,6 +203,9 @@ begin
       check_true(is_empty(data_queue));
 
     elsif run("test_packet_mode") then
+      -- Write and immediately read a small packet
+      run_test(read_count=>1, write_count=>1);
+
       -- Write a few words, without setting last
       run_test(read_count=>0, write_count=>3, set_last_flag=>false);
       wait_for_write_to_propagate;
@@ -248,6 +269,72 @@ begin
 
       run_read(1);
       check_equal(read_valid, False);
+
+    elsif run("test_drop_packet_mode_read_level_should_be_zero") then
+      -- Write a couple of packets
+      run_write(4);
+      run_write(4);
+      run_write(4);
+      wait_for_write_to_propagate;
+
+      check_equal(read_level, 0);
+
+    elsif run("test_drop_packet_random_data") then
+      -- Write and read some data, to make the pointers advance a little.
+      -- Note that this will set write_last on the last write, and some data will be left unread.
+      run_test(read_count=>depth / 2, write_count=>depth * 3 / 4);
+      wait_for_read_to_propagate;
+      check_equal(write_level, depth / 4);
+
+      -- Write some data without setting last, simulating a packet in progress.
+      -- Drop the packet, and then read out the remainder of the previous packet.
+      -- Note that the counts chosen will make the pointers wraparound.
+      run_test(read_count=>0, write_count=>depth / 2, set_last_flag=>false);
+      pulse_drop_packet;
+      run_read(depth / 4);
+
+      wait_for_read_to_propagate;
+      check_equal(read_valid, '0');
+      check_equal(write_level, 0);
+
+      -- Clear the data in the reference queues. This will be the data that was written, and then
+      -- cleared. Hence it was never read and therefore the data is left in the queues.
+      clear_queue(data_queue);
+      clear_queue(last_queue);
+
+      -- Write and verify a packet. Should be the only thing remaining in the FIFO.
+      run_write(4);
+      check_equal(write_level, 4);
+
+      run_read(4);
+      check_equal(read_valid, '0');
+      wait_for_read_to_propagate;
+      check_equal(write_level, 0);
+
+    elsif run("test_drop_packet_in_same_cycle_as_write_last_should_drop_the_packet") then
+      check_equal(write_level, 0);
+
+      push_axi_stream(net, write_master, tdata=>x"00", tlast=>'0');
+      push_axi_stream(net, write_master, tdata=>x"00", tlast=>'1');
+
+      -- Time the behavior of the AXI-Stream master. Appears to be a one cycle delay.
+      wait until rising_edge(clk_write);
+
+      -- The first write happens at this rising edge.
+      wait until rising_edge(clk_write);
+
+      -- Set drop signal on same cycle as the "last" write
+      drop_packet <= '1';
+      wait until rising_edge(clk_write);
+
+      check_equal(write_level, 1);
+      check_equal(write_ready and write_valid and write_last and drop_packet, '1');
+      wait until rising_edge(clk_write);
+
+      -- Make sure the packet was dropped
+      check_equal(write_level, 0);
+      wait_for_write_to_propagate;
+      check_equal(read_valid, '0');
 
     elsif run("test_levels_full_range") then
       -- Check empty status
@@ -365,8 +452,9 @@ begin
       depth => depth,
       almost_full_level => almost_full_level,
       almost_empty_level => almost_empty_level,
+      enable_packet_mode => enable_packet_mode,
       enable_last => enable_last,
-      enable_packet_mode => enable_packet_mode
+      enable_drop_packet => enable_drop_packet
     )
     port map (
       clk_read => clk_read,
@@ -385,7 +473,9 @@ begin
       write_last  => write_last,
       --
       write_level => write_level,
-      write_almost_full => write_almost_full
+      write_almost_full => write_almost_full,
+      --
+      drop_packet => drop_packet
     );
 
 end architecture;

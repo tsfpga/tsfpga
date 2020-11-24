@@ -27,15 +27,21 @@ entity fifo is
     -- Changing these levels from default value will increase logic footprint
     almost_full_level : integer range 0 to depth := depth;
     almost_empty_level : integer range 0 to depth := 0;
-    -- If enabled, read_valid will not be asserted until a full packet is available in
-    -- FIFO. I.e. when write_last has been received.
-    enable_packet_mode : boolean := false;
     -- Set to true in order to use read_last and write_last
-    enable_last : boolean := enable_packet_mode;
+    enable_last : boolean := false;
+    -- If enabled, read_valid will not be asserted until a full packet is available in
+    -- FIFO. I.e. when write_last has been received. Must set enable_last as well to use this.
+    enable_packet_mode : boolean := false;
+    -- Set to true in order to use the drop_packet port. Must set enable_packet_mode as
+    -- well to use this.
+    enable_drop_packet : boolean := false;
     ram_type : ram_style_t := ram_style_auto
   );
   port (
     clk : in std_logic;
+    -- When packet_mode is enabled, this value will still reflect the number of words that are in
+    -- the FIFO RAM. This is not necessarily the same as the number of words that can be read, in
+    -- this mode.
     level : out integer range 0 to depth := 0;
 
     read_ready : in std_logic;
@@ -54,18 +60,20 @@ entity fifo is
     -- Must set enable_last generic in order to use this
     write_last : in std_logic := '-';
     -- '1' if there are almost_full_level or more words available in the FIFO
-    almost_full : out std_logic := '0'
+    almost_full : out std_logic := '0';
+    -- Drop the current packet (all words that have been writen since the previous write_last).
+    -- Must set enable_drop_packet generic in order to use this.
+    drop_packet : in std_logic := '0'
   );
 end entity;
 
 architecture a of fifo is
 
-  constant enable_last_int : boolean := enable_last or enable_packet_mode;
-
   -- Need one extra bit in the addresses to be able to make the distinction if the FIFO
   -- is full or empty (where the addresses would otherwise be equal).
   subtype fifo_addr_t is unsigned(num_bits_needed(2 * depth - 1) - 1 downto 0);
-  signal read_addr_next, read_addr, write_addr : fifo_addr_t := (others => '0');
+  signal read_addr_next, read_addr, write_addr, write_addr_start_of_packet :
+    fifo_addr_t := (others => '0');
 
   -- The part of the address that actually goes to the BRAM address port
   subtype bram_addr_range is integer range num_bits_needed(depth - 1) - 1 downto 0;
@@ -76,7 +84,10 @@ begin
 
   assert is_power_of_two(depth) report "Depth must be a power of two" severity failure;
 
-  assert enable_last or (not enable_packet_mode) report "Must set enable_last for packet mode" severity failure;
+  assert enable_last or (not enable_packet_mode)
+    report "Must set enable_last for packet mode" severity failure;
+  assert enable_packet_mode or (not enable_drop_packet)
+    report "Must set enable_packet_mode for drop packet support" severity failure;
 
   -- The flags will update one cycle after the write/read that puts them over/below the line.
   -- Except for almost_empty when almost_empty_level is zero.
@@ -104,26 +115,46 @@ begin
   begin
     wait until rising_edge(clk);
 
-    level <= level + to_int(write_valid and write_ready) - to_int(read_ready and read_valid);
-
-    write_addr_next := write_addr + to_int(write_ready and write_valid);
-
-    write_ready <= to_sl(
-      read_addr_next(bram_addr_range) /= write_addr_next(bram_addr_range)
-      or read_addr_next(read_addr_next'high) =  write_addr_next(write_addr_next'high));
-
     if enable_packet_mode then
       num_lasts_in_fifo_next := num_lasts_in_fifo
         + to_int(write_ready and write_valid and write_last)
         - to_int(read_ready and read_valid and read_last);
-      read_valid <= to_sl(read_addr_next /= write_addr and num_lasts_in_fifo_next /= 0);
+
+      -- We look at num_lasts_in_fifo_next since we need to update read_valid the same cycle when
+      -- the read happens.
+      -- We also look at num_lasts_in_fifo since a write needs an additional clock
+      -- cycle to propagate into the RAM. This is really only needed when the FIFO is empty and
+      -- a packet of length one is written. With this condition, there will be a two cycle latency
+      -- from write_last being written to read_valid being asserted.
+      read_valid <= to_sl(num_lasts_in_fifo /= 0 and num_lasts_in_fifo_next /= 0);
+      num_lasts_in_fifo <= num_lasts_in_fifo_next;
     else
       read_valid <= to_sl(read_addr_next /= write_addr);
     end if;
 
     read_addr <= read_addr_next;
+
+    write_addr_next := write_addr + to_int(write_ready and write_valid);
+    write_ready <= to_sl(
+      read_addr_next(bram_addr_range) /= write_addr_next(bram_addr_range)
+      or read_addr_next(read_addr_next'high) =  write_addr_next(write_addr_next'high));
+
+    -- Note that this potential update of write_addr_next does not affect write_ready,
+    -- assigned above. This is done to save logic and ease the timing of write_ready which is
+    -- often critical. There is a functional difference only in the special case when the FIFO
+    -- goes full in the same cycle as drop_packet is sent. In that case, write_ready will be low
+    -- for one cycle and then go high the next.
+    if enable_drop_packet then
+      if drop_packet then
+        write_addr_next := write_addr_start_of_packet;
+      elsif write_ready and write_valid and write_last then
+        write_addr_start_of_packet <= write_addr_next;
+      end if;
+    end if;
+
+    -- These signals however must have the updated value.
     write_addr <= write_addr_next;
-    num_lasts_in_fifo <= num_lasts_in_fifo_next;
+    level <= to_integer(write_addr_next - read_addr_next) mod (2 * depth);
   end process;
 
   read_addr_next <= read_addr + to_int(read_ready and read_valid);
@@ -131,7 +162,7 @@ begin
 
   ------------------------------------------------------------------------------
   memory_block : block
-    constant memory_word_width : integer := width + to_int(enable_last_int);
+    constant memory_word_width : integer := width + to_int(enable_last);
     subtype word_t is std_logic_vector(memory_word_width - 1 downto 0);
     type mem_t is array (integer range <>) of word_t;
 
@@ -144,7 +175,7 @@ begin
     read_data <= memory_read_data(read_data'range);
     memory_write_data(write_data'range) <= write_data;
 
-    assign_data : if enable_last_int generate
+    assign_data : if enable_last generate
       read_last <= memory_read_data(memory_read_data'high);
       memory_write_data(memory_write_data'high) <= write_last;
     end generate;
@@ -188,7 +219,7 @@ begin
     -- To constrain start state. Otherwise read_valid can start as one, and a read
     -- transaction occur, despite FIFO being empty.
     -- psl not_read_valid_unless_data_in_fifo : assert always
-    --   not (read_valid = '1' and fill_level = 0);
+    --   not (read_valid = '1' and level = 0);
     --
     -- Latency since data must propagate through BRAM.
     -- psl read_valid_goes_high_two_cycles_after_write : assert always
@@ -208,6 +239,16 @@ begin
     --
     -- psl read_valid_may_fall_only_after_handshake_transaction : assert always
     --   first_cycle = '0' and fell(read_valid) -> prev(read_ready);
+    --
+    -- psl level_should_stay_the_same_if_there_is_both_read_and_write : assert always
+    --   level = 2 and (read_ready and read_valid and write_ready and write_valid) = '1'
+    --     |=> level = 2;
+    --
+    -- psl level_should_decrease_cycle_after_read_if_there_is_no_write : assert always
+    --   level = 2 and (read_ready and read_valid and not write_valid) = '1' |=> level = 1;
+    --
+    -- psl level_should_increase_cycle_after_write_if_there_is_no_read : assert always
+    --   level = 2 and (write_ready and write_valid and not read_ready) = '1' |=> level = 3;
 
     -- The formal verification flow doesn't handle generics very well, so the
     -- check below is only done if the depth is 4.

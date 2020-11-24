@@ -32,6 +32,7 @@ entity tb_fifo is
     write_stall_probability_percent : integer := 0;
     enable_last : boolean := false;
     enable_packet_mode : boolean := false;
+    enable_drop_packet : boolean := false;
     runner_cfg : string
   );
 end entity;
@@ -46,6 +47,7 @@ architecture tb of tb_fifo is
   signal read_ready, read_valid, read_last, almost_empty : std_logic := '0';
   signal write_ready, write_valid, write_last, almost_full : std_logic := '0';
   signal read_data, write_data : std_logic_vector(width - 1 downto 0) := (others => '0');
+  signal drop_packet : std_logic := '0';
 
   signal has_gone_full_times, has_gone_empty_times : integer := 0;
 
@@ -129,6 +131,21 @@ begin
       run_test(0, count);
     end procedure;
 
+    procedure clear_queue(queue : queue_t) is
+      variable dummy : character;
+    begin
+      while not is_empty(queue) loop
+        dummy := unsafe_pop(queue);
+      end loop;
+    end procedure;
+
+    procedure pulse_drop_packet is
+    begin
+      drop_packet <= '1';
+      wait until rising_edge(clk);
+      drop_packet <= '0';
+    end procedure;
+
   begin
     test_runner_setup(runner, runner_cfg);
     rnd.InitSeed(rnd'instance_name);
@@ -145,7 +162,11 @@ begin
       check_equal(write_ready, '1');
       check_equal(almost_full, '0');
       check_equal(almost_empty, '1');
-      wait until read_valid'event or write_ready'event or almost_full'event or almost_empty'event for 1 us;
+
+      wait until
+        read_valid'event or write_ready'event or almost_full'event or almost_empty'event
+        for 1 us;
+
       check_equal(read_valid, '0');
       check_equal(write_ready, '1');
       check_equal(almost_full, '0');
@@ -162,13 +183,18 @@ begin
       check_relation(has_gone_empty_times > 500, "Got " & to_string(has_gone_empty_times));
 
     elsif run("test_packet_mode") then
+      -- Write and immediately read a short packet
+      run_test(read_count=>1, write_count=>1);
+
       -- Write a few words, without setting last
       run_test(read_count=>0, write_count=>3, set_last_flag=>false);
       check_relation(level > 0);
       check_equal(read_valid, False);
 
-      -- Writing another word, with last set, shall enable read valid
+      -- Writing another word, with last set, shall enable read valid.
+      -- Note that the read_valid latency is one cycle higher in packet_mode.
       run_test(read_count=>0, write_count=>1);
+      wait until rising_edge(clk);
       check_equal(read_valid, True);
 
       -- Write further packets
@@ -187,8 +213,10 @@ begin
       check_relation(level > 0);
       check_equal(read_valid, False);
 
-      -- Writing another word, with last set, shall enable read valid
+      -- Writing another word, with last set, shall enable read valid.
+      -- Note that the read_valid latency is one cycle higher in packet_mode.
       run_test(read_count=>0, write_count=>1);
+      wait until rising_edge(clk);
       check_equal(read_valid, True);
 
     elsif run("test_packet_mode_deep") then
@@ -220,6 +248,58 @@ begin
 
       run_read(1);
       check_equal(read_valid, False);
+
+    elsif run("test_drop_packet_random_data") then
+      -- Write and read some data, to make the pointers advance a little.
+      -- Note that this will set write_last on the last write, and some data will be left unread.
+      run_test(read_count=>depth / 2, write_count=>depth * 3 / 4);
+      check_equal(level, depth / 4);
+
+      -- Write some data without setting last, simulating a packet in progress.
+      -- Drop the packet, and then read out the remainder of the previous packet.
+      -- Note that the counts chosen will make the pointers wraparound.
+      run_test(read_count=>0, write_count=>depth / 2, set_last_flag=>false);
+      pulse_drop_packet;
+      run_read(depth / 4);
+
+      check_equal(read_valid, '0');
+      check_equal(level, 0);
+
+      -- Clear the data in the reference queues. This will be the data that was written, and then
+      -- cleared. Hence it was never read and therefore the data is left in the queues.
+      clear_queue(data_queue);
+      clear_queue(last_queue);
+
+      -- Write and verify a packet. Should be the only thing remaining in the FIFO.
+      run_write(4);
+      check_equal(level, 4);
+
+      run_read(4);
+      check_equal(read_valid, '0');
+      check_equal(level, 0);
+
+    elsif run("test_drop_packet_in_same_cycle_as_write_last_should_drop_the_packet") then
+      check_equal(level, 0);
+
+      push_axi_stream(net, write_master, tdata=>x"00", tlast=>'0');
+      push_axi_stream(net, write_master, tdata=>x"00", tlast=>'1');
+
+      -- Time the behavior of the AXI-Stream master. Appears to be a one cycle delay.
+      wait until rising_edge(clk);
+
+      -- The first write happens at this rising edge.
+      wait until rising_edge(clk);
+
+      -- Set drop signal on same cycle as the "last" write
+      drop_packet <= '1';
+      wait until rising_edge(clk);
+
+      check_equal(level, 1);
+      check_equal(write_ready and write_valid and write_last and drop_packet, '1');
+      wait until rising_edge(clk);
+
+      -- Make sure the packet was dropped
+      check_equal(level, 0);
 
     elsif run("test_almost_full") then
       check_equal(almost_full, '0');
@@ -261,12 +341,14 @@ begin
   begin
     wait until rising_edge(clk);
 
-    -- If there was a read transaction last clock cycle, and we now want to read but there is no data available.
+    -- If there was a read transaction last clock cycle, and we now want to read but there is no
+    -- data available.
     if read_transaction and read_ready and not read_valid then
       has_gone_empty_times <= has_gone_empty_times + 1;
     end if;
 
-    -- If there was a write transaction last clock cycle, and we now want to write but the fifo is full.
+    -- If there was a write transaction last clock cycle, and we now want to write but the fifo
+    -- is full.
     if write_transaction and write_valid and not write_ready then
       has_gone_full_times <= has_gone_full_times + 1;
     end if;
@@ -311,7 +393,8 @@ begin
       almost_full_level => almost_full_level,
       almost_empty_level => almost_empty_level,
       enable_last => enable_last,
-      enable_packet_mode => enable_packet_mode
+      enable_packet_mode => enable_packet_mode,
+      enable_drop_packet => enable_drop_packet
     )
     port map (
       clk => clk,
@@ -327,7 +410,8 @@ begin
       write_valid => write_valid,
       write_data => write_data,
       write_last => write_last,
-      almost_full => almost_full
+      almost_full => almost_full,
+      drop_packet => drop_packet
     );
 
 end architecture;

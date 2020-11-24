@@ -28,6 +28,7 @@ entity fifo_wrapper is
     almost_empty_level : integer range 0 to depth := 0;
     enable_last : boolean := false;
     enable_packet_mode : boolean := false;
+    enable_drop_packet : boolean := false;
     ram_type : ram_style_t := ram_style_auto
   );
   port (
@@ -55,7 +56,10 @@ entity fifo_wrapper is
     -- Note that this is the same as read_level for a synchronous FIFO.
     write_level : out integer range 0 to depth := 0;
     -- Note that for an asynchronous FIFO, this signal is in the "write" clock domain.
-    almost_full : out std_logic := '0'
+    almost_full : out std_logic := '0';
+
+    -- Note that for an asynchronous FIFO, this signal is in the "write" clock domain
+    drop_packet : in std_logic := '0'
   );
 end entity;
 
@@ -74,6 +78,7 @@ begin
         almost_empty_level => almost_empty_level,
         enable_last => enable_last,
         enable_packet_mode => enable_packet_mode,
+        enable_drop_packet => enable_drop_packet,
         ram_type => ram_type
       )
       port map (
@@ -93,7 +98,9 @@ begin
         write_last => write_last,
         --
         write_level => write_level,
-        write_almost_full => almost_full
+        write_almost_full => almost_full,
+        --
+        drop_packet => drop_packet
       );
 
   else generate
@@ -107,6 +114,7 @@ begin
         almost_empty_level => almost_empty_level,
         enable_last => enable_last,
         enable_packet_mode => enable_packet_mode,
+        enable_drop_packet => enable_drop_packet,
         ram_type => ram_type
       )
       port map (
@@ -123,7 +131,9 @@ begin
         write_valid => write_valid,
         write_data => write_data,
         write_last => write_last,
-        almost_full => almost_full
+        almost_full => almost_full,
+        --
+        drop_packet => drop_packet
       );
 
     write_level <= read_level;
