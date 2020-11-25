@@ -4,17 +4,11 @@ Module structure
 ================
 
 Source code management in tsfpga is centered around modules.
-This page describes how modules must be structured in the file system.
-It also shows how modules and files are abstracted in python classes and methods.
-
-
-Folder structure
-________________
+This page describes how modules must be structured in the file system in order to use all available functions.
 
 Some functions in tsfpga require that modules use a certain folder structure.
 For example, if we want to set up :ref:`local test configurations <local_configuration>` we
 must use a file called exactly ``module_<name>.py`` in the root of the module.
-
 Additionally the :meth:`get_modules() <tsfpga.module.get_modules>` function in tsfpga, which creates
 :class:`module objects <tsfpga.module.BaseModule>` from a source tree, will look for source files only in certain sub-directories.
 
@@ -90,7 +84,7 @@ Extra files
 
 An FPGA build project might need a lot extra files, such as TCL scripts for pinning, block design, etc.
 Or maybe some simulations need data files stored on disk.
-It is perfectly valid to create other folders within the module, e.g. `tcl` or `test/data`, and place files there.
+It is perfectly valid to create other folders within the module, e.g. ``tcl`` or ``test/data``, and place files there.
 Extra folders like these can be used freely and will not have any significance to tsfpga.
 
 
