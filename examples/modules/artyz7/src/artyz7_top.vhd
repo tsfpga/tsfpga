@@ -152,6 +152,8 @@ begin
     signal ddr_buffer_reg_was_written : std_logic;
   begin
 
+    -- Some dummy logic that instantiates a lot of the resync blocks.
+
     -- Write fifo when a ddr buffer register was written, and read when a register was read
     ddr_buffer_reg_was_written <= regs_m2s(ddr_buffer_regs_idx).write.w.valid and regs_s2m(ddr_buffer_regs_idx).write.w.ready;
     ddr_buffer_reg_was_read    <= regs_s2m(ddr_buffer_regs_idx).read.r.valid and regs_m2s(ddr_buffer_regs_idx).read.r.ready;
@@ -189,6 +191,9 @@ begin
     end process;
 
     resync_slv_level_inst: entity resync.resync_slv_level
+      generic map (
+        width => led_data'length
+      )
       port map (
         data_in  => led_data,
         clk_out  => clk_s_hp0,

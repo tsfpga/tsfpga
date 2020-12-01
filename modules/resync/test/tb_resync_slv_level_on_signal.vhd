@@ -65,11 +65,15 @@ begin
 
   ------------------------------------------------------------------------------
   dut : entity work.resync_slv_level_on_signal
+    generic map (
+      width => data_in'length
+    )
     port map (
       data_in => data_in,
 
       clk_out => clk_out,
       sample_value => sample_value,
-      data_out => data_out);
+      data_out => data_out
+    );
 
 end architecture;
