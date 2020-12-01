@@ -9,6 +9,7 @@ Added
 * Add :meth:`.BaseModule.pre_build`.
 * Add time saving mechanism to only re-create the register VHDL package when necessary.
 * Add ``common.debounce`` VHDL entity.
+* Add ``reg_was_read`` port to ``reg_file.axil_reg_file``.
 
 Breaking changes
 

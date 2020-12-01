@@ -36,9 +36,6 @@ end entity;
 
 architecture tb of tb_axil_reg_file is
 
-  constant data_width : integer := 32;
-  constant bytes_per_word : integer := data_width / 8;
-
   constant regs : reg_definition_vec_t(0 to 15 - 1) := (
     (idx => 0, reg_type => r),
     (idx => 1, reg_type => r),
@@ -64,14 +61,12 @@ architecture tb of tb_axil_reg_file is
 
   signal regs_up : reg_vec_t(regs'range) := (others => (others => '0'));
   signal regs_down : reg_vec_t(regs'range);
-  signal reg_was_written : std_logic_vector(regs'range);
+  signal reg_was_read, reg_was_written : std_logic_vector(regs'range);
 
-  constant axi_master : bus_master_t := new_bus(data_length => data_width, address_length => axil_m2s.read.ar.addr'length);
+  constant axi_master : bus_master_t := new_bus(data_length => reg_width, address_length => axil_m2s.read.ar.addr'length);
 
-  type memory_data_t is array(0 to regs'length - 1) of std_logic_vector(data_width - 1 downto 0);
-
-  constant reg_zero : std_logic_vector(data_width - 1 downto 0) := (others => '0');
-  constant reg_was_written_zero : std_logic_vector(reg_was_written'range) := (others => '0');
+  constant reg_zero : reg_t := (others => '0');
+  constant reg_was_accessed_zero : std_logic_vector(reg_was_written'range) := (others => '0');
 
 begin
 
@@ -82,7 +77,7 @@ begin
   ------------------------------------------------------------------------------
   main : process
     variable rnd : RandomPType;
-    variable fabric_data, bus_data : memory_data_t;
+    variable fabric_data, bus_data : reg_vec_t(0 to regs'length - 1);
 
     procedure reg_stimuli(reg : reg_definition_t) is
     begin
@@ -96,11 +91,13 @@ begin
     end procedure;
 
     procedure reg_data_check(reg : reg_definition_t) is
-      variable reg_was_written_expected : std_logic_vector(reg_was_written'range) := (others => '0');
+      variable reg_was_accessed_expected : std_logic_vector(reg_was_written'range) := (others => '0');
+      variable read_bus_reference : bus_reference_t;
+      variable read_bus_data : reg_t;
     begin
-      if is_write_type(reg.reg_type) then
-        reg_was_written_expected(reg.idx) := '1';
+      reg_was_accessed_expected(reg.idx) := '1';
 
+      if is_write_type(reg.reg_type) then
         wait_for_write_to_go_through : while true loop
           if is_write_pulse_type(reg.reg_type) then
             -- The value that fabric gets should be zero all cycles except the one where the write happens
@@ -108,8 +105,8 @@ begin
           end if;
 
           wait until rising_edge(clk);
-          if reg_was_written /= reg_was_written_zero then
-            check_equal(reg_was_written, reg_was_written_expected);
+          if reg_was_written /= reg_was_accessed_zero then
+            check_equal(reg_was_written, reg_was_accessed_expected);
             exit wait_for_write_to_go_through;
           end if;
         end loop;
@@ -124,10 +121,18 @@ begin
       end if;
 
       if is_read_type(reg.reg_type) then
+        -- Initiate a non-blocking read
+        read_bus(net, axi_master, 4 * reg.idx, read_bus_reference);
+
+        wait until reg_was_read /= reg_was_accessed_zero and rising_edge(clk);
+        check_equal(reg_was_read, reg_was_accessed_expected);
+
+        await_read_bus_reply(net, read_bus_reference, read_bus_data);
+
         if is_fabric_gives_value_type(reg.reg_type) then
-          check_bus(net, axi_master, 4 * reg.idx, fabric_data(reg.idx));
+          check_equal(read_bus_data, fabric_data(reg.idx));
         else
-          check_bus(net, axi_master, 4 * reg.idx, bus_data(reg.idx));
+          check_equal(read_bus_data, bus_data(reg.idx));
         end if;
       end if;
     end procedure;
@@ -166,8 +171,8 @@ begin
 
     if run("random_read_and_write") then
       for list_idx in regs'range loop
-        fabric_data(list_idx) := rnd.RandSLV(data_width);
-        bus_data(list_idx) := rnd.RandSLV(data_width);
+        fabric_data(list_idx) := rnd.RandSLV(fabric_data(0)'length);
+        bus_data(list_idx) := rnd.RandSLV(bus_data(0)'length);
       end loop;
 
       for list_idx in regs'range loop
@@ -231,18 +236,20 @@ begin
 
   ------------------------------------------------------------------------------
   dut : entity work.axil_reg_file
-  generic map (
-    regs => regs
-  )
-  port map (
-    clk => clk,
-
-    axil_m2s => axil_m2s,
-    axil_s2m => axil_s2m,
-
-    regs_up => regs_up,
-    regs_down => regs_down,
-    reg_was_written => reg_was_written
-  );
+    generic map (
+      regs => regs
+    )
+    port map (
+      clk => clk,
+      --
+      axil_m2s => axil_m2s,
+      axil_s2m => axil_s2m,
+      --
+      regs_up => regs_up,
+      regs_down => regs_down,
+      --
+      reg_was_read => reg_was_read,
+      reg_was_written => reg_was_written
+    );
 
 end architecture;
