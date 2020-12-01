@@ -28,3 +28,4 @@ Breaking changes
 * Change :class:`.VivadoProject` to catch non-zero exit code exception if Vivado call fails.
   If :meth:`.VivadoProject.create` or :meth:`.VivadoProject.open` fail they will return ``False``.
   If :meth:`.VivadoProject.build` fails, the returned :class:`.BuildResult` object will have ``success`` set to ``False``.
+* Rename ``<module>_reg_was_written_t`` to ``<module>_reg_was_accessed_t`` in generated register VHDL package.

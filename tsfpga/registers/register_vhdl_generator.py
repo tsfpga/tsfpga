@@ -88,7 +88,7 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
         vhdl += f"  subtype {self.module_name}_regs_t is reg_vec_t({map_name}'range);\n"
         vhdl += (
             "  subtype "
-            f"{self.module_name}_reg_was_written_t is std_logic_vector({map_name}'range);\n"
+            f"{self.module_name}_reg_was_accessed_t is std_logic_vector({map_name}'range);\n"
         )
         vhdl += f"  constant {self.module_name}_regs_init : {self.module_name}_regs_t := (\n  "
         vhdl += ",\n  ".join(default_values)
