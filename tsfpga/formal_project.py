@@ -200,7 +200,7 @@ class FormalTestCase:
         Prints the location of trace files, if any available.
         """
         message = "\n\nFormal test case failed. "
-        vcd_files = output_path.glob("**/*.vcd")
+        vcd_files = list(output_path.glob("**/*.vcd"))
         if vcd_files:
             message += "You might want to inspect the trace file(s):"
             print(message)
