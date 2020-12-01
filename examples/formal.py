@@ -18,8 +18,10 @@ PATH_TO_VUNIT = PATH_TO_TSFPGA.parent / "vunit"
 sys.path.append(str(PATH_TO_VUNIT))
 
 from examples.tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
+
 import tsfpga
 from tsfpga.formal_project import FormalProject
+from tsfpga.system_utils import delete
 
 
 def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
@@ -27,6 +29,7 @@ def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
         "Run formal tests", formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument("--list-only", action="store_true", help="list the available tests")
+    parser.add_argument("--clean-only", action="store_true", help="clears the project path")
     parser.add_argument(
         "--project-path",
         type=Path,
@@ -59,6 +62,11 @@ def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
 
 def main():
     args = arguments()
+
+    if args.clean_only:
+        delete(args.project_path)
+        return
+
     modules = get_tsfpga_modules([tsfpga.TSFPGA_MODULES])
     formal_project = FormalProject(modules=modules, project_path=args.project_path)
     for module in modules:
