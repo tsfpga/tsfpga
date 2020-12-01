@@ -18,7 +18,7 @@ class FormalConfig:
 
     # pylint: disable=too-many-arguments
     def __init__(
-        self, top, generics, engine_command="smtbmc", solver_command="z3", mode="bmc", depth=20
+        self, top, generics=None, engine_command="smtbmc", solver_command="z3", mode="bmc", depth=20
     ):
         """
         Arguments:
@@ -114,22 +114,23 @@ class FormalProject:
         args.output_path = self.project_path / "vunit_out"
         vunit_proj = VUnit.from_args(args=args)
 
+        src_files = []
+        compiled_libraries = []
+
         for module in self.modules:
             vunit_library = vunit_proj.add_library(module.library_name)
+            compiled_libraries.append(args.output_path / "ghdl" / "libraries" / module.library_name)
+
             for hdl_file in module.get_synthesis_files():
                 if hdl_file.is_vhdl:
                     vunit_library.add_source_file(hdl_file.path)
                 else:
                     assert False, f"Can not handle this file: {hdl_file.path}"
 
+                src_files.append(hdl_file.path)
+
         vunit_proj.set_compile_option("ghdl.a_flags", ["-fpsl"])
         vunit_proj._main_compile_only()  # pylint: disable=protected-access
-
-        src_files = []
-        compiled_libraries = []
-        for module in self.modules:
-            src_files += [src_file.path for src_file in module.get_synthesis_files()]
-            compiled_libraries += [args.output_path / "ghdl" / "libraries" / module.library_name]
 
         return src_files, compiled_libraries
 

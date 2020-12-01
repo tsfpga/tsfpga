@@ -5,21 +5,21 @@
 
 class SbyWriter:
     """
-    Writes a Symbioyosys script file
+    Writes a SymbiYosys script file
     """
 
     @staticmethod
     def write_sby(output_path, top, generics, formal_settings, compiled_libraries, src_files):
         """
-        Create Symbiyosys script. This script will run ghdl --synth
+        Create SymbiYosys script. This script will run ghdl --synth
         """
-
         p_args = [f"-P{compiled_library}" for compiled_library in compiled_libraries]
         g_args = []
-        for key in iter(generics):
-            g_args.append("-g" + str(key) + "=" + str(generics[key]))
+        if generics is not None:
+            for key in iter(generics):
+                g_args.append(f"-g{key}={generics[key]}")
 
-        # Assume that the top name is the same as file name
+        # Assume that the top entity name is the same as file name
         ghdl_synth_cmd = ["ghdl", "--std=08", "-fpsl"] + p_args + g_args + [top + ".vhd", "-e", top]
 
         sby = ""
