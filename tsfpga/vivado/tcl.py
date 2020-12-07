@@ -37,13 +37,13 @@ class VivadoTcl:
         if ip_cache_path is not None:
             tcl += f"config_ip_cache -use_cache_location {to_tcl_path(ip_cache_path)}\n"
         tcl += "\n"
+        tcl += self._add_tcl_sources(tcl_sources)
+        tcl += "\n"
         tcl += self._add_modules(modules)
         tcl += "\n"
         tcl += self._add_generics(generics)
         tcl += "\n"
         tcl += self._add_constraints(self._iterate_constraints(modules, constraints))
-        tcl += "\n"
-        tcl += self._add_tcl_sources(tcl_sources)
         tcl += "\n"
         tcl += self._add_build_step_hooks(build_step_hooks, project_folder)
         tcl += "\n"

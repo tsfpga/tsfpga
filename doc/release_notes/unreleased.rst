@@ -30,3 +30,7 @@ Breaking changes
   If :meth:`.VivadoProject.build` fails, the returned :class:`.BuildResult` object will have ``success`` set to ``False``.
 * Rename ``<module>_reg_was_written_t`` to ``<module>_reg_was_accessed_t`` in generated register VHDL package.
 * Add mandatory generic ``width`` to ``resync.resync_slv_level`` and ``resync.resync_slv_level_on_signal``.
+
+Changes
+
+* Add TCL sources before adding modules in :class:`.VivadoTcl`.
