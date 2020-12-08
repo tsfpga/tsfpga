@@ -88,7 +88,7 @@ class TestVivadoProject(unittest.TestCase):
         self.project_path = self.tmp_path / "projects" / "apa" / "project"
         self.output_path = self.tmp_path / "projects" / "apa"
         self.ip_cache_path = MagicMock()
-        self.static_generics = dict(name="value")
+        self.build_time_generics = dict(name="value")
         self.num_threads = 4
         self.run_index = 3
         self.synth_only = False
@@ -140,7 +140,7 @@ class TestVivadoProject(unittest.TestCase):
                 project_path=self.project_path,
                 output_path=self.output_path,
                 run_index=self.run_index,
-                generics=self.static_generics,
+                generics=self.build_time_generics,
                 synth_only=self.synth_only,
                 num_threads=self.num_threads,
                 other_parameter="hest",
@@ -160,7 +160,7 @@ class TestVivadoProject(unittest.TestCase):
             project_path=self.project_path,
             output_path=self.output_path,
             run_index=self.run_index,
-            generics=self.static_generics,
+            generics=self.build_time_generics,
             synth_only=self.synth_only,
             num_threads=self.num_threads,
         )
@@ -193,6 +193,31 @@ class TestVivadoProject(unittest.TestCase):
         assert not build_result.success
         self.mocked_run_vivado_tcl.assert_called_once()
 
+    def test_project_build_hooks_should_be_called_with_correct_parameters(self):
+        project = VivadoProject(name="apa", modules=[], part="", generics=dict(static_generic=2))
+        with patch("tsfpga.vivado.project.VivadoProject.pre_build") as mocked_pre_build, patch(
+            "tsfpga.vivado.project.VivadoProject.post_build"
+        ) as mocked_post_build:
+            self._build(project)
+
+        arguments = dict(
+            project_path=self.project_path,
+            output_path=self.output_path,
+            run_index=self.run_index,
+            # This should probably include the static (create-time generics) and not just
+            # the build-time generics. See https://gitlab.com/tsfpga/tsfpga/-/issues/38
+            generics=self.build_time_generics,
+            synth_only=self.synth_only,
+            num_threads=self.num_threads,
+            other_parameter="hest",
+        )
+        mocked_pre_build.assert_called_once_with(**arguments)
+
+        # Could be improved by actually checking the build_result object.
+        # See https://gitlab.com/tsfpga/tsfpga/-/issues/39
+        arguments.update(build_result=unittest.mock.ANY)
+        mocked_post_build.assert_called_once_with(**arguments)
+
     def test_module_pre_build_hook_returning_false_should_fail_and_not_call_vivado(self):
         module = MagicMock(spec=BaseModule)
         project = VivadoProject(name="apa", modules=[module], part="")
@@ -211,20 +236,20 @@ class TestVivadoProject(unittest.TestCase):
     def test_different_generic_combinations(self, mocked_vivado_tcl):
         mocked_vivado_tcl.return_value.build.return_value = ""
 
-        self.static_generics = None
+        self.build_time_generics = None
         build_result = self._build(VivadoProject(name="apa", modules=[], part=""))
         assert build_result.success
         # Note: In python 3.8 we can use call_args.kwargs straight away
         _, kwargs = mocked_vivado_tcl.return_value.build.call_args
         assert kwargs["generics"] is None
 
-        self.static_generics = dict(static="value")
+        self.build_time_generics = dict(static="value")
         build_result = self._build(VivadoProject(name="apa", modules=[], part=""))
         assert build_result.success
         _, kwargs = mocked_vivado_tcl.return_value.build.call_args
         assert kwargs["generics"] == dict(static="value")
 
-        self.static_generics = dict(static="value")
+        self.build_time_generics = dict(static="value")
         build_result = self._build(
             VivadoProject(name="apa", modules=[], part="", generics=dict(runtime="a value"))
         )
@@ -232,7 +257,7 @@ class TestVivadoProject(unittest.TestCase):
         _, kwargs = mocked_vivado_tcl.return_value.build.call_args
         assert kwargs["generics"] == dict(static="value", runtime="a value")
 
-        self.static_generics = None
+        self.build_time_generics = None
         build_result = self._build(
             VivadoProject(name="apa", modules=[], part="", generics=dict(runtime="a value"))
         )

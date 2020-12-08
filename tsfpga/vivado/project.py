@@ -223,11 +223,12 @@ class VivadoProject:
         Override this function in a child class if you wish to do something useful with it.
         Will be called from :meth:`.build` right before the call to Vivado.
 
-        Shall return ``True`` upon success and ``False`` upon failure.
-
         Arguments:
             kwargs: Will have all the :meth:`.build` parameters in it. Including additional
                 parameters from the user.
+
+        Return:
+            bool: True if everything went well.
         """
         return True
 
@@ -236,13 +237,21 @@ class VivadoProject:
         Override this function in a child class if you wish to do something useful with it.
         Will be called from :meth:`.build` right after the call to Vivado.
 
-        Shall return ``True`` upon success and ``False`` upon failure.
+        An example use case for this function is to encrypt the bit file, or generate any other
+        material that shall be included in FPGA release artifacts.
+
+        .. Note::
+            This default method does nothing. Shall be overridden by project that utilize
+            this mechanism.
 
         Arguments:
             kwargs: Will have all the :meth:`.build` parameters in it. Including additional
                 parameters from the user. Will also include ``build_result`` with
                 implemented/synthesized size, which can be used for asserting the expected resource
                 utilization.
+
+        Return:
+            bool: True if everything went well.
         """
         return True
 
@@ -270,7 +279,7 @@ class VivadoProject:
             synth_only (bool): Run synthesis and then stop.
             num_threads (int): Number of parallel threads to use during run.
             pre_and_post_build_parameters: Additional parameters that will be
-                sent to pre- and post build functions.
+                sent to :meth:`.pre_build` and :meth:`.post_build` functions.
 
                 .. note::
                     This is a "kwargs" style argument. You can pass any number of named arguments.
