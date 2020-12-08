@@ -80,13 +80,17 @@ class VivadoProject:
         self.tcl = VivadoTcl(name=self.name)
 
     def _setup_tcl_sources_list(self, tcl_sources_from_user):
-        # Lists are mutable. Since we assign and modify this one we have to copy it.
-        self.tcl_sources = [] if tcl_sources_from_user is None else tcl_sources_from_user.copy()
-        self.tcl_sources += [
+        tsfpga_tcl_sources = [
             TSFPGA_TCL / "vivado_default_run.tcl",
             TSFPGA_TCL / "vivado_fast_run.tcl",
             TSFPGA_TCL / "vivado_messages.tcl",
         ]
+        # Note that the list concatenation below does a (shallow) copy of the lists
+        user_tcl_sources = [] if tcl_sources_from_user is None else tcl_sources_from_user
+
+        # Add tsfpga TCL sources first. The user might want to change something in the tsfpga
+        # settings. Conversely, tsfpga should not modify something that the user has set up.
+        self.tcl_sources = tsfpga_tcl_sources + user_tcl_sources
 
     def _setup_build_step_hooks(self, build_step_hooks_from_user):
         # Lists are mutable. Since we assign and modify this one we have to copy it.
