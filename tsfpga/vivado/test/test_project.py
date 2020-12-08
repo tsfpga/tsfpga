@@ -78,6 +78,7 @@ def test_can_cast_project_to_string_without_error():
     )
 
 
+# pylint: disable=too-many-instance-attributes
 @pytest.mark.usefixtures("fixture_tmp_path")
 class TestVivadoProject(unittest.TestCase):
 
@@ -86,6 +87,7 @@ class TestVivadoProject(unittest.TestCase):
     def setUp(self):
         self.project_path = self.tmp_path / "projects" / "apa" / "project"
         self.output_path = self.tmp_path / "projects" / "apa"
+        self.ip_cache_path = MagicMock()
         self.static_generics = dict(name="value")
         self.num_threads = 4
         self.run_index = 3
@@ -93,7 +95,39 @@ class TestVivadoProject(unittest.TestCase):
 
         self.mocked_run_vivado_tcl = None
 
-    def build(self, project):
+    def _create(self, project):
+        with patch(
+            "tsfpga.vivado.project.run_vivado_tcl", autospec=True
+        ) as self.mocked_run_vivado_tcl:
+            return project.create(project_path=self.project_path, ip_cache_path=self.ip_cache_path)
+
+    def test_default_pre_create_hook_should_pass(self):
+        class CustomVivadoProject(VivadoProject):
+
+            pass
+
+        project = CustomVivadoProject(name="apa", modules=[], part="")
+        self._create(project)
+        self.mocked_run_vivado_tcl.assert_called_once()
+
+    def test_project_pre_create_hook_returning_false_should_fail_and_not_call_vivado_run(self):
+        class CustomVivadoProject(VivadoProject):
+            def pre_create(self, **kwargs):  # pylint: disable=no-self-use, unused-argument
+                return False
+
+        assert not self._create(CustomVivadoProject(name="apa", modules=[], part=""))
+        self.mocked_run_vivado_tcl.assert_not_called()
+
+    def test_create_should_call_pre_create_with_correct_parameters(self):
+        project = VivadoProject(name="apa", modules=[], part="")
+        with patch("tsfpga.vivado.project.VivadoProject.pre_create") as mocked_pre_create:
+            self._create(project)
+        mocked_pre_create.assert_called_once_with(
+            project_path=self.project_path, ip_cache_path=self.ip_cache_path
+        )
+        self.mocked_run_vivado_tcl.assert_called_once()
+
+    def _build(self, project):
         with patch(
             "tsfpga.vivado.project.run_vivado_tcl", autospec=True
         ) as self.mocked_run_vivado_tcl, patch(
@@ -117,7 +151,7 @@ class TestVivadoProject(unittest.TestCase):
         module_two = MagicMock(spec=BaseModule)
 
         project = VivadoProject(name="apa", modules=[module_one, module_two], part="")
-        build_result = self.build(project)
+        build_result = self._build(project)
         assert build_result.success
 
         module_one.pre_build.assert_called_once_with(
@@ -137,7 +171,7 @@ class TestVivadoProject(unittest.TestCase):
 
             pass
 
-        build_result = self.build(CustomVivadoProject(name="apa", modules=[], part=""))
+        build_result = self._build(CustomVivadoProject(name="apa", modules=[], part=""))
         assert build_result.success
         self.mocked_run_vivado_tcl.assert_called_once()
 
@@ -146,7 +180,7 @@ class TestVivadoProject(unittest.TestCase):
             def pre_build(self, **kwargs):  # pylint: disable=no-self-use, unused-argument
                 return False
 
-        build_result = self.build(CustomVivadoProject(name="apa", modules=[], part=""))
+        build_result = self._build(CustomVivadoProject(name="apa", modules=[], part=""))
         assert not build_result.success
         self.mocked_run_vivado_tcl.assert_not_called()
 
@@ -155,7 +189,7 @@ class TestVivadoProject(unittest.TestCase):
             def post_build(self, **kwargs):  # pylint: disable=no-self-use, unused-argument
                 return False
 
-        build_result = self.build(CustomVivadoProject(name="apa", modules=[], part=""))
+        build_result = self._build(CustomVivadoProject(name="apa", modules=[], part=""))
         assert not build_result.success
         self.mocked_run_vivado_tcl.assert_called_once()
 
@@ -164,12 +198,12 @@ class TestVivadoProject(unittest.TestCase):
         project = VivadoProject(name="apa", modules=[module], part="")
 
         module.pre_build.return_value = True
-        build_result = self.build(project)
+        build_result = self._build(project)
         assert build_result.success
         self.mocked_run_vivado_tcl.assert_called_once()
 
         module.pre_build.return_value = False
-        build_result = self.build(project)
+        build_result = self._build(project)
         assert not build_result.success
         self.mocked_run_vivado_tcl.assert_not_called()
 
@@ -178,20 +212,20 @@ class TestVivadoProject(unittest.TestCase):
         mocked_vivado_tcl.return_value.build.return_value = ""
 
         self.static_generics = None
-        build_result = self.build(VivadoProject(name="apa", modules=[], part=""))
+        build_result = self._build(VivadoProject(name="apa", modules=[], part=""))
         assert build_result.success
         # Note: In python 3.8 we can use call_args.kwargs straight away
         _, kwargs = mocked_vivado_tcl.return_value.build.call_args
         assert kwargs["generics"] is None
 
         self.static_generics = dict(static="value")
-        build_result = self.build(VivadoProject(name="apa", modules=[], part=""))
+        build_result = self._build(VivadoProject(name="apa", modules=[], part=""))
         assert build_result.success
         _, kwargs = mocked_vivado_tcl.return_value.build.call_args
         assert kwargs["generics"] == dict(static="value")
 
         self.static_generics = dict(static="value")
-        build_result = self.build(
+        build_result = self._build(
             VivadoProject(name="apa", modules=[], part="", generics=dict(runtime="a value"))
         )
         assert build_result.success
@@ -199,7 +233,7 @@ class TestVivadoProject(unittest.TestCase):
         assert kwargs["generics"] == dict(static="value", runtime="a value")
 
         self.static_generics = None
-        build_result = self.build(
+        build_result = self._build(
             VivadoProject(name="apa", modules=[], part="", generics=dict(runtime="a value"))
         )
         assert build_result.success

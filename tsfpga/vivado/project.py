@@ -158,8 +158,32 @@ class VivadoProject:
             bool: True if everything went well.
         """
         print(f"Creating Vivado project in {project_path}")
+        if not self.pre_create(project_path=project_path, ip_cache_path=ip_cache_path):
+            return False
+
         create_vivado_project_tcl = self._create_tcl(project_path, ip_cache_path)
         return run_vivado_tcl(self._vivado_path, create_vivado_project_tcl)
+
+    def pre_create(self, **kwargs):  # pylint: disable=no-self-use, unused-argument
+        """
+        Override this function in a child class if you wish to do something useful with it.
+        Will be called from :meth:`.create` right before the call to Vivado.
+
+        An example use case for this function is when TCL source scripts for the Vivado project
+        have to be auto generated. This could e.g. be scripts that set IP repo paths based on the
+        Vivado system PATH.
+
+        .. Note::
+            This default method does nothing. Shall be overridden by project that utilize
+            this mechanism.
+
+        Arguments:
+            kwargs: Will have all the :meth:`.create` parameters in it.
+
+        Return:
+            bool: True if everything went well.
+        """
+        return True
 
     def _build_tcl(self, project_path, output_path, num_threads, run_index, generics, synth_only):
         """

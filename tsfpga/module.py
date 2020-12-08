@@ -77,7 +77,7 @@ class BaseModule:
 
         .. Note::
             This default method does nothing. Shall be overridden by modules that utilize
-            this mechanism,
+            this mechanism.
         """
 
     def create_regs_vhdl_package(self):

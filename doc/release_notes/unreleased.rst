@@ -10,6 +10,7 @@ Added
 * Add time saving mechanism to only re-create the register VHDL package when necessary.
 * Add ``common.debounce`` VHDL entity.
 * Add ``reg_was_read`` port to ``reg_file.axil_reg_file``.
+* Add :meth:`.VivadoProject.pre_create` hook function.
 
 Breaking changes
 
