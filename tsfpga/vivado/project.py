@@ -159,6 +159,7 @@ class VivadoProject:
         """
         print(f"Creating Vivado project in {project_path}")
         if not self.pre_create(project_path=project_path, ip_cache_path=ip_cache_path):
+            print("ERROR: Project pre-create hook returned False. Failing the build.")
             return False
 
         create_vivado_project_tcl = self._create_tcl(project_path, ip_cache_path)
@@ -314,6 +315,9 @@ class VivadoProject:
 
         for module in self.modules:
             if not module.pre_build(project=self, **pre_and_post_build_parameters):
+                print(
+                    f"ERROR: Module {module.name} pre-build hook returned False. Failing the build."
+                )
                 result.success = False
                 return result
 
@@ -321,6 +325,7 @@ class VivadoProject:
             module.create_regs_vhdl_package()
 
         if not self.pre_build(**pre_and_post_build_parameters):
+            print("ERROR: Project pre-build hook returned False. Failing the build.")
             result.success = False
             return result
 
@@ -349,6 +354,7 @@ class VivadoProject:
         pre_and_post_build_parameters.update(build_result=result)
 
         if not self.post_build(**pre_and_post_build_parameters):
+            print("ERROR: Project post-build hook returned False. Failing the build.")
             result.success = False
 
         return result

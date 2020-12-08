@@ -220,6 +220,7 @@ class TestVivadoProject(unittest.TestCase):
 
     def test_module_pre_build_hook_returning_false_should_fail_and_not_call_vivado(self):
         module = MagicMock(spec=BaseModule)
+        module.name = "whatever"
         project = VivadoProject(name="apa", modules=[module], part="")
 
         module.pre_build.return_value = True
