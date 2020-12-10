@@ -6,6 +6,7 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+import json
 import shutil
 
 from tsfpga import TSFPGA_TCL
@@ -476,3 +477,24 @@ class BuildResult:
         self.success = True
         self.synthesis_size = None
         self.implementation_size = None
+
+    def size_summary(self):
+        """
+        Return a string with a formatted message of the size.
+
+        Returns:
+            str: A human-readable message of the latest size. ``None`` if no size is set.
+        """
+        build_step = None
+        size = None
+
+        if self.implementation_size is not None:
+            build_step = "implementation"
+            size = self.implementation_size
+        elif self.synthesis_size is not None:
+            build_step = "synthesis"
+            size = self.synthesis_size
+        else:
+            return None
+
+        return f"Size of {self.name} after {build_step}:\n{json.dumps(size, indent=2)}"

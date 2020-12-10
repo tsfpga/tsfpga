@@ -7,15 +7,16 @@
 # --------------------------------------------------------------------------------------------------
 
 import fnmatch
+import time
 from pathlib import Path
 from threading import Lock
 
 from vunit.test.list import TestList
 from vunit.test.runner import TestRunner
-from vunit.test.report import TestReport
+from vunit.test.report import TestReport, TestResult
 from vunit.color_printer import COLOR_PRINTER, NO_COLOR_PRINTER
 
-from tsfpga.system_utils import create_directory
+from tsfpga.system_utils import create_directory, read_last_lines_of_file
 
 
 class BuildProjectList:
@@ -105,6 +106,11 @@ class BuildProjectList:
                 build_wrapper = BuildProjectCreateWrapper(project, **kwargs)
                 build_wrappers.append(build_wrapper)
 
+        if not build_wrappers:
+            # Return straight away if no projects need to be created. To avoid extra
+            # "No tests were run!" printout from creation step that is very misleading.
+            return True
+
         return self._run_build_wrappers(
             projects_path=projects_path,
             build_wrappers=build_wrappers,
@@ -118,7 +124,7 @@ class BuildProjectList:
         num_threads_per_build,
         output_path=None,
         collect_artifacts=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Build all the projects in the list.
@@ -172,7 +178,7 @@ class BuildProjectList:
                 output_path=this_projects_output_path,
                 collect_artifacts=thread_safe_collect_artifacts,
                 num_threads=num_threads_per_build,
-                **kwargs
+                **kwargs,
             )
             build_wrappers.append(build_wrapper)
 
@@ -205,8 +211,14 @@ class BuildProjectList:
         )
 
     def _run_build_wrappers(self, projects_path, build_wrappers, num_parallel_builds):
+        if not build_wrappers:
+            # Return straight away if no builds are supplied
+            return True
+
+        start_time = time.time()
+
         color_printer = NO_COLOR_PRINTER if self._no_color else COLOR_PRINTER
-        report = TestReport(printer=color_printer)
+        report = BuildReport(printer=color_printer)
 
         test_list = TestList()
         for build_wrapper in build_wrappers:
@@ -221,7 +233,17 @@ class BuildProjectList:
         )
         test_runner.run(test_list)
 
-        return report.all_ok()
+        all_builds_ok = report.all_ok()
+        # True if the builds are for the "build" step (not "create" or "open")
+        wrappers_are_for_build = isinstance(build_wrappers[0], BuildProjectBuildWrapper)
+        if wrappers_are_for_build or not all_builds_ok:
+            # Show summary for builds, since that contains the resource summary that we want to
+            # see. Or in all cases where something has failed so the fail log is shown directly
+            # in the console output.
+            report.set_real_total_time(time.time() - start_time)
+            report.print_str()
+
+        return all_builds_ok
 
     def _iterate_projects(self, project_filters, include_netlist_not_top_builds):
         available_projects = []
@@ -281,15 +303,28 @@ class BuildProjectBuildWrapper:
         build_result = self._project.build(project_path=this_projects_path, **self._build_arguments)
 
         if not build_result.success:
+            self._print_size(build_result)
             return build_result.success
 
+        # Proceed to artifact collection only if build succeeded.
         if self._collect_artifacts is not None:
             if not self._collect_artifacts(
                 project=self._project, output_path=self._build_arguments["output_path"]
             ):
                 build_result.success = False
 
+        # Print size at the absolute end
+        self._print_size(build_result)
         return build_result.success
+
+    @staticmethod
+    def _print_size(build_result):
+        size_summary = build_result.size_summary()
+        if size_summary:
+            # Add an empty line before the size summary, to have margin in how many lines are
+            # printed. See the comments in BuildResult for an explanation.
+            print()
+            print(size_summary)
 
 
 class BuildProjectOpenWrapper:
@@ -366,3 +401,86 @@ class ThreadSafeCollectArtifacts:
     def collect_artifacts(self, project, output_path):
         with self._lock:
             return self._collect_artifacts(project=project, output_path=output_path)
+
+
+class BuildReport(TestReport):
+    def add_result(self, *args, **kwargs):
+        """
+        Add a a test result.
+
+        Inherited and adapted from the VUnit function. Uses a different Result class.
+        """
+        result = BuildResult(*args, **kwargs)
+        self._test_results[result.name] = result
+        self._test_names_in_order.append(result.name)
+
+    def print_latest_status(self, total_tests):
+        """
+        This method is called for each build when it should print its result just as it finished,
+        but other builds may not be finished yet.
+
+        Inherited and adapted from the VUnit function:
+        * Removed support for the "skipped" result.
+        * Do not use abbreviations in the printout.
+        * Use f-strings.
+        """
+        result = self._last_test_result()
+        passed, failed, _ = self._split()
+
+        if result.passed:
+            self._printer.write("pass", fg="gi")
+        elif result.failed:
+            self._printer.write("fail", fg="ri")
+        else:
+            assert False
+
+        count_summary = f"pass={len(passed)} fail={len(failed)} total={total_tests}"
+        self._printer.write(f" ({count_summary}) {result.name} ({result.time:.1f} seconds)\n")
+
+
+class BuildResult(TestResult):
+    def _print_output(self, printer, num_lines):
+        """
+        Print the last lines from the output file.
+        """
+        output_tail = read_last_lines_of_file(Path(self._output_file_name), num_lines=num_lines)
+        printer.write(output_tail)
+
+    def print_status(self, printer, padding=0):
+        """
+        This method is called for each build when it should print its result in the "Summary" at
+        the end when all builds have finished.
+
+        Inherited and adapted from the VUnit function.
+        """
+        if self.passed:
+            # Print the number of lines that contain the size summary, but not output from the IDE.
+            # The size summary, as returned by tsfpga.vivado.project.BuildResult is a JSON formatted
+            # string with one line for each utilization category.
+            # For Xilinx 7 series, there are 8 categories (Total LUTs, Logic LUTs, LUTRAMs,
+            # SRLs, FFs, RAMB36, RAMB18, DSP Blocks). For UltraScale series there is one
+            # extra (URAM).
+            # Additionally, the size summary contains three extra lines for JSON braces and a title.
+            #
+            # Print enough lines so the whole summary gets printed to console. For 7 series, this
+            # will mean an extra blank line before the summary.
+            #
+            # This is a hack. Works for now, but is far from reliable.
+            self._print_output(printer, num_lines=3 + 8 + 1)
+        else:
+            # The build failed, which can either be caused by
+            # 1. IDE build failure
+            # 2. IDE build succeeded, but post build hook, or size checkers failed.
+            # 3. Other python error (directory already exists, ...)
+            # In the case of IDE build failed, we want a significant portion of the output, to be
+            # able to see an indication of what failed. In the case of size checkers, we want to see
+            # all the printouts from all checkers, to see which one failed. Since there are at most
+            # eight resource categories, it is reasonable to assume that there will never be more
+            # than eight size checkers.
+            self._print_output(printer, num_lines=25)
+
+        # Print the regular output from the VUnit class.
+        # A little extra margin between build name and execution time makes the output more readable
+        super().print_status(printer, padding + 2)
+        # Add an empty line between each build, for readability.
+        printer.write("\n")

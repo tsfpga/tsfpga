@@ -66,12 +66,12 @@ def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
         help="the output products (bit file, ...) will be placed here",
     )
     parser.add_argument(
-        "--num-parallel-builds", type=int, default=2, help="Number of parallel builds to launch"
+        "--num-parallel-builds", type=int, default=4, help="Number of parallel builds to launch"
     )
     parser.add_argument(
         "--num-threads-per-build",
         type=int,
-        default=6,
+        default=4,
         help="number of threads for each build process",
     )
     parser.add_argument(
