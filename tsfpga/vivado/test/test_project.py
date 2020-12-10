@@ -204,8 +204,6 @@ class TestVivadoProject(unittest.TestCase):
             project_path=self.project_path,
             output_path=self.output_path,
             run_index=self.run_index,
-            # This should probably include the static (create-time generics) and not just
-            # the build-time generics. See https://gitlab.com/tsfpga/tsfpga/-/issues/38
             generics=self.build_time_generics,
             synth_only=self.synth_only,
             num_threads=self.num_threads,
