@@ -28,6 +28,72 @@ In order to achieve this, without having to duplicate names and descriptions in 
 Passing a list of :class:`.Register` objects will insert them in the register list of all modules that use registers.
 
 
+Bus layout
+----------
+
+Below is a diagram of the typical layout for a register bus.
+
+.. digraph:: my_graph
+
+  graph [ dpi = 300 splines=ortho ];
+  rankdir="LR";
+
+  cpu [ label="AXI master\n(CPU)" shape=box ];
+  cpu -> axi_to_axil [label="AXI"];
+
+  axi_to_axil [ label="axi_to_axil" shape=box ];
+  axi_to_axil -> axil_mux  [label="AXI-Lite" ];
+
+  axil_mux [ label="axil_mux" shape=box height=3.5 ];
+
+  axil_mux -> axil_reg_file0;
+  axil_reg_file0 [ label="axil_reg_file" shape=box ];
+
+  axil_mux -> axil_reg_file1;
+  axil_reg_file1 [ label="axil_reg_file" shape=box ];
+
+  axil_mux -> axil_cdc2;
+  axil_cdc2 [ label="axil_cdc" shape=box ];
+  axil_cdc2 -> axil_reg_file2;
+  axil_reg_file2 [ label="axil_reg_file" shape=box ];
+
+  axil_mux -> axil_cdc3;
+  axil_cdc3 [ label="axil_cdc" shape=box ];
+  axil_cdc3 -> axil_reg_file3;
+  axil_reg_file3 [ label="axil_reg_file" shape=box ];
+
+  dots [ shape=none label="..."];
+  axil_mux -> dots;
+
+In tsfpga, the register bus used is AXI-Lite.
+In cases where a module uses a different clock than the AXI master (CPU), the bus must be resynchronized.
+This makes sure that a specific module's register values are always in the clock domain where they are used.
+This means that the module design does not have to worry about metastability, vector coherency or pulse resynchronization.
+
+* ``axi_to_axil`` is a simple protocol converter between AXI and AXI-Lite.
+  It does not perform any burst splitting or handling of write strobes, but instead assumes the master to be well behaved.
+  If is not the case, AXI slave error (``SLVERR``) will be sent on the read/write response channel
+
+* ``axil_mux`` is a 1-to-N AXI-Lite multiplexer that operates based on base addresses and address masks specified via a generic.
+  If the address requested by the master does not match any slave, AXI decode error (``DECERR``) will be sent on the read/write response channel.
+  There will still be proper AXI handshaking done, so the master will not be stalled.
+
+* ``axil_cdc`` is an asynchronous FIFO-based clock domain crossing (CDC) for AXI-Lite buses.
+  It must be used in the cases where the ``axil_reg_file`` (i.e. your module) is in a different clock domain than the CPU AXI master.
+
+* ``axil_reg_file`` is a generic, parametarizable, register file for AXI-Lite register buses.
+  It is parameterizable via a generic that sets the list of registers, with their modes and their default values.
+  A constant with this generic is generated from :ref:`TOML <toml_file>` in the :ref:`VHDL package <vhdl_package>`.
+  If the address requested by the master does not match any register, or there is a
+  mode mismatch (e.g. write to a read-only register), AXI slave error (``SLVERR``) willb e sent on the read/write response channel.
+
+All these entities are available in the repo in the `axi <https://gitlab.com/tsfpga/tsfpga/-/tree/master/modules/axi>`__
+and `reg_file <https://gitlab.com/tsfpga/tsfpga/-/tree/master/modules/reg_file>`__ modules.
+Note that there is a convenience wrapper
+`axi.axi_to_axil_vec <https://gitlab.com/tsfpga/tsfpga/-/tree/master/modules/axi/src/axi_to_axil_vec.vhd>`__
+that instantiates ``axi_to_axil``, ``axil_mux`` and any necessary ``axil_cdc`` based on the appropriate generics.
+
+
 
 Register examples
 -----------------
@@ -74,6 +140,7 @@ The idea behind this example is that a software that uses this module will read 
 This will make sure that the software is running against the correct FPGA with expected module version.
 
 
+.. _vhdl_package:
 
 VHDL package
 ____________
