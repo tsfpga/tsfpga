@@ -9,6 +9,7 @@ from vunit import VUnitCLI, VUnit
 from vunit.test.list import TestList
 from vunit.test.runner import TestRunner
 from vunit.test.report import TestReport
+from vunit.color_printer import COLOR_PRINTER, NO_COLOR_PRINTER
 
 from tsfpga.yosys_project import YosysProject
 from tsfpga.module import BaseModule
@@ -59,7 +60,7 @@ class FormalProject:
             print(test.name)
         print(f"Listed {test_list.num_tests} tests")
 
-    def run(self, num_threads=1, verbose=False, quiet=False, test_filters=None):
+    def run(self, num_threads=1, verbose=False, quiet=False, no_color=False, test_filters=None):
         # First, compile the source code and assign the compile result information to the
         # test objects.
         src_files, compiled_libraries = self._compile_source_code()
@@ -79,13 +80,16 @@ class FormalProject:
         else:
             verbosity = TestRunner.VERBOSITY_NORMAL
 
-        # Then run all the tests
-        report = TestReport()
+        color_printer = NO_COLOR_PRINTER if no_color else COLOR_PRINTER
+        report = TestReport(printer=color_printer)
+
+        # Run all the tests
         test_runner = TestRunner(
             report=report,
             output_path=self.project_path,
             verbosity=verbosity,
             num_threads=num_threads,
+            no_color=no_color,
         )
         test_runner.run(test_list)
 
@@ -108,9 +112,9 @@ class FormalProject:
 
         return test_list
 
-    def _compile_source_code(self):
+    def _compile_source_code(self, no_color=False):
         # Set up a VUnit project for compilation of sources
-        args = VUnitCLI().parse_args([])
+        args = VUnitCLI().parse_args(["--no-color", no_color])
         args.output_path = self.project_path / "vunit_out"
         vunit_proj = VUnit.from_args(args=args)
 

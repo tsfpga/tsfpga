@@ -54,6 +54,11 @@ def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
         action="store_true",
         help="do not print any build output, even if the run has failed",
     )
+    parser.add_argument(
+        "--no-color",
+        action="store_true",
+        help="disable color in printouts",
+    )
 
     args = parser.parse_args()
 
@@ -81,6 +86,7 @@ def main():
         verbose=args.verbose,
         quiet=args.quiet,
         test_filters=args.test_filters,
+        no_color=args.no_color,
     )
 
     if not all_build_ok:
