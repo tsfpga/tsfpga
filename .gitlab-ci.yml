@@ -91,7 +91,7 @@ build_pages:
   stage: build_documentation
   script:
     - apt-get update -qq > /dev/null
-    - apt-get install -y -qq git > /dev/null
+    - apt-get install -y -qq git dot > /dev/null
     - python3 -m pip install --requirement requirements_develop.txt > /dev/null
     - python3 tools/build_docs.py
   artifacts:
