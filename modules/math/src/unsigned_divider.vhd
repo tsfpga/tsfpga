@@ -1,10 +1,10 @@
 -- -----------------------------------------------------------------------------
 -- Copyright (c) Lukas Vik. All rights reserved.
 -- -----------------------------------------------------------------------------
--- @brief Calculates dividend / divisor = quotient + remainder / divisor
+-- Calculates dividend / divisor = quotient + remainder / divisor
 --
--- @details This is a bit serial divider. Algorithm is the same as long division from elementary school, but with number base 2.
---   Latency scales linearly with dividend_width.
+-- This is a bit serial divider. Algorithm is the same as long division from elementary
+-- school, but with number base 2. Latency scales linearly with dividend_width.
 -- -----------------------------------------------------------------------------
 
 library ieee;
