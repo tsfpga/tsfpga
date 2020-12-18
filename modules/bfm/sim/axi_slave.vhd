@@ -20,8 +20,9 @@ context vunit_lib.vc_context;
 entity axi_slave is
   generic (
     axi_slave : axi_slave_t;
-    data_width : integer;
-    id_width : integer := 8
+    data_width : positive;
+    id_width : natural := 8;
+    w_fifo_depth : natural := 0
   );
   port (
     clk : in std_logic;
@@ -43,40 +44,67 @@ architecture a of axi_slave is
 
 begin
 
-  ------------------------------------------------------------------------------
-  axi_write_slave_inst : entity vunit_lib.axi_write_slave
-    generic map (
-      axi_slave => axi_slave
-    )
-    port map (
-      aclk => clk,
+  write_block : block
+    signal w_fifo_m2s : axi_m2s_w_t := axi_m2s_w_init;
+    signal w_fifo_s2m : axi_s2m_w_t := axi_s2m_w_init;
+  begin
 
-      awvalid => axi_write_m2s.aw.valid,
-      awready => axi_write_s2m.aw.ready,
-      awid => awid,
-      awaddr => awaddr,
-      awlen => awlen,
-      awsize => awsize,
-      awburst => axi_write_m2s.aw.burst,
+    ------------------------------------------------------------------------------
+    -- Optionally use a FIFO for the data channel. This enables a data flow pattern where
+    -- the AXI slave can accept a lot of data (many bursts) before a single address transactions
+    -- occurs. This can affect the behavior of your AXI master, and is a case that needs to
+    -- tested sometimes.
+    axi_w_fifo_inst : entity axi.axi_w_fifo
+      generic map (
+        data_width => data_width,
+        asynchronous => false,
+        depth => w_fifo_depth
+      )
+      port map (
+        clk => clk,
+        --
+        input_m2s => axi_write_m2s.w,
+        input_s2m => axi_write_s2m.w,
+        --
+        output_m2s => w_fifo_m2s,
+        output_s2m => w_fifo_s2m
+      );
 
-      wvalid => axi_write_m2s.w.valid,
-      wready => axi_write_s2m.w.ready,
-      wdata => axi_write_m2s.w.data(data_width - 1 downto 0),
-      wstrb => axi_write_m2s.w.strb,
-      wlast => axi_write_m2s.w.last,
+    ------------------------------------------------------------------------------
+    axi_write_slave_inst : entity vunit_lib.axi_write_slave
+      generic map (
+        axi_slave => axi_slave
+      )
+      port map (
+        aclk => clk,
 
-      bvalid => axi_write_s2m.b.valid,
-      bready => axi_write_m2s.b.ready,
-      bid => bid,
-      bresp => axi_write_s2m.b.resp
-    );
+        awvalid => axi_write_m2s.aw.valid,
+        awready => axi_write_s2m.aw.ready,
+        awid => awid,
+        awaddr => awaddr,
+        awlen => awlen,
+        awsize => awsize,
+        awburst => axi_write_m2s.aw.burst,
 
-  awid <= std_logic_vector(axi_write_m2s.aw.id(id_width - 1 downto 0));
-  awaddr <= std_logic_vector(axi_write_m2s.aw.addr);
-  awlen <= std_logic_vector(axi_write_m2s.aw.len);
-  awsize <= std_logic_vector(axi_write_m2s.aw.size);
+        wvalid => w_fifo_m2s.valid,
+        wready => w_fifo_s2m.ready,
+        wdata => w_fifo_m2s.data(data_width - 1 downto 0),
+        wstrb => w_fifo_m2s.strb,
+        wlast => w_fifo_m2s.last,
 
-  axi_write_s2m.b.id(bid'range) <= unsigned(bid);
+        bvalid => axi_write_s2m.b.valid,
+        bready => axi_write_m2s.b.ready,
+        bid => bid,
+        bresp => axi_write_s2m.b.resp
+      );
+
+    awid <= std_logic_vector(axi_write_m2s.aw.id(id_width - 1 downto 0));
+    awaddr <= std_logic_vector(axi_write_m2s.aw.addr);
+    awlen <= std_logic_vector(axi_write_m2s.aw.len);
+    awsize <= std_logic_vector(axi_write_m2s.aw.size);
+
+    axi_write_s2m.b.id(bid'range) <= unsigned(bid);
+  end block;
 
 
   ------------------------------------------------------------------------------
