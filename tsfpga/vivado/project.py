@@ -62,7 +62,7 @@ class VivadoProject:
         self.name = name
         self.modules = modules
         self.part = part
-        self.static_generics = generics
+        self.static_generics = None if generics is None else generics.copy()
         self.constraints = constraints
         self.default_run_index = default_run_index
         self.defined_at = defined_at

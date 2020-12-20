@@ -16,6 +16,14 @@ from tsfpga.vivado.project import VivadoProject
 from tsfpga.test.conftest import fixture_tmp_path  # noqa: F401
 
 
+def test_generics_dictionary_should_be_copied():
+    generics = dict(apa=1)
+    proj = VivadoProject(name="name", modules=[], part="part", generics=generics)
+
+    generics["apa"] = 2
+    assert proj.static_generics["apa"] == 1
+
+
 def test_create_should_raise_exception_if_project_path_already_exists(tmp_path):
     create_directory(tmp_path / "projects" / "name")
     proj = VivadoProject(name="name", modules=[], part="part")
