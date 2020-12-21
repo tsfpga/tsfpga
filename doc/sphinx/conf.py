@@ -36,6 +36,7 @@ extensions = [
     "sphinx.ext.graphviz",
     "sphinx.ext.napoleon",
     "sphinx_rtd_theme",
+    "sphinx_sitemap",
 ]
 
 # List of patterns, relative to source directory, that match files and
@@ -48,6 +49,12 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 nitpick_ignore = []
 for name in dir(builtins):
     nitpick_ignore.append(("py:class", name))
+
+# Base URL for generated sitemap XML
+html_baseurl = "tsfpga.com"
+
+# Include robots.txt which points to sitemap
+html_extra_path = ["robots.txt"]
 
 
 # -- Options for HTML output -------------------------------------------------
