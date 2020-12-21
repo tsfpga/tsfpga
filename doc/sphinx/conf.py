@@ -51,7 +51,7 @@ for name in dir(builtins):
     nitpick_ignore.append(("py:class", name))
 
 # Base URL for generated sitemap XML
-html_baseurl = "tsfpga.com"
+html_baseurl = "https://tsfpga.com"
 
 # Include robots.txt which points to sitemap
 html_extra_path = ["robots.txt"]
