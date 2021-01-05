@@ -150,8 +150,6 @@ def setup_and_run(modules, projects, args):
 
 
 def collect_artifacts(project, output_path):
-    print(f"collect, output_path={output_path}")
-
     version = "0.0.0.0"
     release_dir = create_directory(output_path / f"{project.name}-{version}", empty=True)
     print(f"Creating release in {release_dir.resolve()}.zip")
