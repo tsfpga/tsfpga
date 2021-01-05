@@ -16,10 +16,10 @@ if {${clk_in} != {} && ${clk_out} != {}} {
     puts "INFO tsfpga resync_counter.tcl: Using min period ${min_period}"
 } else {
     # In some cases the clock might not be created yet, most likely during synthesis.
-    # Use 1 nanosecond (1000 MHz) as default, which should be safe for all FPGA applications.
+    # Use 2 nanosecond (500 MHz) as default, which should be safe for all FPGA applications.
     # Hopefully the clocks are defined when this constraint file is applied again during
     # implementation. That would make the constraint more correct.
-    set min_period 1
+    set min_period 2
     puts "WARNING tsfpga resync_counter.tcl: Could not auto detect frequencies. Using default value."
 }
 
