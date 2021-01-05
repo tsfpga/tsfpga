@@ -12,6 +12,7 @@ context vunit_lib.vc_context;
 
 library common;
 use common.addr_pkg.all;
+use common.types_pkg.all;
 
 library reg_file;
 use reg_file.reg_file_pkg.all;
@@ -27,84 +28,84 @@ package reg_operations_pkg is
 
   procedure read_reg(
     signal net : inout network_t;
-    reg_index : in integer;
+    reg_index : in natural;
     value : out reg_t;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master);
 
   procedure read_reg(
     signal net : inout network_t;
-    reg_index : in integer;
+    reg_index : in natural;
     value : out integer;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master);
 
   procedure check_reg_equal(
     signal net : inout network_t;
-    reg_index : in integer;
+    reg_index : in natural;
     expected : in integer;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master);
 
   procedure check_reg_equal(
     signal net : inout network_t;
-    reg_index : in integer;
+    reg_index : in natural;
     expected : in reg_t;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master);
 
   procedure check_reg_equal_bits(
     signal net : inout network_t;
-    reg_index : in integer;
-    expected_bits : in integer_vector;
+    reg_index : in natural;
+    expected_bits : in natural_vec_t;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master);
 
   procedure check_reg_equal_bit(
     signal net : inout network_t;
-    reg_index : in integer;
-    expected_bit : in integer;
+    reg_index : in natural;
+    expected_bit : in natural;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master);
 
   procedure write_reg(
     signal net : inout network_t;
-    reg_index : in integer;
+    reg_index : in natural;
     value : in reg_t;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master);
 
   procedure write_reg(
     signal net : inout network_t;
-    reg_index : in integer;
+    reg_index : in natural;
     value : in unsigned(reg_width - 1 downto 0);
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master);
 
   procedure write_reg(
     signal net : inout network_t;
-    reg_index : in integer;
+    reg_index : in natural;
     value : in integer;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master);
 
   procedure write_reg_bits(
     signal net : inout network_t;
-    reg_index : in integer;
-    bits : in integer_vector;
+    reg_index : in natural;
+    bits : in natural_vec_t;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master);
 
   procedure write_reg_bit(
     signal net : inout network_t;
-    reg_index : in integer;
-    bit_index : in integer;
+    reg_index : in natural;
+    bit_index : in natural;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master);
 
   procedure wait_until_reg_equals(
     signal net : inout network_t;
-    reg_index : in integer;
+    reg_index : in natural;
     value : in reg_t;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master;
@@ -113,8 +114,8 @@ package reg_operations_pkg is
 
   procedure wait_until_reg_equals_bits(
     signal net : inout network_t;
-    reg_index : in integer;
-    bits : in integer_vector;
+    reg_index : in natural;
+    bits : in natural_vec_t;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master;
     timeout : delay_length := delay_length'high;
@@ -122,8 +123,8 @@ package reg_operations_pkg is
 
   procedure wait_until_reg_equals_bit(
     signal net : inout network_t;
-    reg_index : in integer;
-    bit : in integer;
+    reg_index : in natural;
+    bit : in natural;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master;
     timeout : delay_length := delay_length'high;
@@ -135,7 +136,7 @@ package body reg_operations_pkg is
 
   procedure read_reg(
     signal net : inout network_t;
-    reg_index : in integer;
+    reg_index : in natural;
     value : out reg_t;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master) is
@@ -147,7 +148,7 @@ package body reg_operations_pkg is
 
   procedure read_reg(
     signal net : inout network_t;
-    reg_index : in integer;
+    reg_index : in natural;
     value : out integer;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master) is
@@ -159,7 +160,7 @@ package body reg_operations_pkg is
 
   procedure check_reg_equal(
     signal net : inout network_t;
-    reg_index : in integer;
+    reg_index : in natural;
     expected : in reg_t;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master) is
@@ -171,7 +172,7 @@ package body reg_operations_pkg is
 
   procedure check_reg_equal(
     signal net : inout network_t;
-    reg_index : in integer;
+    reg_index : in natural;
     expected : in integer;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master) is
@@ -183,8 +184,8 @@ package body reg_operations_pkg is
 
   procedure check_reg_equal_bits(
     signal net : inout network_t;
-    reg_index : in integer;
-    expected_bits : in integer_vector;
+    reg_index : in natural;
+    expected_bits : in natural_vec_t;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master) is
     variable expected : reg_t := (others => '0');
@@ -198,8 +199,8 @@ package body reg_operations_pkg is
 
   procedure check_reg_equal_bit(
     signal net : inout network_t;
-    reg_index : in integer;
-    expected_bit : in integer;
+    reg_index : in natural;
+    expected_bit : in natural;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master) is
   begin
@@ -209,7 +210,7 @@ package body reg_operations_pkg is
 
   procedure write_reg(
     signal net : inout network_t;
-    reg_index : in integer;
+    reg_index : in natural;
     value : in reg_t;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master) is
@@ -221,7 +222,7 @@ package body reg_operations_pkg is
 
   procedure write_reg(
     signal net : inout network_t;
-    reg_index : in integer;
+    reg_index : in natural;
     value : in integer;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master) is
@@ -231,7 +232,7 @@ package body reg_operations_pkg is
 
   procedure write_reg(
     signal net : inout network_t;
-    reg_index : in integer;
+    reg_index : in natural;
     value : in unsigned(reg_width - 1 downto 0);
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master) is
@@ -241,8 +242,8 @@ package body reg_operations_pkg is
 
   procedure write_reg_bits(
     signal net : inout network_t;
-    reg_index : in integer;
-    bits : in integer_vector;
+    reg_index : in natural;
+    bits : in natural_vec_t;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master) is
     variable data : reg_t := (others => '0');
@@ -256,8 +257,8 @@ package body reg_operations_pkg is
 
   procedure write_reg_bit(
     signal net : inout network_t;
-    reg_index : in integer;
-    bit_index : in integer;
+    reg_index : in natural;
+    bit_index : in natural;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master) is
   begin
@@ -267,7 +268,7 @@ package body reg_operations_pkg is
 
   procedure wait_until_reg_equals(
     signal net : inout network_t;
-    reg_index : in integer;
+    reg_index : in natural;
     value : in reg_t;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master;
@@ -280,8 +281,8 @@ package body reg_operations_pkg is
 
   procedure wait_until_reg_equals_bits(
     signal net : inout network_t;
-    reg_index : in integer;
-    bits : in integer_vector;
+    reg_index : in natural;
+    bits : in natural_vec_t;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master;
     timeout : delay_length := delay_length'high;
@@ -310,8 +311,8 @@ package body reg_operations_pkg is
 
   procedure wait_until_reg_equals_bit(
     signal net : inout network_t;
-    reg_index : in integer;
-    bit : in integer;
+    reg_index : in natural;
+    bit : in natural;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master;
     timeout : delay_length := delay_length'high;
