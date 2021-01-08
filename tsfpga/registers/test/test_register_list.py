@@ -2,9 +2,11 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
+import copy
+from pathlib import Path
 import unittest
 from unittest.mock import patch
-from pathlib import Path
+
 import pytest
 
 from tsfpga.system_utils import create_file
@@ -124,6 +126,43 @@ def test_repr_with_register_array_appended():
     register_list_a.append_register_array(name="zebra", length=4)
 
     assert repr(register_list_a) != repr(register_list_b)
+
+
+def test_deep_copy_of_register_list_actually_copies_everything():
+    original_list = RegisterList("original", Path("/original_file.txt"))
+    original_list.add_constant("original_constant", value=2, description="original constant")
+    original_list.append_register(
+        "original_register", "w", description="original register", default_value=3
+    )
+    original_array = original_list.append_register_array("original_array", length=4)
+    original_array.append_register(name="original_register_in_array", mode="r")
+
+    copied_list = copy.deepcopy(original_list)
+
+    assert copied_list.constants is not original_list.constants
+    assert copied_list.constants[0] is not original_list.constants[0]
+
+    copied_list.add_constant(name="new_constant", value=5)
+    assert len(copied_list.constants) == 2 and len(original_list.constants) == 1
+
+    assert copied_list.register_objects is not original_list.register_objects
+    assert copied_list.register_objects[0] is not original_list.register_objects[0]
+
+    # Original register in position 0, original register array in position 1, new register in 2
+    copied_list.append_register(name="new_register", mode="r")
+    assert len(copied_list.register_objects) == 3 and len(original_list.register_objects) == 2
+
+    assert copied_list.register_objects[1] is not original_list.register_objects[1]
+    assert (
+        copied_list.register_objects[1].registers is not original_list.register_objects[1].registers
+    )
+    assert (
+        copied_list.register_objects[1].registers[0]
+        is not original_list.register_objects[1].registers[0]
+    )
+    copied_list.register_objects[1].append_register(name="new_register_in_array", mode="r_w")
+    assert len(copied_list.register_objects[1].registers) == 2
+    assert len(original_list.register_objects[1].registers) == 1
 
 
 # pylint: disable=too-many-public-methods

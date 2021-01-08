@@ -2,7 +2,6 @@
 # Copyright (c) Lukas Vik. All rights reserved.
 # ------------------------------------------------------------------------------
 
-import copy
 import unittest
 import pytest
 
@@ -16,24 +15,6 @@ def get_test_default_registers():
         Register("config", 0, "r_w", "Configuration register."),
     ]
     return registers
-
-
-def test_deep_copy_of_registers_actually_copies_everything():
-    registers = get_test_default_registers()
-    for register in registers:
-        if register.name == "config":
-            config_register = register
-
-    registers_copy = copy.deepcopy(registers)
-    for register in registers_copy:
-        if register.name == "config":
-            config_register_copy = register
-
-    config_register_copy.description = "Dummy"
-    config_register_copy.bits.append("dummy object")
-
-    assert config_register.description == "Configuration register."
-    assert len(config_register.bits) == 0
 
 
 # pylint: disable=too-many-public-methods
