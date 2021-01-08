@@ -34,10 +34,10 @@ class Module(BaseModule):
         tb = vunit_proj.library(self.library_name).test_bench("tb_resync_cycles")
         for active_high in [True, False]:
             generics = dict(active_high=active_high, output_clock_is_faster=True)
-            self.add_config(tb, generics=generics)
+            self.add_vunit_config(tb, generics=generics)
 
             generics = dict(active_high=active_high)
-            self.add_config(tb, generics=generics)
+            self.add_vunit_config(tb, generics=generics)
 
             generics = dict(active_high=active_high, output_clock_is_slower=True)
-            self.add_config(tb, generics=generics)
+            self.add_vunit_config(tb, generics=generics)

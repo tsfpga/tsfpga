@@ -136,7 +136,7 @@ class BuildProjectList:
 
 
                 | Must return True.
-            kwargs: Other arguments as accpeted by :meth:`.VivadoProject.build`.
+            kwargs: Other arguments as accepted by :meth:`.VivadoProject.build`.
 
                 .. Note::
                     Argument ``project_path`` can not be set, it is set by this class

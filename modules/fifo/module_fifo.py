@@ -21,11 +21,11 @@ class Module(BaseModule):
                 for generics in self.generate_common_fifo_test_generics(
                     test.name, original_generics
                 ):
-                    self.add_config(test, generics=generics)
+                    self.add_vunit_config(test, generics=generics)
 
         for test in vunit_proj.library(self.library_name).test_bench("tb_fifo").get_tests():
             for generics in self.generate_common_fifo_test_generics(test.name):
-                self.add_config(test, generics=generics)
+                self.add_vunit_config(test, generics=generics)
 
     @staticmethod
     def generate_common_fifo_test_generics(test_name, original_generics=None):

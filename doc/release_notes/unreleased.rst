@@ -6,7 +6,7 @@ Added
 * Add support for parallel builds of FPGA projects using the :class:`.BuildProjectList` class.
 * Add support for register constants in TOML file.
 * Add ``axi.axi_read_throttle`` and ``axi.axi_write_throttle`` VHDL entities.
-* Add :meth:`.BaseModule.pre_build`.
+* Add :meth:`.BaseModule.pre_build` hook function.
 * Add time saving mechanism to only re-create the register VHDL package when necessary.
 * Add ``common.debounce`` VHDL entity.
 * Add ``reg_was_read`` port to ``reg_file.axil_reg_file``.
@@ -31,6 +31,7 @@ Breaking changes
   If :meth:`.VivadoProject.build` fails, the returned :class:`.BuildResult` object will have ``success`` set to ``False``.
 * Rename ``<module>_reg_was_written_t`` to ``<module>_reg_was_accessed_t`` in generated register VHDL package.
 * Add mandatory generic ``width`` to ``resync.resync_slv_level`` and ``resync.resync_slv_level_on_signal``.
+* Rename ``BaseModule.add_config`` to :meth:`.BaseModule.add_vunit_config`.
 
 Changes
 

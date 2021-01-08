@@ -16,13 +16,13 @@ class Module(BaseModule):
             for id_width in [0, 5]:
                 for addr_width in [32, 40]:
                     generics = dict(data_width=data_width, id_width=id_width, addr_width=addr_width)
-                    self.add_config(tb, generics=generics)
+                    self.add_vunit_config(tb, generics=generics)
 
         tb = vunit_proj.library(self.library_name).test_bench("tb_axil_pkg")
         for data_width in [32, 64]:
             for addr_width in [32, 40]:
                 generics = dict(data_width=data_width, addr_width=addr_width)
-                self.add_config(tb, generics=generics)
+                self.add_vunit_config(tb, generics=generics)
 
         for tb_name in ["tb_axi_to_axil", "tb_axi_to_axil_bus_error"]:
             tb = vunit_proj.library(self.library_name).test_bench(tb_name)
@@ -31,8 +31,8 @@ class Module(BaseModule):
                 tb.add_config(name=name, generics=dict(data_width=data_width))
 
         tb = vunit_proj.library(self.library_name).test_bench("tb_axi_to_axil_vec")
-        self.add_config(tb, generics=dict(pipeline=True))
-        self.add_config(tb, generics=dict(pipeline=False))
+        self.add_vunit_config(tb, generics=dict(pipeline=True))
+        self.add_vunit_config(tb, generics=dict(pipeline=False))
 
         tb = vunit_proj.library(self.library_name).test_bench("tb_axil_cdc")
         tb.add_config(name="master_clk_fast", generics=dict(master_clk_fast=True))
