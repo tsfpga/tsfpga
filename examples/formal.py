@@ -1,6 +1,10 @@
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Copyright (c) Lukas Vik. All rights reserved.
-# ------------------------------------------------------------------------------
+#
+# This file is part of the tsfpga project.
+# https://tsfpga.com
+# https://gitlab.com/tsfpga/tsfpga
+# --------------------------------------------------------------------------------------------------
 # The tsfpga/formal docker image can be used to run this file.
 # Run for example with:
 #   docker run --rm --interactive --tty --volume $(pwd)/..:$(pwd)/.. \

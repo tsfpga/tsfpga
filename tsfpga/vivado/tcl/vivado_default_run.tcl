@@ -1,6 +1,10 @@
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Copyright (c) Lukas Vik. All rights reserved.
-# ------------------------------------------------------------------------------
+#
+# This file is part of the tsfpga project.
+# https://tsfpga.com
+# https://gitlab.com/tsfpga/tsfpga
+# --------------------------------------------------------------------------------------------------
 # A lot of information about the steps and possible settings can be found in UG904 and UG901.
 #
 # The names of the properties can be found by changing a setting in the GUI an see what TCL

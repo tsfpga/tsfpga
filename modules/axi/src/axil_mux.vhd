@@ -1,6 +1,10 @@
--- -----------------------------------------------------------------------------
+-- -------------------------------------------------------------------------------------------------
 -- Copyright (c) Lukas Vik. All rights reserved.
--- -----------------------------------------------------------------------------
+--
+-- This file is part of the tsfpga project.
+-- https://tsfpga.com
+-- https://gitlab.com/tsfpga/tsfpga
+-- -------------------------------------------------------------------------------------------------
 -- AXI-Lite 1-to-N mux.
 --
 -- The slave_addrs generic is a list of base address configurations for the
@@ -11,7 +15,7 @@
 -- If the address requested by the master does not match any slave, this entity
 -- will send AXI decode error on the response channel. There will still be
 -- proper AXI handshaking done, so the master will not be stalled.
--- -----------------------------------------------------------------------------
+-- -------------------------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;

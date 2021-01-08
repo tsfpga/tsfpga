@@ -1,6 +1,10 @@
--- -----------------------------------------------------------------------------
+-- -------------------------------------------------------------------------------------------------
 -- Copyright (c) Lukas Vik. All rights reserved.
--- -----------------------------------------------------------------------------
+--
+-- This file is part of the tsfpga project.
+-- https://tsfpga.com
+-- https://gitlab.com/tsfpga/tsfpga
+-- -------------------------------------------------------------------------------------------------
 -- Performs throttling of an AXI bus by limiting the number of outstanding
 -- transactions.
 --
@@ -11,7 +15,7 @@
 --
 -- To achieve this it keeps track of the number of outstanding beats
 -- that have been negotiated but not yet sent.
--- -----------------------------------------------------------------------------
+-- -------------------------------------------------------------------------------------------------
 
 library ieee;
 use ieee.numeric_std.all;

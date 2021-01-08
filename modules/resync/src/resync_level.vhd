@@ -1,6 +1,10 @@
--- -----------------------------------------------------------------------------
+-- -------------------------------------------------------------------------------------------------
 -- Copyright (c) Lukas Vik. All rights reserved.
--- -----------------------------------------------------------------------------
+--
+-- This file is part of the tsfpga project.
+-- https://tsfpga.com
+-- https://gitlab.com/tsfpga/tsfpga
+-- -------------------------------------------------------------------------------------------------
 -- Resync a single bit from one clock domain to another.
 --
 -- The two registers will be placed in the same slice, in order to minimize
@@ -13,7 +17,7 @@
 -- a deterministic latency through the resync block (via a set_max_delay
 -- constraint) it has to be set. If not, a simple set_false_path constraint will
 -- be used and the latency can be arbitrary, depending on the placer/router.
--- -----------------------------------------------------------------------------
+-- -------------------------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;

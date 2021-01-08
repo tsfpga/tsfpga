@@ -1,6 +1,10 @@
--- -----------------------------------------------------------------------------
+-- -------------------------------------------------------------------------------------------------
 -- Copyright (c) Lukas Vik. All rights reserved.
--- -----------------------------------------------------------------------------
+--
+-- This file is part of the tsfpga project.
+-- https://tsfpga.com
+-- https://gitlab.com/tsfpga/tsfpga
+-- -------------------------------------------------------------------------------------------------
 -- @brief Convert AXI transfers to AXI-Lite transfers.
 --
 -- This module does not handle conversion of non-well behaved AXI transfers.
@@ -11,7 +15,7 @@
 -- outstanding transaction (read and write separate). While the AXI-Lite standard
 -- does allow for outstanding bursts, some Xilinx cores, namely the PCIe DMA bridge
 -- does not play well with it.
--- -----------------------------------------------------------------------------
+-- -------------------------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;

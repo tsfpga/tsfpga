@@ -1,10 +1,14 @@
--- -----------------------------------------------------------------------------
+-- -------------------------------------------------------------------------------------------------
 -- Copyright (c) Lukas Vik. All rights reserved.
--- -----------------------------------------------------------------------------
+--
+-- This file is part of the tsfpga project.
+-- https://tsfpga.com
+-- https://gitlab.com/tsfpga/tsfpga
+-- -------------------------------------------------------------------------------------------------
 -- Note that this block can break the AXI-Stream protocol. If one of the outputs
 -- lowers ready, that will lower valid for the other output. Use only in situations
 -- that can handle this.
--- -----------------------------------------------------------------------------
+-- -------------------------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;

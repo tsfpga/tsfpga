@@ -1,6 +1,10 @@
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Copyright (c) Lukas Vik. All rights reserved.
-# ------------------------------------------------------------------------------
+#
+# This file is part of the tsfpga project.
+# https://tsfpga.com
+# https://gitlab.com/tsfpga/tsfpga
+# --------------------------------------------------------------------------------------------------
 
 from tsfpga.system_utils import create_file
 from tsfpga.fix_lint import fix_trailing_whitespace, fix_tabs

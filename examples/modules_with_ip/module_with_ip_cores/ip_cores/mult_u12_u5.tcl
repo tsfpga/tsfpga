@@ -1,6 +1,10 @@
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Copyright (c) Lukas Vik. All rights reserved.
-# ------------------------------------------------------------------------------
+#
+# This file is part of the tsfpga project.
+# https://tsfpga.com
+# https://gitlab.com/tsfpga/tsfpga
+# --------------------------------------------------------------------------------------------------
 
 create_ip -name mult_gen -vendor xilinx.com -library ip -version 12.0 -module_name mult_u12_u5
 set_property -dict [list \

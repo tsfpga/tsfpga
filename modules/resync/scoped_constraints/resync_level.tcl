@@ -1,6 +1,10 @@
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Copyright (c) Lukas Vik. All rights reserved.
-# ------------------------------------------------------------------------------
+#
+# This file is part of the tsfpga project.
+# https://tsfpga.com
+# https://gitlab.com/tsfpga/tsfpga
+# --------------------------------------------------------------------------------------------------
 
 set clk_in [get_clocks -of_objects [get_ports clk_in]]
 set clk_out [get_clocks -of_objects [get_ports clk_out]]

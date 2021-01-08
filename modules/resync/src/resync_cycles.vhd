@@ -1,6 +1,10 @@
--- -----------------------------------------------------------------------------
+-- -------------------------------------------------------------------------------------------------
 -- Copyright (c) Lukas Vik. All rights reserved.
--- -----------------------------------------------------------------------------
+--
+-- This file is part of the tsfpga project.
+-- https://tsfpga.com
+-- https://gitlab.com/tsfpga/tsfpga
+-- -------------------------------------------------------------------------------------------------
 -- Resynchronizes a bit, so that the output bit is asserted as many
 -- clock cycles as the input bit.
 --
@@ -9,7 +13,7 @@
 -- how many clk_out cycles the output bit should be asserted.
 -- The module may fail when clk_out is slower than clk_in and the input is
 -- asserted many cycles in a row. An assertion is made to check for this case.
--- -----------------------------------------------------------------------------
+-- -------------------------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;

@@ -1,6 +1,10 @@
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Copyright (c) Lukas Vik. All rights reserved.
-# ------------------------------------------------------------------------------
+#
+# This file is part of the tsfpga project.
+# https://tsfpga.com
+# https://gitlab.com/tsfpga/tsfpga
+# --------------------------------------------------------------------------------------------------
 
 import re
 
@@ -16,7 +20,7 @@ class CopyrightHeader:
         self._file = file
         self.comment_character = self._get_comment_character()
         self.separator_line = f"{self.comment_character} " + "-" * (
-            79 - len(self.comment_character)
+            99 - len(self.comment_character)
         )
         self.expected_copyright_header = self._get_expected_copyright_header(
             copyright_holder, copyright_text_lines
@@ -93,7 +97,12 @@ def files_to_check_for_copyright_header():
 def test_copyright_header_of_all_checked_in_files():
     test_ok = True
     for file in files_to_check_for_copyright_header():
-        copyright_header_checker = CopyrightHeader(file, "Lukas Vik")
+        copyright_lines = [
+            "This file is part of the tsfpga project.",
+            "https://tsfpga.com",
+            "https://gitlab.com/tsfpga/tsfpga",
+        ]
+        copyright_header_checker = CopyrightHeader(file, "Lukas Vik", copyright_lines)
         if not copyright_header_checker.check_file():
             test_ok = False
             print(
@@ -103,9 +112,9 @@ def test_copyright_header_of_all_checked_in_files():
 
 
 def test_check_file(tmp_path):
-    header = "-- " + "-" * 77 + "\n"
+    header = "-- " + "-" * 97 + "\n"
     header += "-- Copyright (c) Apa. All rights reserved.\n"
-    header += "-- " + "-" * 77 + "\n"
+    header += "-- " + "-" * 97 + "\n"
 
     file = create_file(tmp_path / "header.vhd", header)
     copyright_header = CopyrightHeader(file, "Apa")
@@ -125,12 +134,12 @@ def test_check_file(tmp_path):
 
 
 def test_check_file_with_copyright_text(tmp_path):
-    header = "-- " + "-" * 77 + "\n"
+    header = "-- " + "-" * 97 + "\n"
     header += "-- Copyright (c) Apa. All rights reserved.\n"
     header += "--\n"
     header += "-- Some more\n"
     header += "-- text.\n"
-    header += "-- " + "-" * 77 + "\n"
+    header += "-- " + "-" * 97 + "\n"
 
     file = create_file(tmp_path / "header.vhd", header)
     copyright_header = CopyrightHeader(file, "Apa", ["Some more", "text."])
@@ -145,9 +154,9 @@ def test_fix_file_comment_insertion(tmp_path):
     copyright_header.fix_file()
 
     data = read_file(file).split("\n")
-    assert data[0] == "-- " + "-" * 77
+    assert data[0] == "-- " + "-" * 97
     assert data[1] == "-- Copyright (c) Hest Hestsson. All rights reserved."
-    assert data[2] == "-- " + "-" * 77
+    assert data[2] == "-- " + "-" * 97
     assert data[3] == ""
     assert data[4] == "Apa"
 
