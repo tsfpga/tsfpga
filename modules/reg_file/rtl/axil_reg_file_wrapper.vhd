@@ -1,7 +1,7 @@
 -- -----------------------------------------------------------------------------
 -- Copyright (c) Lukas Vik. All rights reserved.
 -- -----------------------------------------------------------------------------
--- Wrapper that sets an appropriate generic.
+-- Wrapper, for netlist build and formal flow, that sets an appropriate generic.
 -- -----------------------------------------------------------------------------
 
 library ieee;
@@ -20,22 +20,22 @@ library reg_file;
 use reg_file.reg_file_pkg.all;
 
 
-entity axil_reg_file_formal_wrapper is
+entity axil_reg_file_wrapper is
   port (
     clk : in std_logic;
     --
     axil_m2s : in axil_m2s_t;
     axil_s2m : out axil_s2m_t;
     --
-    regs_up : in reg_vec_t(0 to 9);
-    regs_down : out reg_vec_t(0 to 9);
+    regs_up : in reg_vec_t(0 to 15 - 1);
+    regs_down : out reg_vec_t(0 to 15 - 1);
     --
-    reg_was_read : out std_logic_vector(0 to 9);
-    reg_was_written : out std_logic_vector(0 to 9)
+    reg_was_read : out std_logic_vector(0 to 15 - 1);
+    reg_was_written : out std_logic_vector(0 to 15 - 1)
   );
 end entity;
 
-architecture a of axil_reg_file_formal_wrapper is
+architecture a of axil_reg_file_wrapper is
 
   constant regs : reg_definition_vec_t(regs_up'range) := (
     (idx=>0, reg_type=>r),
@@ -47,14 +47,19 @@ architecture a of axil_reg_file_formal_wrapper is
     (idx=>6, reg_type=>w),
     (idx=>7, reg_type=>r_w),
     (idx=>8, reg_type=>wpulse),
-    (idx=>9, reg_type=>r_wpulse)
+    (idx=>9, reg_type=>r_wpulse),
+    (idx=>10, reg_type=>r),
+    (idx=>11, reg_type=>w),
+    (idx=>12, reg_type=>r_w),
+    (idx=>13, reg_type=>wpulse),
+    (idx=>14, reg_type=>r_wpulse)
   );
 
 begin
 
   axil_reg_file_inst : entity reg_file.axil_reg_file
     generic map (
-        regs => regs
+      regs => regs
     )
     port map (
       clk => clk,
@@ -68,6 +73,5 @@ begin
       reg_was_read => reg_was_read,
       reg_was_written => reg_was_written
     );
-
 
 end architecture;

@@ -15,7 +15,7 @@ class Module(BaseModule):
 
     def setup_formal(self, formal_proj, **kwargs):
         formal_proj.add_config(
-            top="axil_reg_file_formal_wrapper",
+            top="axil_reg_file_wrapper",
             engine_command="smtbmc",
             solver_command="z3",
             mode="prove",
