@@ -3,6 +3,9 @@
 # ------------------------------------------------------------------------------
 
 from tsfpga.module import BaseModule
+from tsfpga.vivado.project import VivadoNetlistProject
+from tsfpga.vivado.size_checker import EqualTo, Ffs, LogicLuts, Ramb18, Ramb36, TotalLuts
+from examples.tsfpga_example_env import get_tsfpga_modules
 
 
 class Module(BaseModule):
@@ -20,3 +23,26 @@ class Module(BaseModule):
             solver_command="z3",
             mode="prove",
         )
+
+    def get_build_projects(self):  # pylint: disable=no-self-use
+        projects = []
+        all_modules = get_tsfpga_modules()
+        part = "xc7z020clg400-1"
+
+        projects.append(
+            VivadoNetlistProject(
+                name="axil_reg_file",
+                modules=all_modules,
+                part=part,
+                top="axil_reg_file_wrapper",
+                result_size_checkers=[
+                    TotalLuts(EqualTo(199)),
+                    LogicLuts(EqualTo(199)),
+                    Ffs(EqualTo(456)),
+                    Ramb36(EqualTo(0)),
+                    Ramb18(EqualTo(0)),
+                ],
+            )
+        )
+
+        return projects
