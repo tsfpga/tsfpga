@@ -5,12 +5,8 @@
 # https://tsfpga.com
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
-# The tsfpga/formal docker image can be used to run this file.
-# Run for example with:
-#   docker run --rm --interactive --tty --volume $(pwd)/..:$(pwd)/.. \
-#       --workdir $(pwd) tsfpga/formal /bin/bash
-#   python3 examples/formal.py
-# ------------------------------------------------------------------------------
+# The tsfpga/formal docker image can be used to run this file. See run_formal.sh
+# --------------------------------------------------------------------------------------------------
 
 import argparse
 from pathlib import Path
