@@ -133,7 +133,7 @@ This method for manipulating registers can be very useful for information that i
 .. literalinclude:: ../../examples/modules/ddr_buffer/module_ddr_buffer.py
    :caption: module_ddr_buffer.py
    :language: python
-   :lines: 5-
+   :lines: 9-
 
 Using :meth:`.BaseModule.registers_hook` we add a constant as well as a read-only register for the module's version number.
 The idea behind this example is that a software that uses this module will read the ``version`` register and compare to the static constant that shows up in :ref:`the header <regs_cpp>`.

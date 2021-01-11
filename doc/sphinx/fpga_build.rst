@@ -73,7 +73,7 @@ The only difference is that it overrides the :meth:`.BaseModule.get_build_projec
 .. literalinclude:: ../../examples/modules/artyz7/module_artyz7.py
    :caption: Example project creation
    :language: python
-   :lines: 5-
+   :lines: 9-
 
 There is a lot going on here, so lets go through what happens in ``get_build_projects()``.
 

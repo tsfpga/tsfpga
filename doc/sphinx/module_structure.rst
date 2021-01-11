@@ -109,7 +109,7 @@ It typically looks something like this:
 .. literalinclude:: ../../examples/modules_with_ip/module_with_ip_cores/ip_cores/mult_u12_u5.tcl
     :caption: Example TCL that creates an IP core
     :language: none
-    :lines: 5-
+    :lines: 9-
 
 These TCL files shall be place in the ``ip_cores`` folder within the module.
 The IP cores will be included in all build projects that include the module, and in the simulation project.
