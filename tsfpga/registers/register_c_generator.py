@@ -33,8 +33,9 @@ class RegisterCGenerator(RegisterCodeGenerator):
         return c_code
 
     @staticmethod
-    def _comment(comment):
-        return f"/* {comment} */\n"
+    def _comment(comment, indentation=0):
+        indent = " " * indentation
+        return f"{indent}// {comment}\n"
 
     def _file_header(self):
         return "".join([self._comment(header_line) for header_line in self.generated_info])
@@ -43,17 +44,24 @@ class RegisterCGenerator(RegisterCodeGenerator):
         array_structs = ""
 
         register_struct_type = f"{self.module_name}_regs_t"
-        register_struct = f"typedef struct {register_struct_type}\n"
+        register_struct = self._comment("Type for this register map.")
+        register_struct += f"typedef struct {register_struct_type}\n"
         register_struct += "{\n"
         for register_object in register_objects:
             if isinstance(register_object, Register):
+                register_struct += self._comment_block(register_object.description, indentation=2)
                 register_struct += f"  uint32_t {register_object.name};\n"
+
             else:
                 array_struct_type = f"{self.module_name}_{register_object.name}_t"
 
-                array_structs = f"typedef struct {array_struct_type}\n"
+                array_structs = self._comment(
+                    f"Type for the {register_object.name} register array."
+                )
+                array_structs += f"typedef struct {array_struct_type}\n"
                 array_structs += "{\n"
                 for register in register_object.registers:
+                    array_structs += self._comment_block(register.description, indentation=2)
                     array_structs += f"  uint32_t {register.name};\n"
                 array_structs += f"}} {array_struct_type};\n\n"
 
@@ -64,7 +72,8 @@ class RegisterCGenerator(RegisterCodeGenerator):
         return array_structs + register_struct
 
     def _register_defines(self, register_objects):
-        c_code = (
+        c_code = self._comment("Number of registers within this register map.")
+        c_code += (
             f"#define {self.module_name.upper()}_NUM_REGS ({register_objects[-1].index + 1}u)\n\n"
         )
 
@@ -77,14 +86,26 @@ class RegisterCGenerator(RegisterCodeGenerator):
 
     def _addr_define(self, register, register_array):
         name = self._register_define_name(register, register_array)
-        if register_array is None:
-            addr = register.index * 4
-            return f"#define {name}_ADDR ({addr}u)\n"
 
-        c_code = (
-            f"#define {name}_ADDR(array_index) (4u * ({register_array.base_index}u + "
-            f"(array_index) * {len(register_array.registers)}u + {register.index}u))\n"
-        )
+        if register_array is None:
+            c_code = self._comment(f"Address of {register.name} register.")
+            c_code += self._comment_block(register.description)
+
+            addr = register.index * 4
+            c_code += f"#define {name}_ADDR ({addr}u)\n"
+        else:
+            title = (
+                f"Address of {register.name} register within {register_array.name} array"
+                f" (array_index < {register_array.length})."
+            )
+            c_code = self._comment(title)
+            c_code += self._comment_block(register.description)
+
+            c_code += (
+                f"#define {name}_ADDR(array_index) (4u * ({register_array.base_index}u + "
+                f"(array_index) * {len(register_array.registers)}u + {register.index}u))\n"
+            )
+
         return c_code
 
     def _bit_definitions(self, register, register_array):
@@ -92,6 +113,8 @@ class RegisterCGenerator(RegisterCodeGenerator):
 
         c_code = ""
         for bit in register.bits:
+            c_code += self._comment_block(bit.description)
+
             bit_name = f"{register_name}_{bit.name.upper()}"
             c_code += f"#define {bit_name}_BIT ({bit.index}u)\n"
             c_code += f"#define {bit_name} ({2**bit.index}u)\n"
@@ -108,6 +131,8 @@ class RegisterCGenerator(RegisterCodeGenerator):
     def _constants(self, constants):
         c_code = ""
         for constant in constants:
+            c_code += self._comment(f"Register constant {constant.name}.")
+            c_code += self._comment_block(constant.description)
             c_code += (
                 f"#define {self.module_name.upper()}_{constant.name.upper()} ({constant.value})\n"
             )

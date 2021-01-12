@@ -18,8 +18,9 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
         self.generated_info = generated_info
 
     @staticmethod
-    def _comment(comment):
-        return f"-- {comment}\n"
+    def _comment(comment, indentation=0):
+        indent = " " * indentation
+        return f"{indent}-- {comment}\n"
 
     def _header(self):
         return "".join([self._comment(header_line) for header_line in self.generated_info])

@@ -23,3 +23,20 @@ class RegisterCodeGenerator:
             else:
                 for register in register_object.registers:
                     yield (register, register_object)
+
+    @staticmethod
+    def _comment(comment, indentation=0):
+        raise NotImplementedError("Should be overloaded in child class")
+
+    def _comment_block(self, text, indentation=0):
+        """
+        Create a comment block from a string with newlines.
+        """
+        text_lines = text.split("\n")
+
+        # Very common that the last line is empty. An effect of TOML formatting with
+        # multi-line strings. Remove to make the output look more clean.
+        if text_lines[-1] == "":
+            text_lines.pop()
+
+        return "".join(self._comment(line, indentation=indentation) for line in text_lines)

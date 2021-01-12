@@ -6,7 +6,7 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-from .register import Register
+from .register_array import RegisterArray
 from .register_code_generator import RegisterCodeGenerator
 
 
@@ -22,25 +22,41 @@ class RegisterCppGenerator(RegisterCodeGenerator):
         cpp_code += "public:\n"
 
         for constant in constants:
+            cpp_code += self._comment("Register constant.", indentation=2)
+            cpp_code += self._comment_block(constant.description, indentation=2)
+
             cpp_code += f"  static const int {constant.name} = {constant.value}L;\n"
+        if constants:
+            cpp_code += "\n"
+
+        cpp_code += self._comment("Number of registers within this register map.", indentation=2)
         cpp_code += f"  static const size_t num_registers = {register_objects[-1].index + 1}uL;\n\n"
 
         for register_object in register_objects:
-            if isinstance(register_object, Register):
-                cpp_code += self._bit_constants(register_object)
-            else:
+            if isinstance(register_object, RegisterArray):
+                cpp_code += self._comment(
+                    f"Length of the {register_object.name} register array", indentation=2
+                )
                 constant_name = self._array_length_constant_name(register_object)
                 cpp_code += (
                     f"  static const size_t {constant_name} = {register_object.length}uL;\n\n"
                 )
 
-                for register in register_object.registers:
-                    cpp_code += self._bit_constants(register, register_object.name)
-
         cpp_code += f"  virtual ~I{self._class_name}() {{ }}\n"
 
         for register, register_array in self._iterate_registers(register_objects):
             cpp_code += "\n"
+            cpp_code += self._bit_constants(register, register_array)
+
+            if register_array:
+                description = (
+                    f"Register {register.name} within the {register_array.name} register array."
+                )
+            else:
+                description = f"Register {register.name}."
+            cpp_code += self._comment(description, indentation=2)
+            cpp_code += self._comment_block(register.description, indentation=2)
+
             if register.is_bus_readable:
                 cpp_code += (
                     "  virtual uint32_t "
@@ -118,20 +134,21 @@ class RegisterCppGenerator(RegisterCodeGenerator):
 
         return cpp_code_top + self._with_namespace(cpp_code)
 
-    @staticmethod
-    def _bit_constants(register, name_prefix=None):
+    def _bit_constants(self, register, register_array):
         cpp_code = ""
         for bit in register.bits:
-            if name_prefix is None:
+            description = f"Bitmask for the {bit.name} bit in the {register.name} register"
+            if register_array is None:
+                description += "."
                 bit_constant_name = f"{register.name}_{bit.name}"
             else:
-                bit_constant_name = f"{name_prefix}_{register.name}_{bit.name}"
+                description += f" within the {register_array.name} register array."
+                bit_constant_name = f"{register_array.name}_{register.name}_{bit.name}"
 
+            cpp_code += self._comment(description, indentation=2)
+            cpp_code += self._comment_block(bit.description, indentation=2)
             bit_constant_value = 2 ** bit.index
             cpp_code += f"  static const uint32_t {bit_constant_name} = {bit_constant_value}uL;\n"
-
-        if cpp_code:
-            cpp_code += "\n"
 
         return cpp_code
 
@@ -148,8 +165,9 @@ class RegisterCppGenerator(RegisterCodeGenerator):
         return cpp_code
 
     @staticmethod
-    def _comment(comment):
-        return f"/* {comment} */\n"
+    def _comment(comment, indentation=0):
+        indent = " " * indentation
+        return f"{indent}// {comment}\n"
 
     def _file_header(self):
         return "".join([self._comment(header_line) for header_line in self.generated_info])
