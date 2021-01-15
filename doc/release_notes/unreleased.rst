@@ -11,6 +11,7 @@ Added
 * Add ``common.debounce`` VHDL entity.
 * Add ``reg_was_read`` port to ``reg_file.axil_reg_file``.
 * Add :meth:`.VivadoProject.pre_create` hook function.
+* Allow Vivado project source files to contain spaces.
 
 Breaking changes
 

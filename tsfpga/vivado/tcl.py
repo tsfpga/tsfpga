@@ -36,10 +36,10 @@ class VivadoTcl:
         ip_cache_path=None,
         disable_io_buffers=True,
     ):
-        tcl = f"create_project {self.name} {to_tcl_path(project_folder)} -part {part}\n"
+        tcl = f"create_project {self.name} {{{to_tcl_path(project_folder)}}} -part {part}\n"
         tcl += "set_property target_language VHDL [current_project]\n"
         if ip_cache_path is not None:
-            tcl += f"config_ip_cache -use_cache_location {to_tcl_path(ip_cache_path)}\n"
+            tcl += f"config_ip_cache -use_cache_location {{{to_tcl_path(ip_cache_path)}}}\n"
         tcl += "\n"
         tcl += self._add_tcl_sources(tcl_sources)
         tcl += "\n"
@@ -74,9 +74,9 @@ class VivadoTcl:
             verilog_source_files = []
             for hdl_file in module.get_synthesis_files():
                 if hdl_file.is_vhdl:
-                    vhdl_files.append(f'"{to_tcl_path(hdl_file.path)}"')
+                    vhdl_files.append(hdl_file.path)
                 elif hdl_file.is_verilog_source:
-                    verilog_source_files.append(to_tcl_path(hdl_file.path))
+                    verilog_source_files.append(hdl_file.path)
                 else:
                     raise NotImplementedError(f"Can not handle file: {hdl_file}")
                     # Verilog headers do not need to be handled at all if the
@@ -90,14 +90,27 @@ class VivadoTcl:
                     # to handle, since I have no use case for it at the moment.
 
             if vhdl_files:
-                files_string = " ".join(vhdl_files)
-                tcl += f"read_vhdl -library {module.library_name} -vhdl2008 {{{files_string}}}\n"
+                files_string = self._to_file_list(vhdl_files)
+                tcl += f"read_vhdl -library {module.library_name} -vhdl2008 {files_string}\n"
             if verilog_source_files:
-                files_string = " ".join(verilog_source_files)
-                tcl += f"read_verilog {{{files_string}}}\n"
+                files_string = self._to_file_list(verilog_source_files)
+                tcl += f"read_verilog {files_string}\n"
 
             tcl += self._add_tcl_sources(module.get_ip_core_files())
         return tcl
+
+    @staticmethod
+    def _to_file_list(file_paths):
+        """
+        Return a TCL snippet for a file list, with each file enclosed in curly braces.
+        E.g. "{file1}" or "{{file1} {file2} {file3}}"
+        """
+        if len(file_paths) == 1:
+            files_string = to_tcl_path(file_paths[0])
+        else:
+            files_string = " ".join([f"{{{to_tcl_path(file_path)}}}" for file_path in file_paths])
+
+        return f"{{{files_string}}}"
 
     @staticmethod
     def _add_tcl_sources(tcl_sources):
@@ -106,7 +119,7 @@ class VivadoTcl:
 
         tcl = ""
         for tcl_source_file in tcl_sources:
-            tcl += "source -notrace %s\n" % to_tcl_path(tcl_source_file)
+            tcl += f"source -notrace {{{to_tcl_path(tcl_source_file)}}}\n"
         return tcl
 
     def _add_build_step_hooks(self, build_step_hooks, project_folder):
@@ -132,16 +145,16 @@ class VivadoTcl:
             else:
                 tcl_file = project_folder / ("hook_" + step.replace(".", "_") + ".tcl")
                 source_hooks_tcl = "".join(
-                    [f"source {to_tcl_path(hook.tcl_file)}\n" for hook in hooks]
+                    [f"source {{{to_tcl_path(hook.tcl_file)}}}\n" for hook in hooks]
                 )
                 create_file(tcl_file, source_hooks_tcl)
 
             # Add to fileset to enable archive and other project based functionality
-            tcl += f"add_files -fileset utils_1 -norecurse {to_tcl_path(tcl_file)}\n"
+            tcl += f"add_files -fileset utils_1 -norecurse {{{to_tcl_path(tcl_file)}}}\n"
 
             # Build step hook can only be applied to a run (e.g. impl_1), not on a project basis
             run_wildcard = "synth_*" if hooks[0].step_is_synth else "impl_*"
-            tcl_block = f"set_property {step} {to_tcl_path(tcl_file)} ${{run}}"
+            tcl_block = f"set_property {step} {{{to_tcl_path(tcl_file)}}} ${{run}}"
             tcl += self._tcl_for_each_run(run_wildcard, tcl_block)
 
         return tcl
@@ -205,19 +218,19 @@ class VivadoTcl:
     def _add_constraints(constraints):
         tcl = ""
         for constraint in constraints:
-            file = to_tcl_path(constraint.file)
-            ref_flags = "" if constraint.ref is None else (f"-ref {constraint.ref} ")
-            managed_flags = "" if file.endswith("xdc") else "-unmanaged "
+            constraint_file = to_tcl_path(constraint.file)
 
-            tcl += f"read_xdc {ref_flags}{managed_flags}{file}\n"
-            tcl += (
-                f"set_property PROCESSING_ORDER {constraint.processing_order} [get_files {file}]\n"
-            )
+            ref_flags = "" if constraint.ref is None else (f"-ref {constraint.ref} ")
+            managed_flags = "" if constraint_file.endswith("xdc") else "-unmanaged "
+            tcl += f"read_xdc {ref_flags}{managed_flags}{{{constraint_file}}}\n"
+
+            get_file = f"[get_files {{{constraint_file}}}]"
+            tcl += f"set_property PROCESSING_ORDER {constraint.processing_order} {get_file}\n"
 
             if constraint.used_in == "impl":
-                tcl += f"set_property used_in_synthesis false [get_files {file}]\n"
+                tcl += f"set_property used_in_synthesis false {get_file}\n"
             elif constraint.used_in == "synth":
-                tcl += f"set_property used_in_implementation false [get_files {file}]\n"
+                tcl += f"set_property used_in_implementation false {get_file}\n"
 
         return tcl
 
@@ -295,5 +308,5 @@ class VivadoTcl:
 
     def _write_hw_platform(self, output_path):
         xsa_file = to_tcl_path(output_path / (self.name + ".xsa"))
-        tcl = f"write_hw_platform -fixed -force {xsa_file}\n"
+        tcl = f"write_hw_platform -fixed -force {{{xsa_file}}}\n"
         return tcl

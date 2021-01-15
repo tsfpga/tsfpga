@@ -56,10 +56,12 @@ def test_build_step_hooks():
     )
 
     assert (
-        f"\nset_property STEPS.SYNTH_DESIGN.TCL.PRE {to_tcl_path(dummy.tcl_file)} ${{run}}\n" in tcl
+        f"\nset_property STEPS.SYNTH_DESIGN.TCL.PRE {{{to_tcl_path(dummy.tcl_file)}}} ${{run}}\n"
+        in tcl
     )
     assert (
-        f"\nset_property STEPS.ROUTE_DESIGN.TCL.PRE {to_tcl_path(files.tcl_file)} ${{run}}\n" in tcl
+        f"\nset_property STEPS.ROUTE_DESIGN.TCL.PRE {{{to_tcl_path(files.tcl_file)}}} ${{run}}\n"
+        in tcl
     )
 
 
@@ -77,10 +79,12 @@ def test_build_step_hooks_with_same_hook_step(tmp_path):
 
     hook_file = tmp_path / "dummy_project_folder" / "hook_STEPS_SYNTH_DESIGN_TCL_PRE.tcl"
 
-    assert file_contains_string(hook_file, f"source {to_tcl_path(dummy.tcl_file)}")
-    assert file_contains_string(hook_file, f"source {to_tcl_path(files.tcl_file)}")
+    assert file_contains_string(hook_file, f"source {{{to_tcl_path(dummy.tcl_file)}}}")
+    assert file_contains_string(hook_file, f"source {{{to_tcl_path(files.tcl_file)}}}")
 
-    assert f"\nset_property STEPS.SYNTH_DESIGN.TCL.PRE {to_tcl_path(hook_file)} ${{run}}\n" in tcl
+    assert (
+        f"\nset_property STEPS.SYNTH_DESIGN.TCL.PRE {{{to_tcl_path(hook_file)}}} ${{run}}\n" in tcl
+    )
 
 
 def test_ip_cache_location(tmp_path):
@@ -92,7 +96,7 @@ def test_ip_cache_location(tmp_path):
     tcl = VivadoTcl(name="").create(
         project_folder=Path(), modules=[], part="part", top="", run_index=1, ip_cache_path=tmp_path
     )
-    assert f"\nconfig_ip_cache -use_cache_location {to_tcl_path(tmp_path)}\n" in tcl
+    assert f"\nconfig_ip_cache -use_cache_location {{{to_tcl_path(tmp_path)}}}\n" in tcl
 
 
 def test_set_multiple_threads():
@@ -146,12 +150,13 @@ class TestVivadoTcl(unittest.TestCase):
 
         # A library with some synth files and some test files
         self.a_vhd = to_tcl_path(create_file(self.modules_folder / "apa" / "a.vhd"))
+        self.b_vhd = to_tcl_path(create_file(self.modules_folder / "apa" / "b.vhd"))
         self.tb_a_vhd = to_tcl_path(create_file(self.modules_folder / "apa" / "test" / "tb_a.vhd"))
         self.a_xdc = to_tcl_path(
             create_file(self.modules_folder / "apa" / "scoped_constraints" / "a.xdc")
         )
 
-        self.b_v = to_tcl_path(create_file(self.modules_folder / "apa" / "b.v"))
+        self.c_v = to_tcl_path(create_file(self.modules_folder / "apa" / "c.v"))
         self.b_tcl = to_tcl_path(
             create_file(self.modules_folder / "apa" / "scoped_constraints" / "b.tcl")
         )
@@ -159,41 +164,47 @@ class TestVivadoTcl(unittest.TestCase):
         self.c_tcl = to_tcl_path(create_file(self.modules_folder / "apa" / "ip_cores" / "c.tcl"))
 
         # A library with only test files
-        self.c_vhd = to_tcl_path(create_file(self.modules_folder / "zebra" / "test" / "c.vhd"))
+        self.d_vhd = to_tcl_path(create_file(self.modules_folder / "zebra" / "test" / "d.vhd"))
 
         self.modules = get_modules([self.modules_folder])
 
         self.tcl = VivadoTcl(name="name")
 
+    def test_source_file_list_is_correctly_formatted(self):
+        tcl = self.tcl.create(
+            project_folder=Path(), modules=self.modules, part="", top="", run_index=1
+        )
+
+        # Order of files is not really deterministic
+        expected_1 = "\nread_vhdl -library apa -vhdl2008 {{%s} {%s}}\n" % (self.b_vhd, self.a_vhd)
+        expected_2 = "\nread_vhdl -library apa -vhdl2008 {{%s} {%s}}\n" % (self.a_vhd, self.b_vhd)
+        assert expected_1 in tcl or expected_2 in tcl
+
+        expected = "\nread_verilog {%s}\n" % self.c_v
+        assert expected in tcl
+
     def test_only_synthesis_files_added_to_create_project_tcl(self):
         tcl = self.tcl.create(
             project_folder=Path(), modules=self.modules, part="", top="", run_index=1
         )
-        assert self.a_vhd in tcl and self.b_v in tcl
+        assert self.a_vhd in tcl and self.c_v in tcl
         assert self.tb_a_vhd not in tcl and "tb_a.vhd" not in tcl
-
-    def test_different_hdl_file_types(self):
-        tcl = self.tcl.create(
-            project_folder=Path(), modules=self.modules, part="", top="", run_index=1
-        )
-        assert f"read_vhdl -library apa -vhdl2008 {{{self.a_vhd}}}" in tcl
-        assert f"read_verilog {{{self.b_v}}}" in tcl
 
     def test_constraints(self):
         tcl = self.tcl.create(
             project_folder=Path(), modules=self.modules, part="part", top="", run_index=1
         )
 
-        expected = f"\nread_xdc -ref a {self.a_xdc}\n"
+        expected = f"\nread_xdc -ref a {{{self.a_xdc}}}\n"
         assert expected in tcl
-        expected = f"\nread_xdc -ref b -unmanaged {self.b_tcl}\n"
+        expected = f"\nread_xdc -ref b -unmanaged {{{self.b_tcl}}}\n"
         assert expected in tcl
 
     def test_ip_core_files(self):
         tcl = self.tcl.create(
             project_folder=Path(), modules=self.modules, part="part", top="", run_index=1
         )
-        assert f"\nsource -notrace {self.c_tcl}\n" in tcl
+        assert f"\nsource -notrace {{{self.c_tcl}}}\n" in tcl
 
     def test_empty_library_not_in_create_project_tcl(self):
         tcl = self.tcl.create(
@@ -213,7 +224,7 @@ class TestVivadoTcl(unittest.TestCase):
         )
 
         for filename in extra_tcl_sources:
-            assert f"\nsource -notrace {to_tcl_path(filename)}\n" in tcl
+            assert f"\nsource -notrace {{{to_tcl_path(filename)}}}\n" in tcl
 
     def test_io_buffer_setting(self):
         tcl = self.tcl.create(
