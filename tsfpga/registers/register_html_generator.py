@@ -118,14 +118,19 @@ th {
     def _annotate_register(self, register, register_array_index=None, array_index_increment=None):
         if register_array_index is None:
             address_readable = self._to_readable_address(register.address)
+            index = register.address // 4
         else:
             register_address = self._to_readable_address(4 * register_array_index)
             address_increment = self._to_readable_address(4 * array_index_increment)
             address_readable = f"{register_address} + i &times; {address_increment}"
+
+            index = f"{register_array_index} + i &times; {array_index_increment}"
+
         description = self._markdown_to_html.translate(register.description)
         html = f"""
   <tr>
     <td><strong>{register.name}</strong></td>
+    <td>{index}</td>
     <td>{address_readable}</td>
     <td>{REGISTER_MODES[register.mode].mode_readable}</td>
     <td>{register.default_value}</td>
@@ -153,6 +158,7 @@ th {
 <thead>
   <tr>
     <th>Name</th>
+    <th>Index</th>
     <th>Address</th>
     <th>Mode</th>
     <th>Default value</th>
@@ -169,7 +175,7 @@ th {
             else:
                 html += f"""
   <tr>
-    <td colspan="5" class="array_header">
+    <td colspan="6" class="array_header">
       Register array <strong>{register_object.name}</strong>, \
 repeated {register_object.length} times
     </td>
@@ -180,7 +186,7 @@ repeated {register_object.length} times
                     html += self._annotate_register(register, register_index, array_index_increment)
                 html += f"""
   <tr>
-    <td colspan="5" class="array_header">
+    <td colspan="6" class="array_header">
       End register array <strong>{register_object.name}</strong>
     </td>
   </tr>"""
