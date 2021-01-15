@@ -18,7 +18,7 @@ class Module(BaseModule):
                 if input_width == output_width:
                     continue
                 test = tb.get_tests("test_data")[0]
-                name = "input_%i.output_%s" % (input_width, output_width)
+                name = f"input_{input_width}.output_{output_width}"
                 test.add_config(
                     name=name, generics=dict(input_width=input_width, output_width=output_width)
                 )

@@ -74,7 +74,7 @@ class VivadoTcl:
             verilog_source_files = []
             for hdl_file in module.get_synthesis_files():
                 if hdl_file.is_vhdl:
-                    vhdl_files.append(to_tcl_path(hdl_file.path))
+                    vhdl_files.append(f'"{to_tcl_path(hdl_file.path)}"')
                 elif hdl_file.is_verilog_source:
                     verilog_source_files.append(to_tcl_path(hdl_file.path))
                 else:
@@ -90,12 +90,11 @@ class VivadoTcl:
                     # to handle, since I have no use case for it at the moment.
 
             if vhdl_files:
-                tcl += "read_vhdl -library %s -vhdl2008 {%s}\n" % (
-                    module.library_name,
-                    " ".join(vhdl_files),
-                )
+                files_string = " ".join(vhdl_files)
+                tcl += f"read_vhdl -library {module.library_name} -vhdl2008 {{{files_string}}}\n"
             if verilog_source_files:
-                tcl += "read_verilog {%s}\n" % " ".join(verilog_source_files)
+                files_string = " ".join(verilog_source_files)
+                tcl += f"read_verilog {{{files_string}}}\n"
 
             tcl += self._add_tcl_sources(module.get_ip_core_files())
         return tcl
@@ -184,10 +183,13 @@ class VivadoTcl:
         generic_list = []
         for name, value in generics.items():
             if isinstance(value, bool):
-                generic_list.append("%s=%s" % (name, ("1'b1" if value else "1'b0")))
+                value_tcl_formatted = "1'b1" if value else "1'b0"
+                generic_list.append(f"{name}={value_tcl_formatted}")
             else:
-                generic_list.append("%s=%s" % (name, value))
-        return "set_property generic {%s} [current_fileset]\n" % " ".join(generic_list)
+                generic_list.append(f"{name}={value}")
+
+        generics_string = " ".join(generic_list)
+        return f"set_property generic {{{generics_string}}} [current_fileset]\n"
 
     @staticmethod
     def _iterate_constraints(modules, constraints):
@@ -283,7 +285,7 @@ class VivadoTcl:
 
         tcl = f"reset_run {run}\n"
         tcl += f"launch_runs {run} -jobs {num_threads}{to_step}\n"
-        tcl += "wait_on_run %s\n" % run
+        tcl += f"wait_on_run {run}\n"
         tcl += "\n"
         tcl += 'if {[get_property PROGRESS [get_runs %s]] != "100%%"} {\n' % run
         tcl += f'  puts "ERROR: Run {run} failed."\n'

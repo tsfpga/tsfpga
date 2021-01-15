@@ -100,9 +100,9 @@ def test_set_multiple_threads():
     tcl = VivadoTcl(name="").build(
         project_file=Path(), output_path=Path(), num_threads=num_threads, run_index=1
     )
-    assert "set_param general.maxThreads %d" % num_threads in tcl
-    assert "launch_runs synth_1 -jobs %d" % num_threads in tcl
-    assert "launch_runs impl_1 -jobs %d" % num_threads in tcl
+    assert f"set_param general.maxThreads {num_threads}" in tcl
+    assert f"launch_runs synth_1 -jobs {num_threads}" in tcl
+    assert f"launch_runs impl_1 -jobs {num_threads}" in tcl
 
 
 def test_set_build_run_index():
@@ -184,16 +184,16 @@ class TestVivadoTcl(unittest.TestCase):
             project_folder=Path(), modules=self.modules, part="part", top="", run_index=1
         )
 
-        expected = "\nread_xdc -ref a %s\n" % self.a_xdc
+        expected = f"\nread_xdc -ref a {self.a_xdc}\n"
         assert expected in tcl
-        expected = "\nread_xdc -ref b -unmanaged %s\n" % self.b_tcl
+        expected = f"\nread_xdc -ref b -unmanaged {self.b_tcl}\n"
         assert expected in tcl
 
     def test_ip_core_files(self):
         tcl = self.tcl.create(
             project_folder=Path(), modules=self.modules, part="part", top="", run_index=1
         )
-        assert "\nsource -notrace %s\n" % self.c_tcl in tcl
+        assert f"\nsource -notrace {self.c_tcl}\n" in tcl
 
     def test_empty_library_not_in_create_project_tcl(self):
         tcl = self.tcl.create(

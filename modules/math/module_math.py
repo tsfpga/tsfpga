@@ -14,7 +14,7 @@ class Module(BaseModule):
         tb = vunit_proj.library(self.library_name).test_bench("tb_unsigned_divider")
         for dividend_width in [4, 7, 8]:
             for divisor_width in [4, 7, 8]:
-                name = "%i_div_%i" % (dividend_width, divisor_width)
+                name = f"{dividend_width}_div_{divisor_width}"
                 tb.add_config(
                     name=name,
                     generics=dict(dividend_width=dividend_width, divisor_width=divisor_width),

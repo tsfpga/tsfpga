@@ -60,7 +60,7 @@ def check_file_for_tab_character(file):
         for idx, line in enumerate(file_handle.readlines()):
             if "\t" in line:
                 test_ok = False
-                print("TAB charatcher (\\t) on line %i in %s" % (idx + 1, file))
+                print(f"TAB charatcher (\\t) on line {idx + 1} in {file}")
     return test_ok
 
 
@@ -102,7 +102,7 @@ def check_file_for_trailing_whitespace(file):
         for idx, line in enumerate(file_handle.readlines()):
             if " \n" in line:
                 test_ok = False
-                print("Trailing whitespace on line %i in %s" % (idx + 1, file))
+                print(f"Trailing whitespace on line {idx + 1} in {file}")
     return test_ok
 
 

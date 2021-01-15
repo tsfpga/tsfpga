@@ -27,7 +27,7 @@ class Module(BaseModule):
         for tb_name in ["tb_axi_to_axil", "tb_axi_to_axil_bus_error"]:
             tb = vunit_proj.library(self.library_name).test_bench(tb_name)
             for data_width in [32, 64]:
-                name = "data_width_%i" % data_width
+                name = f"data_width_{data_width}"
                 tb.add_config(name=name, generics=dict(data_width=data_width))
 
         tb = vunit_proj.library(self.library_name).test_bench("tb_axi_to_axil_vec")
