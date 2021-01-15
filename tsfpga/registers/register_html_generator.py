@@ -56,9 +56,6 @@ td.array_header {
 tr:nth-child(even) {
   background-color: #f2f2f2;
 }
-tr:hover {
-  background-color: #ddd;
-}
 th {
   padding-top: 12px;
   padding-bottom: 12px;
