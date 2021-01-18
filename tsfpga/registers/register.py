@@ -10,23 +10,23 @@
 from .bit import Bit
 
 
-class Mode:
+class RegisterMode:
     def __init__(self, mode_readable, description):
         self.mode_readable = mode_readable
         self.description = description
 
 
 REGISTER_MODES = dict(
-    r=Mode("Read", "Bus can read a value that fabric provides."),
-    w=Mode("Write", "Bus can write a value that is available for fabric usage."),
-    r_w=Mode(
+    r=RegisterMode("Read", "Bus can read a value that fabric provides."),
+    w=RegisterMode("Write", "Bus can write a value that is available for fabric usage."),
+    r_w=RegisterMode(
         "Read, Write",
         "Bus can write a value and read it back. The written value is available for fabric usage.",
     ),
-    wpulse=Mode(
+    wpulse=RegisterMode(
         "Write-pulse", "Bus can write a value that is asserted for one clock cycle in fabric."
     ),
-    r_wpulse=Mode(
+    r_wpulse=RegisterMode(
         "Read, Write-pulse",
         "Bus can read a value that fabric provides. "
         "Bus can write a value that is asserted for one clock cycle in fabric.",

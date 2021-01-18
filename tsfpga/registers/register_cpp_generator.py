@@ -6,6 +6,7 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+from .register import REGISTER_MODES
 from .register_array import RegisterArray
 from .register_code_generator import RegisterCodeGenerator
 
@@ -54,6 +55,8 @@ class RegisterCppGenerator(RegisterCodeGenerator):
                 )
             else:
                 description = f"Register {register.name}."
+            description += f' Mode "{REGISTER_MODES[register.mode].mode_readable}".'
+
             cpp_code += self._comment(description, indentation=2)
             cpp_code += self._comment_block(register.description, indentation=2)
 

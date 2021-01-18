@@ -6,7 +6,7 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-from .register import Register
+from .register import Register, REGISTER_MODES
 from .register_code_generator import RegisterCodeGenerator
 
 
@@ -50,6 +50,9 @@ class RegisterCGenerator(RegisterCodeGenerator):
         for register_object in register_objects:
             if isinstance(register_object, Register):
                 register_struct += self._comment_block(register_object.description, indentation=2)
+                register_struct += self._comment(
+                    f'Mode "{REGISTER_MODES[register_object.mode].mode_readable}".', indentation=2
+                )
                 register_struct += f"  uint32_t {register_object.name};\n"
 
             else:
@@ -62,6 +65,9 @@ class RegisterCGenerator(RegisterCodeGenerator):
                 array_structs += "{\n"
                 for register in register_object.registers:
                     array_structs += self._comment_block(register.description, indentation=2)
+                    array_structs += self._comment(
+                        f'Mode "{REGISTER_MODES[register.mode].mode_readable}".', indentation=2
+                    )
                     array_structs += f"  uint32_t {register.name};\n"
                 array_structs += f"}} {array_struct_type};\n\n"
 
@@ -86,9 +92,10 @@ class RegisterCGenerator(RegisterCodeGenerator):
 
     def _addr_define(self, register, register_array):
         name = self._register_define_name(register, register_array)
+        mode_string = f'Mode "{REGISTER_MODES[register.mode].mode_readable}".'
 
         if register_array is None:
-            c_code = self._comment(f"Address of {register.name} register.")
+            c_code = self._comment(f"Address of {register.name} register. {mode_string}")
             c_code += self._comment_block(register.description)
 
             addr = register.index * 4
@@ -96,7 +103,7 @@ class RegisterCGenerator(RegisterCodeGenerator):
         else:
             title = (
                 f"Address of {register.name} register within {register_array.name} array"
-                f" (array_index < {register_array.length})."
+                f" (array_index < {register_array.length}). {mode_string}"
             )
             c_code = self._comment(title)
             c_code += self._comment_block(register.description)
