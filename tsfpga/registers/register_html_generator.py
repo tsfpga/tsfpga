@@ -144,7 +144,7 @@ th {
         html = f"""
   <tr>
     <td>&nbsp;&nbsp;<em>{bit.name}</em></td>
-    <td>{bit.index}</td>
+    <td>&nbsp;&nbsp;{bit.index}</td>
     <td></td>
     <td></td>
     <td></td>
