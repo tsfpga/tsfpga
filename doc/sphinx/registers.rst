@@ -8,7 +8,7 @@ To start using it simply create a file ``regs_<name>.toml`` in the root of a mod
 
 From the TOML definition the register generator can create a VHDL package with all registers and their fields.
 This VHDL package can then be used with the generic AXI-Lite register file in tsfpga.
-Apart from that a C header and a C++ class can be generaterd, as well as a HTML page with human-readable documentation.
+Apart from that a C header and a C++ class can be generated, as well as a HTML page with human-readable documentation.
 
 The register generator is well-integrated in the tsfpga module work flow.
 It is fast enough that before each build and each simulation run, the modules will re-generate their VHDL register package so that it is always up-to-date.
@@ -81,11 +81,11 @@ This means that the module design does not have to worry about metastability, ve
 * ``axil_cdc`` is an asynchronous FIFO-based clock domain crossing (CDC) for AXI-Lite buses.
   It must be used in the cases where the ``axil_reg_file`` (i.e. your module) is in a different clock domain than the CPU AXI master.
 
-* ``axil_reg_file`` is a generic, parametarizable, register file for AXI-Lite register buses.
+* ``axil_reg_file`` is a generic, parameterizable, register file for AXI-Lite register buses.
   It is parameterizable via a generic that sets the list of registers, with their modes and their default values.
   A constant with this generic is generated from :ref:`TOML <toml_file>` in the :ref:`VHDL package <vhdl_package>`.
   If the address requested by the master does not match any register, or there is a
-  mode mismatch (e.g. write to a read-only register), AXI slave error (``SLVERR``) willb e sent on the read/write response channel.
+  mode mismatch (e.g. write to a read-only register), AXI slave error (``SLVERR``) will be sent on the read/write response channel.
 
 All these entities are available in the repo in the `axi <https://gitlab.com/tsfpga/tsfpga/-/tree/master/modules/axi>`__
 and `reg_file <https://gitlab.com/tsfpga/tsfpga/-/tree/master/modules/reg_file>`__ modules.
