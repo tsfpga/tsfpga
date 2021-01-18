@@ -147,6 +147,7 @@ th {
     <td>{bit.index}</td>
     <td></td>
     <td></td>
+    <td></td>
     <td>{description}</td>
   </tr>"""
 
