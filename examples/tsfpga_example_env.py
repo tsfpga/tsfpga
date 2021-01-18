@@ -53,7 +53,7 @@ def get_default_registers():
             "irq_status",
             3,
             "r_wpulse",
-            "Reading a '1' in this register means the corresponding interrupt has triggered. "
+            "Reading a '1' in this register means the corresponding interrupt has triggered.\n"
             "Writing to this register will clear the interrupts where there is a '1' in the "
             "written word.",
         ),
@@ -61,7 +61,7 @@ def get_default_registers():
             "irq_mask",
             4,
             "r_w",
-            "A '1' in this register means that the corresponding interrupt is enabled. ",
+            "A '1' in this register means that the corresponding interrupt is enabled.",
         ),
     ]
     return registers
