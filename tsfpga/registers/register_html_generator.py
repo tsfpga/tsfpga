@@ -11,6 +11,10 @@ from .markdown_to_html_translator import MarkdownToHtmlTranslator
 
 
 class RegisterHtmlGenerator:
+    """
+    Generate a HTML page with register information.
+    """
+
     def __init__(self, module_name, generated_info):
         self.module_name = module_name
         self.generated_info = generated_info
@@ -185,6 +189,8 @@ repeated {register_object.length} times
                 for register in register_object.registers:
                     register_index = register_object.base_index + register.index
                     html += self._annotate_register(register, register_index, array_index_increment)
+                    for bit in register.bits:
+                        html += self._annotate_bit(bit)
                 html += f"""
   <tr>
     <td colspan="6" class="array_header">

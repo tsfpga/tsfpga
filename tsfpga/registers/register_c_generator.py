@@ -11,6 +11,15 @@ from .register_code_generator import RegisterCodeGenerator
 
 
 class RegisterCGenerator(RegisterCodeGenerator):
+    """
+    Generate a C code header with register information.
+
+    There is no unit test of this class that checks the generated code. It is instead functionally
+    tested in the file test_register_compilation.py. That test generates C code from an example
+    register set, compiles it and performs some run-time assertions in a C program.
+    That test is considered more meaningful and exhaustive than a unit test would be.
+    """
+
     def __init__(self, module_name, generated_info):
         self.module_name = module_name
         self.generated_info = generated_info

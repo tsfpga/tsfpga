@@ -19,6 +19,10 @@ from examples.tsfpga_example_env import get_default_registers
 
 @pytest.mark.usefixtures("fixture_tmp_path")
 class TestRegisterList(unittest.TestCase):
+    """
+    Some happy path tests. See the individual code generation classes for notes on more
+    exhaustive testing.
+    """
 
     tmp_path = None
 

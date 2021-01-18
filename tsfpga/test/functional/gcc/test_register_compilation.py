@@ -19,7 +19,7 @@ from tsfpga.registers.parser import from_toml
 @pytest.mark.usefixtures("fixture_tmp_path")
 class TestRegisterCompilation(unittest.TestCase):
     """
-    Functional test: TOML -> registers -> Code generation -> compilation
+    Functional test: TOML -> registers -> Code generation -> compilation -> set/check/assert
     """
 
     tmp_path = None
@@ -68,6 +68,8 @@ int main()
   assert(ARTYZ7_DUMMY_REGS_SETTINGS_ADDR(2) == 4 * (ARTYZ7_NUM_REGS - 1));
 
   // Assert bit indexes
+  assert(ARTYZ7_PLAIN_DUMMY_REG_INJECT_BIT == 0);
+  assert(ARTYZ7_PLAIN_DUMMY_REG_INJECT == 1);
   assert(ARTYZ7_DUMMY_REGS_CONFIGURATION_ENABLE_BIT == 0);
   assert(ARTYZ7_DUMMY_REGS_CONFIGURATION_ENABLE == 1);
   assert(ARTYZ7_DUMMY_REGS_CONFIGURATION_DISABLE_BIT == 1);
@@ -154,6 +156,7 @@ int main()
   assert(memory[6] == 6);
 
   // Assert bit indexes
+  assert(fpga_regs::Artyz7::plain_dummy_reg_inject == 1);
   assert(fpga_regs::Artyz7::dummy_regs_configuration_enable == 1);
   assert(fpga_regs::Artyz7::dummy_regs_configuration_disable == 2);
 

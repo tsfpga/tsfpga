@@ -6,6 +6,10 @@ mode = "r_w"
 description = "A plain dummy register."
 default_value = 1337
 
+[register.plain_dummy_reg.bits]
+
+inject = ""
+
 
 ################################################################################
 [register_array.dummy_regs]
