@@ -81,28 +81,76 @@ begin
 
       check_reg_equal(net, 0, beef, base_address => reg_slaves(0).addr);
 
-    elsif run("test_dummy_reg_read_write") then
-      write_reg(net, artyz7_dummy_regs_configuration(0), beef, base_address => reg_slaves(0).addr);
-      write_reg(net, artyz7_dummy_regs_configuration(3), dead, base_address => reg_slaves(0).addr);
-      write_reg(net, artyz7_dummy_regs_settings(0), face, base_address => reg_slaves(0).addr);
-      write_reg(net, artyz7_dummy_regs_settings(3), cafe, base_address => reg_slaves(0).addr);
+    elsif run("test_ddr_buffer") then
+      run_ddr_buffer_test(net, axi_memory, rnd, ddr_buffer_regs_base_addr);
+      check_expected_was_written(axi_memory);
 
-      check_reg_equal(net, artyz7_dummy_regs_configuration(0), beef, base_address => reg_slaves(0).addr);
-      check_reg_equal(net, artyz7_dummy_regs_configuration(3), dead, base_address => reg_slaves(0).addr);
-      check_reg_equal(net, artyz7_dummy_regs_settings(0), face, base_address => reg_slaves(0).addr);
-      check_reg_equal(net, artyz7_dummy_regs_settings(3), cafe, base_address => reg_slaves(0).addr);
+    elsif run("test_dummy_generated_constants") then
+      -- Sanity check some of the generated register constants
 
-      -- Sanity check some of the generated registers
-      check_equal(artyz7_dummy_regs_configuration(0), artyz7_plain_dummy_reg + 1);
-      check_equal(artyz7_dummy_regs_configuration(3), artyz7_dummy_regs_settings(2) + 1);
-      check_equal(artyz7_dummy_regs_settings(3), artyz7_dummy_regs_configuration(3) + 1);
+      check_equal(artyz7_dummy_regs_array_length, 3);
+
+      check_equal(artyz7_config, 0);
+      check_equal(artyz7_command, 1);
+      check_equal(artyz7_status, 2);
+      check_equal(artyz7_irq_status, 3);
+      check_equal(artyz7_irq_mask, 4);
+      check_equal(artyz7_plain_dummy_reg, 5);
+      check_equal(artyz7_dummy_regs_configuration(0), 6);
+      check_equal(artyz7_dummy_regs_settings(0), 7);
+      check_equal(artyz7_dummy_regs_configuration(1), 8);
+      check_equal(artyz7_dummy_regs_settings(1), 9);
+      check_equal(artyz7_dummy_regs_configuration(2), 10);
+      check_equal(artyz7_dummy_regs_settings(2), 11);
+
+      assert artyz7_reg_map(artyz7_config).reg_type = r_w;
+      assert artyz7_reg_map(artyz7_command).reg_type = wpulse;
+      assert artyz7_reg_map(artyz7_status).reg_type = r;
+      assert artyz7_reg_map(artyz7_irq_status).reg_type = r_wpulse;
+      assert artyz7_reg_map(artyz7_irq_mask).reg_type = r_w;
+      assert artyz7_reg_map(artyz7_dummy_regs_configuration(0)).reg_type = r_w;
+      assert artyz7_reg_map(artyz7_dummy_regs_settings(0)).reg_type = r;
+      assert artyz7_reg_map(artyz7_dummy_regs_configuration(1)).reg_type = r_w;
+      assert artyz7_reg_map(artyz7_dummy_regs_settings(1)).reg_type = r;
+      assert artyz7_reg_map(artyz7_dummy_regs_configuration(2)).reg_type = r_w;
+      assert artyz7_reg_map(artyz7_dummy_regs_settings(2)).reg_type = r;
 
       check_equal(artyz7_dummy_regs_configuration_enable, 0);
       check_equal(artyz7_dummy_regs_configuration_disable, 1);
 
-    elsif run("test_ddr_buffer") then
-      run_ddr_buffer_test(net, axi_memory, rnd, ddr_buffer_regs_base_addr);
-      check_expected_was_written(axi_memory);
+    elsif run("test_dummy_reg_initial_values") then
+      -- Test reading the default values set in the regs TOML
+
+      check_reg_equal(net, artyz7_plain_dummy_reg, 1337, base_address => reg_slaves(0).addr);
+
+      check_reg_equal(net, artyz7_dummy_regs_configuration(0), 42, base_address => reg_slaves(0).addr);
+      check_reg_equal(net, artyz7_dummy_regs_configuration(1), 42, base_address => reg_slaves(0).addr);
+      check_reg_equal(net, artyz7_dummy_regs_configuration(2), 42, base_address => reg_slaves(0).addr);
+
+      -- No value set -> 0
+      check_reg_equal(net, artyz7_dummy_regs_settings(0), 0, base_address => reg_slaves(0).addr);
+      check_reg_equal(net, artyz7_dummy_regs_settings(1), 0, base_address => reg_slaves(0).addr);
+      check_reg_equal(net, artyz7_dummy_regs_settings(2), 0, base_address => reg_slaves(0).addr);
+
+    elsif run("test_dummy_reg_read_write") then
+      -- Read and write the generated registers
+
+      write_reg(net, artyz7_plain_dummy_reg, face, base_address => reg_slaves(0).addr);
+
+      write_reg(net, artyz7_dummy_regs_configuration(0), beef, base_address => reg_slaves(0).addr);
+      write_reg(net, artyz7_dummy_regs_configuration(1), cafe, base_address => reg_slaves(0).addr);
+      write_reg(net, artyz7_dummy_regs_configuration(2), dead, base_address => reg_slaves(0).addr);
+
+      check_reg_equal(net, artyz7_plain_dummy_reg, face, base_address => reg_slaves(0).addr);
+
+      check_reg_equal(net, artyz7_dummy_regs_configuration(0), beef, base_address => reg_slaves(0).addr);
+      check_reg_equal(net, artyz7_dummy_regs_configuration(1), cafe, base_address => reg_slaves(0).addr);
+      check_reg_equal(net, artyz7_dummy_regs_configuration(2), dead, base_address => reg_slaves(0).addr);
+
+      check_reg_equal(net, artyz7_dummy_regs_settings(0), 0, base_address => reg_slaves(0).addr);
+      check_reg_equal(net, artyz7_dummy_regs_settings(1), 0, base_address => reg_slaves(0).addr);
+      check_reg_equal(net, artyz7_dummy_regs_settings(2), 0, base_address => reg_slaves(0).addr);
+
     end if;
 
     test_runner_cleanup(runner);

@@ -98,8 +98,8 @@ class RegisterCGenerator(RegisterCodeGenerator):
             c_code = self._comment(f"Address of {register.name} register. {mode_string}")
             c_code += self._comment_block(register.description)
 
-            addr = register.index * 4
-            c_code += f"#define {name}_ADDR ({addr}u)\n"
+            c_code += f"#define {name}_INDEX ({register.index}u)\n"
+            c_code += f"#define {name}_ADDR (4u * {name}_INDEX)\n"
         else:
             title = (
                 f"Address of {register.name} register within {register_array.name} array"
@@ -109,9 +109,10 @@ class RegisterCGenerator(RegisterCodeGenerator):
             c_code += self._comment_block(register.description)
 
             c_code += (
-                f"#define {name}_ADDR(array_index) (4u * ({register_array.base_index}u + "
-                f"(array_index) * {len(register_array.registers)}u + {register.index}u))\n"
+                f"#define {name}_INDEX(array_index) ({register_array.base_index}u + "
+                f"(array_index) * {len(register_array.registers)}u + {register.index}u)\n"
             )
+            c_code += f"#define {name}_ADDR(array_index) (4u * {name}_INDEX(array_index))\n"
 
         return c_code
 

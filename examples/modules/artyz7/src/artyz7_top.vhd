@@ -93,7 +93,8 @@ begin
     register_maps : for slave in dummy_reg_slaves generate
       axil_reg_file_inst : entity reg_file.axil_reg_file
         generic map (
-          regs => artyz7_reg_map
+          regs => artyz7_reg_map,
+          default_values => artyz7_regs_init
         )
         port map (
           clk => clk_m_gp0,

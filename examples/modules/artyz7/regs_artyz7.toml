@@ -3,17 +3,20 @@
 [register.plain_dummy_reg]
 
 mode = "r_w"
+description = "A plain dummy register."
+default_value = 1337
 
 
 ################################################################################
 [register_array.dummy_regs]
 
-array_length = 4
+array_length = 3
 
 [register_array.dummy_regs.register.configuration]
 
 mode= "r_w"
-description = "Registers are R/W so they won't be optimized away."
+description = "The first register in the array."
+default_value = 42
 
 [register_array.dummy_regs.register.configuration.bits]
 
@@ -22,6 +25,6 @@ disable = ""
 
 [register_array.dummy_regs.register.settings]
 
-description = "Registers are R/W so they won't be optimized away."
-mode= "r_w"
+description = "The second register in the array."
+mode= "r"
 
