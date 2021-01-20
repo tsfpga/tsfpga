@@ -68,7 +68,7 @@ class RegisterCGenerator(RegisterCodeGenerator):
                 array_struct_type = f"{self.module_name}_{register_object.name}_t"
 
                 array_structs = self._comment(
-                    f"Type for the {register_object.name} register array."
+                    f'Type for the "{register_object.name}" register array.'
                 )
                 array_structs += f"typedef struct {array_struct_type}\n"
                 array_structs += "{\n"
@@ -104,15 +104,15 @@ class RegisterCGenerator(RegisterCodeGenerator):
         mode_string = f'Mode "{REGISTER_MODES[register.mode].mode_readable}".'
 
         if register_array is None:
-            c_code = self._comment(f"Address of {register.name} register. {mode_string}")
+            c_code = self._comment(f'Address of the "{register.name}" register. {mode_string}')
             c_code += self._comment_block(register.description)
 
             c_code += f"#define {name}_INDEX ({register.index}u)\n"
             c_code += f"#define {name}_ADDR (4u * {name}_INDEX)\n"
         else:
             title = (
-                f"Address of {register.name} register within {register_array.name} array"
-                f" (array_index < {register_array.length}). {mode_string}"
+                f'Address of the "{register.name}" register within the "{register_array.name}"'
+                f" register array (array_index < {register_array.length}). {mode_string}"
             )
             c_code = self._comment(title)
             c_code += self._comment_block(register.description)
@@ -148,7 +148,7 @@ class RegisterCGenerator(RegisterCodeGenerator):
     def _constants(self, constants):
         c_code = ""
         for constant in constants:
-            c_code += self._comment(f"Register constant {constant.name}.")
+            c_code += self._comment(f'Register constant "{constant.name}".')
             c_code += self._comment_block(constant.description)
             c_code += (
                 f"#define {self.module_name.upper()}_{constant.name.upper()} ({constant.value})\n"

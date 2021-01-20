@@ -45,7 +45,7 @@ class RegisterCppGenerator(RegisterCodeGenerator):
         for register_object in register_objects:
             if isinstance(register_object, RegisterArray):
                 cpp_code += self._comment(
-                    f"Length of the {register_object.name} register array", indentation=2
+                    f'Length of the "{register_object.name}" register array', indentation=2
                 )
                 constant_name = self._array_length_constant_name(register_object)
                 cpp_code += (
@@ -59,10 +59,10 @@ class RegisterCppGenerator(RegisterCodeGenerator):
 
             if register_array:
                 description = (
-                    f"Register {register.name} within the {register_array.name} register array."
+                    f'Register "{register.name}" within the "{register_array.name}" register array.'
                 )
             else:
-                description = f"Register {register.name}."
+                description = f'Register "{register.name}".'
             description += f' Mode "{REGISTER_MODES[register.mode].mode_readable}".'
 
             cpp_code += self._comment(description, indentation=2)
@@ -150,12 +150,12 @@ class RegisterCppGenerator(RegisterCodeGenerator):
     def _bit_constants(self, register, register_array):
         cpp_code = ""
         for bit in register.bits:
-            description = f"Bitmask for the {bit.name} bit in the {register.name} register"
+            description = f'Bitmask for the "{bit.name}" bit in the "{register.name}" register'
             if register_array is None:
                 description += "."
                 bit_constant_name = f"{register.name}_{bit.name}"
             else:
-                description += f" within the {register_array.name} register array."
+                description += f' within the "{register_array.name}" register array.'
                 bit_constant_name = f"{register_array.name}_{register.name}_{bit.name}"
 
             cpp_code += self._comment(description, indentation=2)
