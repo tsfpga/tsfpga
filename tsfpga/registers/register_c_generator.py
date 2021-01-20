@@ -33,9 +33,10 @@ class RegisterCGenerator(RegisterCodeGenerator):
 #define {define_name}
 #pragma pack(push, 1)
 
+{self._constants(constants)}
+{self._number_of_registers(register_objects)}
 {self._register_struct(register_objects)}
 {self._register_defines(register_objects)}\
-{self._constants(constants)}
 #pragma pack(pop)
 #endif {self._comment(define_name)}"""
 
@@ -86,12 +87,16 @@ class RegisterCGenerator(RegisterCodeGenerator):
         register_struct += f"}} {register_struct_type};\n"
         return array_structs + register_struct
 
-    def _register_defines(self, register_objects):
+    def _number_of_registers(self, register_objects):
         c_code = self._comment("Number of registers within this register map.")
         c_code += (
-            f"#define {self.module_name.upper()}_NUM_REGS ({register_objects[-1].index + 1}u)\n\n"
+            f"#define {self.module_name.upper()}_NUM_REGS ({register_objects[-1].index + 1}u)\n"
         )
 
+        return c_code
+
+    def _register_defines(self, register_objects):
+        c_code = ""
         for register, register_array in self._iterate_registers(register_objects):
             c_code += self._addr_define(register, register_array)
             c_code += self._bit_definitions(register, register_array)
