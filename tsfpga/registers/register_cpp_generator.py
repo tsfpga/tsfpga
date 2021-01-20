@@ -56,7 +56,6 @@ class RegisterCppGenerator(RegisterCodeGenerator):
 
         for register, register_array in self._iterate_registers(register_objects):
             cpp_code += "\n"
-            cpp_code += self._bit_constants(register, register_array)
 
             if register_array:
                 description = (
@@ -79,6 +78,8 @@ class RegisterCppGenerator(RegisterCodeGenerator):
                     "  virtual void "
                     f"{self._setter_function_signature(register, register_array)} const = 0;\n"
                 )
+
+            cpp_code += self._bit_constants(register, register_array)
 
         cpp_code += "};\n"
 
