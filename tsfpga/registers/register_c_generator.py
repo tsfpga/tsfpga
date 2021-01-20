@@ -127,9 +127,15 @@ class RegisterCGenerator(RegisterCodeGenerator):
 
     def _bit_definitions(self, register, register_array):
         register_name = self._register_define_name(register, register_array)
+        register_string = f'"{register.name}" register'
+        if register_array is not None:
+            register_string += f' within the "{register_array.name}" register array'
 
         c_code = ""
         for bit in register.bits:
+            c_code += self._comment(
+                f'Index and mask for the "{bit.name}" bit in the {register_string}.'
+            )
             c_code += self._comment_block(bit.description)
 
             bit_name = f"{register_name}_{bit.name.upper()}"
