@@ -27,18 +27,77 @@ begin
 
   main : process
 
-    variable input_data, expected : std_logic_vector(4 * 8 - 1 downto 0);
+    variable byte_data0 : std_logic_vector(4 * 8 - 1 downto 0) := x"01_23_45_67";
+    constant byte_data0_swapped : std_logic_vector(byte_data0'range) := x"67_45_23_01";
+
+    variable byte_data1 : std_logic_vector(8 * 8 - 1 downto 4 * 8) := x"01_23_45_67";
+    constant byte_data1_swapped : std_logic_vector(byte_data0'range) := x"67_45_23_01";
+
+    variable bit_data0 : std_logic_vector(6 - 1 downto 0) := "101010";
+    constant bit_data0_swapped : std_logic_vector(bit_data0'range) := "010101";
+
+    variable bit_data1 : std_logic_vector(0 to 6 - 1) := "101010";
+    constant bit_data1_swapped : std_logic_vector(bit_data1'range) := "010101";
+
+    variable bit_data2 : std_logic_vector(12 - 1 downto 6) := "101010";
+    constant bit_data2_swapped : std_logic_vector(bit_data2'range) := "010101";
+
+    variable bit_data3 : std_logic_vector(6 to 12 - 1) := "101010";
+    constant bit_data3_swapped : std_logic_vector(bit_data2'range) := "010101";
+
 
   begin
     test_runner_setup(runner, runner_cfg);
 
-    if run("test_swap_bytes") then
-      input_data := x"01_23_45_67";
-      expected := x"67_45_23_01";
-      check_equal(swap_bytes(input_data), expected);
-    elsif run("test_to_bool") then
+
+    if run("test_to_bool") then
       check_equal(to_bool('0'), false);
       check_equal(to_bool('1'), true);
+
+    elsif run("test_swap_byte_order") then
+      byte_data0 := swap_byte_order(byte_data0);
+      check_equal(byte_data0, byte_data0_swapped);
+      check_equal(byte_data0'high, 4 * 8 - 1);
+      check_equal(byte_data0'low, 0);
+      check_equal(byte_data0'left, byte_data0'high);
+      check_equal(byte_data0'right, byte_data0'low);
+
+      byte_data1 := swap_byte_order(byte_data1);
+      check_equal(byte_data1, byte_data1_swapped);
+      check_equal(byte_data1'high, 8 * 8 - 1);
+      check_equal(byte_data1'low, 4 * 8);
+      check_equal(byte_data1'left, byte_data1'high);
+      check_equal(byte_data1'right, byte_data1'low);
+
+    elsif run("test_swap_bit_order") then
+      bit_data0 := swap_bit_order(bit_data0);
+      check_equal(bit_data0, bit_data0_swapped);
+      check_equal(bit_data0'high, 5);
+      check_equal(bit_data0'low, 0);
+      check_equal(bit_data0'left, bit_data0'high);
+      check_equal(bit_data0'right, bit_data0'low);
+
+      bit_data1 := swap_bit_order(bit_data1);
+      check_equal(bit_data1, bit_data1_swapped);
+      check_equal(bit_data1'high, 5);
+      check_equal(bit_data1'low, 0);
+      check_equal(bit_data1'left, bit_data1'low);
+      check_equal(bit_data1'right, bit_data1'high);
+
+      bit_data2 := swap_bit_order(bit_data2);
+      check_equal(bit_data2, bit_data2_swapped);
+      check_equal(bit_data2'high, 11);
+      check_equal(bit_data2'low, 6);
+      check_equal(bit_data2'left, bit_data2'high);
+      check_equal(bit_data2'right, bit_data2'low);
+
+      bit_data3 := swap_bit_order(bit_data3);
+      check_equal(bit_data3, bit_data3_swapped);
+      check_equal(bit_data3'high, 11);
+      check_equal(bit_data3'low, 6);
+      check_equal(bit_data3'left, bit_data3'low);
+      check_equal(bit_data3'right, bit_data3'high);
+
     end if;
 
     test_runner_cleanup(runner);

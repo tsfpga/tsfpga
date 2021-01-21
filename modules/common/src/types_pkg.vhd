@@ -22,7 +22,8 @@ package types_pkg is
   function to_int(value : boolean) return integer;
   function to_int(value : std_logic) return integer;
 
-  function swap_bytes(data : std_logic_vector) return std_logic_vector;
+  function swap_byte_order(data : std_logic_vector) return std_logic_vector;
+  function swap_bit_order(data : std_logic_vector) return std_logic_vector;
 
 end package;
 
@@ -68,20 +69,34 @@ package body types_pkg is
     return 0;
   end function;
 
-  function swap_bytes(data : std_logic_vector) return std_logic_vector is
+  function swap_byte_order(data : std_logic_vector) return std_logic_vector is
     variable result : std_logic_vector(data'range);
     constant num_bytes : integer := data'length / 8;
     variable result_byte_idx : integer;
   begin
-    -- Swap endianness of the input word
+    -- Swap endianness of the input word.
+    -- I.e., while maintaining the range and vector direction, swap the location of the data bytes.
 
     assert data'left > data'right report "Only use with descending range" severity failure;
     assert data'length mod 8 = 0 report "Must be a whole number of bytes" severity failure;
 
     for input_byte_idx in 0 to num_bytes - 1 loop
       result_byte_idx := num_bytes - 1 - input_byte_idx;
-      result(result_byte_idx * 8 + 7 downto result_byte_idx * 8) :=
-        data(input_byte_idx * 8 + 7 downto input_byte_idx * 8);
+      result(result'low + result_byte_idx * 8 + 7 downto result'low + result_byte_idx * 8) :=
+        data(data'low + input_byte_idx * 8 + 7 downto data'low + input_byte_idx * 8);
+    end loop;
+
+    return result;
+  end function;
+
+  function swap_bit_order(data : std_logic_vector) return std_logic_vector is
+    constant length : positive := data'length;
+    variable result : std_logic_vector(data'range);
+  begin
+    -- While maintaining the range and vector direction, swap the location of the data bits.
+
+    for idx in 0 to length - 1 loop
+      result(result'low + idx) := data(data'high - idx);
     end loop;
 
     return result;

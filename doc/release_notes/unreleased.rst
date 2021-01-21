@@ -33,6 +33,7 @@ Breaking changes
 * Rename ``<module>_reg_was_written_t`` to ``<module>_reg_was_accessed_t`` in generated register VHDL package.
 * Add mandatory generic ``width`` to ``resync.resync_slv_level`` and ``resync.resync_slv_level_on_signal``.
 * Rename ``BaseModule.add_config`` to :meth:`.BaseModule.add_vunit_config`.
+* Rename ``types_pkg.swap_bytes`` to ``types_pkg.swap_byte_order``.
 
 Changes
 
