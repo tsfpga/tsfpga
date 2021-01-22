@@ -71,3 +71,8 @@ class TestTranslator(unittest.TestCase):
         expected = "This sentence <b>contains_underscores</b> in some_places"
         text = r"This sentence **contains_underscores** in some_places"
         assert expected in self.html_translator.translate(text)
+
+    def test_angle_brackets_should_be_translated_to_html(self):
+        expected = "This string &lt;&lt; contains &gt; brackets &gt;&lt;"
+        text = "This string << contains > brackets ><"
+        assert expected in self.html_translator.translate(text)

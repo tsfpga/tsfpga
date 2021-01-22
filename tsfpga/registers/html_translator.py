@@ -10,49 +10,74 @@ import re
 
 
 class HtmlTranslator:
-    def __init__(self):
-        self._compile_markdown_parser()
+
+    r"""
+    Translate a raw text with markdown/rst annotations into HTML code.
+
+    Supports:
+
+    * Strong: **double asterisks**
+    * Emphasis: *single asterisks*
+
+    Literal asterisks should be escaped: \*
+    """
+
+    _not_escaped = r"(?<!\\)"
+    _double_asterisks = r"\*\*"
+    _single_asterisk = r"\*"
+    _match_text = r"(.*?)"
+
+    # These patterns match asterisks only if they are not preceded by \escape
+    _re_strong_pattern = re.compile(
+        _not_escaped + _double_asterisks + _match_text + _not_escaped + _double_asterisks
+    )
+    _re_emphasis_pattern = re.compile(
+        _not_escaped + _single_asterisk + _match_text + _not_escaped + _single_asterisk
+    )
+
+    # This pattern matches escaped asterisks
+    _re_escaped_literal_pattern = re.compile(r"\\(\*)")
+
+    # Consecutive newlines is a paragraph separator
+    _re_paragraph_separator = re.compile(r"\n{2,}")
 
     def translate(self, text):
-        return self._insert_line_breaks(self._annotate(text))
-
-    def _compile_markdown_parser(self):
-        r"""
-        Strong: **double asterisks**
-        Emphasis: *single asterisks*
-        Literal asterisks are escaped: \*
         """
-        not_escaped = r"(?<!\\)"
-        double_asterisks = r"\*\*"
-        single_asterisk = r"\*"
-        match_text = r"(.*?)"
-
-        # These patterns match asterisks only if they are not preceded by \escape
-        self.strong_pattern = re.compile(
-            not_escaped + double_asterisks + match_text + not_escaped + double_asterisks
-        )
-        self.em_pattern = re.compile(
-            not_escaped + single_asterisk + match_text + not_escaped + single_asterisk
-        )
-
-        # This pattern matches escaped asterisks
-        self.escaped_literal_pattern = re.compile(r"\\(\*)")
-
-        # Consecutive newlines is a paragraph separator
-        self.paragraph_separator = re.compile(r"\n{2,}")
+        Translate the text to have HTML tags where appropriate.
+        """
+        result = self._translate_angle_brackets(text)
+        result = self._annotate(result)
+        result = self._insert_line_breaks(result)
+        return result
 
     def _annotate(self, text):
-        result = re.sub(self.strong_pattern, r"<b>\g<1></b>", text)
-        result = re.sub(self.em_pattern, r"<em>\g<1></em>", result)
+        """
+        Replace markdown/rst syntax with HTML tags.
+        """
+        result = re.sub(self._re_strong_pattern, r"<b>\g<1></b>", text)
+        result = re.sub(self._re_emphasis_pattern, r"<em>\g<1></em>", result)
         # Remove the escape sign
-        result = re.sub(self.escaped_literal_pattern, r"\g<1>", result)
+        result = re.sub(self._re_escaped_literal_pattern, r"\g<1>", result)
         return result
 
     def _insert_line_breaks(self, text):
+        """
+        Insert HTML line break tag instead of consecutive newlines.
+        """
         # Two line breaks to get new paragraph.
-        result = re.sub(self.paragraph_separator, "<br /><br />", text)
+        result = re.sub(self._re_paragraph_separator, "<br /><br />", text)
         # A single newline in Markdown should be a space
         result = result.replace("\n", " ")
         # Split to get nicer HTML file formatting
         result = result.replace("<br />", "<br />\n")
+        return result
+
+    @staticmethod
+    def _translate_angle_brackets(text):
+        """
+        The HTML may not contain raw angle brackets ("<", ">") since they will be interpreted as
+        HTML tags by the web browse.
+        """
+        result = text.replace("<", "&lt;")
+        result = result.replace(">", "&gt;")
         return result
