@@ -9,7 +9,7 @@
 import re
 
 
-class MarkdownToHtmlTranslator:
+class HtmlTranslator:
     def __init__(self):
         self._compile_markdown_parser()
 

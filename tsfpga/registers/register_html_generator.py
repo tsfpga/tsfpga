@@ -7,7 +7,7 @@
 # --------------------------------------------------------------------------------------------------
 
 from .register import Register, REGISTER_MODES
-from .markdown_to_html_translator import MarkdownToHtmlTranslator
+from .html_translator import HtmlTranslator
 
 
 class RegisterHtmlGenerator:
@@ -18,7 +18,7 @@ class RegisterHtmlGenerator:
     def __init__(self, module_name, generated_info):
         self.module_name = module_name
         self.generated_info = generated_info
-        self._markdown_to_html = MarkdownToHtmlTranslator()
+        self._html_translator = HtmlTranslator()
 
     def get_register_table(self, register_objects):
         html = self._file_header()
@@ -130,7 +130,7 @@ th {
 
             index = f"{register_array_index} + i &times; {array_index_increment}"
 
-        description = self._markdown_to_html.translate(register.description)
+        description = self._html_translator.translate(register.description)
         html = f"""
   <tr>
     <td><strong>{register.name}</strong></td>
@@ -144,7 +144,7 @@ th {
         return html
 
     def _annotate_bit(self, bit):
-        description = self._markdown_to_html.translate(bit.description)
+        description = self._html_translator.translate(bit.description)
         html = f"""
   <tr>
     <td>&nbsp;&nbsp;<em>{bit.name}</em></td>
@@ -217,7 +217,7 @@ repeated {register_object.length} times
 <tbody>"""
 
         for constant in constants:
-            description = self._markdown_to_html.translate(constant.description)
+            description = self._html_translator.translate(constant.description)
             html += f"""
   <tr>
     <td><strong>{constant.name}</strong></td>
