@@ -129,7 +129,7 @@ class FormalProject:
             vunit_library = vunit_proj.add_library(module.library_name)
             compiled_libraries.append(args.output_path / "ghdl" / "libraries" / module.library_name)
 
-            for hdl_file in module.get_synthesis_files():
+            for hdl_file in module.get_formal_files():
                 if hdl_file.is_vhdl:
                     vunit_library.add_source_file(hdl_file.path)
                 else:

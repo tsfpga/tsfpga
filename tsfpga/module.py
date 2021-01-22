@@ -132,6 +132,18 @@ class BaseModule:
 
         return self.get_synthesis_files() + self._get_hdl_file_list(test_folders)
 
+    def get_formal_files(self):
+        """
+        Returns the files to be used for formal verification.
+        By default these are the same that are used by synthesis
+        (by calling :meth:`get_synthesis_files`).
+        Overload this method to select files manually.
+
+        Return:
+            list(:class:`.HdlFile`): Files that should be included in a formal verification project.
+        """
+        return self.get_synthesis_files()
+
     def setup_vunit(self, vunit_proj, **kwargs):
         """
         Setup local configuration of this module's test benches.
