@@ -44,6 +44,9 @@ class BuildProjectList:
             self._iterate_projects(project_filters, include_netlist_not_top_builds)
         )
 
+        if not self.projects:
+            print(f"No projects matched this filter: {' '.join(project_filters)}")
+
     def __str__(self):
         """
         Returns a string with a description list of the projects.
@@ -202,8 +205,6 @@ class BuildProjectList:
         )
 
     def _run_build_wrappers(self, projects_path, build_wrappers, num_parallel_builds):
-        verbosity = BuildRunner.VERBOSITY_QUIET
-
         color_printer = NO_COLOR_PRINTER if self._no_color else COLOR_PRINTER
         report = TestReport(printer=color_printer)
 
@@ -211,6 +212,7 @@ class BuildProjectList:
         for build_wrapper in build_wrappers:
             test_list.add_test(build_wrapper)
 
+        verbosity = BuildRunner.VERBOSITY_QUIET
         test_runner = BuildRunner(
             report=report,
             output_path=projects_path,
