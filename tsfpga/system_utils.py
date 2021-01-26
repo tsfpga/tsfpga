@@ -6,10 +6,11 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-import subprocess
 import importlib.util
-from shutil import rmtree
+import os
 from platform import system
+from shutil import rmtree
+import subprocess
 
 
 def create_file(file, contents=None):
@@ -25,6 +26,43 @@ def create_file(file, contents=None):
 def read_file(file):
     with file.open() as file_handle:
         return file_handle.read()
+
+
+def read_last_lines_of_file(file, num_lines):
+    """
+    Read a number of lines from the end of a file, without buffering the whole file.
+    Similar to unix ``tail`` command.
+
+    Arguments:
+        file (`pathlib.Path`): The file that shall be read.
+        num_lines (int): The number of lines to read.
+
+    Return:
+        str: The last lines of the file.
+    """
+    result_lines = []
+    blocks_to_read = 0
+
+    with open(file) as file_handle:
+        while len(result_lines) < num_lines:
+            # Since we do not know the line lengths, there is some guessing involved. Keep reading
+            # larger and larger blocks until we have all the lines that are requested.
+            blocks_to_read += 1
+
+            try:
+                # Read a block from the end
+                file_handle.seek(-blocks_to_read * 4096, os.SEEK_END)
+            except IOError:
+                # Tried to read more data than what is available. Read whatever we have and return
+                # to user.
+                file_handle.seek(0)
+                result_lines = file_handle.readlines()
+                break
+
+            result_lines = file_handle.readlines()
+
+    result = "".join(result_lines[-num_lines:])
+    return result
 
 
 def delete(path):
