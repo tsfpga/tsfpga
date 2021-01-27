@@ -3,8 +3,8 @@
 Netlist builds
 ==============
 
-Feedback on timing and resource utilization may be critical in the design of a component.
-tsfpga has a concept called netlist builds for running synthesis on individual components or your full project.
+Feedback on timing and resource utilization is critical in the design of an HDL component.
+To this puropse, tsfpga has a concept called netlist builds for running synthesis on individual components or your full project.
 The build result can be checked towards expected resource utilization figures by attaching atuomated :ref:`size_checkers`.
 
 With netlist builds and size checkers you can quickly and automatically check the utilization.
