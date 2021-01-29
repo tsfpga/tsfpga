@@ -47,4 +47,4 @@ class ModuleList:
         return result
 
     def __str__(self):
-        return f"[{', '.join([str(module) for module in self._modules])}]"
+        return str(self._modules)
