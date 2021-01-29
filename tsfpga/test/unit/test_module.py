@@ -155,7 +155,7 @@ class Module(BaseModule):
     def test_register_object_creation_synthesis(self, from_toml):
         toml_file = create_file(self.tmp_path / "a" / "regs_a.toml")
 
-        module = get_modules(self.modules_folders, names_include=["a"])[0]
+        module = get_modules(self.modules_folders).get("a")
         module.get_synthesis_files()
         module.get_synthesis_files()
 
@@ -165,7 +165,7 @@ class Module(BaseModule):
     def test_register_object_creation_simulation(self, from_toml):
         toml_file = create_file(self.tmp_path / "a" / "regs_a.toml")
 
-        module = get_modules(self.modules_folders, names_include=["a"])[0]
+        module = get_modules(self.modules_folders).get("a")
         module.get_simulation_files()
         module.get_simulation_files()
 
@@ -175,7 +175,7 @@ class Module(BaseModule):
     def test_register_object_creation_mixed(self, from_toml):
         toml_file = create_file(self.tmp_path / "a" / "regs_a.toml")
 
-        module = get_modules(self.modules_folders, names_include=["a"])[0]
+        module = get_modules(self.modules_folders).get("a")
         module.get_synthesis_files()
         module.get_simulation_files()
 

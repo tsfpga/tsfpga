@@ -38,3 +38,4 @@ Breaking changes
 Changes
 
 * Add TCL sources before adding modules in :class:`.VivadoTcl`.
+* The :meth:`tsfpga.module.get_modules` method now returns a :class:`.ModuleList` object instead of a raw list.

@@ -10,6 +10,7 @@ from tsfpga.constraint import Constraint
 from tsfpga.hdl_file import HdlFile
 from tsfpga.system_utils import load_python_module
 from tsfpga.registers.parser import from_toml
+from tsfpga.module_list import ModuleList
 
 
 class BaseModule:
@@ -320,10 +321,10 @@ def get_modules(
         default_registers (list(Register)): Default registers.
 
     Return:
-        List of module objects (:class:`BaseModule` or child classes thereof) created from
-        the specified folders.
+        :class:`.ModuleList`: List of module objects (:class:`BaseModule` or child classes thereof)
+        created from the specified folders.
     """
-    modules = []
+    modules = ModuleList()
 
     for module_folder in iterate_module_folders(modules_folders):
         module_name = module_folder.name
