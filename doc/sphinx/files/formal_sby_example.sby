@@ -1,0 +1,54 @@
+[options]
+mode prove
+depth 20
+
+[engines]
+smtbmc z3
+
+[script]
+ghdl --std=08 -fpsl -P/repo/tsfpga/generated/formal_project/vunit_out/ghdl/libraries/math -P/repo/tsfpga/generated/formal_project/vunit_out/ghdl/libraries/axi -P/repo/tsfpga/generated/formal_project/vunit_out/ghdl/libraries/bfm -P/repo/tsfpga/generated/formal_project/vunit_out/ghdl/libraries/fifo -P/repo/tsfpga/generated/formal_project/vunit_out/ghdl/libraries/common -P/repo/tsfpga/generated/formal_project/vunit_out/ghdl/libraries/reg_file -P/repo/tsfpga/generated/formal_project/vunit_out/ghdl/libraries/resync axil_reg_file_wrapper.vhd -e axil_reg_file_wrapper
+prep -top axil_reg_file_wrapper
+
+[files]
+/repo/tsfpga/modules/math/src/unsigned_divider.vhd
+/repo/tsfpga/modules/math/src/math_pkg.vhd
+/repo/tsfpga/modules/axi/src/axi_read_cdc.vhd
+/repo/tsfpga/modules/axi/src/axi_simple_crossbar.vhd
+/repo/tsfpga/modules/axi/src/axi_write_cdc.vhd
+/repo/tsfpga/modules/axi/src/axi_write_throttle.vhd
+/repo/tsfpga/modules/axi/src/axi_b_fifo.vhd
+/repo/tsfpga/modules/axi/src/axil_pkg.vhd
+/repo/tsfpga/modules/axi/src/axi_read_throttle.vhd
+/repo/tsfpga/modules/axi/src/axi_address_fifo.vhd
+/repo/tsfpga/modules/axi/src/axi_to_axil.vhd
+/repo/tsfpga/modules/axi/src/axi_r_fifo.vhd
+/repo/tsfpga/modules/axi/src/axil_to_vec.vhd
+/repo/tsfpga/modules/axi/src/axil_mux.vhd
+/repo/tsfpga/modules/axi/src/axi_w_fifo.vhd
+/repo/tsfpga/modules/axi/src/axil_cdc.vhd
+/repo/tsfpga/modules/axi/src/axil_simple_crossbar.vhd
+/repo/tsfpga/modules/axi/src/axi_pkg.vhd
+/repo/tsfpga/modules/axi/src/axi_to_axil_vec.vhd
+/repo/tsfpga/modules/axi/src/axil_pipeline.vhd
+/repo/tsfpga/modules/fifo/src/afifo.vhd
+/repo/tsfpga/modules/fifo/src/fifo.vhd
+/repo/tsfpga/modules/fifo/rtl/fifo_netlist_build_wrapper.vhd
+/repo/tsfpga/modules/common/src/addr_pkg.vhd
+/repo/tsfpga/modules/common/src/common_pkg.vhd
+/repo/tsfpga/modules/common/src/handshake_pipeline.vhd
+/repo/tsfpga/modules/common/src/types_pkg.vhd
+/repo/tsfpga/modules/common/src/attribute_pkg.vhd
+/repo/tsfpga/modules/common/src/debounce.vhd
+/repo/tsfpga/modules/common/src/handshake_splitter.vhd
+/repo/tsfpga/modules/common/src/width_conversion.vhd
+/repo/tsfpga/modules/reg_file/src/interrupt_register.vhd
+/repo/tsfpga/modules/reg_file/src/axil_reg_file.vhd
+/repo/tsfpga/modules/reg_file/src/reg_file_pkg.vhd
+/repo/tsfpga/modules/reg_file/rtl/axil_reg_file_wrapper.vhd
+/repo/tsfpga/modules/resync/src/resync_cycles.vhd
+/repo/tsfpga/modules/resync/src/resync_slv_level_on_signal.vhd
+/repo/tsfpga/modules/resync/src/resync_level_on_signal.vhd
+/repo/tsfpga/modules/resync/src/resync_slv_level.vhd
+/repo/tsfpga/modules/resync/src/resync_pulse.vhd
+/repo/tsfpga/modules/resync/src/resync_level.vhd
+/repo/tsfpga/modules/resync/src/resync_counter.vhd
