@@ -172,11 +172,11 @@ class BaseModule:
         synthesis_files = self.get_synthesis_files(
             files_include=files_include, files_avoid=files_avoid
         )
-        simulation_files = self._get_hdl_file_list(
+        test_files = self._get_hdl_file_list(
             test_folders, files_include=files_include, files_avoid=files_avoid
         )
 
-        return synthesis_files + simulation_files
+        return synthesis_files + test_files
 
     def get_formal_files(self, files_include=None, files_avoid=None):
         """
