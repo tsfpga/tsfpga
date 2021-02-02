@@ -36,23 +36,41 @@ class BaseModule:
         self._registers = None
 
     @staticmethod
-    def _get_file_list(folders, file_endings):
+    def _get_file_list(folders, file_endings, files_include=None, files_avoid=None):
         """
         Returns a list of files given a list of folders.
+
+        Arguments:
+            folders (pathlib.Path): The forlders to search.
+            file_endings (tuple(str)): File endings to include.
+            files_include (set(pathlib.Path)): Optionally filter to only include these files.
+            files_avoid (set(pathlib.Path)): Optionally filter to discard these files.
         """
         files = []
         for folder in folders:
             for file in folder.glob("*"):
-                if file.is_file() and file.name.lower().endswith(file_endings):
+                # pylint: disable=too-many-boolean-expressions
+                if (
+                    file.is_file()
+                    and file.name.lower().endswith(file_endings)
+                    and (files_include is None or file in files_include)
+                    and (files_avoid is None or file not in files_avoid)
+                ):
                     files.append(file)
         return files
 
-    def _get_hdl_file_list(self, folders):
+    def _get_hdl_file_list(self, folders, files_include, files_avoid):
         """
         Return a list of HDL file objects.
         """
         return [
-            HdlFile(filename) for filename in self._get_file_list(folders, HdlFile.file_endings)
+            HdlFile(file_path)
+            for file_path in self._get_file_list(
+                folders=folders,
+                file_endings=HdlFile.file_endings,
+                files_include=files_include,
+                files_avoid=files_avoid,
+            )
         ]
 
     @property
@@ -92,8 +110,21 @@ class BaseModule:
         if self.registers is not None:
             self.registers.create_vhdl_package(self.path)
 
-    def get_synthesis_files(self):
+    def get_synthesis_files(self, files_include=None, files_avoid=None):
         """
+        Get a list of files that shall be included in a synthesis project.
+
+        The ``files_include`` and ``files_avoid`` arguments can be used to filter what files are
+        included.
+        This can be useful in many situations, e.g. when encrypted files of files that include an
+        IP core shall be avoided.
+        It is recommended to overload this function in a child class in your ``module_*.py``,
+        and call this super method with the arguments supplied.
+
+        Arguments:
+            files_include (set(`pathlib.Path`)): Optionally filter to only include these files.
+            files_avoid (set(`pathlib.Path`)): Optionally filter to discard these files.
+
         Return:
             list(:class:`.HdlFile`): Files that should be included in a synthesis project.
         """
@@ -106,20 +137,27 @@ class BaseModule:
             self.path / "hdl" / "rtl",
             self.path / "hdl" / "package",
         ]
-        return self._get_hdl_file_list(folders)
+        return self._get_hdl_file_list(
+            folders=folders, files_include=files_include, files_avoid=files_avoid
+        )
 
-    def get_simulation_files(self, include_tests=True):
+    def get_simulation_files(self, include_tests=True, files_include=None, files_avoid=None):
         """
+        See :meth:`.get_synthesis_files` for insctructions on how to use ``files_include``
+        and ``files_avoid``.
+
         Arguments:
-            include_tests (bool): When False the test folder is not included.
-                The use case of include_tests is when testing a primary module
-                that depends on other secondary modules, we may want to compile
-                the simulation files (``sim`` folder) of the secondary modules but not their
-                test files (``test`` folder).
+            include_tests (bool): When ``False`` the ``test`` folder is not included.
+                The use case is when testing a primary module that depends on other
+                secondary modules.
+                In this case we may want to compile the simulation files (``sim`` folder) of the
+                secondary modules but not their test files (``test`` folder).
 
                 .. Note::
                     The ``test`` files are considered private to the module and should never be used
                     by other modules.
+            files_include (set(`pathlib.Path`)): Optionally filter to only include these files.
+            files_avoid (set(`pathlib.Path`)): Optionally filter to discard these files.
 
         Return:
             list(:class:`.HdlFile`): Files that should be included in a simulation project.
@@ -131,19 +169,33 @@ class BaseModule:
         if include_tests:
             test_folders += [self.path / "rtl" / "tb", self.path / "test"]
 
-        return self.get_synthesis_files() + self._get_hdl_file_list(test_folders)
+        synthesis_files = self.get_synthesis_files(
+            files_include=files_include, files_avoid=files_avoid
+        )
+        simulation_files = self._get_hdl_file_list(
+            test_folders, files_include=files_include, files_avoid=files_avoid
+        )
 
-    def get_formal_files(self):
+        return synthesis_files + simulation_files
+
+    def get_formal_files(self, files_include=None, files_avoid=None):
         """
         Returns the files to be used for formal verification.
         By default these are the same that are used by synthesis
         (by calling :meth:`get_synthesis_files`).
         Overload this method to select files manually.
 
+        See :meth:`.get_synthesis_files` for insctructions on how to use ``files_include``
+        and ``files_avoid``.
+
+        Arguments:
+            files_include (set(`pathlib.Path`)): Optionally filter to only include these files.
+            files_avoid (set(`pathlib.Path`)): Optionally filter to discard these files.
+
         Return:
             list(:class:`.HdlFile`): Files that should be included in a formal verification project.
         """
-        return self.get_synthesis_files()
+        return self.get_synthesis_files(files_include=files_include, files_avoid=files_avoid)
 
     def setup_vunit(self, vunit_proj, **kwargs):
         """

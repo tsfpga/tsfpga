@@ -48,6 +48,12 @@ def test_file_list_filtering(tmp_path):
     files = [file.path for file in my_module.get_simulation_files(include_tests=False)]
     assert set(files) == set(synth_files + sim_files)
 
+    files = [file.path for file in my_module.get_simulation_files(files_include=synth_files)]
+    assert set(files) == set(synth_files)
+
+    files = [file.path for file in my_module.get_simulation_files(files_avoid=synth_files)]
+    assert set(files) == set(test_files + sim_files)
+
     files = [file.path for file in my_module.get_formal_files()]
     assert set(files) == set(synth_files)
 

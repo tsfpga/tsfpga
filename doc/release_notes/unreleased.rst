@@ -12,6 +12,9 @@ Added
 * Add ``reg_was_read`` port to ``reg_file.axil_reg_file``.
 * Add :meth:`.VivadoProject.pre_create` hook function.
 * Allow Vivado project source files to contain spaces.
+* Add :meth:`.BaseModule.get_formal_files` method used to select what files are included in a formal project.
+* Add ``files_include`` and ``files_avoid`` arguments to :meth:`.BaseModule.get_synthesis_files`,
+  :meth:`.BaseModule.get_simulation_files` and :meth:`.BaseModule.get_formal_files`.
 
 Breaking changes
 
