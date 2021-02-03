@@ -47,4 +47,4 @@ class HdlFile:
         return self.path.name.endswith(self.verilog_header_file_ending)
 
     def __str__(self):
-        return str(self.path)
+        return f"{self.__class__.__name__}('{self.path}')"

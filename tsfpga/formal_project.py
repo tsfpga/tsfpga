@@ -137,7 +137,7 @@ class FormalProject:
 
                 src_files.append(hdl_file.path)
 
-        vunit_proj.set_compile_option("ghdl.a_flags", ["-fpsl"])
+        vunit_proj.set_compile_option("ghdl.a_flags", ["-fpsl", "-fsynopsys", "-frelaxed"])
         vunit_proj._main_compile_only()  # pylint: disable=protected-access
 
         return src_files, compiled_libraries
