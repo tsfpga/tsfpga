@@ -19,7 +19,7 @@ class VivadoIpCores:
     is needed.
     """
 
-    _project_name = "vivado_ip_project"
+    project_name = "vivado_ip_project"
 
     def __init__(self, modules, output_path, part_name):
         """
@@ -29,9 +29,9 @@ class VivadoIpCores:
             output_path (`pathlib.Path`): The Vivado project will be placed here.
             part_name (str): Vivado part name to be used for the project.
         """
-        self._project_folder = output_path.resolve() / self._project_name
+        self.project_directory = output_path.resolve() / self.project_name
         self._part_name = part_name
-        self._hash_file = self._project_folder / "ip_files_hash.txt"
+        self._hash_file = self.project_directory / "ip_files_hash.txt"
 
         self._setup(modules)
 
@@ -40,29 +40,22 @@ class VivadoIpCores:
         """
         `pathlib.Path`: Path to the generated compile order file.
         """
-        return self._project_folder / "compile_order.txt"
-
-    @property
-    def vivado_project_sources_directory(self):
-        """
-        `pathlib.Path`: Path to the "sources" directory of the Vivado project.
-        """
-        return self._project_folder / "vivado_ip_project.srcs" / "sources_1"
+        return self.project_directory / "compile_order.txt"
 
     @property
     def vivado_project_file(self):
         """
         `pathlib.Path`: Path to the Vivado project file.
         """
-        return self._vivado_project.project_file(self._project_folder)
+        return self._vivado_project.project_file(self.project_directory)
 
     def create_vivado_project(self):
         """
         Create IP core Vivado project.
         """
-        print(f"Creating IP core project in {self._project_folder}")
-        delete(self._project_folder)
-        self._vivado_project.create(self._project_folder)
+        print(f"Creating IP core project in {self.project_directory}")
+        delete(self.project_directory)
+        self._vivado_project.create(self.project_directory)
         self._save_hash()
 
     def create_vivado_project_if_needed(self):
@@ -91,7 +84,7 @@ class VivadoIpCores:
             ip_tcl_files += module.get_ip_core_files()
 
         self._vivado_project = VivadoProject(
-            name=self._project_name, modules=[], part=self._part_name, tcl_sources=ip_tcl_files
+            name=self.project_name, modules=[], part=self._part_name, tcl_sources=ip_tcl_files
         )
 
         self._hash = self._calculate_hash(ip_tcl_files)

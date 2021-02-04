@@ -48,7 +48,7 @@ def main():
         sim_modules = [module for module in all_modules if len(module.get_ip_core_files()) == 0]
 
     if args.vivado_skip:
-        ip_core_vivado_project_sources_directory = None
+        ip_core_vivado_project_directory = None
     else:
         add_simlib(vunit_proj, args.temp_dir, args.simlib_compile)
 
@@ -56,7 +56,7 @@ def main():
         # even if they are not added to the simulation project.
         (
             ip_core_compile_order_file,
-            ip_core_vivado_project_sources_directory,
+            ip_core_vivado_project_directory,
         ) = generate_ip_core_files(all_modules, args.temp_dir, args.ip_compile)
         if has_commercial_simulator:
             add_from_compile_order_file(vunit_proj, ip_core_compile_order_file)
@@ -65,7 +65,7 @@ def main():
         output_path=PATH_TO_TSFPGA,
         vunit_proj=vunit_proj,
         modules=all_modules,
-        ip_core_vivado_project_sources_directory=ip_core_vivado_project_sources_directory,
+        ip_core_vivado_project_directory=ip_core_vivado_project_directory,
     )
 
     for module in sim_modules:
@@ -133,11 +133,11 @@ def generate_ip_core_files(modules, temp_dir, force_generate):
             vivado_ip_cores.vivado_project_file, vivado_ip_cores.compile_order_file
         )
 
-    return vivado_ip_cores.compile_order_file, vivado_ip_cores.vivado_project_sources_directory
+    return vivado_ip_cores.compile_order_file, vivado_ip_cores.project_directory
 
 
 def create_vhdl_ls_configuration(
-    output_path, vunit_proj, modules, ip_core_vivado_project_sources_directory
+    output_path, vunit_proj, modules, ip_core_vivado_project_directory
 ):
     """
     Create config for vhdl_ls. Granted this might no be the "correct" place for this functionality.
@@ -150,7 +150,7 @@ def create_vhdl_ls_configuration(
         modules=modules,
         vunit_proj=vunit_proj,
         vivado_location=vivado_location,
-        ip_core_vivado_project_sources_directory=ip_core_vivado_project_sources_directory,
+        ip_core_vivado_project_directory=ip_core_vivado_project_directory,
     )
 
 

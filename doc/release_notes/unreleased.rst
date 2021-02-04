@@ -37,6 +37,9 @@ Breaking changes
 * Add mandatory generic ``width`` to ``resync.resync_slv_level`` and ``resync.resync_slv_level_on_signal``.
 * Rename ``BaseModule.add_config`` to :meth:`.BaseModule.add_vunit_config`.
 * Rename ``types_pkg.swap_bytes`` to ``types_pkg.swap_byte_order``.
+* Remove ``VivadoIpCores.vivado_project_sources_directory`` in favor of ``VivadoIpCores.project_directory``.
+* Change :meth:`tsfpga.create_vhdl_ls_config.create_configuration` argument ``ip_core_vivado_project_sources_directory``
+  to be ``ip_core_vivado_project_directory``.
 
 Changes
 
