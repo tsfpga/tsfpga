@@ -31,6 +31,7 @@ default:
   image: ghdl/vunit:mcode-master
   before_script:
     - python3 --version
+    - python3 -m pip install --upgrade pip > /dev/null
     - export PYTHONPATH=$(pwd)/tsfpga
     - echo $CI_COMMIT_TAG
     - echo $CI_COMMIT_BRANCH
