@@ -41,6 +41,7 @@ architecture a of resync_counter is
   signal counter_in_gray, counter_in_gray_p1, counter_out_gray : std_logic_vector(counter_in'range)
     := to_gray(default_value);
 
+  attribute dont_touch of counter_in_gray   : signal is "true";
   attribute async_reg of counter_in_gray_p1 : signal is "true";
   attribute async_reg of counter_out_gray   : signal is "true";
 begin
