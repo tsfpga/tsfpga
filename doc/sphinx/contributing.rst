@@ -102,17 +102,16 @@ ___________________
 
     git push origin --tag vX.Y.Z HEAD:release_branch
 
-This will create two CI pipelines in gitlab.
-One for the commit and one for the tag.
+Pushing a tag will create a special CI run in gitlab:
 
 .. image:: files/ci_deploy_pipelines.png
 
-The pipeline for the tag will run an additional job ``deploy_pypi``.
+The pipeline for the tag will run an additional job ``deploy_pypi``:
 
 .. image:: files/ci_deploy_jobs.png
 
 The package is uploaded to https://pypi.org/project/tsfpga/.
-So if you really want to make sure that everything has worked you can check there and see that your new release is available.
+If you really want to make sure that everything has worked you can check there and see that your new release is available.
 
 
 Merge
