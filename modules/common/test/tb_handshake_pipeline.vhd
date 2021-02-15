@@ -7,10 +7,13 @@
 -- -------------------------------------------------------------------------------------------------
 
 library ieee;
+use ieee.numeric_std.all;
 use ieee.std_logic_1164.all;
 
 library vunit_lib;
+use vunit_lib.random_pkg.all;
 context vunit_lib.vunit_context;
+context vunit_lib.vc_context;
 
 library osvvm;
 use osvvm.RandomPkg.all;
@@ -20,7 +23,9 @@ use work.types_pkg.all;
 
 entity tb_handshake_pipeline is
   generic (
-    data_jitter : boolean := true;
+    full_throughput : boolean;
+    allow_poor_input_ready_timing : boolean;
+    data_jitter : boolean := false;
     runner_cfg : string
   );
 end entity;
@@ -34,10 +39,44 @@ architecture tb of tb_handshake_pipeline is
 
   signal input_ready, input_valid, input_last : std_logic := '0';
   signal output_ready, output_valid, output_last : std_logic := '0';
-  signal input_data, output_data : std_logic_vector(data_width - 1 downto 0);
+  signal input_data, output_data : std_logic_vector(data_width - 1 downto 0) := (others => '0');
 
-  constant num_words : integer := 8_000;
-  signal queue : queue_t := new_queue;
+  constant num_words : integer := 1024;
+
+  function get_stall_config return stall_config_t is
+  begin
+    if data_jitter then
+      return (
+        stall_probability => 0.5,
+        min_stall_cycles => 1,
+        max_stall_cycles => 2
+      );
+    end if;
+    return (
+      stall_probability => 0.0,
+      min_stall_cycles => 0,
+      max_stall_cycles => 0
+    );
+  end function;
+  constant stall_config : stall_config_t := get_stall_config;
+
+  constant input_master : axi_stream_master_t := new_axi_stream_master(
+    data_length => input_data'length,
+    protocol_checker => new_axi_stream_protocol_checker(
+      logger => get_logger("input_master"),
+      data_length => input_data'length
+    ),
+    stall_config => stall_config
+  );
+
+  constant output_slave : axi_stream_slave_t := new_axi_stream_slave(
+    data_length => input_data'length,
+    protocol_checker => new_axi_stream_protocol_checker(
+      logger => get_logger("output_slave"),
+      data_length => output_data'length
+    ),
+    stall_config => stall_config
+  );
 
   signal start, stimuli_done, data_check_done : boolean := false;
 
@@ -52,13 +91,47 @@ begin
     variable rnd : RandomPType;
 
     procedure run_test is
+      variable data : integer_array_t := null_integer_array;
+
+      variable reference_data, got_data : std_logic_vector(input_data'range) := (others => '0');
+      variable got_last : std_logic := '0';
+
+      variable axi_stream_pop_reference : axi_stream_reference_t;
+      variable axi_stream_pop_reference_queue : queue_t := new_queue;
     begin
       report "Starting test";
-      start <= true;
-      wait until rising_edge(clk);
-      start <= false;
-      wait until rising_edge(clk);
-      wait until stimuli_done and data_check_done and rising_edge(clk);
+      data := random_integer_array(width=>num_words, bits_per_word=>data_width, is_signed=>false);
+
+      for word_idx in 0 to length(data) - 1 loop
+        reference_data := std_logic_vector(to_unsigned(get(data, word_idx), reference_data'length));
+        push_axi_stream(
+          net,
+          input_master,
+          tdata=>reference_data,
+          tlast=>to_sl(word_idx=length(data) - 1)
+        );
+      end loop;
+
+      -- Queue up reads in order to get full throughput. We need to keep track of
+      -- the pop_reference when we read the reply later. Hence it is pushed to a queue.
+      for word_idx in 0 to length(data) - 1 loop
+        pop_axi_stream(net, output_slave, axi_stream_pop_reference);
+        push(axi_stream_pop_reference_queue, axi_stream_pop_reference);
+      end loop;
+
+      for word_idx in 0 to length(data) - 1 loop
+        axi_stream_pop_reference := pop(axi_stream_pop_reference_queue);
+        await_pop_axi_stream_reply(
+          net,
+          axi_stream_pop_reference,
+          tdata=>got_data,
+          tlast=>got_last
+        );
+
+        reference_data := std_logic_vector(to_unsigned(get(data, word_idx), reference_data'length));
+        check_equal(got_data, reference_data, "word_idx=" & to_string(word_idx));
+        check_equal(got_last, word_idx = num_words - 1);
+      end loop;
     end procedure;
 
     variable start_time, time_diff : time;
@@ -67,7 +140,11 @@ begin
     test_runner_setup(runner, runner_cfg);
     rnd.InitSeed(rnd'instance_name);
 
-    if run("test_data") then
+    -- Decrease noise
+    disable(get_logger("input_master:rule 4"), warning);
+    disable(get_logger("output_slave:rule 4"), warning);
+
+    if run("test_random_data") then
       run_test;
       run_test;
       run_test;
@@ -86,71 +163,39 @@ begin
 
 
   ------------------------------------------------------------------------------
-  stimuli : process
-    variable rnd : RandomPType;
-    variable input_data_v : std_logic_vector(input_data'range);
-  begin
-    rnd.InitSeed(rnd'instance_name);
-
-    loop
-      wait until start and rising_edge(clk);
-      stimuli_done <= false;
-
-      for i in 0 to num_words - 1 loop
-        input_valid <= '1';
-        input_data_v := rnd.RandSlv(input_data_v'length);
-        input_data <= input_data_v;
-        input_last <= to_sl(i = num_words - 1);
-        wait until (input_ready and input_valid) = '1' and rising_edge(clk);
-        push(queue, input_data_v);
-
-        input_valid <= '0';
-        if data_jitter then
-          for wait_cycle in 1 to rnd.FavorSmall(0, 2) loop
-            wait until rising_edge(clk);
-          end loop;
-        end if;
-      end loop;
-
-      input_valid <= '0';
-      stimuli_done <= true;
-    end loop;
-  end process;
+  axi_stream_master_inst : entity vunit_lib.axi_stream_master
+    generic map(
+      master => input_master
+    )
+    port map(
+      aclk => clk,
+      tvalid => input_valid,
+      tready => input_ready,
+      tdata => input_data,
+      tlast => input_last
+    );
 
 
   ------------------------------------------------------------------------------
-  data_check : process
-    variable rnd : RandomPType;
-  begin
-    rnd.InitSeed(rnd'instance_name);
-
-    loop
-      wait until start and rising_edge(clk);
-      data_check_done <= false;
-
-      for i in 0 to num_words - 1 loop
-        output_ready <= '1';
-        wait until (output_ready and output_valid) = '1' and rising_edge(clk);
-        check_equal(output_data, pop_std_ulogic_vector(queue));
-        check_equal(output_last, i = num_words - 1);
-
-        output_ready <= '0';
-        if data_jitter then
-          for wait_cycle in 1 to rnd.FavorSmall(0, 2) loop
-            wait until rising_edge(clk);
-          end loop;
-        end if;
-      end loop;
-
-      data_check_done <= true;
-    end loop;
-  end process;
+  axi_stream_slave_inst : entity vunit_lib.axi_stream_slave
+    generic map(
+      slave => output_slave
+    )
+    port map(
+      aclk => clk,
+      tvalid => output_valid,
+      tready => output_ready,
+      tdata => output_data,
+      tlast => output_last
+    );
 
 
   ------------------------------------------------------------------------------
   dut : entity work.handshake_pipeline
     generic map (
-      data_width => data_width
+      data_width => data_width,
+      full_throughput => full_throughput,
+      allow_poor_input_ready_timing => allow_poor_input_ready_timing
     )
     port map (
       clk => clk,

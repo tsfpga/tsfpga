@@ -7,6 +7,8 @@
 # --------------------------------------------------------------------------------------------------
 
 from tsfpga.module import BaseModule
+from tsfpga.vivado.project import VivadoNetlistProject
+from tsfpga.vivado.size_checker import EqualTo, Ffs, TotalLuts
 
 
 class Module(BaseModule):
@@ -33,9 +35,91 @@ class Module(BaseModule):
             generics=dict(input_width=8, output_width=16, data_jitter=False),
         )
 
-        test = (
-            vunit_proj.library(self.library_name)
-            .test_bench("tb_handshake_pipeline")
-            .get_tests("test_full_throughput")[0]
+        for test in (
+            vunit_proj.library(self.library_name).test_bench("tb_handshake_pipeline").get_tests()
+        ):
+            if "full_throughput" in test.name:
+                for allow_poor_input_ready_timing in [False, True]:
+                    generics = dict(
+                        full_throughput=True,
+                        allow_poor_input_ready_timing=allow_poor_input_ready_timing,
+                    )
+                    self.add_vunit_config(test=test, generics=generics)
+
+            if "random_data" in test.name:
+                for full_throughput in [False, True]:
+                    for allow_poor_input_ready_timing in [False, True]:
+                        generics = dict(
+                            data_jitter=True,
+                            full_throughput=full_throughput,
+                            allow_poor_input_ready_timing=allow_poor_input_ready_timing,
+                        )
+                        self.add_vunit_config(test=test, generics=generics)
+
+    def get_build_projects(self):
+        projects = []
+        part = "xc7z020clg400-1"
+        generics = dict(data_width=32)
+
+        generics.update(full_throughput=True, allow_poor_input_ready_timing=True)
+        projects.append(
+            VivadoNetlistProject(
+                name=self.test_case_name("handshake_pipeline", generics),
+                modules=[self],
+                part=part,
+                top="handshake_pipeline",
+                generics=generics,
+                result_size_checkers=[
+                    TotalLuts(EqualTo(1)),
+                    Ffs(EqualTo(34)),
+                ],
+            )
         )
-        test.set_generic("data_jitter", False)
+
+        # Full skid-aside buffer is quite large.
+        generics.update(full_throughput=True, allow_poor_input_ready_timing=False)
+        projects.append(
+            VivadoNetlistProject(
+                name=self.test_case_name("handshake_pipeline", generics),
+                modules=[self],
+                part=part,
+                top="handshake_pipeline",
+                generics=generics,
+                result_size_checkers=[
+                    TotalLuts(EqualTo(37)),
+                    Ffs(EqualTo(70)),
+                ],
+            )
+        )
+
+        generics.update(full_throughput=False, allow_poor_input_ready_timing=True)
+        projects.append(
+            VivadoNetlistProject(
+                name=self.test_case_name("handshake_pipeline", generics),
+                modules=[self],
+                part=part,
+                top="handshake_pipeline",
+                generics=generics,
+                result_size_checkers=[
+                    TotalLuts(EqualTo(2)),
+                    Ffs(EqualTo(34)),
+                ],
+            )
+        )
+
+        generics.update(full_throughput=False, allow_poor_input_ready_timing=False)
+        projects.append(
+            VivadoNetlistProject(
+                name=self.test_case_name("handshake_pipeline", generics),
+                modules=[self],
+                part=part,
+                top="handshake_pipeline",
+                generics=generics,
+                result_size_checkers=[
+                    TotalLuts(EqualTo(1)),
+                    Ffs(EqualTo(35)),
+                ],
+            )
+        )
+
+        return projects

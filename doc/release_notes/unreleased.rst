@@ -15,6 +15,7 @@ Added
 * Add :meth:`.BaseModule.get_formal_files` method used to select what files are included in a formal project.
 * Add ``files_include`` and ``files_avoid`` arguments to :meth:`.BaseModule.get_synthesis_files`,
   :meth:`.BaseModule.get_simulation_files` and :meth:`.BaseModule.get_formal_files`.
+* Add ``full_throughput`` and ``allow_poor_input_ready_timing`` generics to ``common.handshake_pipeline``.
 
 Breaking changes
 
