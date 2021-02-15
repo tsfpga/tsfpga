@@ -38,7 +38,7 @@ class FormalConfig:
                 where it is used as the depth for k-induction.
         """
         self.top = top
-        self.generics = generics
+        self.generics = None if generics is None else generics.copy()
         self.formal_settings = dict(
             engine_command=engine_command, solver_command=solver_command, mode=mode, depth=depth
         )
