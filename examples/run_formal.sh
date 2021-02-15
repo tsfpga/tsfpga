@@ -11,9 +11,10 @@
 
 docker run \
   --rm \
+  --interactive \
   --tty \
   --user "$(id -u ${USER}):$(id -g ${USER})" \
-  --volume $(pwd):/repo/tsfpga \
-  --workdir /repo/tsfpga \
+  --volume $(pwd):$(pwd) \
+  --workdir $(pwd) \
   tsfpga/formal \
   python3 examples/formal.py $@
