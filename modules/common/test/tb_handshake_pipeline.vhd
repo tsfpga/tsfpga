@@ -43,22 +43,11 @@ architecture tb of tb_handshake_pipeline is
 
   constant num_words : integer := 1024;
 
-  function get_stall_config return stall_config_t is
-  begin
-    if data_jitter then
-      return (
-        stall_probability => 0.5,
-        min_stall_cycles => 1,
-        max_stall_cycles => 2
-      );
-    end if;
-    return (
-      stall_probability => 0.0,
-      min_stall_cycles => 0,
-      max_stall_cycles => 0
-    );
-  end function;
-  constant stall_config : stall_config_t := get_stall_config;
+  constant stall_config : stall_config_t := (
+    stall_probability => 0.5 * real(to_int(data_jitter)),
+    min_stall_cycles => 1,
+    max_stall_cycles => 2
+  );
 
   constant input_master : axi_stream_master_t := new_axi_stream_master(
     data_length => input_data'length,
