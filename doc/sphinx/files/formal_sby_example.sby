@@ -30,7 +30,7 @@ prep -top axil_reg_file_wrapper
 /repo/tsfpga/modules/axi/src/axi_pkg.vhd
 /repo/tsfpga/modules/axi/src/axi_to_axil_vec.vhd
 /repo/tsfpga/modules/axi/src/axil_pipeline.vhd
-/repo/tsfpga/modules/fifo/src/afifo.vhd
+/repo/tsfpga/modules/fifo/src/asynchronous_fifo.vhd
 /repo/tsfpga/modules/fifo/src/fifo.vhd
 /repo/tsfpga/modules/fifo/rtl/fifo_netlist_build_wrapper.vhd
 /repo/tsfpga/modules/common/src/addr_pkg.vhd

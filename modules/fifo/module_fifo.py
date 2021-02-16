@@ -14,7 +14,9 @@ from examples.tsfpga_example_env import get_tsfpga_modules
 
 class Module(BaseModule):
     def setup_vunit(self, vunit_proj, **kwargs):
-        for test in vunit_proj.library(self.library_name).test_bench("tb_afifo").get_tests():
+        for test in (
+            vunit_proj.library(self.library_name).test_bench("tb_asynchronous_fifo").get_tests()
+        ):
             for read_clock_is_faster in [True, False]:
                 original_generics = dict(read_clock_is_faster=read_clock_is_faster)
 
@@ -103,7 +105,7 @@ class Module(BaseModule):
         part = "xc7z020clg400-1"
 
         self._setup_fifo_build_projects(projects, modules, part)
-        self._setup_afifo_build_projects(projects, modules, part)
+        self._setup_asynchronous_fifo_build_projects(projects, modules, part)
 
         return projects
 
@@ -203,14 +205,14 @@ class Module(BaseModule):
             )
         )
 
-    def _setup_afifo_build_projects(self, projects, modules, part):
+    def _setup_asynchronous_fifo_build_projects(self, projects, modules, part):
         generics = dict(use_asynchronous_fifo=True, width=32, depth=1024)
 
         # Use a wrapper as top level, which only routes the "barebone" ports, resulting in
         # a minimal FIFO.
         projects.append(
             VivadoNetlistProject(
-                name=self.test_case_name("afifo_minimal", generics),
+                name=self.test_case_name("asynchronous_fifo_minimal", generics),
                 modules=modules,
                 part=part,
                 top="fifo_netlist_build_wrapper",
@@ -229,7 +231,7 @@ class Module(BaseModule):
         generics.update(almost_full_level=800)
         projects.append(
             VivadoNetlistProject(
-                name=self.test_case_name("afifo_regular", generics),
+                name=self.test_case_name("asynchronous_fifo", generics),
                 modules=modules,
                 part=part,
                 top="fifo_wrapper",

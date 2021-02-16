@@ -51,7 +51,7 @@ begin
     slave_m2s.write.aw.addr(read_data'range) <= unsigned(read_data);
     write_data <= std_logic_vector(master_m2s.write.aw.addr(write_data'range));
 
-    aw_afifo_inst : entity fifo.afifo
+    aw_asynchronous_fifo_inst : entity fifo.asynchronous_fifo
       generic map (
         width => axil_m2s_a_sz(addr_width),
         depth => fifo_depth,
@@ -81,7 +81,7 @@ begin
     slave_m2s.write.w.strb <= to_axil_m2s_w(read_data, data_width).strb;
     write_data <= to_slv(master_m2s.write.w, data_width);
 
-    w_afifo_inst : entity fifo.afifo
+    w_asynchronous_fifo_inst : entity fifo.asynchronous_fifo
       generic map (
         width => w_width,
         depth => fifo_depth,
@@ -102,7 +102,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  b_afifo_inst : entity fifo.afifo
+  b_asynchronous_fifo_inst : entity fifo.asynchronous_fifo
     generic map (
       width => axil_s2m_b_sz,
       depth => fifo_depth,
@@ -129,7 +129,7 @@ begin
     slave_m2s.read.ar.addr(read_data'range) <= unsigned(read_data);
     write_data <= std_logic_vector(master_m2s.read.ar.addr(write_data'range));
 
-    ar_afifo_inst : entity fifo.afifo
+    ar_asynchronous_fifo_inst : entity fifo.asynchronous_fifo
       generic map (
         width => axil_m2s_a_sz(addr_width),
         depth => fifo_depth,
@@ -159,7 +159,7 @@ begin
     master_s2m.read.r.resp <= to_axil_s2m_r(read_data, data_width).resp;
     write_data <= to_slv(slave_s2m.read.r, data_width);
 
-    r_afifo_inst : entity fifo.afifo
+    r_asynchronous_fifo_inst : entity fifo.asynchronous_fifo
       generic map (
         width => r_width,
         depth => fifo_depth,

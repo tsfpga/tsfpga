@@ -22,7 +22,7 @@ use math.math_pkg.all;
 library resync;
 
 
-entity afifo is
+entity asynchronous_fifo is
   generic (
     width : positive;
     depth : positive;
@@ -87,7 +87,7 @@ entity afifo is
   );
 end entity;
 
-architecture a of afifo is
+architecture a of asynchronous_fifo is
 
   -- Need one extra bit in the addresses to be able to make the distinction if the FIFO
   -- is full or empty (where the addresses would otherwise be equal).

@@ -23,7 +23,7 @@ library common;
 use common.types_pkg.all;
 
 
-entity tb_afifo is
+entity tb_asynchronous_fifo is
   generic (
     depth : integer;
     read_clock_is_faster : boolean;
@@ -38,7 +38,7 @@ entity tb_afifo is
   );
 end entity;
 
-architecture tb of tb_afifo is
+architecture tb of tb_asynchronous_fifo is
 
   constant width : integer := 8;
 
@@ -446,7 +446,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  dut : entity work.afifo
+  dut : entity work.asynchronous_fifo
     generic map (
       width => width,
       depth => depth,

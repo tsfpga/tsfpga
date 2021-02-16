@@ -21,7 +21,7 @@ entity fifo_wrapper is
     use_asynchronous_fifo : boolean;
     -- Generics for the FIFOs.
     -- Note that the default values are carefully chosen. Must be exactly the same as in fifo.vhd
-    -- and afifo.vhd.
+    -- and asynchronous_fifo.vhd.
     width : positive;
     depth : positive;
     almost_full_level : integer range 0 to depth := depth;
@@ -70,7 +70,7 @@ begin
   choose_fifo : if use_asynchronous_fifo generate
 
     ------------------------------------------------------------------------------
-    afifo_inst : entity work.afifo
+    asynchronous_fifo_inst : entity work.asynchronous_fifo
       generic map (
         width => width,
         depth => depth,

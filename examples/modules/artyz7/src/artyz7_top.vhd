@@ -171,7 +171,7 @@ begin
         pulse_out => afifo_read_ready
       );
 
-    afifo_inst : entity fifo.afifo
+    asynchronous_fifo_inst : entity fifo.asynchronous_fifo
       generic map (
         width => afifo_read_data'length,
         depth => 1024 -- Depth is selected to create a BRAM

@@ -14,12 +14,12 @@ if {${read_data} != {}} {
     # See discussion in https://gitlab.com/tsfpga/tsfpga/merge_requests/20
     set clk_write [get_clocks -of_objects [get_ports clk_write]]
     if {${clk_write} == {}} {
-        puts "WARNING tsfpga afifo.tcl: Could not find clock to constrain DistRAM."
+        puts "WARNING tsfpga asynchronous_fifo.tcl: Could not find clock to constrain DistRAM."
         # In some cases the clock might not be created yet, most likely during synthesis.
         # Hopefully it will be defined when this constraint file is applied again during
         # implementation. If not the build should fail timing.
     } else {
-        puts "INFO tsfpga afifo.tcl: Setting false path from write clock to read data registers."
+        puts "INFO tsfpga asynchronous_fifo.tcl: Setting false path from write clock to read data registers."
         set_false_path -setup -hold -from ${clk_write} -to ${read_data}
     }
 }
