@@ -14,10 +14,10 @@ workflow:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_PIPELINE_SOURCE == "web"'
-    # Pushes to master (a succesful merge request is also a "push") should run so
+    # Pushes to master (a successful merge request is also a "push") should run so
     # that new website is deployed.
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "master"'
-    # PyPI deply should be run only when there is a tag. However a $CI_COMMIT_TAG is
+    # PyPI deploy should be run only when there is a tag. However a $CI_COMMIT_TAG is
     # set only on the $CI_PIPELINE_SOURCE = "push" event (not on merge_request_event
     # or schedule). So allow the pipeline to run for this as well.
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_TAG != null'
@@ -30,9 +30,6 @@ default:
   # Note that the mcode image is much smaller than the gcc image.
   image: ghdl/vunit:mcode-master
   before_script:
-    - python3 --version
-    # Upgrade pip to make install of "cryptography" work. TODO remove when base docker image is updated.
-    - python3 -m pip install --upgrade pip > /dev/null
     - export PYTHONPATH=$(pwd)/tsfpga
     - echo $CI_COMMIT_TAG
     - echo $CI_COMMIT_BRANCH
@@ -45,6 +42,8 @@ pytest:
   script:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git g++ > /dev/null
+    # Upgrade pip to make install of "cryptography" work. TODO remove when base docker image is updated.
+    - python3 -m pip install --upgrade pip > /dev/null
     - python3 -m pip install --requirement requirements_develop.txt > /dev/null
     - python3 -m pylint --version
     - python3 -m pycodestyle --version
@@ -94,6 +93,8 @@ build_pages:
   script:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git graphviz > /dev/null
+    # Upgrade pip to make install of "cryptography" work. TODO remove when base docker image is updated.
+    - python3 -m pip install --upgrade pip > /dev/null
     - python3 -m pip install --requirement requirements_develop.txt > /dev/null
     - python3 tools/build_docs.py
   artifacts:
@@ -112,7 +113,7 @@ deploy_pypi:
   script:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git > /dev/null
-    - python3 -m pip install --requirement requirements_develop.txt > /dev/null
+    - python3 -m pip install twine > /dev/null
     - python3 -m twine upload dist/*
 
 
