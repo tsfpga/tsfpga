@@ -391,18 +391,18 @@ class VivadoProject:
         return UtilizationParser.get_size(report_as_string)
 
     def __str__(self):
-        result = str(self.__class__.__name__)
+        result = self.name
         if self.defined_at is not None:
-            result += f" defined at: {self.defined_at.resolve()}"
-        result += "\nName:      " + self.name
-        result += "\nTop level: " + self.top
+            result += f"\nDefined at: {self.defined_at.resolve()}"
+        result += f"\nType:       {self.__class__.__name__}"
+        result += f"\nTop level:  {self.top}"
         if self.static_generics is None:
             generics = "-"
         else:
             generics = ", ".join(
                 [f"{name}={value}" for name, value in self.static_generics.items()]
             )
-        result += "\nGenerics:  " + generics
+        result += f"\nGenerics:   {generics}"
 
         return result
 

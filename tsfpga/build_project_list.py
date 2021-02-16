@@ -52,7 +52,11 @@ class BuildProjectList:
         """
         Returns a string with a description list of the projects.
         """
-        return "\n\n".join([str(project) for project in self.projects])
+        result = "\n\n".join([str(project) for project in self.projects])
+        result += "\n"
+        result += "\n"
+        result += f"Listed {len(self.projects)} builds"
+        return result
 
     def create(self, projects_path, num_parallel_builds, **kwargs):
         """
