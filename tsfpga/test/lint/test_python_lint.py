@@ -23,13 +23,14 @@ THIS_DIR = Path(__file__).parent
 
 def _files_to_check():
     # Exclude doc folder, since conf.py used by sphinx does not conform
-    return list(
-        find_git_files(
+    return [
+        str(path)
+        for path in find_git_files(
             directory=tsfpga.REPO_ROOT,
             exclude_directories=[tsfpga.TSFPGA_DOC],
             file_endings_include="py",
         )
-    )
+    ]
 
 
 def run_pylint(files):
@@ -67,7 +68,7 @@ class TestPythonLintFunctions(unittest.TestCase):
 
     def setUp(self):
         ugly_code = "aa  =\ndef bb:\ncc  = 3"
-        self.file = create_file(self.tmp_path / "dummy_python_file.py", ugly_code)
+        self.file = str(create_file(self.tmp_path / "dummy_python_file.py", ugly_code))
 
     def test_pylint_should_raise_exception_if_there_are_ugly_files(self):
         with pytest.raises(subprocess.CalledProcessError):

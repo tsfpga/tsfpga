@@ -3,7 +3,9 @@ flake8
 GitPython
 toml
 pybadges
-pylint
+# Due to https://github.com/PyCQA/pylint/issues/4097
+# TODO remove version peg when this error is fixed.
+pylint==2.6.0
 pytest
 pytest-cov
 pytest-xdist
