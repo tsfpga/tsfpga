@@ -48,5 +48,5 @@ Key features
 * Register code generation from TOML: VHDL package, HTML documentation, C header, C++ class.
 * VHDL AXI components that enable the register bus: AXI-to-AXI-Lite converter, AXI-Lite interconnect, AXI-Lite mux (splitter), AXI-Lite clock domain crossing, AXI-Lite generic register file.
 
-The maintainers place high focus on quality, with everything having good unit test coverage and a though-out structure.
+The maintainers place high focus on quality, with everything having good unit test coverage and a thought-out structure.
 The project is mature and used in many production environments.

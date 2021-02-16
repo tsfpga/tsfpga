@@ -42,6 +42,6 @@ AXI-Lite interconnect, AXI-Lite mux (splitter), AXI-Lite clock domain crossing, 
 register file.
 
 The maintainers place high focus on quality, with everything having good unit test coverage and a \
-though-out structure.
+thought-out structure.
 The project is mature and used in many production environments.
 """
