@@ -120,6 +120,9 @@ pages:
   # Job name "pages" is magic in gitlab. Will deploy content of the "public" folder to the website.
   # Uses artifacts from the build_pages job run in the previous stage.
   stage: deploy
+  # Use a minimal image, so no CI time is wasted fetching a larger image. This step does not need
+  # anything special.
+  image: alpine
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
   script:
