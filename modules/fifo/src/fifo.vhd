@@ -45,7 +45,7 @@ entity fifo is
     -- Must set enable_last generic in order to use this
     read_last : out std_logic := '0';
     -- '1' if there are almost_empty_level or fewer words available to read
-    almost_empty : out std_logic;
+    almost_empty : out std_logic := '1';
 
     -- '1' if FIFO is not full
     write_ready : out std_logic := '1';
@@ -54,7 +54,7 @@ entity fifo is
     -- Must set enable_last generic in order to use this
     write_last : in std_logic := '-';
     -- '1' if there are almost_full_level or more words available in the FIFO
-    almost_full : out std_logic
+    almost_full : out std_logic := '0'
   );
 end entity;
 

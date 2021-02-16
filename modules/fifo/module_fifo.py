@@ -8,7 +8,7 @@
 
 from tsfpga.module import BaseModule
 from tsfpga.vivado.project import VivadoNetlistProject
-from tsfpga.vivado.size_checker import EqualTo, Ffs, LogicLuts, Ramb18, Ramb36, TotalLuts
+from tsfpga.vivado.size_checker import EqualTo, Ffs, Ramb18, Ramb36, TotalLuts
 from examples.tsfpga_example_env import get_tsfpga_modules
 
 
@@ -81,22 +81,28 @@ class Module(BaseModule):
 
     def get_build_projects(self):
         projects = []
-        all_modules = get_tsfpga_modules()
+        modules = get_tsfpga_modules()
         part = "xc7z020clg400-1"
+
+        self._setup_fifo_build_projects(projects, modules, part)
+        self._setup_afifo_build_projects(projects, modules, part)
+
+        return projects
+
+    def _setup_fifo_build_projects(self, projects, modules, part):
+        generics = dict(use_asynchronous_fifo=False, width=32, depth=1024)
 
         # Use a wrapper as top level, which only routes the "barebone" ports, resulting in
         # a minimal FIFO.
-        generics = dict(width=32, depth=1024)
         projects.append(
             VivadoNetlistProject(
                 name=self.test_case_name("fifo_minimal", generics),
-                modules=all_modules,
+                modules=modules,
                 part=part,
                 top="fifo_netlist_build_wrapper",
                 generics=generics,
                 result_size_checkers=[
                     TotalLuts(EqualTo(16)),
-                    LogicLuts(EqualTo(16)),
                     Ffs(EqualTo(24)),
                     Ramb36(EqualTo(1)),
                     Ramb18(EqualTo(0)),
@@ -106,17 +112,16 @@ class Module(BaseModule):
 
         # A FIFO with level counter port and non-default almost_full_level, which
         # increases resource utilization.
-        generics = dict(width=32, depth=1024, almost_full_level=800)
+        generics.update(almost_full_level=800)
         projects.append(
             VivadoNetlistProject(
                 name=self.test_case_name("fifo_regular", generics),
-                modules=all_modules,
+                modules=modules,
                 part=part,
-                top="fifo",
+                top="fifo_wrapper",
                 generics=generics,
                 result_size_checkers=[
-                    TotalLuts(EqualTo(29)),
-                    LogicLuts(EqualTo(29)),
+                    TotalLuts(EqualTo(28)),
                     Ffs(EqualTo(35)),
                     Ramb36(EqualTo(1)),
                     Ramb18(EqualTo(0)),
@@ -124,4 +129,42 @@ class Module(BaseModule):
             )
         )
 
-        return projects
+    def _setup_afifo_build_projects(self, projects, modules, part):
+        generics = dict(use_asynchronous_fifo=True, width=32, depth=1024)
+
+        # Use a wrapper as top level, which only routes the "barebone" ports, resulting in
+        # a minimal FIFO.
+        projects.append(
+            VivadoNetlistProject(
+                name=self.test_case_name("afifo_minimal", generics),
+                modules=modules,
+                part=part,
+                top="fifo_netlist_build_wrapper",
+                generics=generics,
+                result_size_checkers=[
+                    TotalLuts(EqualTo(46)),
+                    Ffs(EqualTo(90)),
+                    Ramb36(EqualTo(1)),
+                    Ramb18(EqualTo(0)),
+                ],
+            )
+        )
+
+        # A FIFO with level counter port and non-default almost_full_level, which
+        # increases resource utilization.
+        generics.update(almost_full_level=800)
+        projects.append(
+            VivadoNetlistProject(
+                name=self.test_case_name("afifo_regular", generics),
+                modules=modules,
+                part=part,
+                top="fifo_wrapper",
+                generics=generics,
+                result_size_checkers=[
+                    TotalLuts(EqualTo(69)),
+                    Ffs(EqualTo(112)),
+                    Ramb36(EqualTo(1)),
+                    Ramb18(EqualTo(0)),
+                ],
+            )
+        )

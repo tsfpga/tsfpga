@@ -42,15 +42,15 @@ entity afifo is
     read_ready : in  std_logic;
     -- '1' if FIFO is not empty
     read_valid : out std_logic := '0';
-    read_data  : out std_logic_vector(width - 1 downto 0);
+    read_data : out std_logic_vector(width - 1 downto 0) := (others => '0');
     -- Must set enable_last generic in order to use this
-    read_last  : out std_logic := '0';
+    read_last : out std_logic := '0';
 
     -- Status signals on the read side. Updated one clock cycle after read transactions.
     -- Updated "a while" after write transactions (not deterministic).
     read_level : out integer range 0 to depth := 0;
     -- '1' if there are almost_empty_level or fewer words available to read
-    read_almost_empty : out std_logic;
+    read_almost_empty : out std_logic := '1';
 
     -- Write data interface
     clk_write : in std_logic;
@@ -65,7 +65,7 @@ entity afifo is
     -- Updated "a while" after read transactions (not deterministic).
     write_level : out integer range 0 to depth := 0;
     -- '1' if there are almost_full_level or more words available in the FIFO
-    write_almost_full : out std_logic
+    write_almost_full : out std_logic := '0'
   );
 end entity;
 

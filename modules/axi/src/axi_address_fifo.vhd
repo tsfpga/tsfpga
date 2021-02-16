@@ -69,47 +69,26 @@ begin
 
 
     ------------------------------------------------------------------------------
-    fifo_gen : if asynchronous generate
-    begin
-
-      afifo_inst : entity fifo.afifo
-        generic map (
-          width => ar_width,
-          depth => depth,
-          ram_type => ram_type
-        )
-        port map(
-          clk_read => clk,
-          read_ready => output_s2m.ready,
-          read_valid => read_valid,
-          read_data => read_data,
-          --
-          clk_write => clk_input,
-          write_ready => input_s2m.ready,
-          write_valid => input_m2s.valid,
-          write_data => write_data
-        );
-
-    else generate
-
-      fifo_inst : entity fifo.fifo
-        generic map (
-          width => ar_width,
-          depth => depth,
-          ram_type => ram_type
-        )
-        port map(
-          clk => clk,
-          --
-          read_ready => output_s2m.ready,
-          read_valid => read_valid,
-          read_data => read_data,
-          --
-          write_ready => input_s2m.ready,
-          write_valid => input_m2s.valid,
-          write_data => write_data
-        );
-    end generate;
+    fifo_wrapper_inst : entity fifo.fifo_wrapper
+      generic map (
+        use_asynchronous_fifo => asynchronous,
+        width => ar_width,
+        depth => depth,
+        ram_type => ram_type
+      )
+      port map(
+        clk => clk,
+        clk_read => clk,
+        clk_write => clk_input,
+        --
+        read_ready => output_s2m.ready,
+        read_valid => read_valid,
+        read_data => read_data,
+        --
+        write_ready => input_s2m.ready,
+        write_valid => input_m2s.valid,
+        write_data => write_data
+      );
 
   end generate;
 
