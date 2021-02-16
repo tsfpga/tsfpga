@@ -39,7 +39,8 @@ architecture a of block_design_wrapper is
 begin
 
   ------------------------------------------------------------------------------
-  block_design_inst : if in_simulation generate
+  block_design_gen : if in_simulation generate
+
     block_design_mock_inst : entity work.block_design_mock
       port map (
         clk_m_gp0 => clk_m_gp0,
@@ -53,6 +54,7 @@ begin
         pl_clk0 => pl_clk0,
         pl_clk1 => pl_clk1
       );
+
 
   ------------------------------------------------------------------------------
   else generate

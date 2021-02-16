@@ -130,7 +130,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  memory : block
+  memory_block : block
     constant memory_word_width : integer := width + to_int(enable_last_int);
     subtype word_t is std_logic_vector(memory_word_width - 1 downto 0);
     type mem_t is array (integer range <>) of word_t;
