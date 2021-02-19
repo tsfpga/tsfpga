@@ -43,10 +43,11 @@ def main():
         return
 
     build_python_coverage_badge(badges_path)
-    build_vhdl_coverage_badges(badges_path)
-
     copy_python_coverage_to_html_output()
-    copy_vhdl_coverage_to_html_output()
+
+    if not args.no_vhdl_coverage:
+        build_vhdl_coverage_badges(badges_path)
+        copy_vhdl_coverage_to_html_output()
 
 
 def arguments():
@@ -55,7 +56,14 @@ def arguments():
     )
 
     parser.add_argument(
-        "--skip-coverage", action="store_true", help="skip handling of coverage reports"
+        "--skip-coverage",
+        action="store_true",
+        help="skip handling of all coverage reports",
+    )
+    parser.add_argument(
+        "--no-vhdl-coverage",
+        action="store_true",
+        help="skip handling of only VHDL coverage reports",
     )
     return parser.parse_args()
 

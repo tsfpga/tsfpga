@@ -59,9 +59,13 @@ simulate:
   # Code coverage needs the gcc backend.
   image: ghdl/vunit:gcc-master
   script:
+    - apt-get update -qq > /dev/null
+    - apt-get install -y -qq git > /dev/null
     - python3 -m pip install GitPython toml > /dev/null
     - ghdl --version
-    - python3 examples/simulate.py --num-threads 4 --vivado-skip
+    # Run minimal simulation subset for merge requests
+    - if [ $CI_PIPELINE_SOURCE == "merge_request_event" ]; then export SIMULATE_FLAGS="--git-minimal"; fi;
+    - python3 examples/simulate.py --num-threads 4 --vivado-skip $SIMULATE_FLAGS
   artifacts:
     paths:
       - generated/vhdl_coverage.xml
@@ -96,7 +100,10 @@ build_pages:
     # Upgrade pip to make install of "cryptography" work. TODO remove when base docker image is updated.
     - python3 -m pip install --upgrade pip > /dev/null
     - python3 -m pip install --requirement requirements_develop.txt > /dev/null
-    - python3 tools/build_docs.py
+    # For merge requests, the VHDL coverage report is not relevant, since only a subset of tests are run.
+    # So skip VHDL coverage in this case.
+    - if [ $CI_PIPELINE_SOURCE == "merge_request_event" ]; then export DOC_FLAGS="--no-vhdl-coverage"; fi;
+    - python3 tools/build_docs.py $DOC_FLAGS
   artifacts:
     paths:
       - generated/sphinx_html
