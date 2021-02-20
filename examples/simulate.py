@@ -21,6 +21,7 @@ from vunit.vivado.vivado import create_compile_order_file, add_from_compile_orde
 
 import tsfpga
 import tsfpga.create_vhdl_ls_config
+from tsfpga.git_simulation_subset import GitSimulationSubset
 from tsfpga.system_utils import create_directory
 from tsfpga.vivado.ip_cores import VivadoIpCores
 from tsfpga.vivado.simlib import VivadoSimlib
@@ -31,6 +32,65 @@ from examples.tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP
 def main():
     args = arguments()
 
+    if args.git_minimal:
+        if args.test_patterns != "*":
+            sys.exit(
+                "Can not specify a test pattern when using the --git-minimal flag."
+                f" Got {args.test_patterns}",
+            )
+
+        git_test_filters = find_git_test_filters(args)
+        if not git_test_filters:
+            print("Nothing to run. Appears to be no VHDL-related git diff.")
+            return
+
+        # Override the test pattern argument to VUnit
+        args.test_patterns = git_test_filters
+        print(f"Running VUnit with test pattern {args.test_patterns}")
+
+        # Enable minimal compilation in VUnit
+        args.minimal = True
+
+    vunit_proj, modules, ip_core_vivado_project_directory = setup_vunit_project(args)
+
+    create_vhdl_ls_configuration(
+        output_path=PATH_TO_TSFPGA,
+        vunit_proj=vunit_proj,
+        modules=modules,
+        ip_core_vivado_project_directory=ip_core_vivado_project_directory,
+    )
+
+    if vunit_proj.simulator_supports_coverage():
+        vunit_proj.set_compile_option("enable_coverage", True)
+        vunit_proj.set_sim_option("enable_coverage", True)
+
+        vunit_proj.main(post_run=merge_ghdl_coverage)
+    else:
+        vunit_proj.main()
+
+
+def find_git_test_filters(args):
+    # Set up a dummy VUnit project that will be used for depency scanning. Note that sources are
+    # added identically to the "real" VUnit project.
+    vunit_proj, modules, _ = setup_vunit_project(args)
+
+    testbenches_to_run = GitSimulationSubset(
+        repo_root=tsfpga.REPO_ROOT,
+        reference_branch="origin/master",
+        vunit_proj=vunit_proj,
+        # We use VUnit preprocessing, so these arguments have to be supplied
+        vunit_preprocessed_path=args.output_path / "preprocessed",
+        modules=modules,
+    ).find_subset()
+
+    test_filters = []
+    for testbench_file_name, library_name in testbenches_to_run:
+        test_filters.append(f"{library_name}.{testbench_file_name}.*")
+
+    return test_filters
+
+
+def setup_vunit_project(args):
     vunit_proj = VUnit.from_args(args=args)
     vunit_proj.add_verification_components()
     vunit_proj.add_random()
@@ -61,13 +121,6 @@ def main():
         if has_commercial_simulator:
             add_from_compile_order_file(vunit_proj, ip_core_compile_order_file)
 
-    create_vhdl_ls_configuration(
-        output_path=PATH_TO_TSFPGA,
-        vunit_proj=vunit_proj,
-        modules=all_modules,
-        ip_core_vivado_project_directory=ip_core_vivado_project_directory,
-    )
-
     for module in sim_modules:
         vunit_library = vunit_proj.add_library(module.library_name)
         for hdl_file in module.get_simulation_files():
@@ -77,13 +130,7 @@ def main():
                 assert False, f"Can not handle this file: {hdl_file}"
         module.setup_vunit(vunit_proj)
 
-    if vunit_proj.simulator_supports_coverage():
-        vunit_proj.set_compile_option("enable_coverage", True)
-        vunit_proj.set_sim_option("enable_coverage", True)
-
-        vunit_proj.main(post_run=merge_ghdl_coverage)
-    else:
-        vunit_proj.main()
+    return vunit_proj, all_modules, ip_core_vivado_project_directory
 
 
 def arguments():
@@ -102,6 +149,11 @@ def arguments():
     )
     cli.parser.add_argument(
         "--simlib-compile", action="store_true", help="force (re)compile of Vivado simlib"
+    )
+    cli.parser.add_argument(
+        "--git-minimal",
+        action="store_true",
+        help="compile and run only a minimal set of tests based on git history",
     )
 
     args = cli.parse_args()

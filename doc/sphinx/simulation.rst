@@ -193,3 +193,28 @@ Adding IP cores to a simulation project can be done like this:
 Note that we use functions from VUnit to handle parts of this.
 The ``create_compile_order_file()`` function will run a TCL script on the project that generates simulation models and saves a compile order to file.
 The ``add_from_compile_order_file()`` function will then add the files in said compile order to the VUnit project.
+
+
+.. _git_simulation_subset:
+
+Simulating a subset based on git history
+----------------------------------------
+
+When the number of tests available in a project starts to grow, it becomes interesting to simulate only what has changed.
+This saves a lot of time, both in CI as well as when developing on your desktop.
+
+There is a tool in tsfpga called :class:`.GitSimulationSubset` which helps find a minimal subset of testbenches that shall be compiled and run based on the git history.
+A testbench shall be compiled and executed if
+
+1. the testbench itself has changed, or if
+2. any of the VHDL files the testbench depends on have changed.
+
+Whether or not a file has changed is determined based on git information, by comparing the local branch and working tree with a reference branch.
+The reference would be ``origin/master`` most of the time.
+
+This tools is used in tsfpga CI to make sure that for merge requests only the minimal set of tests is run.
+This saves an immense amount of CI time, especially for commits that do not alter any VHDL code.
+For nightly master runs the full set of tests shall still be run.
+
+See the :class:`class documentation <.GitSimulationSubset>` for more information,
+and `examples/simulate.py <https://gitlab.com/tsfpga/tsfpga/blob/master/examples/simulate.py>`__ in the repo for a usage example.
