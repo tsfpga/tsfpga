@@ -211,6 +211,7 @@ A testbench shall be compiled and executed if
 
 Whether or not a file has changed is determined based on git information, by comparing the local branch and working tree with a reference branch.
 The reference would be ``origin/master`` most of the time.
+The subset of tests returned by the class can then be used as the ``test_pattern`` argument when setting up your VUnit project.
 
 This tools is used in tsfpga CI to make sure that for merge requests only the minimal set of tests is run.
 This saves an immense amount of CI time, especially for commits that do not alter any VHDL code.
