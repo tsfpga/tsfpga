@@ -47,4 +47,3 @@ set_msg_config -new_severity INFO -id {Designutils 20-1281}
 #          is not supported. This will most likely be implemented in registers.
 # Motivation: Appears a lot when using records.
 set_msg_config -new_severity INFO -id {Synth 8-5858}
-
