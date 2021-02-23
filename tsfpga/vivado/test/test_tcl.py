@@ -253,3 +253,25 @@ class TestVivadoTcl(unittest.TestCase):
         )
 
         assert no_io_buffers_tcl not in tcl
+
+    def test_analyze_synthesis_settings_on_and_off(self):
+        tcl = self.tcl.build(
+            project_file=Path(),
+            output_path=Path(),
+            num_threads=1,
+            run_index=1,
+            analyze_synthesis_timing=True,
+        )
+        assert "open_run" in tcl
+        assert "report_clock_interaction" in tcl
+
+        tcl = self.tcl.build(
+            project_file=Path(),
+            output_path=Path(),
+            num_threads=1,
+            run_index=1,
+            analyze_synthesis_timing=False,
+        )
+        # When disabled, the run should not even be opened, which saves time
+        assert "open_run" not in tcl
+        assert "report_clock_interaction" not in tcl

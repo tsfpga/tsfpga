@@ -242,7 +242,7 @@ class VivadoTcl:
         run_index,
         generics=None,
         synth_only=False,
-        analyze_clock_interaction=True,
+        analyze_synthesis_timing=True,
     ):
         # Max value in Vivado 2018.3+. set_param will give an error if higher number.
         num_threads_general = min(num_threads, 32)
@@ -257,7 +257,7 @@ class VivadoTcl:
         tcl += "\n"
         tcl += self._add_generics(generics)
         tcl += "\n"
-        tcl += self._synthesis(synth_run, num_threads, analyze_clock_interaction)
+        tcl += self._synthesis(synth_run, num_threads, analyze_synthesis_timing)
         tcl += "\n"
         if not synth_only:
             tcl += self._run(impl_run, num_threads, to_step="write_bitstream")
@@ -267,31 +267,48 @@ class VivadoTcl:
         tcl += "exit\n"
         return tcl
 
-    def _synthesis(self, run, num_threads, analyze_clock_interaction):
+    def _synthesis(self, run, num_threads, analyze_synthesis_timing):
         tcl = self._run(run, num_threads)
-        if analyze_clock_interaction:
-            tcl += "\n"
-            tcl += f"open_run {run}\n"
-            tcl += f"set run_directory [get_property DIRECTORY [get_runs {run}]]\n"
-            tcl += "\n"
-            tcl += (
-                r"if {[regexp {\(unsafe\)} "
-                "[report_clock_interaction -delay_type min_max -return_string]]} "
-            )
-            tcl += "{\n"
-            tcl += (
-                f'  puts "ERROR: Unhandled clock crossing in {run} run. '
-                'See reports in ${run_directory}"\n'
-            )
-            tcl += "\n"
-            tcl += '  set output_file [file join ${run_directory} "clock_interaction.rpt"]\n'
-            tcl += "  report_clock_interaction -delay_type min_max -file ${output_file}\n"
-            tcl += "\n"
-            tcl += '  set output_file [file join ${run_directory} "timing_summary.rpt"]\n'
-            tcl += "  report_timing_summary -file ${output_file}\n"
-            tcl += "\n"
-            tcl += "  exit 1\n"
-            tcl += "}\n"
+        if analyze_synthesis_timing:
+            tcl += f"""
+open_run {run}
+set run_directory [get_property DIRECTORY [get_runs {run}]]
+set timing_error 0
+
+# After synthesis we check for unhandled clock crossings as well as pulse width violations,
+# and abort the build based on the result.
+# Other timing checks, e.g. setup/hold violations, are not reliable after synthesis,
+# and should not abort the build. These need to be checked after implementation.
+"""
+
+            tcl += f"""
+if {{[regexp {{\\(unsafe\\)}} [report_clock_interaction -delay_type min_max -return_string]]}} {{
+  puts "ERROR: Unhandled clock crossing in {run} run. See reports in ${{run_directory}}"
+  set timing_error 1
+
+  set output_file [file join ${{run_directory}} "clock_interaction.rpt"]
+  report_clock_interaction -delay_type min_max -file ${{output_file}}
+
+  set output_file [file join ${{run_directory}} "timing_summary.rpt"]
+  report_timing_summary -file ${{output_file}}
+}}
+"""
+
+            tcl += f"""
+if {{[report_pulse_width -return_string -all_violators -no_header] != ""}} {{
+  puts "ERROR: Pulse width timing violation in {run} run. See reports in ${{run_directory}}"
+  set timing_error 1
+
+  set output_file [file join ${{run_directory}} "pulse_width.rpt"]
+  report_pulse_width -all_violators -file ${{output_file}}
+}}
+"""
+
+        tcl += """
+if {${timing_error} eq 1} {
+  exit 1
+}
+"""
         return tcl
 
     @staticmethod

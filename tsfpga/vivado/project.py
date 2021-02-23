@@ -79,7 +79,7 @@ class VivadoProject:
 
         # Will be set by child class when applicable
         self.is_netlist_build = False
-        self.analyze_clock_interaction = True
+        self.analyze_synthesis_timing = True
 
         self.top = name + "_top" if top is None else top
         self._vivado_path = vivado_path
@@ -220,7 +220,7 @@ class VivadoProject:
             run_index=run_index,
             generics=all_generics,
             synth_only=synth_only,
-            analyze_clock_interaction=self.analyze_clock_interaction,
+            analyze_synthesis_timing=self.analyze_synthesis_timing,
         )
         create_file(build_vivado_project_tcl, tcl)
 
@@ -410,14 +410,15 @@ class VivadoNetlistProject(VivadoProject):
     Used for handling Vivado build of a module without top level pinning.
     """
 
-    def __init__(self, analyze_clock_interaction=False, result_size_checkers=None, **kwargs):
+    def __init__(self, analyze_synthesis_timing=False, result_size_checkers=None, **kwargs):
         """
         Arguments:
-            analyze_clock_interaction (bool): Analysis of clock interaction, i.e. checking
-                for unhandled clock crossings, is disabled by default. Enabling it will add
-                significant build time (can be as much as +40%). Also, in order for clock
-                interction check to work, the clocks have to be created using a constraint
-                file.
+            analyze_synthesis_timing (bool): Enable analysis of the synthesized design's timing.
+                This will make the build flow open the design, and check for unhandled clock
+                crossings and pulse width violations.
+                Enabling it will add significant build time (can be as much as +40%).
+                Also, in order for clock crossing check to work, the clocks have to be created
+                using a constraint file.
             result_size_checkers (list(:class:`.SizeChecker`)): Size checkers that will be
                 executed after a succesful build. Is used to automatically check that
                 resource utilization is not greater than expected.
@@ -426,7 +427,7 @@ class VivadoNetlistProject(VivadoProject):
         super().__init__(**kwargs)
 
         self.is_netlist_build = True
-        self.analyze_clock_interaction = analyze_clock_interaction
+        self.analyze_synthesis_timing = analyze_synthesis_timing
         self.result_size_checkers = [] if result_size_checkers is None else result_size_checkers
 
     def build(self, **kwargs):  # pylint: disable=arguments-differ

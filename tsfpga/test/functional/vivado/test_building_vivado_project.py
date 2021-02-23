@@ -90,18 +90,21 @@ end architecture;
         top = self.top_template.format(code_block=resync)
         self.top_file = create_file(modules_folder / "apa" / "test_proj_top.vhd", top)
 
-        constraint = """
+        self.constraint_io = """
 set_property -dict {package_pin H16 iostandard lvcmos33} [get_ports clk_in]
 set_property -dict {package_pin P14 iostandard lvcmos33} [get_ports input]
 set_property -dict {package_pin K17 iostandard lvcmos33} [get_ports clk_out]
 set_property -dict {package_pin T16 iostandard lvcmos33} [get_ports output]
-
+"""
+        constraint_clocks = """
 # 250 MHz
 create_clock -period 4 -name clk_in [get_ports clk_in]
 create_clock -period 4 -name clk_out [get_ports clk_out]
 """
-        constraint_file = create_file(modules_folder / "apa" / "test_proj_pinning.tcl", constraint)
-        constraints = [Constraint(constraint_file)]
+        self.constraint_file = create_file(
+            modules_folder / "apa" / "test_proj_pinning.tcl", self.constraint_io + constraint_clocks
+        )
+        constraints = [Constraint(self.constraint_file)]
 
         modules = get_modules([modules_folder, tsfpga.TSFPGA_MODULES])
         self.proj = VivadoProject(
@@ -159,7 +162,7 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         assert build_result.implementation_size["FFs"] > 0, build_result.implementation_size
         assert build_result.implementation_size["FFs"] < 2000, build_result.implementation_size
 
-    def test_build_with_bad_timing_should_fail(self):
+    def test_build_with_bad_setup_timing_should_fail(self):
         # Do a ridiculously wide multiplication, which Vivado can't optimize away
         bad_timing = """
   mult_block : block
@@ -194,7 +197,7 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         build_result = self.proj.build(self.project_folder, self.project_folder)
         assert not build_result.success
         assert file_contains_string(
-            self.log_file, "\nERROR: Timing not OK after implementation run."
+            self.log_file, "\nERROR: Setup/hold timing not OK after implementation run."
         )
 
         assert (self.runs_folder / "impl_2" / "timing_summary.rpt").exists()
@@ -219,3 +222,20 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         assert (self.runs_folder / "synth_2" / "hierarchical_utilization.rpt").exists()
         assert (self.runs_folder / "synth_2" / "timing_summary.rpt").exists()
         assert (self.runs_folder / "synth_2" / "clock_interaction.rpt").exists()
+
+    def test_build_with_bad_pulse_width_timing_should_fail(self):
+        # Overwrite the default constraint file
+        constraint_clocks = """
+# 250 MHz, but duty cycle is only 0.2 ns
+create_clock -period 4 -waveform {1.0 1.2} -name clk_in [get_ports clk_in]
+create_clock -period 4 -waveform {1.0 1.2} -name clk_out [get_ports clk_out]
+"""
+        create_file(self.constraint_file, self.constraint_io + constraint_clocks)
+
+        build_result = self.proj.build(self.project_folder, self.project_folder)
+        assert not build_result.success
+        assert file_contains_string(
+            self.log_file, "\nERROR: Pulse width timing violation in synth_2 run."
+        )
+
+        assert (self.runs_folder / "synth_2" / "pulse_width.rpt").exists()
