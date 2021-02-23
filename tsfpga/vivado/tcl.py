@@ -244,14 +244,16 @@ class VivadoTcl:
         synth_only=False,
         analyze_clock_interaction=True,
     ):
-        # Max value in Vivado 2017.4. set_param will give an error if higher number.
-        num_threads = min(num_threads, 8)
+        # Max value in Vivado 2018.3+. set_param will give an error if higher number.
+        num_threads_general = min(num_threads, 32)
+        num_threads_synth = min(num_threads, 8)
 
         synth_run = f"synth_{run_index}"
         impl_run = f"impl_{run_index}"
 
         tcl = f"open_project {to_tcl_path(project_file)}\n"
-        tcl += f"set_param general.maxThreads {num_threads}\n"
+        tcl += f"set_param general.maxThreads {num_threads_general}\n"
+        tcl += f"set_param synth.maxThreads {num_threads_synth}\n"
         tcl += "\n"
         tcl += self._add_generics(generics)
         tcl += "\n"

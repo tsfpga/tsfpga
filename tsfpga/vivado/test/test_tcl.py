@@ -99,14 +99,15 @@ def test_ip_cache_location(tmp_path):
     assert f"\nconfig_ip_cache -use_cache_location {{{to_tcl_path(tmp_path)}}}\n" in tcl
 
 
-def test_set_multiple_threads():
-    num_threads = 2
+def test_multiple_threads_is_capped_by_vivado_limits():
+    num_threads = 128
     tcl = VivadoTcl(name="").build(
         project_file=Path(), output_path=Path(), num_threads=num_threads, run_index=1
     )
-    assert f"set_param general.maxThreads {num_threads}" in tcl
-    assert f"launch_runs synth_1 -jobs {num_threads}" in tcl
-    assert f"launch_runs impl_1 -jobs {num_threads}" in tcl
+    assert "set_param general.maxThreads 32" in tcl
+    assert "set_param synth.maxThreads 8" in tcl
+    assert "launch_runs synth_1 -jobs 128" in tcl
+    assert "launch_runs impl_1 -jobs 128" in tcl
 
 
 def test_set_build_run_index():
