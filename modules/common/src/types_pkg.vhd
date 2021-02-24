@@ -19,8 +19,10 @@ package types_pkg is
 
   function to_sl(value : boolean) return std_logic;
   function to_bool(value : std_logic) return boolean;
-  function to_int(value : boolean) return integer;
-  function to_int(value : std_logic) return integer;
+
+  subtype binary_integer_t is integer range 0 to 1;
+  function to_int(value : boolean) return binary_integer_t;
+  function to_int(value : std_logic) return binary_integer_t;
 
   function swap_byte_order(data : std_logic_vector) return std_logic_vector;
   function swap_bit_order(data : std_logic_vector) return std_logic_vector;
@@ -48,7 +50,7 @@ package body types_pkg is
     return false;
   end function;
 
-  function to_int(value : boolean) return integer is
+  function to_int(value : boolean) return binary_integer_t is
   begin
     if value then
       return 1;
@@ -57,7 +59,7 @@ package body types_pkg is
     end if;
   end function;
 
-  function to_int(value : std_logic) return integer is
+  function to_int(value : std_logic) return binary_integer_t is
   begin
     if value = '1' then
       return 1;
