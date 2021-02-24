@@ -72,6 +72,8 @@ class VivadoProject:
         self.part = part
         self.static_generics = None if generics is None else generics.copy()
         self.constraints = [] if constraints is None else constraints.copy()
+        self.tcl_sources = [] if tcl_sources is None else tcl_sources.copy()
+        self.build_step_hooks = [] if build_step_hooks is None else build_step_hooks.copy()
         self.default_run_index = default_run_index
         self.defined_at = defined_at
 
@@ -82,30 +84,29 @@ class VivadoProject:
         self.top = name + "_top" if top is None else top
         self._vivado_path = vivado_path
 
-        self._setup_tcl_sources_list(tcl_sources)
-        self._setup_build_step_hooks(build_step_hooks)
-
         self.tcl = VivadoTcl(name=self.name)
 
-    def _setup_tcl_sources_list(self, tcl_sources_from_user):
+    def project_file(self, project_path):
+        """
+        Arguments:
+            project_path (`pathlib.Path`): A path containing a Vivado project.
+        Return:
+            `pathlib.Path`: The project file of this project, in the given folder
+        """
+        return project_path / (self.name + ".xpr")
+
+    def _setup_tcl_sources(self):
         tsfpga_tcl_sources = [
             TSFPGA_TCL / "vivado_default_run.tcl",
             TSFPGA_TCL / "vivado_fast_run.tcl",
             TSFPGA_TCL / "vivado_messages.tcl",
         ]
-        # Note that the list concatenation below does a (shallow) copy of the lists
-        user_tcl_sources = [] if tcl_sources_from_user is None else tcl_sources_from_user
 
         # Add tsfpga TCL sources first. The user might want to change something in the tsfpga
         # settings. Conversely, tsfpga should not modify something that the user has set up.
-        self.tcl_sources = tsfpga_tcl_sources + user_tcl_sources
+        self.tcl_sources = tsfpga_tcl_sources + self.tcl_sources
 
-    def _setup_build_step_hooks(self, build_step_hooks_from_user):
-        # Lists are mutable. Since we assign and modify this one we have to copy it.
-        self.build_step_hooks = (
-            [] if build_step_hooks_from_user is None else build_step_hooks_from_user.copy()
-        )
-
+    def _setup_build_step_hooks(self):
         self.build_step_hooks.append(
             BuildStepTclHook(
                 TSFPGA_TCL / "vivado_report_utilization.tcl", "STEPS.SYNTH_DESIGN.TCL.POST"
@@ -118,18 +119,9 @@ class VivadoProject:
         )
         self.build_step_hooks.append(
             BuildStepTclHook(
-                TSFPGA_TCL / "vivado_check_timing.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE"
+                TSFPGA_TCL / "check_setup_hold_timing.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE"
             )
         )
-
-    def project_file(self, project_path):
-        """
-        Arguments:
-            project_path (`pathlib.Path`): A path containing a Vivado project.
-        Return:
-            `pathlib.Path`: The project file of this project, in the given folder
-        """
-        return project_path / (self.name + ".xpr")
 
     def _create_tcl(self, project_path, ip_cache_path):
         """
@@ -170,6 +162,9 @@ class VivadoProject:
             bool: True if everything went well.
         """
         print(f"Creating Vivado project in {project_path}")
+        self._setup_tcl_sources()
+        self._setup_build_step_hooks()
+
         if not self.pre_create(project_path=project_path, ip_cache_path=ip_cache_path):
             print("ERROR: Project pre-create hook returned False. Failing the build.")
             return False
