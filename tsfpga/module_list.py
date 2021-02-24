@@ -46,5 +46,17 @@ class ModuleList:
         result._modules = self._modules + other._modules
         return result
 
+    def __copy__(self):
+        result = self.__class__()
+        result._modules = self._modules.copy()
+        return result
+
+    def copy(self):
+        """
+        Create a shallow copy of the module list. This public function is available as a
+        convenience and to mimic the interface of a regular python list.
+        """
+        return self.__copy__()
+
     def __str__(self):
         return str(self._modules)

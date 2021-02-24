@@ -38,6 +38,9 @@ class VivadoProject:
         defined_at=None,
     ):
         """
+        Class constructor. Performs a shallow copy of the mutable arguments, so that the user
+        can e.g. append items to their list after creating an object.
+
         Arguments:
             name (str): Project name.
             modules (list(:class:`Module <.BaseModule>`)): Modules that shall be included in the
@@ -65,10 +68,10 @@ class VivadoProject:
                 projects set up.
         """
         self.name = name
-        self.modules = modules
+        self.modules = modules.copy()
         self.part = part
         self.static_generics = None if generics is None else generics.copy()
-        self.constraints = constraints
+        self.constraints = [] if constraints is None else constraints.copy()
         self.default_run_index = default_run_index
         self.defined_at = defined_at
 

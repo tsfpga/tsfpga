@@ -76,3 +76,9 @@ class TestModuleList(TestCase):
             # pylint: disable=pointless-statement
             self.modules + 3
         assert str(exception_info.value) == "Can only concatenate with another ModuleList"
+
+    def test_copy(self):
+        modules_copy = self.modules.copy()
+
+        modules_copy.append(4)
+        assert len(self.modules) == 3
