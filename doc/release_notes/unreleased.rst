@@ -2,7 +2,9 @@ Added
 
 * Add ``fifo.fifo_wrapper`` VHDL entity.
 * Add ``drop_packet`` support to synchronous and asynchronous FIFOs.
-* Add check for pulse width timing violations in synthesized Vivado design.
+* Add check for pulse width timing violations after synthesis and implementation in Vivado
+  build system.
+* Check clock interaction after implementation as well in Vivado build system.
 
 Breaking changes
 

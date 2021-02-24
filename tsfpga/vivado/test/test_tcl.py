@@ -104,10 +104,11 @@ def test_multiple_threads_is_capped_by_vivado_limits():
     tcl = VivadoTcl(name="").build(
         project_file=Path(), output_path=Path(), num_threads=num_threads, run_index=1
     )
+    print(tcl)
     assert "set_param general.maxThreads 32" in tcl
     assert "set_param synth.maxThreads 8" in tcl
-    assert "launch_runs synth_1 -jobs 128" in tcl
-    assert "launch_runs impl_1 -jobs 128" in tcl
+    assert "launch_runs ${run} -jobs 128" in tcl
+    assert "launch_runs ${run} -jobs 128" in tcl
 
 
 def test_set_build_run_index():

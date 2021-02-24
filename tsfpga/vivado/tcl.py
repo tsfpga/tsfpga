@@ -270,9 +270,14 @@ class VivadoTcl:
     def _synthesis(self, run, num_threads, analyze_synthesis_timing):
         tcl = self._run(run, num_threads)
         if analyze_synthesis_timing:
-            tcl += f"""
-open_run {run}
-set run_directory [get_property DIRECTORY [get_runs {run}]]
+            # For synthesis flow we perform the timing checks by opening the design. It would have
+            # been more efficient to use a post-synthesis hook (since the design would already be
+            # open), if that mechanism had worked. It seems to be very bugged. So we add the
+            # checkers to the build script.
+            # For implementation, we use a pre-bitstream build hook which seems to work decently.
+            tcl += """
+open_run ${run}
+set run_directory [get_property DIRECTORY [get_runs ${run}]]
 set timing_error 0
 
 # After synthesis we check for unhandled clock crossings as well as pulse width violations,
@@ -281,27 +286,30 @@ set timing_error 0
 # and should not abort the build. These need to be checked after implementation.
 """
 
-            tcl += f"""
-if {{[regexp {{\\(unsafe\\)}} [report_clock_interaction -delay_type min_max -return_string]]}} {{
-  puts "ERROR: Unhandled clock crossing in {run} run. See reports in ${{run_directory}}"
+            tcl += """
+# This code is duplicated in check_timing.tcl as well.
+if {[regexp {\\(unsafe\\)} [report_clock_interaction -delay_type min_max -return_string]]} {
+  puts "ERROR: Unhandled clock crossing in ${run} run. See clock_interaction.rpt and \
+timing_summary.rpt in ${run_directory}."
   set timing_error 1
 
-  set output_file [file join ${{run_directory}} "clock_interaction.rpt"]
-  report_clock_interaction -delay_type min_max -file ${{output_file}}
+  set output_file [file join ${run_directory} "clock_interaction.rpt"]
+  report_clock_interaction -delay_type min_max -file ${output_file}
 
-  set output_file [file join ${{run_directory}} "timing_summary.rpt"]
-  report_timing_summary -file ${{output_file}}
-}}
+  set output_file [file join ${run_directory} "timing_summary.rpt"]
+  report_timing_summary -file ${output_file}
+}
 """
 
-            tcl += f"""
-if {{[report_pulse_width -return_string -all_violators -no_header] != ""}} {{
-  puts "ERROR: Pulse width timing violation in {run} run. See reports in ${{run_directory}}"
+            tcl += """
+# This code is duplicated in check_timing.tcl as well.
+if {[report_pulse_width -return_string -all_violators -no_header] != ""} {
+  puts "ERROR: Pulse width timing violation in ${run} run. See pulse_width.rpt in ${run_directory}."
   set timing_error 1
 
-  set output_file [file join ${{run_directory}} "pulse_width.rpt"]
-  report_pulse_width -all_violators -file ${{output_file}}
-}}
+  set output_file [file join ${run_directory} "pulse_width.rpt"]
+  report_pulse_width -all_violators -file ${output_file}
+}
 """
 
         tcl += """
@@ -315,14 +323,20 @@ if {${timing_error} eq 1} {
     def _run(run, num_threads, to_step=None):
         to_step = "" if to_step is None else " -to_step " + to_step
 
-        tcl = f"reset_run {run}\n"
-        tcl += f"launch_runs {run} -jobs {num_threads}{to_step}\n"
-        tcl += f"wait_on_run {run}\n"
-        tcl += "\n"
-        tcl += 'if {[get_property PROGRESS [get_runs %s]] != "100%%"} {\n' % run
-        tcl += f'  puts "ERROR: Run {run} failed."\n'
-        tcl += "  exit 1\n"
-        tcl += "}\n"
+        tcl = f"""
+set run {run}
+reset_run ${{run}}
+launch_runs ${{run}} -jobs {num_threads}{to_step}
+"""
+
+        tcl += """
+wait_on_run ${run}
+
+if {[get_property PROGRESS [get_runs ${run}]] != "100%"} {
+  puts "ERROR: Run ${run} failed."
+  exit 1
+}
+"""
         return tcl
 
     def _write_hw_platform(self, output_path):
