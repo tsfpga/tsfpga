@@ -277,43 +277,25 @@ class VivadoTcl:
             # For implementation, we use a pre-bitstream build hook which seems to work decently.
             tcl += """
 open_run ${run}
-set run_directory [get_property DIRECTORY [get_runs ${run}]]
-set timing_error 0
 
-# After synthesis we check for unhandled clock crossings as well as pulse width violations,
-# and abort the build based on the result.
-# Other timing checks, e.g. setup/hold violations, are not reliable after synthesis,
+# After synthesis we check for unhandled clock crossings and abort the build based on the result.
+# Other timing checks, e.g. setup/hold/pulse width violations, are not reliable after synthesis,
 # and should not abort the build. These need to be checked after implementation.
 """
 
             tcl += """
 # This code is duplicated in check_timing.tcl as well.
 if {[regexp {\\(unsafe\\)} [report_clock_interaction -delay_type min_max -return_string]]} {
+  set run_directory [get_property DIRECTORY [get_runs ${run}]]
   puts "ERROR: Unhandled clock crossing in ${run} run. See clock_interaction.rpt and \
 timing_summary.rpt in ${run_directory}."
-  set timing_error 1
 
   set output_file [file join ${run_directory} "clock_interaction.rpt"]
   report_clock_interaction -delay_type min_max -file ${output_file}
 
   set output_file [file join ${run_directory} "timing_summary.rpt"]
   report_timing_summary -file ${output_file}
-}
-"""
 
-            tcl += """
-# This code is duplicated in check_timing.tcl as well.
-if {[report_pulse_width -return_string -all_violators -no_header] != ""} {
-  puts "ERROR: Pulse width timing violation in ${run} run. See pulse_width.rpt in ${run_directory}."
-  set timing_error 1
-
-  set output_file [file join ${run_directory} "pulse_width.rpt"]
-  report_pulse_width -all_violators -file ${output_file}
-}
-"""
-
-            tcl += """
-if {${timing_error} eq 1} {
   exit 1
 }
 """

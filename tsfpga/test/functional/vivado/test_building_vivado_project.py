@@ -235,7 +235,7 @@ create_clock -period 4 -waveform {1.0 1.2} -name clk_out [get_ports clk_out]
         build_result = self.proj.build(self.project_folder, self.project_folder)
         assert not build_result.success
         assert file_contains_string(
-            self.log_file, "\nERROR: Pulse width timing violation in synth_2 run."
+            self.log_file, "\nERROR: Pulse width timing violation after implementation run."
         )
 
-        assert (self.runs_folder / "synth_2" / "pulse_width.rpt").exists()
+        assert (self.runs_folder / "impl_2" / "pulse_width.rpt").exists()

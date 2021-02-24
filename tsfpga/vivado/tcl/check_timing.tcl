@@ -21,7 +21,6 @@ if {[expr {[get_property SLACK [get_timing_paths -delay_type min_max]] < 0}]} {
 }
 
 
-# This code is duplicated in tcl.py as well.
 if {[report_pulse_width -return_string -all_violators -no_header] != ""} {
   puts "ERROR: Pulse width timing violation after implementation run. See pulse_width.rpt report."
   report_pulse_width -all_violators -file "pulse_width.rpt"
