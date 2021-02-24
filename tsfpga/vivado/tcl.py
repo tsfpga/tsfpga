@@ -312,7 +312,7 @@ if {[report_pulse_width -return_string -all_violators -no_header] != ""} {
 }
 """
 
-        tcl += """
+            tcl += """
 if {${timing_error} eq 1} {
   exit 1
 }
