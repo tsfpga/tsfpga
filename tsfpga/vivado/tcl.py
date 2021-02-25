@@ -277,6 +277,12 @@ class VivadoTcl:
             # For implementation, we use a pre-bitstream build hook which seems to work decently.
             tcl += """
 open_run ${run}
+set run_directory [get_property DIRECTORY [get_runs ${run}]]
+
+# This call is duplicated in report_utilization.tcl for implementation.
+set output_file [file join ${run_directory} "hierarchical_utilization.rpt"]
+report_utilization -hierarchical -hierarchical_depth 4 -file ${output_file}
+
 
 # After synthesis we check for unhandled clock crossings and abort the build based on the result.
 # Other timing checks, e.g. setup/hold/pulse width violations, are not reliable after synthesis,
@@ -284,9 +290,8 @@ open_run ${run}
 """
 
             tcl += """
-# This code is duplicated in check_timing.tcl as well.
+# This code is duplicated in check_timing.tcl for implementation.
 if {[regexp {\\(unsafe\\)} [report_clock_interaction -delay_type min_max -return_string]]} {
-  set run_directory [get_property DIRECTORY [get_runs ${run}]]
   puts "ERROR: Unhandled clock crossing in ${run} run. See clock_interaction.rpt and \
 timing_summary.rpt in ${run_directory}."
 

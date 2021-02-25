@@ -107,14 +107,12 @@ class VivadoProject:
         self.tcl_sources = tsfpga_tcl_sources + self.tcl_sources
 
     def _setup_build_step_hooks(self):
-        self.build_step_hooks.append(
-            BuildStepTclHook(TSFPGA_TCL / "report_utilization.tcl", "STEPS.SYNTH_DESIGN.TCL.POST")
-        )
+        # Check the implemented timing and resource utilization via TCL build hooks.
+        # This is different than for synthesis, where it is embedded in the build script.
+        # This is due to Vivado limitations related to post-synthesis hooks.
         self.build_step_hooks.append(
             BuildStepTclHook(TSFPGA_TCL / "report_utilization.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE")
         )
-        # Check the implemented timing via a TCL build hook. This is different than the timing check
-        # for synthesis, which is embedded in the build script due to Vivado limitations.
         self.build_step_hooks.append(
             BuildStepTclHook(TSFPGA_TCL / "check_timing.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE")
         )

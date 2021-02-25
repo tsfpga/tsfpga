@@ -29,7 +29,7 @@ if {[report_pulse_width -return_string -all_violators -no_header] != ""} {
 }
 
 
-# This code is duplicated in tcl.py as well.
+# This code is duplicated in tcl.py for synthesis.
 if {[regexp {\(unsafe\)} [report_clock_interaction -delay_type min_max -return_string]]} {
   puts "ERROR: Unhandled clock crossing after implementation run. See clock_interaction.rpt and timing_summary.rpt reports."
   report_clock_interaction -delay_type min_max -file "clock_interaction.rpt"
