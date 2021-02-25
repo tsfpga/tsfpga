@@ -6,7 +6,7 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-create_ip -name -vlnv xilinx.com:ip:mult_gen:12.0 -module_name mult_u12_u5
+create_ip -vlnv xilinx.com:ip:mult_gen:12.0 -module_name mult_u12_u5
 set_property -dict [list \
   CONFIG.PortAType "Unsigned" \
   CONFIG.PortAWidth "12" \
