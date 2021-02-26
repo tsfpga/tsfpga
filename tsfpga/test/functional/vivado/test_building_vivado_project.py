@@ -15,7 +15,8 @@ import tsfpga
 from tsfpga.constraint import Constraint
 from tsfpga.module import get_modules
 from tsfpga.system_utils import create_file, run_command
-from tsfpga.vivado.project import VivadoProject
+from tsfpga.vivado.size_checker import LessThan, TotalLuts
+from tsfpga.vivado.project import VivadoNetlistProject, VivadoProject
 from tsfpga.test import file_contains_string
 
 
@@ -37,6 +38,7 @@ def test_building_artyz7_project(tmp_path):
     assert (tmp_path / "artifacts" / "artyz7" / "artyz7-0.0.0.0.zip").exists()
 
 
+# pylint: disable=too-many-instance-attributes
 @pytest.mark.usefixtures("fixture_tmp_path")
 class TestBasicProject(unittest.TestCase):
 
@@ -106,31 +108,34 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         )
         constraints = [Constraint(self.constraint_file)]
 
-        modules = get_modules([modules_folder, tsfpga.TSFPGA_MODULES])
+        self.modules = get_modules([modules_folder, tsfpga.TSFPGA_MODULES])
         self.proj = VivadoProject(
             name="test_proj",
-            modules=modules,
+            modules=self.modules,
             part="xc7z020clg400-1",
             constraints=constraints,
             # Faster
             default_run_index=2,
         )
-        assert self.proj.create(self.project_folder)
-
         self.log_file = self.project_folder / "vivado.log"
-
         self.runs_folder = self.project_folder / "test_proj.runs"
 
+    def _create_vivado_project(self):
+        assert self.proj.create(self.project_folder)
+
     def test_create_project(self):
-        pass
+        self._create_vivado_project()
 
     def test_synth_project(self):
+        self._create_vivado_project()
         build_result = self.proj.build(self.project_folder, synth_only=True)
         assert build_result.success
         assert (self.runs_folder / "synth_2" / "hierarchical_utilization.rpt").exists()
 
     def test_synth_should_fail_if_source_code_does_not_compile(self):
         create_file(self.top_file, "garbage\napa\nhest")
+
+        self._create_vivado_project()
 
         build_result = self.proj.build(self.project_folder, synth_only=True)
         assert not build_result.success
@@ -143,11 +148,14 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         top = self.top_template.format(code_block=assert_false)
         create_file(self.top_file, top)
 
+        self._create_vivado_project()
+
         build_result = self.proj.build(self.project_folder, synth_only=True, run_index=2)
         assert not build_result.success
         assert file_contains_string(self.log_file, 'RTL assertion: "Assertion violation."')
 
     def test_build_project(self):
+        self._create_vivado_project()
         build_result = self.proj.build(self.project_folder, self.project_folder)
 
         assert (self.project_folder / (self.proj.name + ".bit")).exists()
@@ -194,6 +202,8 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         top = self.top_template.format(code_block=bad_timing)
         create_file(self.top_file, top)
 
+        self._create_vivado_project()
+
         build_result = self.proj.build(self.project_folder, self.project_folder)
         assert not build_result.success
         assert file_contains_string(
@@ -212,6 +222,8 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
 
         top = self.top_template.format(code_block=bad_resync)
         create_file(self.top_file, top)
+
+        self._create_vivado_project()
 
         build_result = self.proj.build(self.project_folder, self.project_folder)
         assert not build_result.success
@@ -232,6 +244,8 @@ create_clock -period 4 -waveform {1.0 1.2} -name clk_out [get_ports clk_out]
 """
         create_file(self.constraint_file, self.constraint_io + constraint_clocks)
 
+        self._create_vivado_project()
+
         build_result = self.proj.build(self.project_folder, self.project_folder)
         assert not build_result.success
         assert file_contains_string(
@@ -239,3 +253,20 @@ create_clock -period 4 -waveform {1.0 1.2} -name clk_out [get_ports clk_out]
         )
 
         assert (self.runs_folder / "impl_2" / "pulse_width.rpt").exists()
+
+    def test_building_vivado_netlist_project(self):
+        project = VivadoNetlistProject(
+            name="test_proj",
+            modules=self.modules,
+            part="xc7z020clg400-1",
+            # Faster
+            default_run_index=2,
+            result_size_checkers=[TotalLuts(LessThan(1000))],
+        )
+        assert project.create(self.project_folder)
+
+        build_result = project.build(
+            project_path=self.project_folder, output_path=self.project_folder
+        )
+        assert build_result.success
+        assert (self.runs_folder / "synth_2" / "hierarchical_utilization.rpt").exists()

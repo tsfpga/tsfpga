@@ -110,12 +110,25 @@ class VivadoProject:
         # Check the implemented timing and resource utilization via TCL build hooks.
         # This is different than for synthesis, where it is embedded in the build script.
         # This is due to Vivado limitations related to post-synthesis hooks.
+        # Spceifically, the report_utilization figures do not include IP cores when it is run in
+        # a post-synthesis hook.
         self.build_step_hooks.append(
             BuildStepTclHook(TSFPGA_TCL / "report_utilization.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE")
         )
         self.build_step_hooks.append(
             BuildStepTclHook(TSFPGA_TCL / "check_timing.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE")
         )
+
+        if not self.analyze_synthesis_timing:
+            # In this special case however, the synthesized design is never opened. So in order to
+            # get a utiliztion report anyway we add it as a hook. This mode is exclusively used by
+            # netlist builds, which very rarely include IP cores, so it is acceptable that the
+            # utilization report might be erroneous with regards to IP cores.
+            self.build_step_hooks.append(
+                BuildStepTclHook(
+                    TSFPGA_TCL / "report_utilization.tcl", "STEPS.SYNTH_DESIGN.TCL.POST"
+                )
+            )
 
     def _create_tcl(self, project_path, ip_cache_path):
         """
