@@ -114,18 +114,20 @@ th {
         return "".join([self._comment(header_line) for header_line in self.generated_info])
 
     @staticmethod
-    def _to_readable_address(address):
-        num_nibbles_needed = 4
-        formatting_string = "0x{:0%iX}" % num_nibbles_needed
-        return formatting_string.format(address)
+    def _to_hex_string(value, num_nibbles=4):
+        if value < 0:
+            return "N/A"
+
+        formatting_string = "0x{:0%iX}" % num_nibbles
+        return formatting_string.format(value)
 
     def _annotate_register(self, register, register_array_index=None, array_index_increment=None):
         if register_array_index is None:
-            address_readable = self._to_readable_address(register.address)
+            address_readable = self._to_hex_string(register.address)
             index = register.address // 4
         else:
-            register_address = self._to_readable_address(4 * register_array_index)
-            address_increment = self._to_readable_address(4 * array_index_increment)
+            register_address = self._to_hex_string(4 * register_array_index)
+            address_increment = self._to_hex_string(4 * array_index_increment)
             address_readable = f"{register_address} + i &times; {address_increment}"
 
             index = f"{register_array_index} + i &times; {array_index_increment}"
@@ -210,7 +212,8 @@ repeated {register_object.length} times
 <thead>
   <tr>
     <th>Name</th>
-    <th>Value</th>
+    <th>Value (decimal)</th>
+    <th>Value (hexadecimal)</th>
     <th>Description</th>
   </tr>
 </thead>
@@ -222,6 +225,7 @@ repeated {register_object.length} times
   <tr>
     <td><strong>{constant.name}</strong></td>
     <td>{constant.value}</td>
+    <td>{self._to_hex_string(constant.value, num_nibbles=8)}</td>
     <td>{description}</td>
   </tr>"""
 

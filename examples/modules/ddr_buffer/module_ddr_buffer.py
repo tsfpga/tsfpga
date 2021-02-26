@@ -11,7 +11,7 @@ from tsfpga.module import BaseModule
 
 class Module(BaseModule):
 
-    version = "3"
+    version = 3
 
     def registers_hook(self):
         self.registers.add_constant(
