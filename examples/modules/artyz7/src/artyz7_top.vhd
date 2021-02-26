@@ -154,7 +154,7 @@ begin
     signal afifo_read_ready           : std_logic;
     signal afifo_read_valid           : std_logic;
     signal ddr_buffer_reg_was_read    : std_logic;
-    signal ddr_buffer_reg_was_written : std_logic;
+    signal ddr_buffer_reg_was_written : std_logic := '0';
   begin
 
     -- Some dummy logic that instantiates a lot of the resync blocks.

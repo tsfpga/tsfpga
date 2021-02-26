@@ -72,7 +72,8 @@ architecture a of fifo is
   -- Need one extra bit in the addresses to be able to make the distinction if the FIFO
   -- is full or empty (where the addresses would otherwise be equal).
   subtype fifo_addr_t is unsigned(num_bits_needed(2 * depth - 1) - 1 downto 0);
-  signal read_addr_next, read_addr, write_addr, write_addr_start_of_packet :
+  signal read_addr_next, read_addr : fifo_addr_t := (others => '0');
+  signal write_addr_next, write_addr, write_addr_next_if_not_drop, write_addr_start_of_packet :
     fifo_addr_t := (others => '0');
 
   -- The part of the address that actually goes to the BRAM address port
@@ -110,7 +111,6 @@ begin
 
   ------------------------------------------------------------------------------
   status : process
-    variable write_addr_next : fifo_addr_t := (others => '0');
     variable num_lasts_in_fifo_next : integer range 0 to depth := 0;
   begin
     wait until rising_edge(clk);
@@ -134,20 +134,17 @@ begin
 
     read_addr <= read_addr_next;
 
-    write_addr_next := write_addr + to_int(write_ready and write_valid);
-    write_ready <= to_sl(
-      read_addr_next(bram_addr_range) /= write_addr_next(bram_addr_range)
-      or read_addr_next(read_addr_next'high) =  write_addr_next(write_addr_next'high));
-
-    -- Note that this potential update of write_addr_next does not affect write_ready,
-    -- assigned above. This is done to save logic and ease the timing of write_ready which is
+    -- Note that write_ready looks at the next write address that will be used if there is
+    -- no packet drop. This is done to ease the timing of write_ready which is
     -- often critical. There is a functional difference only in the special case when the FIFO
     -- goes full in the same cycle as drop_packet is sent. In that case, write_ready will be low
     -- for one cycle and then go high the next.
+    write_ready <= to_sl(
+      read_addr_next(bram_addr_range) /= write_addr_next_if_not_drop(bram_addr_range)
+      or read_addr_next(read_addr_next'high) =  write_addr_next_if_not_drop(write_addr_next'high));
+
     if enable_drop_packet then
-      if drop_packet then
-        write_addr_next := write_addr_start_of_packet;
-      elsif write_ready and write_valid and write_last then
+      if (not drop_packet) and write_ready and write_valid and write_last then
         write_addr_start_of_packet <= write_addr_next;
       end if;
     end if;
@@ -157,6 +154,8 @@ begin
     level <= to_integer(write_addr_next - read_addr_next) mod (2 * depth);
   end process;
 
+  write_addr_next_if_not_drop <= write_addr + to_int(write_ready and write_valid);
+  write_addr_next <= write_addr_next_if_not_drop when not(enable_drop_packet and drop_packet = '1') else write_addr_start_of_packet;
   read_addr_next <= read_addr + to_int(read_ready and read_valid);
 
 

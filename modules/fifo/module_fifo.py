@@ -122,7 +122,7 @@ class Module(BaseModule):
                 top="fifo_netlist_build_wrapper",
                 generics=generics,
                 result_size_checkers=[
-                    TotalLuts(EqualTo(16)),
+                    TotalLuts(EqualTo(14)),
                     Ffs(EqualTo(24)),
                     Ramb36(EqualTo(1)),
                     Ramb18(EqualTo(0)),
@@ -141,7 +141,7 @@ class Module(BaseModule):
                 top="fifo_wrapper",
                 generics=generics,
                 result_size_checkers=[
-                    TotalLuts(EqualTo(28)),
+                    TotalLuts(EqualTo(26)),
                     Ffs(EqualTo(35)),
                     Ramb36(EqualTo(1)),
                     Ramb18(EqualTo(0)),
@@ -159,7 +159,7 @@ class Module(BaseModule):
                 top="fifo_wrapper",
                 generics=generics,
                 result_size_checkers=[
-                    TotalLuts(EqualTo(28)),
+                    TotalLuts(EqualTo(26)),
                     Ffs(EqualTo(35)),
                     Ramb36(EqualTo(1)),
                     Ramb18(EqualTo(0)),
@@ -178,7 +178,7 @@ class Module(BaseModule):
                 top="fifo_wrapper",
                 generics=generics,
                 result_size_checkers=[
-                    TotalLuts(EqualTo(43)),
+                    TotalLuts(EqualTo(41)),
                     Ffs(EqualTo(46)),
                     Ramb36(EqualTo(1)),
                     Ramb18(EqualTo(0)),
@@ -197,7 +197,7 @@ class Module(BaseModule):
                 top="fifo_wrapper",
                 generics=generics,
                 result_size_checkers=[
-                    TotalLuts(EqualTo(54)),
+                    TotalLuts(EqualTo(47)),
                     Ffs(EqualTo(57)),
                     Ramb36(EqualTo(1)),
                     Ramb18(EqualTo(0)),

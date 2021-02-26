@@ -128,12 +128,13 @@ begin
 
   ------------------------------------------------------------------------------
   write_block : block
-    signal write_addr_start_of_packet, read_addr_resync : fifo_addr_t := (others => '0');
+    signal write_addr_next, write_addr_next_if_not_drop, write_addr_start_of_packet :
+      fifo_addr_t := (others => '0');
+    signal read_addr_resync : fifo_addr_t := (others => '0');
   begin
 
     ------------------------------------------------------------------------------
     write_status : process
-      variable write_addr_next : fifo_addr_t;
     begin
       wait until rising_edge(clk_write);
 
@@ -144,10 +145,14 @@ begin
         num_lasts_written <= num_lasts_written + to_int(write_ready and write_valid and write_last);
       end if;
 
-      write_addr_next := write_addr + to_int(write_ready and write_valid);
+      -- Note that write_ready looks at the next write address that will be used if there is
+      -- no packet drop. This is done to ease the timing of write_ready which is
+      -- often critical. There is a functional difference only in the special case when the FIFO
+      -- goes full in the same cycle as drop_packet is sent. In that case, write_ready will be low
+      -- for one cycle and then go high the next.
       write_ready <= to_sl(
-        read_addr_resync(bram_addr_range) /= write_addr_next(bram_addr_range)
-        or read_addr_resync(read_addr_resync'high) =  write_addr_next(write_addr_next'high));
+        read_addr_resync(bram_addr_range) /= write_addr_next_if_not_drop(bram_addr_range)
+        or read_addr_resync(read_addr_resync'high) =  write_addr_next_if_not_drop(write_addr_next'high));
 
       -- Note that this potential update of write_addr_next does not affect write_ready,
       -- assigned above. This is done to save logic and ease the timing of write_ready which is
@@ -155,9 +160,7 @@ begin
       -- goes full in the same cycle as drop_packet is sent. In that case, write_ready will be low
       -- for one cycle and then go high the next.
       if enable_drop_packet then
-        if drop_packet then
-          write_addr_next := write_addr_start_of_packet;
-        elsif write_ready and write_valid and write_last then
+        if (not drop_packet) and write_ready and write_valid and write_last then
           write_addr_start_of_packet <= write_addr_next;
         end if;
       end if;
@@ -166,6 +169,9 @@ begin
       write_level <= to_integer(write_addr_next - read_addr_resync) mod (2 * depth);
       write_addr <= write_addr_next;
     end process;
+
+    write_addr_next_if_not_drop <= write_addr + to_int(write_ready and write_valid);
+    write_addr_next <= write_addr_next_if_not_drop when not(enable_drop_packet and drop_packet = '1') else write_addr_start_of_packet;
 
 
     ------------------------------------------------------------------------------
