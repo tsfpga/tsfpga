@@ -9,10 +9,10 @@
 from unittest import mock
 import io
 
-from tsfpga.vivado.size_checker import UtilizationParser, EqualTo, LessThan, TotalLuts
+from tsfpga.vivado.size_checker import UtilizationParser, EqualTo, DspBlocks, LessThan, TotalLuts
 
 
-def test_utilzation_parser():
+def test_utilization_parser():
     report = " \
 Writing top or top) or (top here should not cause issues\n\
 Also writing pipes | | | | should be fine\n\
@@ -47,3 +47,19 @@ def test_size_checker_equal_to_fail(mock_stdout):
     assert (
         mock_stdout.getvalue() == "Result size check failed for Total LUTs. Got 5, expected 50.\n"
     )
+
+
+def test_size_checker_dsp_blocks_has_two_names():
+    result_size = {"DSP48 Blocks": 5}
+
+    assert DspBlocks(EqualTo(5)).check(result_size)
+    assert DspBlocks(EqualTo(5)).check(result_size)
+    assert not DspBlocks(EqualTo(2)).check(result_size)
+    assert not DspBlocks(EqualTo(2)).check(result_size)
+
+    result_size = {"DSP Blocks": 5}
+
+    assert DspBlocks(EqualTo(5)).check(result_size)
+    assert DspBlocks(EqualTo(5)).check(result_size)
+    assert not DspBlocks(EqualTo(2)).check(result_size)
+    assert not DspBlocks(EqualTo(2)).check(result_size)

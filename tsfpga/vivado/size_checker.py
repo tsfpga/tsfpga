@@ -112,17 +112,16 @@ class SizeChecker:
             result_size (dict): A size dictionary as found in the :class:`.BuildResult`
                 object.
         """
-        result_value = result_size[self.resource_name]
-        if self.limit.check(result_value):
-            message = (
-                f"Result size check passed for {self.resource_name}: {result_value} ({self.limit})"
-            )
+        return self._check_value(self.resource_name, result_size[self.resource_name])
+
+    def _check_value(self, resource_name, value):
+        if self.limit.check(value):
+            message = f"Result size check passed for {resource_name}: {value} ({self.limit})"
             print(message)
             return True
 
         message = (
-            f"Result size check failed for {self.resource_name}. "
-            f"Got {result_value}, expected {self.limit}."
+            f"Result size check failed for {resource_name}. " f"Got {value}, expected {self.limit}."
         )
         print(message)
         return False
@@ -141,16 +140,21 @@ class LogicLuts(SizeChecker):
 class DspBlocks(SizeChecker):
 
     """
-    Vivado pre 2020.1 called this resource "DSP48 Blocks" in the utilization report. Another class
-    is kept for that purpose.
+    In Vivado pre-2020.1 the resource was called "DSP48 Blocks" in the utilization report.
+    After that it is called "DSP Blocks". This class checks for both.
     """
 
     resource_name = "DSP Blocks"
 
+    def check(self, result_size):
+        """
+        Same as parent class, but checks for the legacy name as well as the current name.
+        """
+        legacy_name = "DSP48 Blocks"
+        if legacy_name in result_size:
+            return self._check_value(legacy_name, result_size[legacy_name])
 
-class Dsp48Blocks(SizeChecker):
-
-    resource_name = "DSP48 Blocks"
+        return self._check_value(self.resource_name, result_size[self.resource_name])
 
 
 class Ffs(SizeChecker):
