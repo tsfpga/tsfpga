@@ -19,6 +19,7 @@ package types_pkg is
 
   function to_sl(value : boolean) return std_logic;
   function to_bool(value : std_logic) return boolean;
+  function to_bool(value : natural) return boolean;
 
   subtype binary_integer_t is integer range 0 to 1;
   function to_int(value : boolean) return binary_integer_t;
@@ -47,6 +48,19 @@ package body types_pkg is
       return false;
     end if;
     assert false report "Can not convert value " & to_string(value) severity failure;
+    return false;
+  end function;
+
+  function to_bool(value : natural) return boolean is
+  begin
+    if value = 1 then
+      return true;
+    end if;
+    if value = 0 then
+      return false;
+    end if;
+
+    assert false report "Can not convert this value " & to_string(value) severity failure;
     return false;
   end function;
 

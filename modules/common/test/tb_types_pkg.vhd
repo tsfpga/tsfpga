@@ -50,9 +50,13 @@ begin
     test_runner_setup(runner, runner_cfg);
 
 
-    if run("test_to_bool") then
+    if run("test_to_bool_std_logic") then
       check_equal(to_bool('0'), false);
       check_equal(to_bool('1'), true);
+
+    elsif run("test_to_bool_integer") then
+      check_equal(to_bool(0), false);
+      check_equal(to_bool(1), true);
 
     elsif run("test_swap_byte_order") then
       byte_data0 := swap_byte_order(byte_data0);
