@@ -67,7 +67,7 @@ package body types_pkg is
       return 0;
     end if;
 
-    assert false report "Can not convert value " & to_string(value) severity failure;
+    assert false report "Can not convert value " & to_string(value) severity warning;
     return 0;
   end function;
 
