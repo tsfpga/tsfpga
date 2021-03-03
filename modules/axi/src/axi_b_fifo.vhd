@@ -35,8 +35,6 @@ entity axi_b_fifo is
     --
     output_m2s : out axi_m2s_b_t := axi_m2s_b_init;
     output_s2m : in axi_s2m_b_t;
-    --
-    almost_full : out std_logic := '0';
     -- Only need to assign the clock if generic asynchronous is "True"
     clk_input : in std_logic := '0'
   );

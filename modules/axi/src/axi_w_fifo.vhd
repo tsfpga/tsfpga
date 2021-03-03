@@ -22,10 +22,10 @@ use work.axi_pkg.all;
 
 entity axi_w_fifo is
   generic (
-    data_width : positive;
     asynchronous : boolean;
+    data_width : positive;
+    depth : natural;
     enable_packet_mode : boolean := false;
-    depth : natural := 16;
     ram_type : ram_style_t := ram_style_auto
   );
   port (
@@ -36,9 +36,10 @@ entity axi_w_fifo is
     --
     output_m2s : out axi_m2s_w_t := axi_m2s_w_init;
     output_s2m : in axi_s2m_w_t;
-    --
-    almost_full : out std_logic := '0';
-    -- Only need to assign the clock if generic asynchronous is "True"
+    -- Level of the FIFO. If this is an asynchronous FIFO, this value is on the "output" side.
+    output_level : out integer range 0 to depth := 0;
+
+    -- Only needs to assign the clock if generic asynchronous is "True"
     clk_input : in std_logic := '0'
   );
 end entity;
@@ -88,6 +89,7 @@ begin
         read_ready => output_s2m.ready,
         read_valid => read_valid,
         read_data => read_data,
+        read_level => output_level,
         --
         write_ready => input_s2m.ready,
         write_valid => input_m2s.valid,
