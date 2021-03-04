@@ -5,19 +5,17 @@
 -- https://tsfpga.com
 -- https://gitlab.com/tsfpga/tsfpga
 -- -------------------------------------------------------------------------------------------------
+-- Wrapper around VUnit BFM that uses record types for the AXI signals.
+-- -------------------------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library math;
-use math.math_pkg.all;
-
 library axi;
 use axi.axi_pkg.all;
 
 library vunit_lib;
-context vunit_lib.vunit_context;
 context vunit_lib.vc_context;
 
 
@@ -25,6 +23,8 @@ entity axi_slave is
   generic (
     axi_slave : axi_slave_t;
     data_width : positive;
+    -- Note that the VUnit BFM creates and integer_vector_ptr of length 2**id_width, so a large
+    -- value for id_width might crash your simulator.
     id_width : natural := 8;
     w_fifo_depth : natural := 0
   );
