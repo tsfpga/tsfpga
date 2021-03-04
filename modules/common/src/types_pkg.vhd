@@ -17,6 +17,8 @@ package types_pkg is
   type positive_vec_t is array (integer range <>) of positive;
   type boolean_vec_t is array (integer range <>) of boolean;
 
+  function get_maximum(values : positive_vec_t) return positive;
+
   function to_sl(value : boolean) return std_logic;
   function to_bool(value : std_logic) return boolean;
   function to_bool(value : natural) return boolean;
@@ -31,6 +33,16 @@ package types_pkg is
 end package;
 
 package body types_pkg is
+
+  function get_maximum(values : positive_vec_t) return positive is
+    -- Minimum possible value
+    variable result : positive := 1;
+  begin
+    for value_idx in values'range loop
+      result := maximum(result, values(value_idx));
+    end loop;
+    return result;
+  end function;
 
   function to_sl(value : boolean) return std_logic is
   begin

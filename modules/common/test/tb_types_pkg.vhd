@@ -45,12 +45,20 @@ begin
     variable bit_data3 : std_logic_vector(6 to 12 - 1) := "101010";
     constant bit_data3_swapped : std_logic_vector(bit_data2'range) := "010101";
 
+    variable positive_vec : positive_vec_t(0 to 3) := (others => 1);
 
   begin
     test_runner_setup(runner, runner_cfg);
 
 
-    if run("test_to_bool_std_logic") then
+    if run("test_get_maximum_positive") then
+      positive_vec := (1, 1, 1, 1);
+      check_equal(get_maximum(positive_vec), 1);
+
+      positive_vec := (4, 3, 2, 1);
+      check_equal(get_maximum(positive_vec), 4);
+
+    elsif run("test_to_bool_std_logic") then
       check_equal(to_bool('0'), false);
       check_equal(to_bool('1'), true);
 
