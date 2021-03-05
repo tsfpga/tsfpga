@@ -32,47 +32,42 @@ architecture tb of tb_axi_pkg is
 begin
 
   main : process
-    constant offset_max : integer := 73;
     variable rnd : RandomPType;
 
-    variable data_a : axi_m2s_a_t := axi_m2s_a_init;
-    variable data_a_converted :
-      std_logic_vector(axi_m2s_a_sz(id_width=>id_width, addr_width=>addr_width) - 1 downto 0) :=
-      (others => '0');
-    variable data_a_slv : std_logic_vector(data_a_converted'high + offset_max downto 0) :=
-      (others => '0');
+    procedure test_slv_conversion(iteration : natural) is
+      constant offset_max : integer := 73;
 
-    variable data_w : axi_m2s_w_t := axi_m2s_w_init;
-    variable data_w_converted :
-      std_logic_vector(axi_m2s_w_sz(data_width=>data_width, id_width=>id_width) - 1 downto 0) :=
-      (others => '0');
-    variable data_w_slv : std_logic_vector(data_w_converted'high + offset_max downto 0) :=
-      (others => '0');
+      variable data_a : axi_m2s_a_t := axi_m2s_a_init;
+      variable data_a_converted :
+        std_logic_vector(axi_m2s_a_sz(id_width=>id_width, addr_width=>addr_width) - 1 downto 0) :=
+        (others => '0');
+      variable data_a_slv : std_logic_vector(data_a_converted'high + offset_max downto 0) :=
+        (others => '0');
 
-    variable data_r : axi_s2m_r_t := axi_s2m_r_init;
-    variable data_r_converted :
-      std_logic_vector(axi_s2m_r_sz(data_width=>data_width, id_width=>id_width) - 1 downto 0) :=
-      (others => '0');
-    variable data_r_slv : std_logic_vector(data_r_converted'high + offset_max downto 0) :=
-      (others => '0');
+      variable data_w : axi_m2s_w_t := axi_m2s_w_init;
+      variable data_w_converted :
+        std_logic_vector(axi_m2s_w_sz(data_width=>data_width, id_width=>id_width) - 1 downto 0) :=
+        (others => '0');
+      variable data_w_slv : std_logic_vector(data_w_converted'high + offset_max downto 0) :=
+        (others => '0');
 
-    variable data_b : axi_s2m_b_t := axi_s2m_b_init;
-    variable data_b_converted : std_logic_vector(axi_s2m_b_sz(id_width=>id_width) - 1 downto 0) :=
-      (others => '0');
-    variable data_b_slv : std_logic_vector(data_b_converted'high + offset_max downto 0) :=
-      (others => '0');
+      variable data_r : axi_s2m_r_t := axi_s2m_r_init;
+      variable data_r_converted :
+        std_logic_vector(axi_s2m_r_sz(data_width=>data_width, id_width=>id_width) - 1 downto 0) :=
+        (others => '0');
+      variable data_r_slv : std_logic_vector(data_r_converted'high + offset_max downto 0) :=
+        (others => '0');
 
-    variable hi, lo : integer := 0;
+      variable data_b : axi_s2m_b_t := axi_s2m_b_init;
+      variable data_b_converted : std_logic_vector(axi_s2m_b_sz(id_width=>id_width) - 1 downto 0) :=
+        (others => '0');
+      variable data_b_slv : std_logic_vector(data_b_converted'high + offset_max downto 0) :=
+        (others => '0');
 
-  begin
-    test_runner_setup(runner, runner_cfg);
-    rnd.InitSeed(rnd'instance_name);
-
-    for i in 0 to 1000 loop
-      -- Loop a couple of times to get good random coverage
-
+      variable hi, lo : integer := 0;
+    begin
       -- Slice slv input, to make sure that ranges don't have to be down to 0
-      lo := i mod offset_max;
+      lo := iteration mod offset_max;
 
       hi := data_a_converted'high + lo;
       data_a_slv(hi downto lo) := rnd.RandSLV(data_a_converted'length);
@@ -101,7 +96,45 @@ begin
       data_b_converted := to_slv(data_b, id_width=>id_width);
 
       check_equal(data_b_converted, data_b_slv(hi downto lo));
-    end loop;
+    end procedure;
+
+    procedure test_combine_response is
+      variable resp, resp1, resp2, expected : std_logic_vector(axi_resp_sz - 1 downto 0);
+    begin
+      for i in 0 to 1000 loop
+        resp1 := rnd.RandSlv(resp'length);
+        resp2 := rnd.RandSlv(resp'length);
+        resp := combine_response(resp1, resp2);
+
+        if resp1 = axi_resp_decerr or resp2 = axi_resp_decerr then
+          expected := axi_resp_decerr;
+        elsif resp1 = axi_resp_slverr or resp2 = axi_resp_slverr then
+          expected := axi_resp_slverr;
+        elsif resp1 = axi_resp_okay or resp2 = axi_resp_okay then
+          expected := axi_resp_okay;
+        else
+          expected := axi_resp_exokay;
+        end if;
+        check_equal(resp, expected, "resp1: " & to_string(resp1) & ", resp2: " & to_string(resp1));
+
+      end loop;
+    end procedure;
+
+  begin
+    test_runner_setup(runner, runner_cfg);
+    rnd.InitSeed(rnd'instance_name);
+
+    if run("test_slv_conversion") then
+
+      for iteration in 0 to 1000 loop
+        -- Loop a couple of times to get good random coverage
+        test_slv_conversion(iteration);
+      end loop;
+
+
+    elsif run("test_combine_response") then
+      test_combine_response;
+    end if;
 
     test_runner_cleanup(runner);
   end process;

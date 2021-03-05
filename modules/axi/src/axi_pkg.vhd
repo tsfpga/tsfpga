@@ -285,6 +285,9 @@ package axi_pkg is
 
   constant axi_s2m_init : axi_s2m_t := (read => axi_read_s2m_init, write => axi_write_s2m_init);
 
+  function combine_response(resp1, resp2 : std_logic_vector(axi_resp_sz - 1 downto 0))
+    return std_logic_vector;
+
 end;
 
 package body axi_pkg is
@@ -530,4 +533,41 @@ package body axi_pkg is
     return result;
   end function;
 
+  -- Combine responses, with the "worst" response taking priority. OKAY may be considered
+  -- an error if an exclusive access was desired, so OKAY takes priority over EXOKAY.
+  function combine_response(
+    resp1, resp2 : std_logic_vector(axi_resp_sz - 1 downto 0)
+  ) return std_logic_vector is
+    variable resp : std_logic_vector(axi_resp_sz - 1 downto 0);
+  begin
+    resp := resp1;
+
+    case resp is
+      when axi_resp_exokay =>
+        -- All values take priority over EXOKAY
+        resp := resp2;
+
+      when axi_resp_okay =>
+        -- Errors take priority over OKAY
+        if resp2 = axi_resp_slverr then
+          resp := axi_resp_slverr;
+        end if;
+        if resp2 = axi_resp_decerr then
+          resp := axi_resp_decerr;
+        end if;
+
+      when axi_resp_slverr =>
+        -- Only DECERR takes priority over SLVERR
+        if resp2 = axi_resp_decerr then
+          resp := axi_resp_decerr;
+        end if;
+
+      when others =>
+        -- DECERR
+        resp := axi_resp_decerr;
+
+    end case;
+
+    return resp;
+  end function;
 end;
