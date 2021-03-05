@@ -204,7 +204,12 @@ begin
         burst => (others => '-'),
         others => (others => '-')
       );
-      output_write_m2s.w <= (valid => '0', last => '-', others => (others => '-'));
+      output_write_m2s.w <= (
+        valid => '0',
+        last => '-',
+        id=> (others => '-'),
+        others => (others => '-')
+      );
       output_write_m2s.b <= (ready => '0');
 
       for idx in inputs_write_s2m'range loop

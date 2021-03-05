@@ -5,9 +5,11 @@
 -- https://tsfpga.com
 -- https://gitlab.com/tsfpga/tsfpga
 -- -------------------------------------------------------------------------------------------------
--- @brief Data types for working with AXI4 interfaces
--- @details Based on the document "ARM IHI 0022E (ID022613): AMBA AXI and ACE Protocol Specification"
--- Available here (after login): http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ihi0022e/index.html
+-- Data types for working with AXI4 interfaces
+--
+-- Based on the document "ARM IHI 0022E (ID022613): AMBA AXI and ACE Protocol Specification",
+-- available here:
+--   http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ihi0022e/index.html
 -- -------------------------------------------------------------------------------------------------
 
 library ieee;
@@ -98,8 +100,12 @@ package axi_pkg is
   function axi_m2s_a_sz(id_width : natural; addr_width : natural)  return natural;
   type axi_m2s_a_vec_t is array (integer range <>) of axi_m2s_a_t;
 
-  function to_slv(data : axi_m2s_a_t; id_width : natural; addr_width : natural) return std_logic_vector;
-  function to_axi_m2s_a(data : std_logic_vector; id_width : natural; addr_width : natural) return axi_m2s_a_t;
+  function to_slv(
+    data : axi_m2s_a_t; id_width : natural; addr_width : natural
+  ) return std_logic_vector;
+  function to_axi_m2s_a(
+    data : std_logic_vector; id_width : natural; addr_width : natural
+  ) return axi_m2s_a_t;
 
   type axi_s2m_a_t is record
     ready : std_logic;
@@ -124,17 +130,29 @@ package axi_pkg is
     data : std_logic_vector(axi_data_sz - 1 downto 0);
     strb : std_logic_vector(axi_w_strb_sz - 1 downto 0);
     last : std_logic;
-    -- @note AXI3 has an id for each write beat as well
+    -- Only available in AXI3. We assume that AXI4 is used most of the time, hence id_width is
+    -- defaulted to zero in the functions below.
+    id : unsigned(axi_id_sz - 1 downto 0);
   end record;
 
-  constant axi_m2s_w_init : axi_m2s_w_t := (valid => '0', data => (others => '-'), last => '0', others => (others => '0'));
-  function axi_m2s_w_sz(data_width : natural) return natural;
+  constant axi_m2s_w_init : axi_m2s_w_t := (
+    valid => '0',
+    data => (others => '-'),
+    last => '0',
+    id => (others => '-'),
+    others => (others => '0')
+  );
+  function axi_m2s_w_sz(data_width : natural; id_width : natural := 0) return natural;
   type axi_m2s_w_vec_t is array (integer range <>) of axi_m2s_w_t;
 
   function axi_w_strb_width(data_width : natural) return natural;
 
-  function to_slv(data : axi_m2s_w_t; data_width : natural) return std_logic_vector;
-  function to_axi_m2s_w(data : std_logic_vector; data_width : natural) return axi_m2s_w_t;
+  function to_slv(
+    data : axi_m2s_w_t; data_width : natural; id_width : natural := 0
+  ) return std_logic_vector;
+  function to_axi_m2s_w(
+    data : std_logic_vector; data_width : natural; id_width : natural := 0
+  ) return axi_m2s_w_t;
 
   type axi_s2m_w_t is record
     ready : std_logic;
@@ -292,7 +310,9 @@ package body axi_pkg is
     return id_width + addr_width + axi_a_len_sz + axi_a_size_sz + axi_a_burst_sz;
   end function;
 
-  function to_slv(data : axi_m2s_a_t; id_width : natural; addr_width : natural) return std_logic_vector is
+  function to_slv(
+    data : axi_m2s_a_t; id_width : natural; addr_width : natural
+  ) return std_logic_vector is
     variable result : std_logic_vector(axi_m2s_a_sz(id_width, addr_width) - 1 downto 0);
     variable lo, hi : natural := 0;
   begin
@@ -317,7 +337,9 @@ package body axi_pkg is
     return result;
   end function;
 
-  function to_axi_m2s_a(data : std_logic_vector; id_width : natural; addr_width : natural) return axi_m2s_a_t is
+  function to_axi_m2s_a(
+    data : std_logic_vector; id_width : natural; addr_width : natural
+  ) return axi_m2s_a_t is
     constant offset : natural := data'low;
     variable result : axi_m2s_a_t := axi_m2s_a_init;
     variable lo, hi : natural := 0;
@@ -355,42 +377,62 @@ package body axi_pkg is
     return data_width / 8;
   end function;
 
-  function axi_m2s_w_sz(data_width : natural) return natural is
+  function axi_m2s_w_sz(data_width : natural; id_width : natural := 0) return natural is
   begin
     -- Exluded member: valid.
     -- The 1 is "last".
-    return data_width + axi_w_strb_width(data_width) + 1;
+    return data_width + axi_w_strb_width(data_width) + 1 + id_width;
   end function;
 
-  function to_slv(data : axi_m2s_w_t; data_width : natural) return std_logic_vector is
-    variable result : std_logic_vector(axi_m2s_w_sz(data_width) - 1 downto 0);
+  function to_slv(
+    data : axi_m2s_w_t; data_width : natural; id_width : natural := 0
+  ) return std_logic_vector is
+    variable result :
+      std_logic_vector(axi_m2s_w_sz(data_width=>data_width, id_width=>id_width) - 1 downto 0) :=
+      (others => '0');
     variable lo, hi : natural := 0;
   begin
     lo := 0;
+
     hi := lo + data_width - 1;
     result(hi downto lo) := data.data(data_width - 1 downto 0);
     lo := hi + 1;
+
     hi := lo + axi_w_strb_width(data_width) - 1;
     result(hi downto lo) := data.strb(axi_w_strb_width(data_width) - 1 downto 0);
     lo := hi + 1;
+
+    hi := lo + id_width - 1;
+    result(hi downto lo) := std_logic_vector(data.id(id_width - 1 downto 0));
+    lo := hi + 1;
+
     hi := lo;
     result(hi) := data.last;
     assert hi = result'high severity failure;
     return result;
   end function;
 
-  function to_axi_m2s_w(data : std_logic_vector; data_width : natural) return axi_m2s_w_t is
+  function to_axi_m2s_w(
+    data : std_logic_vector; data_width : natural; id_width : natural := 0
+  ) return axi_m2s_w_t is
     constant offset : natural := data'low;
     variable result : axi_m2s_w_t := axi_m2s_w_init;
     variable lo, hi : natural := 0;
   begin
     lo := 0;
+
     hi := lo + data_width - 1;
     result.data(data_width - 1 downto 0) := data(hi + offset downto lo + offset);
     lo := hi + 1;
+
     hi := lo + axi_w_strb_width(data_width) - 1;
     result.strb(axi_w_strb_width(data_width) - 1 downto 0) := data(hi + offset downto lo + offset);
     lo := hi + 1;
+
+    hi := lo + id_width - 1;
+    result.id(id_width - 1 downto 0) := unsigned(data(hi + offset downto lo + offset));
+    lo := hi + 1;
+
     hi := lo;
     result.last := data(hi + offset);
     assert hi + offset = data'high severity failure;
