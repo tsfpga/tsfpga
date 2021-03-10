@@ -132,16 +132,20 @@ begin
       read_valid <= to_sl(read_addr_next /= write_addr);
     end if;
 
-    read_addr <= read_addr_next;
-
-    -- Note that write_ready looks at the next write address that will be used if there is
-    -- no packet drop. This is done to ease the timing of write_ready which is
-    -- often critical. There is a functional difference only in the special case when the FIFO
+    -- Note that write_ready looks at the write_addr_next that will be used if there is
+    -- no packet drop, even when drop_packet functionality is enabled. This is done to ease the
+    -- timing of write_ready which is often critical.
+    -- There is a functional difference only in the special case when the FIFO
     -- goes full in the same cycle as drop_packet is sent. In that case, write_ready will be low
     -- for one cycle and then go high the next.
+    --
+    -- Similarly write_ready looks at read_addr rather than read_addr_next, which eases the timing
+    -- of read_ready. There is a function difference when the FIFO is full and a read performed
+    -- makes the FIFO ready for another write. In this case, write_ready will be low
+    -- for one extra cycle after the read occurs, and then go high the next.
     write_ready <= to_sl(
-      read_addr_next(bram_addr_range) /= write_addr_next_if_not_drop(bram_addr_range)
-      or read_addr_next(read_addr_next'high) =  write_addr_next_if_not_drop(write_addr_next'high));
+      read_addr(bram_addr_range) /= write_addr_next_if_not_drop(bram_addr_range)
+      or read_addr(read_addr'high) =  write_addr_next_if_not_drop(write_addr_next'high));
 
     if enable_drop_packet then
       if (not drop_packet) and write_ready and write_valid and write_last then
@@ -149,8 +153,13 @@ begin
       end if;
     end if;
 
-    -- These signals however must have the updated value.
+    -- These signals however must have the updated values to be valid for the next cycle.
     write_addr <= write_addr_next;
+    read_addr <= read_addr_next;
+    -- The level count shall always be correct, and hence uses the updated values. Note that this
+    -- can create some wonky situations, e.g. when level read as 1023 for a 1024 deep FIFO
+    -- but write_ready is false.
+    -- Also in packet_mode, the level is incremented for words that might be dropped later.
     level <= to_integer(write_addr_next - read_addr_next) mod (2 * depth);
   end process;
 
@@ -220,12 +229,12 @@ begin
     -- psl not_read_valid_unless_data_in_fifo : assert always
     --   not (read_valid = '1' and level = 0);
     --
+    -- psl write_ready_false_if_full : assert always
+    --   level = depth -> not write_ready;
+    --
     -- Latency since data must propagate through BRAM.
     -- psl read_valid_goes_high_two_cycles_after_write : assert always
     --   (write_valid and write_ready) |=> next[1] (read_valid);
-    --
-    -- psl write_ready_goes_high_one_cycle_after_read : assert always
-    --   (read_valid and read_ready) |=> (write_ready);
     --
     -- psl read_valid_stays_high_until_read_ready : assert always
     --   (read_valid) |-> (read_valid) until (read_ready);

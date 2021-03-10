@@ -11,3 +11,8 @@ Breaking changes
 * Rename :class:`.vivado.project.VivadoNetlistProject` constructor
   argument ``analyze_clock_interaction`` to ``analyze_synthesis_timing``.
 * Remove ``tsfpga.vivado.size_checker.Dsp48Blocks`` in favor of :class:`.vivado.size_checker.DspBlocks`.
+
+Changes
+
+* Update timing of ``fifo.fifo`` port ``read_ready`` to get lower fanout and shorter critial path.
+  The change implies an increased latency from a read transaction until ``write_ready`` is raised.
