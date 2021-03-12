@@ -24,6 +24,7 @@ entity axi_read_cdc is
     id_width : natural;
     addr_width : positive;
     data_width : positive;
+    enable_data_fifo_packet_mode : boolean;
     address_fifo_depth : positive;
     address_fifo_ram_type : ram_style_t := ram_style_auto;
     data_fifo_depth : positive;
@@ -36,7 +37,8 @@ entity axi_read_cdc is
     --
     clk_output : in std_logic;
     output_m2s : out axi_read_m2s_t := axi_read_m2s_init;
-    output_s2m : in axi_read_s2m_t
+    output_s2m : in axi_read_s2m_t;
+    output_data_fifo_level : out integer range 0 to data_fifo_depth := 0
   );
 end entity;
 
@@ -73,6 +75,7 @@ begin
       data_width => data_width,
       asynchronous => true,
       depth => data_fifo_depth,
+      enable_packet_mode => enable_data_fifo_packet_mode,
       ram_type => data_fifo_ram_type
     )
     port map (
@@ -83,6 +86,7 @@ begin
       --
       output_m2s => output_m2s.r,
       output_s2m => output_s2m.r,
+      output_level => output_data_fifo_level,
       --
       clk_input => clk_input
     );

@@ -77,9 +77,9 @@ begin
         use_asynchronous_fifo => asynchronous,
         width => w_width,
         depth => depth,
-        ram_type => ram_type,
         enable_last => enable_packet_mode,
-        enable_packet_mode => enable_packet_mode
+        enable_packet_mode => enable_packet_mode,
+        ram_type => ram_type
       )
       port map(
         clk => clk,
