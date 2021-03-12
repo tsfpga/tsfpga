@@ -87,18 +87,6 @@ begin
 
 
     ------------------------------------------------------------------------------
-    assign_aw : process(all)
-    begin
-      pipelined_m2s_aw <= to_axi_m2s_a(
-        data=>pipelined_m2s_aw_slv,
-        id_width=>id_width,
-        addr_width=>addr_width
-      );
-      pipelined_m2s_aw.valid <= pipelined_valid;
-    end process;
-
-
-    ------------------------------------------------------------------------------
     handshake_pipeline_inst : entity common.handshake_pipeline
       generic map (
         data_width => input_m2s_aw_slv'length,
@@ -119,6 +107,18 @@ begin
         output_valid => pipelined_valid,
         output_data => pipelined_m2s_aw_slv
       );
+
+
+    ------------------------------------------------------------------------------
+    assign_aw : process(all)
+    begin
+      pipelined_m2s_aw <= to_axi_m2s_a(
+        data=>pipelined_m2s_aw_slv,
+        id_width=>id_width,
+        addr_width=>addr_width
+      );
+      pipelined_m2s_aw.valid <= pipelined_valid;
+    end process;
 
   end block;
 
