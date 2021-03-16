@@ -34,6 +34,11 @@ class Module(BaseModule):
         self.add_vunit_config(tb, generics=dict(pipeline=True))
         self.add_vunit_config(tb, generics=dict(pipeline=False))
 
+        tb = vunit_proj.library(self.library_name).test_bench("tb_axi_cdc")
+        tb.add_config(name="input_clk_fast", generics=dict(input_clk_fast=True))
+        tb.add_config(name="output_clk_fast", generics=dict(output_clk_fast=True))
+        tb.add_config(name="same_clocks")
+
         tb = vunit_proj.library(self.library_name).test_bench("tb_axil_cdc")
         tb.add_config(name="master_clk_fast", generics=dict(master_clk_fast=True))
         tb.add_config(name="slave_clk_fast", generics=dict(slave_clk_fast=True))

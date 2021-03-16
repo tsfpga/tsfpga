@@ -5,6 +5,10 @@
 -- https://tsfpga.com
 -- https://gitlab.com/tsfpga/tsfpga
 -- -------------------------------------------------------------------------------------------------
+-- Test AXI clock domain crossing by running transactions through a
+-- axi_read/write_cdc -> axi_read/write_throttle chain. The tests run are not very exhaustive,
+-- it is more of a connectivity test.
+-- -------------------------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -25,26 +29,30 @@ use work.axi_pkg.all;
 
 entity tb_axi_cdc is
   generic (
+    input_clk_fast : boolean;
+    output_clk_fast : boolean;
     runner_cfg : string
   );
 end entity;
 
 architecture tb of tb_axi_cdc is
 
-  constant id_width : integer := 5;
-  constant addr_width : integer := 24;
-  constant data_width : integer := 32;
-  constant num_words : integer := 1000;
+  constant id_width : natural := 5;
+  constant addr_width : positive := 24;
+  constant data_width : positive := 32;
+  constant max_burst_length_beats : positive := 256;
+  constant num_words : positive := 1000;
 
   constant clk_fast_period : time := 3 ns;
   constant clk_slow_period : time := 7 ns;
 
   signal clk_input, clk_output : std_logic := '0';
 
-  signal input_read_m2s, output_read_m2s : axi_read_m2s_t := axi_read_m2s_init;
-  signal input_read_s2m, output_read_s2m : axi_read_s2m_t := axi_read_s2m_init;
-  signal input_write_m2s, output_write_m2s : axi_write_m2s_t := axi_write_m2s_init;
-  signal input_write_s2m, output_write_s2m : axi_write_s2m_t := axi_write_s2m_init;
+  signal input_read_m2s : axi_read_m2s_t := axi_read_m2s_init;
+  signal input_read_s2m : axi_read_s2m_t := axi_read_s2m_init;
+
+  signal input_write_m2s : axi_write_m2s_t := axi_write_m2s_init;
+  signal input_write_s2m : axi_write_s2m_t := axi_write_s2m_init;
 
   constant axi_master : bus_master_t := new_bus(
     data_length => data_width,
@@ -66,10 +74,20 @@ architecture tb of tb_axi_cdc is
 
 begin
 
-  clk_input <= not clk_input after clk_fast_period / 2;
-  clk_output <= not clk_output after clk_slow_period / 2;
+  clk_input_gen : if input_clk_fast generate
+    clk_input <= not clk_input after clk_fast_period / 2;
+  else generate
+    clk_input <= not clk_input after clk_slow_period / 2;
+  end generate;
+
+  clk_output_gen : if output_clk_fast generate
+    clk_output <= not clk_output after clk_fast_period / 2;
+  else generate
+    clk_output <= not clk_output after clk_slow_period / 2;
+  end generate;
 
   test_runner_watchdog(runner, 1 ms);
+
 
   ------------------------------------------------------------------------------
   main : process
@@ -110,7 +128,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axi_input_inst : entity bfm.axi_master
+  axi_master_inst : entity bfm.axi_master
     generic map (
       bus_handle => axi_master
     )
@@ -126,63 +144,143 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axi_output_inst : entity bfm.axi_slave
-  generic map (
-    axi_slave => axi_slave,
-    data_width => data_width,
-    id_width => id_width
-  )
-  port map (
-    clk => clk_output,
-    --
-    axi_read_m2s => output_read_m2s,
-    axi_read_s2m => output_read_s2m,
-    --
-    axi_write_m2s => output_write_m2s,
-    axi_write_s2m => output_write_s2m
-  );
+  read_block : block
+    signal resynced_m2s, throttled_m2s : axi_read_m2s_t := axi_read_m2s_init;
+    signal resynced_s2m, throttled_s2m : axi_read_s2m_t := axi_read_s2m_init;
+
+    constant data_fifo_depth : positive := 1024;
+    signal data_fifo_level : integer range 0 to data_fifo_depth := 0;
+  begin
+
+    ------------------------------------------------------------------------------
+    axi_read_cdc_inst : entity work.axi_read_cdc
+      generic map (
+        id_width => id_width,
+        addr_width => addr_width,
+        data_width => data_width,
+        enable_data_fifo_packet_mode => false,
+        data_fifo_depth => data_fifo_depth,
+        address_fifo_depth => 32
+      )
+      port map (
+        clk_input => clk_input,
+        input_m2s => input_read_m2s,
+        input_s2m => input_read_s2m,
+        --
+        clk_output => clk_output,
+        output_m2s => resynced_m2s,
+        output_s2m => resynced_s2m,
+        output_data_fifo_level => data_fifo_level
+      );
+
+
+    ------------------------------------------------------------------------------
+    axi_read_throttle_inst : entity work.axi_read_throttle
+      generic map (
+        data_fifo_depth => data_fifo_depth,
+        max_burst_length_beats => max_burst_length_beats,
+        id_width => id_width,
+        addr_width => addr_width,
+        full_ar_throughput => false
+      )
+      port map (
+        clk => clk_output,
+        --
+        data_fifo_level => data_fifo_level,
+        --
+        input_m2s => resynced_m2s,
+        input_s2m => resynced_s2m,
+        --
+        throttled_m2s => throttled_m2s,
+        throttled_s2m => throttled_s2m
+      );
+
+
+    ------------------------------------------------------------------------------
+    axi_read_slave_wrapper_inst : entity bfm.axi_read_slave_wrapper
+      generic map (
+        axi_slave => axi_slave,
+        data_width => data_width,
+        id_width => id_width
+      )
+      port map (
+        clk => clk_output,
+        --
+        axi_read_m2s => throttled_m2s,
+        axi_read_s2m => throttled_s2m
+      );
+
+  end block;
 
 
   ------------------------------------------------------------------------------
-  axi_read_cdc_inst : entity work.axi_read_cdc
-    generic map (
-      id_width => id_width,
-      addr_width => addr_width,
-      data_width => data_width,
-      enable_data_fifo_packet_mode => false,
-      data_fifo_depth => 1024,
-      address_fifo_depth => 32
-    )
-    port map (
-      clk_input => clk_input,
-      input_m2s => input_read_m2s,
-      input_s2m => input_read_s2m,
-      --
-      clk_output => clk_output,
-      output_m2s => output_read_m2s,
-      output_s2m => output_read_s2m
-    );
+  write_block : block
+    signal resynced_m2s, throttled_m2s : axi_write_m2s_t := axi_write_m2s_init;
+    signal resynced_s2m, throttled_s2m : axi_write_s2m_t := axi_write_s2m_init;
+
+    constant data_fifo_depth : positive := 1024;
+    signal data_fifo_level : integer range 0 to data_fifo_depth := 0;
+  begin
+
+    ------------------------------------------------------------------------------
+    axi_write_cdc_inst : entity work.axi_write_cdc
+      generic map (
+        id_width => id_width,
+        addr_width => addr_width,
+        data_width => data_width,
+        enable_data_fifo_packet_mode => true,
+        address_fifo_depth => 32,
+        data_fifo_depth => data_fifo_depth,
+        response_fifo_depth => 32
+      )
+      port map (
+        clk_input => clk_input,
+        input_m2s => input_write_m2s,
+        input_s2m => input_write_s2m,
+        --
+        clk_output => clk_output,
+        output_m2s => resynced_m2s,
+        output_s2m => resynced_s2m,
+        output_data_fifo_level => data_fifo_level
+      );
 
 
-  ------------------------------------------------------------------------------
-  axi_write_cdc_inst : entity work.axi_write_cdc
-    generic map (
-      id_width => id_width,
-      addr_width => addr_width,
-      data_width => data_width,
-      enable_data_fifo_packet_mode => true,
-      address_fifo_depth => 32,
-      data_fifo_depth => 1024,
-      response_fifo_depth => 32
-    )
-    port map (
-      clk_input => clk_input,
-      input_m2s => input_write_m2s,
-      input_s2m => input_write_s2m,
-      --
-      clk_output => clk_output,
-      output_m2s => output_write_m2s,
-      output_s2m => output_write_s2m
-    );
+    ------------------------------------------------------------------------------
+    axi_write_throttle_inst : entity work.axi_write_throttle
+      generic map (
+        data_fifo_depth => data_fifo_depth,
+        max_burst_length_beats => max_burst_length_beats,
+        id_width => id_width,
+        addr_width => addr_width,
+        full_aw_throughput => false
+      )
+      port map (
+        clk => clk_output,
+        --
+        data_fifo_level => data_fifo_level,
+        --
+        input_m2s => resynced_m2s,
+        input_s2m => resynced_s2m,
+        --
+        throttled_m2s => throttled_m2s,
+        throttled_s2m => throttled_s2m
+      );
+
+
+    ------------------------------------------------------------------------------
+    axi_write_slave_wrapper_inst : entity bfm.axi_write_slave_wrapper
+      generic map (
+        axi_slave => axi_slave,
+        data_width => data_width,
+        id_width => id_width
+      )
+      port map (
+        clk => clk_output,
+        --
+        axi_write_m2s => throttled_m2s,
+        axi_write_s2m => throttled_s2m
+      );
+
+  end block;
 
 end architecture;
