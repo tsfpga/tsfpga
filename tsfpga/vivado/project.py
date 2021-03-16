@@ -6,13 +6,14 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-import json
 import shutil
 
 from tsfpga import TSFPGA_TCL
 from tsfpga.system_utils import create_file, read_file
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
+from .build_result import BuildResult
 from .common import run_vivado_tcl, run_vivado_gui
+from .logic_level_distribution_parser import LogicLevelDistributionParser
 from .size_checker import UtilizationParser
 from .tcl import VivadoTcl
 
@@ -80,6 +81,7 @@ class VivadoProject:
         # Will be set by child class when applicable
         self.is_netlist_build = False
         self.analyze_synthesis_timing = True
+        self.report_logic_level_distribution = False
 
         self.top = name + "_top" if top is None else top
         self._vivado_path = vivado_path
@@ -110,7 +112,7 @@ class VivadoProject:
         # Check the implemented timing and resource utilization via TCL build hooks.
         # This is different than for synthesis, where it is embedded in the build script.
         # This is due to Vivado limitations related to post-synthesis hooks.
-        # Spceifically, the report_utilization figures do not include IP cores when it is run in
+        # Specifically, the report_utilization figures do not include IP cores when it is run in
         # a post-synthesis hook.
         self.build_step_hooks.append(
             BuildStepTclHook(TSFPGA_TCL / "report_utilization.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE")
@@ -120,13 +122,24 @@ class VivadoProject:
         )
 
         if not self.analyze_synthesis_timing:
-            # In this special case however, the synthesized design is never opened. So in order to
-            # get a utiliztion report anyway we add it as a hook. This mode is exclusively used by
-            # netlist builds, which very rarely include IP cores, so it is acceptable that the
-            # utilization report might be erroneous with regards to IP cores.
+            # In this special case however, the synthesized design is never opened, and
+            # report_utilization is not run by the build_vivado_project.tcl.
+            # So in order to get a utilization report anyway we add it as a hook.
+            # This mode is exclusively used by netlist builds, which very rarely include IP cores,
+            # so it is acceptable that the utilization report might be erroneous with regards to
+            # IP cores.
             self.build_step_hooks.append(
                 BuildStepTclHook(
                     TSFPGA_TCL / "report_utilization.tcl", "STEPS.SYNTH_DESIGN.TCL.POST"
+                )
+            )
+
+        if self.report_logic_level_distribution:
+            # Used by netlist builds
+            self.build_step_hooks.append(
+                BuildStepTclHook(
+                    TSFPGA_TCL / "report_logic_level_distribution.tcl",
+                    "STEPS.SYNTH_DESIGN.TCL.POST",
                 )
             )
 
@@ -357,6 +370,10 @@ class VivadoProject:
             return result
 
         result.synthesis_size = self._get_size(project_path, f"synth_{run_index}")
+        if self.report_logic_level_distribution:
+            result.logic_level_distribution = self._get_logic_level_distribution(
+                project_path, f"synth_{run_index}"
+            )
 
         if not synth_only:
             impl_folder = project_path / f"{self.name}.runs" / f"impl_{run_index}"
@@ -395,6 +412,16 @@ class VivadoProject:
         )
         return UtilizationParser.get_size(report_as_string)
 
+    def _get_logic_level_distribution(self, project_path, run):
+        """
+        Reads the hierarchical utilization report and returns the top level size
+        for the specified run.
+        """
+        report_as_string = read_file(
+            project_path / f"{self.name}.runs" / run / "logical_level_distribution.rpt"
+        )
+        return LogicLevelDistributionParser.get_table(report_as_string)
+
     def __str__(self):
         result = self.name
         if self.defined_at is not None:
@@ -427,7 +454,7 @@ class VivadoNetlistProject(VivadoProject):
                 Also, in order for clock crossing check to work, the clocks have to be created
                 using a constraint file.
             result_size_checkers (list(:class:`.SizeChecker`)): Size checkers that will be
-                executed after a succesful build. Is used to automatically check that
+                executed after a successful build. Is used to automatically check that
                 resource utilization is not greater than expected.
             kwargs: Other arguments accepted by :meth:`.VivadoProject.__init__`.
         """
@@ -435,6 +462,7 @@ class VivadoNetlistProject(VivadoProject):
 
         self.is_netlist_build = True
         self.analyze_synthesis_timing = analyze_synthesis_timing
+        self.report_logic_level_distribution = True
         self.result_size_checkers = [] if result_size_checkers is None else result_size_checkers
 
     def build(self, **kwargs):  # pylint: disable=arguments-differ
@@ -460,47 +488,3 @@ class VivadoNetlistProject(VivadoProject):
             success = success and result
 
         return success
-
-
-class BuildResult:
-
-    """
-    Attributes:
-        project_name (`str`): The name of the build.
-        success (`bool`): True if the build and all pre- and post hooks succeeded.
-        synthesis_size (`dict`): A dictionary with the utilization of primitives for the
-            synthesized design. Will be ``None`` if synthesis failed or did not run.
-        implementation_size (`dict`): A dictionary with the utilization of primitives for
-            the implemented design. Will be ``None`` if implementation failed or did not run.
-    """
-
-    def __init__(self, name):
-        """
-        Arguments:
-            name (`str`): The name of the build.
-        """
-        self.name = name
-        self.success = True
-        self.synthesis_size = None
-        self.implementation_size = None
-
-    def size_summary(self):
-        """
-        Return a string with a formatted message of the size.
-
-        Returns:
-            str: A human-readable message of the latest size. ``None`` if no size is set.
-        """
-        build_step = None
-        size = None
-
-        if self.implementation_size is not None:
-            build_step = "implementation"
-            size = self.implementation_size
-        elif self.synthesis_size is not None:
-            build_step = "synthesis"
-            size = self.synthesis_size
-        else:
-            return None
-
-        return f"Size of {self.name} after {build_step}:\n{json.dumps(size, indent=2)}"

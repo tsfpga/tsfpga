@@ -7,6 +7,7 @@
 # --------------------------------------------------------------------------------------------------
 
 import re
+from collections import OrderedDict
 
 
 class UtilizationParser:
@@ -24,7 +25,6 @@ class UtilizationParser:
         Arguments:
             report (str): A string containing the entire Vivado hierarchical utilization report.
         """
-        result = dict()
         lines = report.split("\n")
         for idx, line in enumerate(lines):
             # Find the table line that is the top level
@@ -39,10 +39,9 @@ class UtilizationParser:
                 numbers = numbers[3:-1]
                 # Convert numbers from string to integers
                 numbers = [int(number) for number in numbers]
-                result = dict(zip(headers, numbers))
-                break
+                return OrderedDict(zip(headers, numbers))
 
-        return result
+        return dict()
 
 
 class LessThan:

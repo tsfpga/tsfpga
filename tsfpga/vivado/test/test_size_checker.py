@@ -9,21 +9,27 @@
 from unittest import mock
 import io
 
-from tsfpga.vivado.size_checker import UtilizationParser, EqualTo, DspBlocks, LessThan, TotalLuts
+from tsfpga.vivado.size_checker import (
+    UtilizationParser,
+    EqualTo,
+    DspBlocks,
+    LessThan,
+    TotalLuts,
+)
 
 
 def test_utilization_parser():
-    report = " \
-Writing top or top) or (top here should not cause issues\n\
-Also writing pipes | | | | should be fine\n\
-Random sections of dashes should be fine:\n\
----------------------------------------------------------------\n\
------------------------+----------------------------+----------\n\
-But this should hit:\n\
-| x | x | a | b | c | d |\n\
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\
-| x | (top) | 1 | 2 | 3 | 4 |\n\
-"
+    report = """
+Writing top or top) or (top here should not cause issues
+Also writing pipes | | | | should be fine
+Random sections of dashes should be fine:
+---------------------------------------------------------------
+-----------------------+----------------------------+----------
+But this should hit:
+| x | x | a | b | c | d |
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+| x | (top) | 1 | 2 | 3 | 4 |
+"""
 
     result = UtilizationParser.get_size(report)
     assert result["a"] == 1

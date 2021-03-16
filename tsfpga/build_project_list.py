@@ -66,7 +66,7 @@ class BuildProjectList:
             projects_path (`pathlib.Path`): The projects will be placed here.
             num_parallel_builds (int): The number of projects that will be created in
                 parallel.
-            kwargs: Other arguments as accpeted by :meth:`.VivadoProject.create`.
+            kwargs: Other arguments as accepted by :meth:`.VivadoProject.create`.
 
                 .. Note::
                     Argument ``project_path`` can not be set, it is set by this class
@@ -95,7 +95,7 @@ class BuildProjectList:
             projects_path (`pathlib.Path`): The projects will be placed here.
             num_parallel_builds (int): The number of projects that will be created in
                 parallel.
-            kwargs: Other arguments as accpeted by :meth:`.VivadoProject.create`.
+            kwargs: Other arguments as accepted by :meth:`.VivadoProject.create`.
 
                 .. Note::
                     Argument ``project_path`` can not be set, it is set by this class
@@ -238,13 +238,17 @@ class BuildProjectList:
         test_runner.run(test_list)
 
         all_builds_ok = report.all_ok()
+        report.set_real_total_time(time.time() - start_time)
+
         # True if the builds are for the "build" step (not "create" or "open")
-        wrappers_are_for_build = isinstance(build_wrappers[0], BuildProjectBuildWrapper)
-        if wrappers_are_for_build or not all_builds_ok:
-            # Show summary for builds, since that contains the resource summary that we want to
-            # see. Or in all cases where something has failed so the fail log is shown directly
-            # in the console output.
-            report.set_real_total_time(time.time() - start_time)
+        if isinstance(build_wrappers[0], BuildProjectBuildWrapper):
+            # Print summary for builds, which contains resource utilization and other information.
+            # The length of the summary depends on if it is a netlist build or a regular one, so
+            # set the length given by one of the project objects.
+            report.set_report_length(build_wrappers[0].build_result_report_length)
+            report.print_str()
+        elif not all_builds_ok:
+            # In cases where something has failed show some log directly in the console output.
             report.print_str()
 
         return all_builds_ok
@@ -307,7 +311,7 @@ class BuildProjectBuildWrapper:
         build_result = self._project.build(project_path=this_projects_path, **self._build_arguments)
 
         if not build_result.success:
-            self._print_size(build_result)
+            self._print_build_result(build_result)
             return build_result.success
 
         # Proceed to artifact collection only if build succeeded.
@@ -318,17 +322,44 @@ class BuildProjectBuildWrapper:
                 build_result.success = False
 
         # Print size at the absolute end
-        self._print_size(build_result)
+        self._print_build_result(build_result)
         return build_result.success
 
     @staticmethod
-    def _print_size(build_result):
-        size_summary = build_result.size_summary()
-        if size_summary:
-            # Add an empty line before the size summary, to have margin in how many lines are
+    def _print_build_result(build_result):
+        build_report = build_result.report()
+        if build_report:
+            # Add an empty line before the build result report, to have margin in how many lines are
             # printed. See the comments in BuildResult for an explanation.
             print()
-            print(size_summary)
+            print(build_report)
+
+    @property
+    def build_result_report_length(self):
+        """
+        The number of lines in the build_result report from this project.
+        """
+        # The size summary, as returned by tsfpga.vivado.project.BuildResult is a JSON formatted
+        # string with one line for each utilization category.
+        # For Xilinx 7 series, there are 8 categories (Total LUTs, Logic LUTs, LUTRAMs,
+        # SRLs, FFs, RAMB36, RAMB18, DSP Blocks). For UltraScale series there is one
+        # extra (URAM).
+        # Additionally, the size summary contains three extra lines for JSON braces and a title.
+        #
+        # This value is enough lines so the whole summary gets printed to console.
+        # For 7 series, this will mean an extra blank line before the summary.
+        #
+        # This is a hack. Works for now, but is far from reliable.
+        length_of_size_report = 3 + 8 + 1
+
+        if self._project.is_netlist_build:
+            # The logic level distribution report is five lines, plus a title line.
+            # This report is only printed for netlist builds, where there is no configured clock
+            # present. If there were many clocks present in the build, the report would be longer.
+            length_of_logic_level_report = 5 + 1
+            return length_of_size_report + length_of_logic_level_report
+
+        return length_of_size_report
 
 
 class BuildProjectOpenWrapper:
@@ -418,6 +449,10 @@ class BuildReport(TestReport):
         self._test_results[result.name] = result
         self._test_names_in_order.append(result.name)
 
+    def set_report_length(self, report_length_lines):
+        for test_result in self._test_results.values():
+            test_result.set_report_length(report_length_lines)
+
     def print_latest_status(self, total_tests):
         """
         This method is called for each build when it should print its result just as it finished,
@@ -443,12 +478,18 @@ class BuildReport(TestReport):
 
 
 class BuildResult(TestResult):
+
+    report_length_lines = None
+
     def _print_output(self, printer, num_lines):
         """
         Print the last lines from the output file.
         """
         output_tail = read_last_lines_of_file(Path(self._output_file_name), num_lines=num_lines)
         printer.write(output_tail)
+
+    def set_report_length(self, report_length_lines):
+        self.report_length_lines = report_length_lines
 
     def print_status(self, printer, padding=0):
         """
@@ -458,19 +499,7 @@ class BuildResult(TestResult):
         Inherited and adapted from the VUnit function.
         """
         if self.passed:
-            # Print the number of lines that contain the size summary, but not output from the IDE.
-            # The size summary, as returned by tsfpga.vivado.project.BuildResult is a JSON formatted
-            # string with one line for each utilization category.
-            # For Xilinx 7 series, there are 8 categories (Total LUTs, Logic LUTs, LUTRAMs,
-            # SRLs, FFs, RAMB36, RAMB18, DSP Blocks). For UltraScale series there is one
-            # extra (URAM).
-            # Additionally, the size summary contains three extra lines for JSON braces and a title.
-            #
-            # Print enough lines so the whole summary gets printed to console. For 7 series, this
-            # will mean an extra blank line before the summary.
-            #
-            # This is a hack. Works for now, but is far from reliable.
-            self._print_output(printer, num_lines=3 + 8 + 1)
+            self._print_output(printer, num_lines=self.report_length_lines)
         else:
             # The build failed, which can either be caused by
             # 1. IDE build failure
