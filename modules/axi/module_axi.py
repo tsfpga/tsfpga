@@ -7,6 +7,8 @@
 # --------------------------------------------------------------------------------------------------
 
 from tsfpga.module import BaseModule
+from tsfpga.vivado.project import VivadoNetlistProject
+from examples.tsfpga_example_env import get_tsfpga_modules
 
 
 class Module(BaseModule):
@@ -56,3 +58,39 @@ class Module(BaseModule):
         tb = vunit_proj.library(self.library_name).test_bench("tb_axil_mux")
         tb.test("read_from_non_existent_slave_base_adress").set_generic("use_axil_bfm", False)
         tb.test("write_to_non_existent_slave_base_adress").set_generic("use_axil_bfm", False)
+
+    def get_build_projects(self):
+        projects = []
+        modules = get_tsfpga_modules(names_include=[self.name, "common"])
+        part = "xc7z020clg400-1"
+
+        generics = dict(
+            data_fifo_depth=1024,
+            max_burst_length_beats=256,
+            id_width=6,
+            addr_width=32,
+            full_ar_throughput=False,
+            full_aw_throughput=False,
+        )
+
+        projects.append(
+            VivadoNetlistProject(
+                name=f"{self.library_name}.axi_read_throttle",
+                modules=modules,
+                part=part,
+                top="axi_read_throttle",
+                generics=generics,
+            )
+        )
+
+        projects.append(
+            VivadoNetlistProject(
+                name=f"{self.library_name}.axi_write_throttle",
+                modules=modules,
+                part=part,
+                top="axi_write_throttle",
+                generics=generics,
+            )
+        )
+
+        return projects
