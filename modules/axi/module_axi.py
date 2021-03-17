@@ -56,8 +56,8 @@ class Module(BaseModule):
         tb.add_config(name="axi", generics=dict(test_axi_lite=False))
 
         tb = vunit_proj.library(self.library_name).test_bench("tb_axil_mux")
-        tb.test("read_from_non_existent_slave_base_adress").set_generic("use_axil_bfm", False)
-        tb.test("write_to_non_existent_slave_base_adress").set_generic("use_axil_bfm", False)
+        tb.test("read_from_non_existent_slave_base_address").set_generic("use_axil_bfm", False)
+        tb.test("write_to_non_existent_slave_base_address").set_generic("use_axil_bfm", False)
 
     def get_build_projects(self):
         projects = []

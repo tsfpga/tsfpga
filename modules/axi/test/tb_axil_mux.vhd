@@ -164,7 +164,7 @@ begin
         end loop;
       end loop;
 
-    elsif run("read_from_non_existent_slave_base_adress") then
+    elsif run("read_from_non_existent_slave_base_address") then
       hard_coded_read_data(x"0000_4000");
       check_equal(axil_s2m.read.r.resp, axi_resp_decerr);
 
@@ -183,7 +183,7 @@ begin
       check_equal(axil_s2m.read.r.resp, axi_resp_okay);
       check_equal(axil_s2m.read.r.data(data'range), data);
 
-    elsif run("write_to_non_existent_slave_base_adress") then
+    elsif run("write_to_non_existent_slave_base_address") then
       hard_coded_write_data(x"0000_4000", x"0102_0304");
       check_equal(axil_s2m.write.b.resp, axi_resp_decerr);
 
