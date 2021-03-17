@@ -36,10 +36,16 @@ class Module(BaseModule):
         self.add_vunit_config(tb, generics=dict(pipeline=True))
         self.add_vunit_config(tb, generics=dict(pipeline=False))
 
+        # The setting of max_burst_length_beats is not really dependent on the clock configurations,
+        # so we do not need to test every possible combination of these settings.
         tb = vunit_proj.library(self.library_name).test_bench("tb_axi_cdc")
-        tb.add_config(name="input_clk_fast", generics=dict(input_clk_fast=True))
-        tb.add_config(name="output_clk_fast", generics=dict(output_clk_fast=True))
-        tb.add_config(name="same_clocks")
+        tb.add_config(
+            name="input_clk_fast", generics=dict(input_clk_fast=True, max_burst_length_beats=16)
+        )
+        tb.add_config(
+            name="output_clk_fast", generics=dict(output_clk_fast=True, max_burst_length_beats=256)
+        )
+        tb.add_config(name="same_clocks", generics=dict(max_burst_length_beats=16))
 
         tb = vunit_proj.library(self.library_name).test_bench("tb_axil_cdc")
         tb.add_config(name="master_clk_fast", generics=dict(master_clk_fast=True))
@@ -61,7 +67,7 @@ class Module(BaseModule):
 
     def get_build_projects(self):
         projects = []
-        modules = get_tsfpga_modules(names_include=[self.name, "common"])
+        modules = get_tsfpga_modules(names_include=[self.name, "common", "math"])
         part = "xc7z020clg400-1"
 
         generics = dict(

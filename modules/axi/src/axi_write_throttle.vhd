@@ -27,6 +27,9 @@ use axi.axi_pkg.all;
 library common;
 use common.types_pkg.all;
 
+library math;
+use math.math_pkg.all;
+
 
 entity axi_write_throttle is
   generic(
@@ -59,19 +62,28 @@ architecture a of axi_write_throttle is
   signal pipelined_m2s_aw : axi_m2s_a_t := axi_m2s_a_init;
   signal pipelined_s2m_aw : axi_s2m_a_t := axi_s2m_a_init;
 
+  signal address_transaction, data_transaction : std_logic := '0';
+
+  -- The bits of the AWLEN field that shall be taken into account
+  constant len_width : positive := num_bits_needed(max_burst_length_beats - 1);
+  subtype len_range is integer range len_width - 1 downto 0;
+
+  -- +1 in range for sign bit
+  signal minus_burst_length_beats : signed(len_width + 1 - 1 downto 0) :=
+    (others => '0');
+
   -- Since W transactions can happen before AW transaction,
-  -- the counters can become negative as well.
+  -- the counters can become negative as well as positive.
   subtype data_counter_t is integer range -data_fifo_depth to data_fifo_depth;
 
+  -- Negation of:
   -- Data beats that are available in the FIFO, but have not yet been claimed by
   -- an address transaction.
-  signal num_beats_available_but_not_negotiated : data_counter_t := 0;
+  signal minus_num_beats_available_but_not_negotiated : data_counter_t := 0;
 
   -- Number of data beats that have been negotiated through an address transaction,
   -- but have not yet been sent via data transactions. Aka outstanding beats.
   signal num_beats_negotiated_but_not_sent : data_counter_t := 0;
-
-  signal burst_length_beats : integer range 0 to max_burst_length_beats;
 
 begin
 
@@ -123,7 +135,8 @@ begin
   end block;
 
 
-  burst_length_beats <= to_integer(unsigned(pipelined_m2s_aw.len)) + 1;
+  -- Two complement inversion: inv(len) = - len - 1 = - (len + 1) = - burst_length_beats
+  minus_burst_length_beats <= not signed('0' & pipelined_m2s_aw.len(len_range));
 
   ------------------------------------------------------------------------------
   assign_throttled_bus : process(all)
@@ -138,8 +151,24 @@ begin
     throttled_m2s.b <= input_m2s.b;
     input_s2m.b <= throttled_s2m.b;
 
+    -- The original condition would have been
+    --
+    -- block_address_transactions =
+    --   burst_length_beats > num_beats_available_but_not_negotiated
+    --
+    -- where num_beats_available_but_not_negotiated =
+    --   data_fifo_level - num_beats_negotiated_but_not_sent
+    --
+    -- where num_beats_negotiated_but_not_sent was given by accumulating
+    --   to_int(address_transaction) * burst_length_beats - to_int(data_transaction)
+    --
+    -- However this created a very long critical path from AWLEN to AWVALID. The
+    -- bytes_per_beat = AWLEN + 1 term, used in two places was replaced with -inv(AWLEN).
+    -- The minus sign was moved to the right side of the expression, which changed the subtraction
+    -- order. This makes the signals and their ranges a bit harder to understand, but it improves
+    -- the critical path a lot.
     block_address_transactions :=
-      num_beats_available_but_not_negotiated < burst_length_beats;
+      minus_burst_length_beats < minus_num_beats_available_but_not_negotiated;
     if block_address_transactions then
       throttled_m2s.aw.valid <= '0';
       pipelined_s2m_aw.ready <= '0';
@@ -150,17 +179,30 @@ begin
   ------------------------------------------------------------------------------
   count : process
     variable num_beats_negotiated_but_not_sent_int : data_counter_t := 0;
+    variable aw_term : signed(minus_burst_length_beats'range) := (others => '0');
   begin
     wait until rising_edge(clk);
 
-    num_beats_negotiated_but_not_sent_int := num_beats_negotiated_but_not_sent
-      + to_int(throttled_s2m.aw.ready and throttled_m2s.aw.valid) * burst_length_beats
-      - to_int(throttled_s2m.w.ready and throttled_m2s.w.valid);
+    -- This muxing results in a shorter critical path than doing
+    -- e.g. minus_burst_length_beats * to_int(address_transaction).
+    -- LUT usage stayed the same.
+    if address_transaction then
+      aw_term := minus_burst_length_beats;
+    else
+      aw_term := (others => '0');
+    end if;
 
-    num_beats_available_but_not_negotiated <=
-      data_fifo_level - num_beats_negotiated_but_not_sent_int;
+    num_beats_negotiated_but_not_sent_int := num_beats_negotiated_but_not_sent
+      - to_integer(aw_term)
+      - to_int(data_transaction);
+
+    minus_num_beats_available_but_not_negotiated <=
+      num_beats_negotiated_but_not_sent_int - data_fifo_level;
 
     num_beats_negotiated_but_not_sent <= num_beats_negotiated_but_not_sent_int;
   end process;
+
+  address_transaction <= throttled_s2m.aw.ready and throttled_m2s.aw.valid;
+  data_transaction <= throttled_s2m.w.ready and throttled_m2s.w.valid;
 
 end architecture;

@@ -31,6 +31,7 @@ entity tb_axi_cdc is
   generic (
     input_clk_fast : boolean;
     output_clk_fast : boolean;
+    max_burst_length_beats : positive;
     runner_cfg : string
   );
 end entity;
@@ -40,7 +41,6 @@ architecture tb of tb_axi_cdc is
   constant id_width : natural := 5;
   constant addr_width : positive := 24;
   constant data_width : positive := 32;
-  constant max_burst_length_beats : positive := 256;
   constant num_words : positive := 1000;
 
   constant clk_fast_period : time := 3 ns;
