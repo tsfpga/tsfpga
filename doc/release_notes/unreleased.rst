@@ -4,6 +4,7 @@ Added
 * Add ``drop_packet`` support to synchronous and asynchronous FIFOs.
 * Add check for pulse width timing violations after implementation in Vivado build system.
 * Check clock interaction after implementation as well in Vivado build system.
+* Add ``common.clock_counter`` VHDL entity.
 
 Breaking changes
 

@@ -8,11 +8,20 @@
 
 from tsfpga.module import BaseModule
 from tsfpga.vivado.project import VivadoNetlistProject
-from tsfpga.vivado.size_checker import EqualTo, Ffs, TotalLuts
+from tsfpga.vivado.size_checker import EqualTo, Ffs, Srls, TotalLuts
+from examples.tsfpga_example_env import get_tsfpga_modules
 
 
 class Module(BaseModule):
     def setup_vunit(self, vunit_proj, **kwargs):
+        tb = vunit_proj.library(self.library_name).test_bench("tb_clock_counter")
+        self.add_vunit_config(
+            tb, generics=dict(reference_clock_rate_mhz=300, target_clock_rate_mhz=50)
+        )
+        self.add_vunit_config(
+            tb, generics=dict(reference_clock_rate_mhz=50, target_clock_rate_mhz=300)
+        )
+
         tb = vunit_proj.library(self.library_name).test_bench("tb_width_conversion")
 
         for input_width in [8, 16, 32]:
@@ -59,6 +68,11 @@ class Module(BaseModule):
     def get_build_projects(self):
         projects = []
         part = "xc7z020clg400-1"
+        self._get_handshake_pipeline_build_projects(part, projects)
+        self._get_clock_counter_build_projects(part, projects)
+        return projects
+
+    def _get_handshake_pipeline_build_projects(self, part, projects):
         generics = dict(data_width=32)
 
         generics.update(full_throughput=True, allow_poor_input_ready_timing=True)
@@ -122,4 +136,39 @@ class Module(BaseModule):
             )
         )
 
-        return projects
+    def _get_clock_counter_build_projects(self, part, projects):
+        modules = get_tsfpga_modules()
+
+        # The design could be optimized by using shift registers instead of a freerunning
+        # counter in the reference domain.
+        generics = dict(resolution_bits=24, max_relation_bits=6)
+        projects.append(
+            VivadoNetlistProject(
+                name=self.test_case_name(name=f"{self.name}.clock_counter", generics=generics),
+                modules=modules,
+                part=part,
+                top="clock_counter",
+                generics=generics,
+                result_size_checkers=[
+                    TotalLuts(EqualTo(81)),
+                    Srls(EqualTo(0)),
+                    Ffs(EqualTo(204)),
+                ],
+            )
+        )
+
+        generics = dict(resolution_bits=10, max_relation_bits=4)
+        projects.append(
+            VivadoNetlistProject(
+                name=self.test_case_name(name=f"{self.name}.clock_counter", generics=generics),
+                modules=modules,
+                part=part,
+                top="clock_counter",
+                generics=generics,
+                result_size_checkers=[
+                    TotalLuts(EqualTo(43)),
+                    Srls(EqualTo(0)),
+                    Ffs(EqualTo(94)),
+                ],
+            )
+        )

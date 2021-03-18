@@ -137,6 +137,31 @@ class LogicLuts(SizeChecker):
     resource_name = "Logic LUTs"
 
 
+class LutRams(SizeChecker):
+
+    resource_name = "LUTRAMs"
+
+
+class Srls(SizeChecker):
+
+    resource_name = "SRLs"
+
+
+class Ffs(SizeChecker):
+
+    resource_name = "FFs"
+
+
+class Ramb36(SizeChecker):
+
+    resource_name = "RAMB36"
+
+
+class Ramb18(SizeChecker):
+
+    resource_name = "RAMB18"
+
+
 class DspBlocks(SizeChecker):
 
     """
@@ -155,18 +180,3 @@ class DspBlocks(SizeChecker):
             return self._check_value(legacy_name, result_size[legacy_name])
 
         return self._check_value(self.resource_name, result_size[self.resource_name])
-
-
-class Ffs(SizeChecker):
-
-    resource_name = "FFs"
-
-
-class Ramb36(SizeChecker):
-
-    resource_name = "RAMB36"
-
-
-class Ramb18(SizeChecker):
-
-    resource_name = "RAMB18"
