@@ -53,7 +53,7 @@ architecture tb of tb_axi_fifo is
   );
 
   constant memory : memory_t := new_memory;
-  constant axi_slave : axi_slave_t := new_axi_slave(
+  constant axi_read_slave, axi_write_slave : axi_slave_t := new_axi_slave(
     memory => memory,
     address_fifo_depth => 4,
     write_response_fifo_depth => 4,
@@ -134,7 +134,8 @@ begin
   ------------------------------------------------------------------------------
   axi_output_inst : entity bfm.axi_slave
   generic map (
-    axi_slave => axi_slave,
+    axi_read_slave => axi_read_slave,
+    axi_write_slave => axi_write_slave,
     data_width => data_width,
     id_width => id_width
   )

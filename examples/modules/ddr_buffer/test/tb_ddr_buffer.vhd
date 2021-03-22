@@ -56,7 +56,10 @@ architecture tb of tb_ddr_buffer is
   constant burst_size_bytes : integer := burst_length * axi_width / 8;
 
   constant memory : memory_t := new_memory;
-  constant axi_slave : axi_slave_t := new_axi_slave(address_fifo_depth => 1, memory => memory);
+  constant axi_read_slave, axi_write_slave : axi_slave_t := new_axi_slave(
+    address_fifo_depth => 1,
+    memory => memory
+  );
 
 begin
 
@@ -100,7 +103,8 @@ begin
   ------------------------------------------------------------------------------
   axi_slave_inst : entity bfm.axi_slave
     generic map (
-      axi_slave => axi_slave,
+      axi_read_slave => axi_read_slave,
+      axi_write_slave => axi_write_slave,
       data_width => axi_width
     )
     port map (

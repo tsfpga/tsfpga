@@ -12,14 +12,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library axi;
-use axi.axi_pkg.all;
-
 library vunit_lib;
 context vunit_lib.vc_context;
 
+library axi;
+use axi.axi_pkg.all;
 
-entity axi_read_slave_wrapper is
+
+entity axi_read_slave is
   generic (
     axi_slave : axi_slave_t;
     data_width : positive;
@@ -34,7 +34,7 @@ entity axi_read_slave_wrapper is
   );
 end entity;
 
-architecture a of axi_read_slave_wrapper is
+architecture a of axi_read_slave is
 
   signal arid, rid : std_logic_vector(id_width - 1 downto 0);
   signal araddr : std_logic_vector(axi_read_m2s.ar.addr'range );

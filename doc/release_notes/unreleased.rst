@@ -5,8 +5,8 @@ Added
 * Add check for pulse width timing violations after implementation in Vivado build system.
 * Check clock interaction after implementation as well in Vivado build system.
 * Add ``common.clock_counter`` VHDL entity.
-* Add ``bfm.axil_read_slave`` and ``bfm.axil_write_slave`` VHDL entities.
-* Add ``bfm.axi_read_slave_wrapper`` and ``bfm.axi_write_slave_wrapper`` VHDL entities.
+* Add ``bfm.axi_read_slave``, ``bfm.axi_write_slave``, ``bfm.axil_read_slave`` and
+  ``bfm.axil_write_slave`` VHDL entities.
 
 Breaking changes
 
@@ -17,8 +17,8 @@ Breaking changes
   of :class:`.vivado.size_checker.DspBlocks`.
 * Add a pipelining step to improve timing of ``axi.axi_read_throttle`` and
   ``axi.axi_write_throttle``. This introduces three new generics that must be set.
-* Change ``bfm.axil_slave`` interface to require two ``axi_slave_t`` generics:
-  ``axi_read_slave`` and ``axi_write_slave``.
+* Change ``bfm.axi_slave`` and ``bfm.axil_slave`` interfaces to require two ``axi_slave_t``
+  generics: ``axi_read_slave`` and ``axi_write_slave``.
 
 Changes
 

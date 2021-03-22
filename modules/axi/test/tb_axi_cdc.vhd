@@ -197,7 +197,7 @@ begin
 
 
     ------------------------------------------------------------------------------
-    axi_read_slave_wrapper_inst : entity bfm.axi_read_slave_wrapper
+    axi_read_slave_wrapper_inst : entity bfm.axi_read_slave
       generic map (
         axi_slave => axi_slave,
         data_width => data_width,
@@ -268,7 +268,7 @@ begin
 
 
     ------------------------------------------------------------------------------
-    axi_write_slave_wrapper_inst : entity bfm.axi_write_slave_wrapper
+    axi_write_slave_wrapper_inst : entity bfm.axi_write_slave
       generic map (
         axi_slave => axi_slave,
         data_width => data_width,

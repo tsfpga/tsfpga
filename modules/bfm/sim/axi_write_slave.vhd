@@ -12,14 +12,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library axi;
-use axi.axi_pkg.all;
-
 library vunit_lib;
 context vunit_lib.vc_context;
 
+library axi;
+use axi.axi_pkg.all;
 
-entity axi_write_slave_wrapper is
+
+entity axi_write_slave is
   generic (
     axi_slave : axi_slave_t;
     data_width : positive;
@@ -35,7 +35,7 @@ entity axi_write_slave_wrapper is
   );
 end entity;
 
-architecture a of axi_write_slave_wrapper is
+architecture a of axi_write_slave is
 
   signal w_fifo_m2s : axi_m2s_w_t := axi_m2s_w_init;
   signal w_fifo_s2m : axi_s2m_w_t := axi_s2m_w_init;

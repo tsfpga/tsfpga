@@ -231,7 +231,8 @@ begin
     ------------------------------------------------------------------------------
     axi_slave_inst : entity bfm.axi_slave
       generic map (
-        axi_slave => axi_read_slave,
+        axi_read_slave => axi_read_slave,
+        axi_write_slave => axi_write_slave,
         data_width => axi_port_data_width
       )
       port map (

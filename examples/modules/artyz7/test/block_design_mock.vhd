@@ -45,7 +45,10 @@ architecture a of block_design_mock is
   constant pl_clk0_period : time := 10 ns; -- 100 MHz
   constant pl_clk1_period : time := 5 ns; -- 200 MHz
 
-  constant axi_slave : axi_slave_t := new_axi_slave(address_fifo_depth => 1, memory => axi_memory);
+  constant axi_read_slave, axi_write_slave : axi_slave_t := new_axi_slave(
+    address_fifo_depth => 1,
+    memory => axi_memory
+  );
 
 begin
 
@@ -77,7 +80,8 @@ begin
   ------------------------------------------------------------------------------
   axi_slave_inst : entity bfm.axi_slave
     generic map (
-      axi_slave => axi_slave,
+      axi_read_slave => axi_read_slave,
+      axi_write_slave => axi_write_slave,
       data_width => 64
     )
     port map (
