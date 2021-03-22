@@ -5,105 +5,78 @@
 -- https://tsfpga.com
 -- https://gitlab.com/tsfpga/tsfpga
 -- -------------------------------------------------------------------------------------------------
+-- Wrapper around VUnit BFM that uses convenient record types for the AXI signals.
+-- Will instantiate read and/or write BFMs based on what generics are provided.
+-- -------------------------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library math;
-use math.math_pkg.all;
+library vunit_lib;
+context vunit_lib.vc_context;
 
 library axi;
 use axi.axi_pkg.all;
 use axi.axil_pkg.all;
 
-library vunit_lib;
-context vunit_lib.vunit_context;
-context vunit_lib.vc_context;
+use work.axi_slave_pkg.all;
 
 
 entity axil_slave is
   generic (
-    axi_slave : axi_slave_t;
+    axi_read_slave : axi_slave_t := axi_slave_init;
+    axi_write_slave : axi_slave_t := axi_slave_init;
     data_width : integer
   );
   port (
     clk : in std_logic;
-
-    axil_m2s : in axil_m2s_t := axil_m2s_init;
-    axil_s2m : out axil_s2m_t := axil_s2m_init
+    --
+    axil_read_m2s : in axil_read_m2s_t := axil_read_m2s_init;
+    axil_read_s2m : out axil_read_s2m_t := axil_read_s2m_init;
+    --
+    axil_write_m2s : in axil_write_m2s_t := axil_write_m2s_init;
+    axil_write_s2m : out axil_write_s2m_t := axil_write_s2m_init
   );
 end entity;
 
 architecture a of axil_slave is
 
-  constant len : std_logic_vector(axi_write_m2s_init.aw.len'range) :=
-    std_logic_vector(to_unsigned(0, axi_write_m2s_init.aw.len'length));
-  constant size : std_logic_vector(axi_write_m2s_init.aw.size'range) :=
-    std_logic_vector(to_unsigned(log2(data_width / 8), axi_write_m2s_init.aw.size'length));
-
-  -- Using "open" not ok in GHDL: unconstrained port "rid" must be connected
-  signal bid, rid, aid : std_logic_vector(8 - 1 downto 0) := (others => '0');
-
-  signal awaddr, araddr : std_logic_vector(axil_m2s.write.aw.addr'range);
-
 begin
 
   ------------------------------------------------------------------------------
-  axi_write_slave_inst : entity vunit_lib.axi_write_slave
-    generic map (
-      axi_slave => axi_slave
-    )
-    port map (
-      aclk => clk,
+  axi_read_slave_gen : if axi_read_slave /= axi_slave_init generate
 
-      awvalid => axil_m2s.write.aw.valid,
-      awready => axil_s2m.write.aw.ready,
-      awid => aid,
-      awaddr => awaddr,
-      awlen => len,
-      awsize => size,
-      awburst => axi_a_burst_fixed,
-
-      wvalid => axil_m2s.write.w.valid,
-      wready => axil_s2m.write.w.ready,
-      wdata => axil_m2s.write.w.data(data_width - 1 downto 0),
-      wstrb => axil_m2s.write.w.strb,
-      wlast => '1',
-
-      bvalid => axil_s2m.write.b.valid,
-      bready => axil_m2s.write.b.ready,
-      bid => bid,
-      bresp => axil_s2m.write.b.resp
-    );
-
-  awaddr <= std_logic_vector(axil_m2s.write.aw.addr);
+    axil_read_slave_inst : entity work.axil_read_slave
+      generic map (
+        axi_slave => axi_read_slave,
+        data_width => data_width
+      )
+      port map (
+        clk => clk,
+        --
+        axil_read_m2s => axil_read_m2s,
+        axil_read_s2m => axil_read_s2m
+      );
+  end generate;
 
 
   ------------------------------------------------------------------------------
-  axi_read_slave_inst : entity vunit_lib.axi_read_slave
-    generic map (
-      axi_slave => axi_slave
-    )
-    port map (
-      aclk => clk,
+  axi_write_slave_gen : if axi_write_slave /= axi_slave_init generate
 
-      arvalid => axil_m2s.read.ar.valid,
-      arready => axil_s2m.read.ar.ready,
-      arid => aid,
-      araddr => araddr,
-      arlen => len,
-      arsize => size,
-      arburst => axi_a_burst_fixed,
+    axil_write_slave_inst : entity work.axil_write_slave
+      generic map (
+        axi_slave => axi_write_slave,
+        data_width => data_width
+      )
+      port map (
+        clk => clk,
+        --
+        axil_write_m2s => axil_write_m2s,
+        axil_write_s2m => axil_write_s2m
+      );
 
-      rvalid => axil_s2m.read.r.valid,
-      rready => axil_m2s.read.r.ready,
-      rid => rid,
-      rdata => axil_s2m.read.r.data(data_width - 1 downto 0),
-      rresp => axil_s2m.read.r.resp,
-      rlast => open
-    );
+  end generate;
 
-  araddr <= std_logic_vector(axil_m2s.read.ar.addr);
 
 end architecture;

@@ -46,10 +46,13 @@ architecture tb of tb_axil_cdc is
   signal master_m2s, slave_m2s : axil_m2s_t;
   signal master_s2m, slave_s2m : axil_s2m_t;
 
-  constant axil_master_master : bus_master_t := new_bus(data_length => data_width, address_length => master_m2s.read.ar.addr'length);
+  constant axil_master : bus_master_t := new_bus(
+    data_length => data_width,
+     address_length => master_m2s.read.ar.addr'length
+    );
 
   constant memory : memory_t := new_memory;
-  constant axil_slave_slave : axi_slave_t := new_axi_slave(
+  constant axil_read_slave, axil_write_slave : axi_slave_t := new_axi_slave(
     memory => memory,
     address_fifo_depth => 8,
     write_response_fifo_depth => 8,
@@ -95,7 +98,7 @@ begin
       data := rnd.RandSlv(data'length);
 
        -- Call is non-blocking. I.e. we will build up a queue of writes.
-      write_bus(net, axil_master_master, address, data);
+      write_bus(net, axil_master, address, data);
       set_expected_word(memory, address, data);
       wait until rising_edge(clk_master);
     end loop;
@@ -104,7 +107,7 @@ begin
       address := 4 * idx;
       data := read_word(memory, address, 4);
 
-      check_bus(net, axil_master_master, address, data);
+      check_bus(net, axil_master, address, data);
     end loop;
 
     test_runner_cleanup(runner);
@@ -114,7 +117,7 @@ begin
   ------------------------------------------------------------------------------
   axil_master_inst : entity bfm.axil_master
     generic map (
-      bus_handle => axil_master_master
+      bus_handle => axil_master
     )
     port map (
       clk => clk_master,
@@ -126,16 +129,21 @@ begin
 
   ------------------------------------------------------------------------------
   axil_slave_inst : entity bfm.axil_slave
-  generic map (
-    axi_slave => axil_slave_slave,
-    data_width => data_width
-  )
-  port map (
-    clk => clk_slave,
+    generic map (
+      axi_read_slave => axil_read_slave,
+      axi_write_slave => axil_write_slave,
+      data_width => data_width
+    )
+    port map (
+      clk => clk_slave,
+      --
+      axil_read_m2s => slave_m2s.read,
+      axil_read_s2m => slave_s2m.read,
+      --
+      axil_write_m2s => slave_m2s.write,
+      axil_write_s2m => slave_s2m.write
+    );
 
-    axil_m2s => slave_m2s,
-    axil_s2m => slave_s2m
-  );
 
 
   ------------------------------------------------------------------------------

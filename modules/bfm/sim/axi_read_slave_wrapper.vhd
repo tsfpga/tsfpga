@@ -5,7 +5,7 @@
 -- https://tsfpga.com
 -- https://gitlab.com/tsfpga/tsfpga
 -- -------------------------------------------------------------------------------------------------
--- Wrapper around VUnit BFM that uses record types for the AXI signals.
+-- Wrapper around VUnit BFM that uses convenient record types for the AXI signals.
 -- -------------------------------------------------------------------------------------------------
 
 library ieee;

@@ -42,7 +42,7 @@ architecture tb of tb_axi_to_axil is
   signal axil_s2m : axil_s2m_t := axil_s2m_init;
 
   constant memory : memory_t := new_memory;
-  constant axi_slave : axi_slave_t := new_axi_slave(
+  constant axi_read_slave, axi_write_slave : axi_slave_t := new_axi_slave(
     memory => memory,
     address_fifo_depth => 8,
     write_response_fifo_depth => 8,
@@ -53,7 +53,10 @@ architecture tb of tb_axi_to_axil is
     max_response_latency => 16 * clk_period,
     logger => get_logger("axi_slave")
   );
-  constant axi_master : bus_master_t := new_bus(data_length => data_width, address_length => axi_m2s.read.ar.addr'length);
+  constant axi_master : bus_master_t := new_bus(
+    data_length => data_width,
+    address_length => axi_m2s.read.ar.addr'length
+  );
 
 begin
 
@@ -109,14 +112,18 @@ begin
   ------------------------------------------------------------------------------
   axil_slave_inst : entity bfm.axil_slave
     generic map (
-      axi_slave => axi_slave,
+      axi_read_slave => axi_read_slave,
+      axi_write_slave => axi_write_slave,
       data_width => data_width
     )
     port map (
       clk => clk,
-
-      axil_m2s => axil_m2s,
-      axil_s2m => axil_s2m
+      --
+      axil_read_m2s => axil_m2s.read,
+      axil_read_s2m => axil_s2m.read,
+      --
+      axil_write_m2s => axil_m2s.write,
+      axil_write_s2m => axil_s2m.write
     );
 
 

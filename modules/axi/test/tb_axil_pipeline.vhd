@@ -49,7 +49,7 @@ architecture tb of tb_axil_pipeline is
   );
 
   constant memory : memory_t := new_memory;
-  constant axil_slave : axi_slave_t := new_axi_slave(
+  constant axil_read_slave, axil_write_slave : axi_slave_t := new_axi_slave(
     memory => memory,
     address_fifo_depth => 8,
     write_response_fifo_depth => 8,
@@ -116,16 +116,20 @@ begin
 
   ------------------------------------------------------------------------------
   axil_slave_inst : entity bfm.axil_slave
-  generic map (
-    axi_slave => axil_slave,
-    data_width => data_width
-  )
-  port map (
-    clk => clk,
-    --
-    axil_m2s => slave_m2s,
-    axil_s2m => slave_s2m
-  );
+    generic map (
+      axi_read_slave => axil_read_slave,
+      axi_write_slave => axil_write_slave,
+      data_width => data_width
+    )
+    port map (
+      clk => clk,
+      --
+      axil_read_m2s => slave_m2s.read,
+      axil_read_s2m => slave_s2m.read,
+      --
+      axil_write_m2s => slave_m2s.write,
+      axil_write_s2m => slave_s2m.write
+    );
 
 
   ------------------------------------------------------------------------------

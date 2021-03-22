@@ -70,7 +70,7 @@ architecture tb of tb_axil_mux is
   );
 
   type axi_slave_vec_t is array (integer range <>) of axi_slave_t;
-  constant axi_slave : axi_slave_vec_t(slaves_rng) := (
+  constant axi_read_slave, axi_write_slave : axi_slave_vec_t(slaves_rng) := (
     0 => new_axi_slave(address_fifo_depth => 1, memory => memory(0)),
     1 => new_axi_slave(address_fifo_depth => 1, memory => memory(1)),
     2 => new_axi_slave(address_fifo_depth => 1, memory => memory(2)),
@@ -131,16 +131,16 @@ begin
     test_runner_setup(runner, runner_cfg);
     rnd.InitSeed(rnd'instance_name);
 
-    for slave in memory'range loop
-      buf := allocate(memory(slave), bank_address(slave, num_words));
+    for slave_idx in memory'range loop
+      buf := allocate(memory(slave_idx), bank_address(slave_idx, num_words));
     end loop;
 
     if run("read_and_write_to_buffer") then
-      for slave in axi_slave'range loop
+      for slave_idx in memory'range loop
         for word in 0 to num_words - 1 loop
-          address := bank_address(slave, word);
+          address := bank_address(slave_idx, word);
           data := rnd.RandSLV(data'length);
-          set_expected_word(memory(slave), address, data);
+          set_expected_word(memory(slave_idx), address, data);
 
           -- Call is non-blocking. I.e. we will build up a queue of writes.
           write_bus(net, axi_master, address, data);
@@ -150,15 +150,15 @@ begin
       wait_until_idle(net, as_sync(axi_master));
 
       -- Test that everything was written correctly to memory
-      for slave in memory'range loop
-        check_expected_was_written(memory(slave));
+      for slave_idx in memory'range loop
+        check_expected_was_written(memory(slave_idx));
       end loop;
 
       -- Test reading back data
-      for slave in axi_slave'range loop
+      for slave_idx in memory'range loop
         for word in 0 to num_words - 1 loop
-          address := bank_address(slave, word);
-          data := read_word(memory(slave), address, 4);
+          address := bank_address(slave_idx, word);
+          data := read_word(memory(slave_idx), address, 4);
 
           check_bus(net, axi_master, address, data);
         end loop;
@@ -227,19 +227,23 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axil_slave_gen : for i in axi_slave'range generate
+  axil_slave_gen : for i in axi_read_slave'range generate
   begin
     axil_slave_inst : entity bfm.axil_slave
-    generic map (
-      axi_slave => axi_slave(i),
-      data_width => data_width
-    )
-    port map (
-      clk => clk,
-
-      axil_m2s => axil_m2s_vec(i),
-      axil_s2m => axil_s2m_vec(i)
-    );
+      generic map (
+        axi_read_slave => axi_read_slave(i),
+        axi_write_slave => axi_write_slave(i),
+        data_width => data_width
+      )
+      port map (
+        clk => clk,
+        --
+        axil_read_m2s => axil_m2s_vec(i).read,
+        axil_read_s2m => axil_s2m_vec(i).read,
+        --
+        axil_write_m2s => axil_m2s_vec(i).write,
+        axil_write_s2m => axil_s2m_vec(i).write
+      );
   end generate;
 
 

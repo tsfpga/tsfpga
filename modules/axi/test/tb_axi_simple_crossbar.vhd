@@ -48,7 +48,7 @@ architecture tb of tb_axi_simple_crossbar is
   );
 
   constant memory : memory_t := new_memory;
-  constant axi_slave : axi_slave_t := new_axi_slave(
+  constant axi_read_slave, axi_write_slave : axi_slave_t := new_axi_slave(
     memory => memory,
     address_fifo_depth => 8,
     write_response_fifo_depth => 8,
@@ -159,18 +159,24 @@ begin
         );
     end generate;
 
+
     ------------------------------------------------------------------------------
     axi_slave_inst : entity bfm.axil_slave
-    generic map (
-      axi_slave => axi_slave,
-      data_width => axi_port_data_width
-    )
-    port map (
-      clk => clk,
-      --
-      axil_m2s => output_m2s,
-      axil_s2m => output_s2m
-    );
+      generic map (
+        axi_read_slave => axi_read_slave,
+        axi_write_slave => axi_write_slave,
+        data_width => axi_port_data_width
+      )
+      port map (
+        clk => clk,
+        --
+        axil_write_m2s => output_m2s.write,
+        axil_write_s2m => output_s2m.write,
+        --
+        axil_read_m2s => output_m2s.read,
+        axil_read_s2m => output_s2m.read
+      );
+
 
     ------------------------------------------------------------------------------
     dut : entity work.axil_simple_crossbar
@@ -225,7 +231,7 @@ begin
     ------------------------------------------------------------------------------
     axi_slave_inst : entity bfm.axi_slave
       generic map (
-        axi_slave => axi_slave,
+        axi_slave => axi_read_slave,
         data_width => axi_port_data_width
       )
       port map (
@@ -237,6 +243,7 @@ begin
         axi_write_m2s => output_m2s.write,
         axi_write_s2m => output_s2m.write
       );
+
 
     ------------------------------------------------------------------------------
     dut : entity work.axi_simple_crossbar
