@@ -5,7 +5,7 @@
 -- https://tsfpga.com
 -- https://gitlab.com/tsfpga/tsfpga
 -- -------------------------------------------------------------------------------------------------
--- AXI-Lite 1-to-N mux.
+-- AXI-Lite mux, aka simple 1-to-N crossbar.
 --
 -- The slave_addrs generic is a list of base address configurations for the
 -- N slaves. Eeach entry consists of a base address, along with a mask that
