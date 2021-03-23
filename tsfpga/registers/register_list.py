@@ -249,11 +249,19 @@ class RegisterList:
         Arguments:
             output_path (`pathlib.Path`): Result will be placed here.
         """
-        output_file = output_path / (self.name + "_regs.html")
         register_html_generator = RegisterHtmlGenerator(self.name, self._generated_source_info())
+
+        output_file = output_path / (self.name + "_regs.html")
         create_file(
             output_file, register_html_generator.get_page(self.register_objects, self.constants)
         )
+
+        output_file = output_path / "regs_style.css"
+        if not output_file.exists():
+            # Create the file only once. This mechanism could be made more smart, but at the moment
+            # there is no use case. Perhaps there should be a separate stylesheet for each
+            # HTML file?
+            create_file(output_file, register_html_generator.get_page_style())
 
     def create_html_register_table(self, output_path):
         """

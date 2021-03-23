@@ -21,11 +21,23 @@ class RegisterHtmlGenerator:
         self._html_translator = HtmlTranslator()
 
     def get_register_table(self, register_objects):
+        """
+        Get a HTML table with register infomation. Can be included in other documents.
+
+        Returns:
+            str: HTML code.
+        """
         html = self._file_header()
         html += self._get_register_table(register_objects)
         return html
 
     def get_constant_table(self, constants):
+        """
+        Get a HTML table with constant infomation. Can be included in other documents.
+
+        Returns:
+            str: HTML code.
+        """
         if not constants:
             return ""
 
@@ -33,11 +45,56 @@ class RegisterHtmlGenerator:
         html += self._get_constant_table(constants)
         return html
 
-    def get_page(
-        self, register_objects, constants, table_style=None, font_style=None, extra_style=""
-    ):
-        title = f"Documentation of {self.module_name} registers"
+    def get_page(self, register_objects, constants):
+        """
+        Get a complete HTML page with register and constant infomation.
 
+        Returns:
+            str: HTML code.
+        """
+        title = f"Documentation of {self.module_name} registers"
+        html = f"""\
+{self._file_header()}
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{title}</title>
+   <link rel="stylesheet" href="regs_style.css">
+</head>
+<body>
+  <h1>{title}</h1>
+  <p>This document is a specification for the register interface of the FPGA module \
+<b>{self.module_name}</b>.</p>
+  <p>{' '.join(self.generated_info)}</p>
+  <h2>Register modes</h2>
+  <p>The following register modes are available.</p>
+{self._get_mode_descriptions()}
+  <h2>Registers</h2>
+  <p>The following registers make up the register map.</p>
+{self._get_register_table(register_objects)}
+"""
+
+        if constants:
+            html += f"""
+  <h2>Constants</h2>
+  <p>The following constants are part of the register interface.</p>
+{self._get_constant_table(constants)}"""
+
+        html += """
+</body>
+</html>"""
+
+        return html
+
+    @staticmethod
+    def get_page_style(table_style=None, font_style=None, extra_style=""):
+        """
+        Get a CSS style for the register pages. Shall be saved to a file called ``regs_style.css``.
+
+        Returns:
+            str: CSS code.
+        """
         if font_style is None:
             font_style = """
 html * {
@@ -68,43 +125,11 @@ th {
   color: white;
 }"""
 
-        html = f"""\
-{self._file_header()}
-
-<!DOCTYPE html>
-<html>
-<head>
-  <title>{title}</title>
-  <style>
+        style = f"""
 {font_style}
 {table_style}
-{extra_style}
-  </style>
-</head>
-<body>
-  <h1>{title}</h1>
-  <p>This document is a specification for the register interface of the FPGA module \
-<b>{self.module_name}</b>.</p>
-  <p>{' '.join(self.generated_info)}</p>
-  <h2>Register modes</h2>
-  <p>The following register modes are available.</p>
-{self._get_mode_descriptions()}
-  <h2>Registers</h2>
-  <p>The following registers make up the register map.</p>
-{self._get_register_table(register_objects)}
-"""
-
-        if constants:
-            html += f"""
-  <h2>Constants</h2>
-  <p>The following constants are part of the register interface.</p>
-{self._get_constant_table(constants)}"""
-
-        html += """
-</body>
-</html>"""
-
-        return html
+{extra_style}"""
+        return style
 
     @staticmethod
     def _comment(comment):
