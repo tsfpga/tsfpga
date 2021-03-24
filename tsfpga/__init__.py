@@ -33,4 +33,4 @@ ALL_TSFPGA_MODULES_FOLDERS = [
     TSFPGA_EXAMPLE_MODULES_WITH_IP,
 ]
 
-__version__ = "5.0.0"
+__version__ = "6.0.0"
