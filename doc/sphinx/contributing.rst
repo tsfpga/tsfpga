@@ -70,16 +70,11 @@ We use the `Semantic Versioning <https://semver.org/>`__ scheme for tsfpga.
 Read the **Summary** at the top of that page and decide the new version number accordingly.
 
 
-Create release notes
-____________________
+Review the release notes
+________________________
 
-Create and a new file ``doc/release_notes/X.Y.Z.rst`` according to your new release version.
-Move the contents of ``unreleased.rst`` to your newly created file.
+Check the release notes file ``unreleased.rst``.
 Fill in anything that is missing according to :ref:`Maintaining changelog <maintain_changelog>`.
-
-Make sure to ``git add`` the new file.
-Release must be made from a clean repo, so you have to commit these changes separately.
-A commit message of "Prepare for X.Y.Z release" is a good idea.
 
 
 Run release script
@@ -92,7 +87,8 @@ Run the script
     python3 tools/release.py X.Y.Z
 
 where X.Y.Z is your new version number.
-The script will bump the tsfpga version number, commit this change and then tag the commit.
+The script will bump the tsfpga version number and copy release notes to a new file.
+The changes will be commited and then tagged.
 
 
 Push commit and tag
