@@ -120,6 +120,8 @@ deploy_pypi:
   script:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git > /dev/null
+    # Upgrade pip to make install of "cryptography" work. TODO remove when base docker image is updated.
+    - python3 -m pip install --upgrade pip > /dev/null
     - python3 -m pip install twine > /dev/null
     - python3 -m twine upload dist/*
 
