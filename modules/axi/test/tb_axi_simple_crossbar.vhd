@@ -179,24 +179,33 @@ begin
 
 
     ------------------------------------------------------------------------------
-    dut : entity work.axil_simple_crossbar
+    dut_read : entity work.axil_simple_read_crossbar
       generic map(
         num_inputs => num_inputs
       )
       port map(
         clk => clk,
         --
-        inputs_read_m2s => inputs_read_m2s,
-        inputs_read_s2m => inputs_read_s2m,
+        input_ports_m2s => inputs_read_m2s,
+        input_ports_s2m => inputs_read_s2m,
         --
-        inputs_write_m2s => inputs_write_m2s,
-        inputs_write_s2m => inputs_write_s2m,
+        output_m2s => output_m2s.read,
+        output_s2m => output_s2m.read
+      );
+
+    ------------------------------------------------------------------------------
+    dut_write : entity work.axil_simple_write_crossbar
+      generic map(
+        num_inputs => num_inputs
+      )
+      port map(
+        clk => clk,
         --
-        output_read_m2s => output_m2s.read,
-        output_read_s2m => output_s2m.read,
+        input_ports_m2s => inputs_write_m2s,
+        input_ports_s2m => inputs_write_s2m,
         --
-        output_write_m2s => output_m2s.write,
-        output_write_s2m => output_s2m.write
+        output_m2s => output_m2s.write,
+        output_s2m => output_s2m.write
       );
 
   else generate
@@ -247,25 +256,36 @@ begin
 
 
     ------------------------------------------------------------------------------
-    dut : entity work.axi_simple_crossbar
+    dut_read : entity work.axi_simple_read_crossbar
       generic map(
         num_inputs => num_inputs
       )
       port map(
         clk => clk,
         --
-        inputs_read_m2s => inputs_read_m2s,
-        inputs_read_s2m => inputs_read_s2m,
+        input_ports_m2s => inputs_read_m2s,
+        input_ports_s2m => inputs_read_s2m,
         --
-        inputs_write_m2s => inputs_write_m2s,
-        inputs_write_s2m => inputs_write_s2m,
-        --
-        output_read_m2s => output_m2s.read,
-        output_read_s2m => output_s2m.read,
-        --
-        output_write_m2s => output_m2s.write,
-        output_write_s2m => output_s2m.write
+        output_m2s => output_m2s.read,
+        output_s2m => output_s2m.read
       );
+
+
+    ------------------------------------------------------------------------------
+    dut_write : entity work.axi_simple_write_crossbar
+      generic map(
+        num_inputs => num_inputs
+      )
+      port map(
+        clk => clk,
+        --
+        input_ports_m2s => inputs_write_m2s,
+        input_ports_s2m => inputs_write_s2m,
+        --
+        output_m2s => output_m2s.write,
+        output_s2m => output_s2m.write
+      );
+
   end generate;
 
 end architecture;
