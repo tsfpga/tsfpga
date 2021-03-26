@@ -109,7 +109,7 @@ def test_copyright_header_of_all_checked_in_files():
         if not copyright_header_checker.check_file():
             test_ok = False
             print(
-                f"Fail for {file}.\nExpected:\n{copyright_header_checker.expected_copyright_header}"
+                f"Fail for {file}\nExpected:\n{copyright_header_checker.expected_copyright_header}"
             )
     assert test_ok
 
