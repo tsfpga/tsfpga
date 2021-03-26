@@ -62,13 +62,9 @@ class CopyrightHeader:
             return "#"
         if self._file.name.endswith(".vhd"):
             return "--"
-        if self._file.name.endswith(".tcl"):
+        if self._file.name.endswith((".xdc", ".tcl")):
             return "#"
-        if (
-            self._file.name.endswith(".c")
-            or self._file.name.endswith(".cpp")
-            or self._file.name.endswith(".h")
-        ):
+        if self._file.name.endswith((".c", ".cpp", ".h", ".v")):
             return "//"
         raise RuntimeError(f"Could not decide file ending of {self._file}")
 
