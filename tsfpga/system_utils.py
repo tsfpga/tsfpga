@@ -8,6 +8,7 @@
 
 import importlib.util
 import os
+from os.path import commonpath
 from platform import system
 from shutil import rmtree
 import subprocess
@@ -82,6 +83,23 @@ def create_directory(directory, empty=True):
 
     directory.mkdir(parents=True)
     return directory
+
+
+def file_is_in_directory(file_path, directories):
+    """
+    Check if the file is in any of the directories.
+
+    Arguments:
+        file_path (`pathlib.Path`): The file to be checked.
+        directories (list(`pathlib.Path`)): The directories to be controlled.
+
+    Returns:
+        bool: True if there is a comon path.
+    """
+    for directory in directories:
+        if commonpath([str(file_path), str(directory)]) == str(directory):
+            return True
+    return False
 
 
 def run_command(cmd, cwd=None):

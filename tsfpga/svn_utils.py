@@ -9,6 +9,8 @@
 import re
 import subprocess
 
+from tsfpga.system_utils import file_is_in_directory
+
 
 def get_svn_revision_information(cwd=None):
     check_that_svn_commands_are_available(cwd)
@@ -51,3 +53,47 @@ def svn_local_changes_are_present(cwd=None):
     # Status code for file Added, Deleted, Modified, in Conflict or missing
     regexp = re.compile(r"\n[ADMC!] ")
     return regexp.search(output) is not None
+
+
+def find_svn_files(
+    directory,
+    excludes=None,
+    file_endings_include=None,
+    file_endings_avoid=None,
+):
+    """
+    Find files that are checked in to SVN.
+
+    Arguments:
+        directory (`pathlib.Path`): Search in this directory.
+        excludes (list(`pathlib.Path`)): These files and folders will not be included.
+        file_endings_include (str or tuple(str)). Only files with these endings will be included.
+        file_endings_avoid (str or tuple(str)): String or tuple of strings. Files with these endings
+            will not be included.
+
+    Returns:
+        list(`pathlib.Path`): The files that are available in SVN.
+    """
+    excludes = [] if excludes is None else [exclude.resolve() for exclude in excludes]
+
+    command = ["svn", "ls", "--recursive"]
+    output = subprocess.check_output(command, cwd=directory, universal_newlines=True)
+    for svn_file in output.split("\n"):
+        file_path = directory / svn_file
+
+        # Make sure concatenation of relative paths worked
+        assert file_path.exists(), file_path
+
+        if file_path.is_dir():
+            continue
+
+        if file_endings_include is not None and not file_path.name.endswith(file_endings_include):
+            continue
+
+        if file_endings_avoid is not None and file_path.name.endswith(file_endings_avoid):
+            continue
+
+        if file_is_in_directory(file_path, excludes):
+            continue
+
+        yield file_path

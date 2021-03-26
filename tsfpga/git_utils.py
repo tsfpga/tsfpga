@@ -7,8 +7,9 @@
 # --------------------------------------------------------------------------------------------------
 
 import os
-from os.path import commonpath
 from pathlib import Path
+
+from tsfpga.system_utils import file_is_in_directory
 
 
 def get_git_commit(directory):
@@ -59,12 +60,17 @@ def find_git_files(
     file_endings_avoid=None,
 ):
     """
+    Find files that are checked in to git.
+
     Arguments:
+        directory (`pathlib.Path`): Search in this directory.
+        exclude_directories (list(`pathlib.Path`)): Files in these directories will not be included.
         file_endings_include (str or tuple(str)). Only files with these endings will be included.
         file_endings_avoid (str or tuple(str)): String or tuple of strings. Files with these endings
             will not be included.
-        directory (`pathlib.Path`): Search in this directory.
-        exclude_directories (list(`pathlib.Path`)): Files in these directories will not be included.
+
+    Returns:
+        list(`pathlib.Path`): The files that are available in git.
     """
 
     # Import fails if "git" executable is not available, hence it can not be on top level.
@@ -91,14 +97,7 @@ def find_git_files(
         if (file_endings_include is None or path.name.endswith(file_endings_include)) and (
             file_endings_avoid is None or not path.name.endswith(file_endings_avoid)
         ):
-            if _file_is_in_directory(path, [directory]) and not _file_is_in_directory(
+            if file_is_in_directory(path, [directory]) and not file_is_in_directory(
                 path, exclude_directories
             ):
                 yield path
-
-
-def _file_is_in_directory(filename, directories):
-    for directory in directories:
-        if commonpath([str(filename), str(directory)]) == str(directory):
-            return True
-    return False
