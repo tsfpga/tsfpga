@@ -45,10 +45,20 @@ def test_find_svn_files(check_output, tmp_path):
     zebra_pdf = create_file(tmp_path / "things" / "zebra.pdf")
 
     check_output.return_value = """\
-apa.txt
-stuff/hest.txt
-stuff/zebra.vhd
-things/zebra.pdf
+            104134   104134 lukas.vik    .
+?                                        .pytest_cache
+?                                        .vscode
+?                                        build
+            104134   104134 lukas.vik    apa.txt
+
+Performing status on external item at 'stuff':
+            104134   103740 lukas.vik    stuff
+M           104134   103740 lukas.vik    stuff/hest.txt
+            104134   103740 lukas.vik    stuff/zebra.vhd
+
+Performing status on external item at 'things':
+            104134   103740 lukas.vik    things
+M   X       104134   103740 lukas.vik    things/zebra.pdf
 """
     assert set(find_svn_files(tmp_path)) == {apa_txt, hest_txt, zebra_pdf, zebra_vhd}
 

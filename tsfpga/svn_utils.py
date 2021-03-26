@@ -55,6 +55,9 @@ def svn_local_changes_are_present(cwd=None):
     return regexp.search(output) is not None
 
 
+RE_SVN_STATUS_LINE = re.compile(r"^.+\d+\s+\d+\s+\S+\s+(\S+)$")
+
+
 def find_svn_files(
     directory,
     excludes=None,
@@ -62,7 +65,9 @@ def find_svn_files(
     file_endings_avoid=None,
 ):
     """
-    Find files that are checked in to SVN.
+    Find files that are checked in to SVN. It runs "svn status" rather than "svn ls". This means
+    that it is a local operation, that does not require credentials or any connection with
+    an SVN server.
 
     Arguments:
         directory (`pathlib.Path`): Search in this directory.
@@ -76,9 +81,14 @@ def find_svn_files(
     """
     excludes = [] if excludes is None else [exclude.resolve() for exclude in excludes]
 
-    command = ["svn", "ls", "--recursive"]
+    command = ["svn", "status", "-v"]
     output = subprocess.check_output(command, cwd=directory, universal_newlines=True)
-    for svn_file in output.split("\n"):
+    for line in output.split("\n"):
+        match = RE_SVN_STATUS_LINE.match(line)
+        if not match:
+            continue
+
+        svn_file = match.group(1)
         file_path = directory / svn_file
 
         # Make sure concatenation of relative paths worked
