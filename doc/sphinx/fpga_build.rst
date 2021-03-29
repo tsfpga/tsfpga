@@ -38,17 +38,55 @@ The :class:`.BuildProjectList` class will work on a list of :class:`build projec
 An example output from this script is shown below.
 It shows to build projects being launched in parallel, and then finishing and roughly the same time.
 
-.. code-block:: REST
+.. code-block::
 
     [/home/lukas/work/repo/tsfpga]$ python examples/build.py
     Starting artyz7
     Output file: /home/lukas/work/repo/tsfpga/generated/projects/artyz7/output.txt
     Starting artyz7_dummy
     Output file: /home/lukas/work/repo/tsfpga/generated/projects/artyz7_dummy/output.txt
-    pass (P=1 S=0 F=0 T=2) artyz7 (234.3 seconds)
+    pass (pass=1 fail=0 total=2) artyz7_dummy (229.5 seconds)
 
-    pass (P=2 S=0 F=0 T=2) artyz7_dummy (237.3 seconds)
-    [/home/lukas/work/repo/tsfpga]$
+    pass (pass=2 fail=0 total=2) artyz7 (229.8 seconds)
+
+    ==== Summary ========================
+
+    Size of artyz7_dummy after implementation:
+    {
+      "Total LUTs": 804,
+      "Logic LUTs": 746,
+      "LUTRAMs": 58,
+      "SRLs": 0,
+      "FFs": 1596,
+      "RAMB36": 0,
+      "RAMB18": 1,
+      "DSP Blocks": 0
+    }
+    pass artyz7_dummy   (229.5 seconds)
+
+
+    Size of artyz7 after implementation:
+    {
+      "Total LUTs": 804,
+      "Logic LUTs": 746,
+      "LUTRAMs": 58,
+      "SRLs": 0,
+      "FFs": 1596,
+      "RAMB36": 0,
+      "RAMB18": 1,
+      "DSP Blocks": 0
+    }
+    pass artyz7         (229.8 seconds)
+
+    =====================================
+    pass 2 of 2
+    =====================================
+    Total time was 459.3 seconds
+    Elapsed time was 229.8 seconds
+    =====================================
+    All passed!
+
+
 
 Note that before a project is built a :ref:`register generation <registers>` is run, so that the project is built using up-to-date register definitions.
 
