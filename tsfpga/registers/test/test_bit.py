@@ -27,3 +27,16 @@ def test_repr():
     assert repr(Bit(name="apa", index=0, description="Blah")) != repr(
         Bit(name="apa", index=0, description="Gaah")
     )
+
+    # Different width
+    assert repr(Bit(name="apa", index=0, width=10, description="Blah")) != repr(
+        Bit(name="apa", index=0, width=9, description="Blah")
+    )
+
+    assert repr(Bit(name="apa", index=0, description="Blah")) != repr(
+        Bit(name="apa", index=0, width=4, description="Blah")
+    )
+
+    assert "index=[4:0]" in repr(Bit(name="apa", index=0, width=5, description=""))
+    assert "index=[17:5]" in repr(Bit(name="apa", index=5, width=13, description=""))
+    assert "index=[31:0]" in repr(Bit(name="apa", index=0, width=32, description=""))

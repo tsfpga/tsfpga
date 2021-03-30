@@ -145,7 +145,10 @@ class RegisterCGenerator(RegisterCodeGenerator):
 
             bit_name = f"{register_name}_{bit.name.upper()}"
             c_code += f"#define {bit_name}_BIT ({bit.index}u)\n"
-            c_code += f"#define {bit_name} ({2**bit.index}u)\n"
+            if bit.width > 1:
+                c_code += f"#define {bit_name}_MASK ({(2**bit.width-1)*2**bit.index}u)\n"
+            else:
+                c_code += f"#define {bit_name} ({2**bit.index}u)\n"
 
         return c_code
 

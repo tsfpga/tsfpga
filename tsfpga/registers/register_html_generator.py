@@ -175,7 +175,7 @@ th {
         html = f"""
   <tr>
     <td>&nbsp;&nbsp;<em>{bit.name}</em></td>
-    <td>&nbsp;&nbsp;{bit.index}</td>
+    <td>&nbsp;&nbsp;{bit.bit_range}</td>
     <td></td>
     <td></td>
     <td></td>

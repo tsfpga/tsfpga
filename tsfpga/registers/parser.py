@@ -89,6 +89,20 @@ class RegisterParser:
 
         self._register_list.constants.append(constant)
 
+    @staticmethod
+    def _parse_bits(register, bits_conf):
+        for field_name, field_conf in bits_conf.items():
+            if isinstance(field_conf, dict):
+                width = field_conf.get("width", 1)
+                description = field_conf["description"]
+                default_value = field_conf.get("default_value")
+            else:
+                width = 1
+                description = field_conf
+                default_value = None
+
+            register.append_bit(field_name, description, width, default_value)
+
     def _parse_plain_register(self, name, items):
         if name in self._default_register_names:
             # Default registers can be "updated" in the sense that the user can use a custom
@@ -123,8 +137,7 @@ class RegisterParser:
                 register.description = item_value
 
             if item_name == "bits":
-                for bit_name, bit_description in item_value.items():
-                    register.append_bit(bit_name, bit_description)
+                self._parse_bits(register, item_value)
 
         self._names_taken.add(name)
 
@@ -173,5 +186,4 @@ class RegisterParser:
                     register.description = register_item_value
 
                 if register_item_name == "bits":
-                    for bit_name, bit_description in register_item_value.items():
-                        register.append_bit(bit_name, bit_description)
+                    self._parse_bits(register, register_item_value)

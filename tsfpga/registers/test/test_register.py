@@ -6,6 +6,7 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+import pytest
 from tsfpga.registers.register import Register
 
 
@@ -65,3 +66,21 @@ def test_repr_with_bits_appended():
     register_b.append_bit(name="foo", description="")
 
     assert repr(register_a) != repr(register_b)
+
+
+def test_invalid_width():
+    # Verify bit array width
+    with pytest.raises(ValueError) as exception_info:
+        Register(name="apa", index=0, mode="r").append_bit(name="foo", width=33, description="")
+    assert str(exception_info.value).startswith('Invalid bit array width for register "apa"')
+
+    with pytest.raises(ValueError) as exception_info:
+        Register(name="apa", index=0, mode="r").append_bit(name="foo", width=0, description="")
+    assert str(exception_info.value).startswith('Invalid bit array width for register "apa"')
+
+    # Appending bits on full register
+    register_a = Register(name="apa", index=0, mode="r")
+    register_a.append_bit(name="foo", width=32, description="")
+    with pytest.raises(ValueError) as exception_info:
+        register_a.append_bit(name="bar", width=1, description="")
+    assert str(exception_info.value).startswith('Maximum width exceeded for register "apa"')

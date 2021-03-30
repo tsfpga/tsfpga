@@ -58,22 +58,48 @@ class Register:
         self.description = "" if description is None else description
         self.default_value = 0 if default_value is None else default_value
         self.bits = []
+        self.bit_index = 0
 
-    def append_bit(self, name, description):
+    @staticmethod
+    def signed2unsigned(num, width):
         """
-        Append a bit to this register.
+        Calculates two's complement of integer when needed.
 
         Arguments:
-            name (str): The name of the bit.
+            num (int) : Number to be converted.
+            width (int) : Required number of output bits
+        """
+        result = 0
+        if num:
+            result = (-num ^ (2 ** width - 1)) + 1 if num < 0 else num
+        return result
+
+    def append_bit(self, name, description, width=1, default_value=None):
+        """
+        Append a bit field to this register.
+
+        Arguments:
+            name (str): The name of the bit field.
+            width (int) : The width of the bit field.
             description (str): Description of the bit.
         Return:
-            :class:`.Bit`: The bit object that was created.
+            :class:`.Bit`: The bit array object that was created.
         """
-        index = len(self.bits)
-        bit = Bit(name, index, description)
 
-        self.bits.append(bit)
-        return bit
+        if width < 1 or width > 32:
+            raise ValueError(f'Invalid bit array width for register "{self.name}"')
+
+        value = self.signed2unsigned(default_value, width)
+        self.default_value += value * 2 ** self.bit_index
+
+        bits = Bit(name, self.bit_index, description, width, value)
+        self.bits.append(bits)
+
+        self.bit_index += width
+        if self.bit_index > 32:
+            raise ValueError(f'Maximum width exceeded for register "{self.name}"')
+
+        return bits
 
     @property
     def address(self):

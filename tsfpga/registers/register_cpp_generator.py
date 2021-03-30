@@ -162,6 +162,9 @@ class RegisterCppGenerator(RegisterCodeGenerator):
             cpp_code += self._comment_block(bit.description, indentation=2)
             bit_constant_value = 2 ** bit.index
             cpp_code += f"  static const uint32_t {bit_constant_name} = {bit_constant_value}uL;\n"
+            if bit.width > 1:
+                field_mask = (2 ** bit.width - 1) * bit_constant_value
+                cpp_code += f"  static const uint32_t {bit_constant_name}_mask = {field_mask}uL;\n"
 
         return cpp_code
 

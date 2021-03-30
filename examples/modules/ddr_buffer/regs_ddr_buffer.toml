@@ -8,6 +8,13 @@ idle = """'1' when the module is inactive and a new run can be launched.
 
 '0' when the module is working."""
 
+counter = {width = 4, description = "Number of executed actions."}
+
+dummy = "Dummy bit between two bitfields."
+
+[register.status.bits.reserved]
+width = 26
+description = "Reserved bitfield."
 
 ################################################################################
 [register.command]

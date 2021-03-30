@@ -114,7 +114,13 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
         for register, register_array in self._iterate_registers(register_objects):
             for bit in register.bits:
                 name = f"{self._register_name(register, register_array)}_{bit.name}"
-                vhdl += f"  constant {name} : integer := {bit.index};\n"
+                if bit.width == 1:
+                    vhdl += f"  constant {name} : integer := {bit.index};\n"
+                else:
+                    vhdl += (
+                        f"  subtype {name} is integer range "
+                        f"{bit.width + bit.index - 1} downto {bit.index};\n"
+                    )
             if register.bits:
                 vhdl += "\n"
 
