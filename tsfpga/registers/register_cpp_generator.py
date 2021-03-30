@@ -79,7 +79,7 @@ class RegisterCppGenerator(RegisterCodeGenerator):
                     f"{self._setter_function_signature(register, register_array)} const = 0;\n"
                 )
 
-            cpp_code += self._bit_constants(register, register_array)
+            cpp_code += self._field_constants(register, register_array)
 
         cpp_code += "};\n"
 
@@ -147,24 +147,27 @@ class RegisterCppGenerator(RegisterCodeGenerator):
 
         return cpp_code_top + self._with_namespace(cpp_code)
 
-    def _bit_constants(self, register, register_array):
+    def _field_constants(self, register, register_array):
         cpp_code = ""
-        for bit in register.bits:
-            description = f'Bitmask for the "{bit.name}" bit in the "{register.name}" register'
+        for field in register.fields:
+            description = f'Bitmask for the "{field.name}" field in the "{register.name}" register'
             if register_array is None:
                 description += "."
-                bit_constant_name = f"{register.name}_{bit.name}"
+                field_constant_name = f"{register.name}_{field.name}"
             else:
                 description += f' within the "{register_array.name}" register array.'
-                bit_constant_name = f"{register_array.name}_{register.name}_{bit.name}"
+                field_constant_name = f"{register_array.name}_{register.name}_{field.name}"
 
             cpp_code += self._comment(description, indentation=2)
-            cpp_code += self._comment_block(bit.description, indentation=2)
-            bit_constant_value = 2 ** bit.index
-            cpp_code += f"  static const uint32_t {bit_constant_name} = {bit_constant_value}uL;\n"
-            if bit.width > 1:
-                field_mask = (2 ** bit.width - 1) * bit_constant_value
-                cpp_code += f"  static const uint32_t {bit_constant_name}_mask = {field_mask}uL;\n"
+            cpp_code += self._comment_block(field.description, indentation=2)
+
+            cpp_code += (
+                f"  static const uint32_t {field_constant_name}_shift = {field.base_index}uL;\n"
+            )
+            cpp_code += (
+                f"  static const uint32_t {field_constant_name}_mask = "
+                f'0b{"1" * field.width}uL << {field.base_index}uL;\n'
+            )
 
         return cpp_code
 

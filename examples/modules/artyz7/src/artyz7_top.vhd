@@ -109,15 +109,14 @@ begin
   ------------------------------------------------------------------------------
   ddr_buffer_inst : entity ddr_buffer.ddr_buffer_top
     port map (
-      clk_axi_read => clk_s_hp0,
+      clk => clk_s_hp0,
+
       axi_read_m2s => s_hp0_m2s.read,
       axi_read_s2m => s_hp0_s2m.read,
 
-      clk_axi_write => clk_s_hp0,
       axi_write_m2s => s_hp0_m2s.write,
       axi_write_s2m => s_hp0_s2m.write,
 
-      clk_regs => clk_s_hp0,
       regs_m2s => regs_m2s(ddr_buffer_regs_idx),
       regs_s2m => regs_s2m(ddr_buffer_regs_idx)
     );

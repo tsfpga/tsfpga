@@ -46,7 +46,7 @@ class RegisterList:
         self.register_objects = []
         self.constants = []
 
-    def append_register(self, name, mode, description=None, default_value=None):
+    def append_register(self, name, mode, description):
         """
         Append a register to this list.
 
@@ -54,7 +54,6 @@ class RegisterList:
             name (str): The name of the register.
             mode (str): A valid register mode.
             description (str): Textual register description.
-            default_value (int): Default value for the register (signed).
         Return:
             :class:`.Register`: The register object that was created.
         """
@@ -63,7 +62,7 @@ class RegisterList:
         else:
             index = 0
 
-        register = Register(name, index, mode, description, default_value)
+        register = Register(name, index, mode, description)
         self.register_objects.append(register)
 
         return register

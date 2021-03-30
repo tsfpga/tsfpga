@@ -7,6 +7,7 @@
 -- -------------------------------------------------------------------------------------------------
 
 library ieee;
+use ieee.numeric_std.all;
 use ieee.std_logic_1164.all;
 
 library osvvm;
@@ -55,9 +56,7 @@ begin
 
     constant beef : reg_t := x"beef_beef";
     constant dead : reg_t := x"dead_dead";
-    constant face : reg_t := x"face_face";
-    constant cafe : reg_t := x"cafe_cafe";
-    constant all_zero : reg_t := x"0000_0000";
+    variable reg_value : reg_t := (others => '0');
 
     constant axi_width : integer := 64;
     constant burst_length : integer := 16;
@@ -85,71 +84,87 @@ begin
       run_ddr_buffer_test(net, axi_memory, rnd, ddr_buffer_regs_base_addr);
       check_expected_was_written(axi_memory);
 
-    elsif run("test_dummy_generated_constants") then
-      -- Sanity check some of the generated register constants
-
-      check_equal(artyz7_dummy_regs_array_length, 3);
-
+    elsif run("test_generated_register_adresses") then
+      -- Default register
       check_equal(artyz7_config, 0);
       check_equal(artyz7_command, 1);
       check_equal(artyz7_status, 2);
       check_equal(artyz7_irq_status, 3);
       check_equal(artyz7_irq_mask, 4);
-      check_equal(artyz7_plain_dummy_reg, 5);
-      check_equal(artyz7_dummy_regs_configuration(0), 6);
-      check_equal(artyz7_dummy_regs_settings(0), 7);
-      check_equal(artyz7_dummy_regs_configuration(1), 8);
-      check_equal(artyz7_dummy_regs_settings(1), 9);
-      check_equal(artyz7_dummy_regs_configuration(2), 10);
-      check_equal(artyz7_dummy_regs_settings(2), 11);
 
+      -- Plain register from TOML
+      check_equal(artyz7_plain_dummy_reg, 5);
+
+      -- Register array from TOML
+      check_equal(artyz7_dummy_regs_array_length, 3);
+
+      check_equal(artyz7_dummy_regs_array_dummy_reg(0), 6);
+      check_equal(artyz7_dummy_regs_second_array_dummy_reg(0), 7);
+      check_equal(artyz7_dummy_regs_array_dummy_reg(1), 8);
+      check_equal(artyz7_dummy_regs_second_array_dummy_reg(1), 9);
+      check_equal(artyz7_dummy_regs_array_dummy_reg(2), 10);
+      check_equal(artyz7_dummy_regs_second_array_dummy_reg(2), 11);
+
+    elsif run("test_generated_register_modes") then
+      -- Default register
       assert artyz7_reg_map(artyz7_config).reg_type = r_w;
       assert artyz7_reg_map(artyz7_command).reg_type = wpulse;
       assert artyz7_reg_map(artyz7_status).reg_type = r;
       assert artyz7_reg_map(artyz7_irq_status).reg_type = r_wpulse;
       assert artyz7_reg_map(artyz7_irq_mask).reg_type = r_w;
-      assert artyz7_reg_map(artyz7_dummy_regs_configuration(0)).reg_type = r_w;
-      assert artyz7_reg_map(artyz7_dummy_regs_settings(0)).reg_type = r;
-      assert artyz7_reg_map(artyz7_dummy_regs_configuration(1)).reg_type = r_w;
-      assert artyz7_reg_map(artyz7_dummy_regs_settings(1)).reg_type = r;
-      assert artyz7_reg_map(artyz7_dummy_regs_configuration(2)).reg_type = r_w;
-      assert artyz7_reg_map(artyz7_dummy_regs_settings(2)).reg_type = r;
 
-      check_equal(artyz7_dummy_regs_configuration_enable, 0);
-      check_equal(artyz7_dummy_regs_configuration_disable, 1);
+      -- Plain register from TOML
+      assert artyz7_reg_map(artyz7_plain_dummy_reg).reg_type = r_w;
 
-    elsif run("test_dummy_reg_initial_values") then
+      -- Register array from TOML
+      assert artyz7_reg_map(artyz7_dummy_regs_array_dummy_reg(0)).reg_type = r_w;
+      assert artyz7_reg_map(artyz7_dummy_regs_second_array_dummy_reg(0)).reg_type = r;
+      assert artyz7_reg_map(artyz7_dummy_regs_array_dummy_reg(1)).reg_type = r_w;
+      assert artyz7_reg_map(artyz7_dummy_regs_second_array_dummy_reg(1)).reg_type = r;
+      assert artyz7_reg_map(artyz7_dummy_regs_array_dummy_reg(2)).reg_type = r_w;
+      assert artyz7_reg_map(artyz7_dummy_regs_second_array_dummy_reg(2)).reg_type = r;
+
+    elsif run("test_generated_register_field_indexes") then
+      -- Generated bit field indexes should match the order and widths in the TOML
+
+      -- Fields in the plain register
+      check_equal(artyz7_plain_dummy_reg_plain_bit_a, 0);
+      check_equal(artyz7_plain_dummy_reg_plain_bit_b, 1);
+      check_equal(artyz7_plain_dummy_reg_plain_bit_vector'low, 2);
+      check_equal(artyz7_plain_dummy_reg_plain_bit_vector'high, 5);
+
+      -- Fields in the register array register
+      check_equal(artyz7_dummy_regs_array_dummy_reg_array_bit_a, 0);
+      check_equal(artyz7_dummy_regs_array_dummy_reg_array_bit_b, 1);
+      check_equal(artyz7_dummy_regs_array_dummy_reg_array_bit_vector'low, 2);
+      check_equal(artyz7_dummy_regs_array_dummy_reg_array_bit_vector'high, 5);
+
+    elsif run("test_generated_register_default_values") then
       -- Test reading the default values set in the regs TOML
 
-      check_reg_equal(net, artyz7_plain_dummy_reg, 1337, base_address => reg_slaves(0).addr);
+      read_reg(
+        net,
+        artyz7_plain_dummy_reg,
+        reg_value,
+        base_address => reg_slaves(0).addr
+      );
 
-      check_reg_equal(net, artyz7_dummy_regs_configuration(0), 42, base_address => reg_slaves(0).addr);
-      check_reg_equal(net, artyz7_dummy_regs_configuration(1), 42, base_address => reg_slaves(0).addr);
-      check_reg_equal(net, artyz7_dummy_regs_configuration(2), 42, base_address => reg_slaves(0).addr);
+      check_equal(reg_value(artyz7_plain_dummy_reg_plain_bit_a), '0');
+      check_equal(reg_value(artyz7_plain_dummy_reg_plain_bit_b), '1');
+      check_equal(unsigned(reg_value(artyz7_plain_dummy_reg_plain_bit_vector)), 3);
 
-      -- No value set -> 0
-      check_reg_equal(net, artyz7_dummy_regs_settings(0), 0, base_address => reg_slaves(0).addr);
-      check_reg_equal(net, artyz7_dummy_regs_settings(1), 0, base_address => reg_slaves(0).addr);
-      check_reg_equal(net, artyz7_dummy_regs_settings(2), 0, base_address => reg_slaves(0).addr);
+      for register_array_idx in 0 to 3 - 1 loop
+        read_reg(
+          net,
+          artyz7_dummy_regs_array_dummy_reg(register_array_idx),
+          reg_value,
+          base_address => reg_slaves(0).addr
+        );
 
-    elsif run("test_dummy_reg_read_write") then
-      -- Read and write the generated registers
-
-      write_reg(net, artyz7_plain_dummy_reg, face, base_address => reg_slaves(0).addr);
-
-      write_reg(net, artyz7_dummy_regs_configuration(0), beef, base_address => reg_slaves(0).addr);
-      write_reg(net, artyz7_dummy_regs_configuration(1), cafe, base_address => reg_slaves(0).addr);
-      write_reg(net, artyz7_dummy_regs_configuration(2), dead, base_address => reg_slaves(0).addr);
-
-      check_reg_equal(net, artyz7_plain_dummy_reg, face, base_address => reg_slaves(0).addr);
-
-      check_reg_equal(net, artyz7_dummy_regs_configuration(0), beef, base_address => reg_slaves(0).addr);
-      check_reg_equal(net, artyz7_dummy_regs_configuration(1), cafe, base_address => reg_slaves(0).addr);
-      check_reg_equal(net, artyz7_dummy_regs_configuration(2), dead, base_address => reg_slaves(0).addr);
-
-      check_reg_equal(net, artyz7_dummy_regs_settings(0), 0, base_address => reg_slaves(0).addr);
-      check_reg_equal(net, artyz7_dummy_regs_settings(1), 0, base_address => reg_slaves(0).addr);
-      check_reg_equal(net, artyz7_dummy_regs_settings(2), 0, base_address => reg_slaves(0).addr);
+        check_equal(reg_value(artyz7_plain_dummy_reg_plain_bit_a), '1');
+        check_equal(reg_value(artyz7_plain_dummy_reg_plain_bit_b), '0');
+        check_equal(unsigned(reg_value(artyz7_plain_dummy_reg_plain_bit_vector)), 12);
+      end loop;
 
     end if;
 

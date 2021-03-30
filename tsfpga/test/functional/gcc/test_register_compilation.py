@@ -41,56 +41,86 @@ class TestRegisterCompilation(unittest.TestCase):
 #include <stdint.h>
 #include "artyz7_regs.h"
 
-int main()
+
+void test_constants()
 {
-  // Assert constants
   assert(ARTYZ7_DATA_WIDTH == 24);
   assert(ARTYZ7_DECREMENT == -8);
+}
 
+void test_addresses()
+{
   // Assert that indexes are correct
   assert(ARTYZ7_PLAIN_DUMMY_REG_INDEX == 0);
-  assert(ARTYZ7_DUMMY_REGS_CONFIGURATION_INDEX(0) == 1);
-  assert(ARTYZ7_DUMMY_REGS_SETTINGS_INDEX(0) == 2);
-  assert(ARTYZ7_DUMMY_REGS_CONFIGURATION_INDEX(1) == 3);
-  assert(ARTYZ7_DUMMY_REGS_SETTINGS_INDEX(1) == 4);
-  assert(ARTYZ7_DUMMY_REGS_CONFIGURATION_INDEX(2) == 5);
-  assert(ARTYZ7_DUMMY_REGS_SETTINGS_INDEX(2) == 6);
+  assert(ARTYZ7_DUMMY_REGS_ARRAY_DUMMY_REG_INDEX(0) == 1);
+  assert(ARTYZ7_DUMMY_REGS_SECOND_ARRAY_DUMMY_REG_INDEX(0) == 2);
+  assert(ARTYZ7_DUMMY_REGS_ARRAY_DUMMY_REG_INDEX(1) == 3);
+  assert(ARTYZ7_DUMMY_REGS_SECOND_ARRAY_DUMMY_REG_INDEX(1) == 4);
+  assert(ARTYZ7_DUMMY_REGS_ARRAY_DUMMY_REG_INDEX(2) == 5);
+  assert(ARTYZ7_DUMMY_REGS_SECOND_ARRAY_DUMMY_REG_INDEX(2) == 6);
 
   // Assert that addresses are correct
   assert(ARTYZ7_PLAIN_DUMMY_REG_ADDR == 0);
-  assert(ARTYZ7_DUMMY_REGS_CONFIGURATION_ADDR(0) == 4);
-  assert(ARTYZ7_DUMMY_REGS_SETTINGS_ADDR(0) == 8);
-  assert(ARTYZ7_DUMMY_REGS_CONFIGURATION_ADDR(1) == 12);
-  assert(ARTYZ7_DUMMY_REGS_SETTINGS_ADDR(1) == 16);
-  assert(ARTYZ7_DUMMY_REGS_CONFIGURATION_ADDR(2) == 20);
-  assert(ARTYZ7_DUMMY_REGS_SETTINGS_ADDR(2) == 24);
+  assert(ARTYZ7_DUMMY_REGS_ARRAY_DUMMY_REG_ADDR(0) == 4);
+  assert(ARTYZ7_DUMMY_REGS_SECOND_ARRAY_DUMMY_REG_ADDR(0) == 8);
+  assert(ARTYZ7_DUMMY_REGS_ARRAY_DUMMY_REG_ADDR(1) == 12);
+  assert(ARTYZ7_DUMMY_REGS_SECOND_ARRAY_DUMMY_REG_ADDR(1) == 16);
+  assert(ARTYZ7_DUMMY_REGS_ARRAY_DUMMY_REG_ADDR(2) == 20);
+  assert(ARTYZ7_DUMMY_REGS_SECOND_ARRAY_DUMMY_REG_ADDR(2) == 24);
   // Last register
-  assert(ARTYZ7_DUMMY_REGS_SETTINGS_ADDR(2) == 4 * (ARTYZ7_NUM_REGS - 1));
+  assert(ARTYZ7_DUMMY_REGS_SECOND_ARRAY_DUMMY_REG_ADDR(2) == 4 * (ARTYZ7_NUM_REGS - 1));
+}
 
-  // Assert bit indexes
-  assert(ARTYZ7_PLAIN_DUMMY_REG_INJECT_BIT == 0);
-  assert(ARTYZ7_PLAIN_DUMMY_REG_INJECT == 1);
-  assert(ARTYZ7_DUMMY_REGS_CONFIGURATION_ENABLE_BIT == 0);
-  assert(ARTYZ7_DUMMY_REGS_CONFIGURATION_ENABLE == 1);
-  assert(ARTYZ7_DUMMY_REGS_CONFIGURATION_DISABLE_BIT == 1);
-  assert(ARTYZ7_DUMMY_REGS_CONFIGURATION_DISABLE == 2);
+void test_bit_indexes()
+{
+  // Assert bit indexes of plain register
+  assert(ARTYZ7_PLAIN_DUMMY_REG_PLAIN_BIT_A_SHIFT == 0);
+  assert(ARTYZ7_PLAIN_DUMMY_REG_PLAIN_BIT_A_MASK == 1);
 
+  assert(ARTYZ7_PLAIN_DUMMY_REG_PLAIN_BIT_B_SHIFT == 1);
+  assert(ARTYZ7_PLAIN_DUMMY_REG_PLAIN_BIT_B_MASK == 2);
+
+  assert(ARTYZ7_PLAIN_DUMMY_REG_PLAIN_BIT_VECTOR_SHIFT == 2);
+  assert(ARTYZ7_PLAIN_DUMMY_REG_PLAIN_BIT_VECTOR_MASK == 15 << 2);
+
+  // Assert bit indexes of array register
+  assert(ARTYZ7_PLAIN_DUMMY_REG_PLAIN_BIT_A_SHIFT == 0);
+  assert(ARTYZ7_PLAIN_DUMMY_REG_PLAIN_BIT_A_MASK == 1);
+
+  assert(ARTYZ7_PLAIN_DUMMY_REG_PLAIN_BIT_B_SHIFT == 1);
+  assert(ARTYZ7_PLAIN_DUMMY_REG_PLAIN_BIT_B_MASK == 2);
+
+  assert(ARTYZ7_PLAIN_DUMMY_REG_PLAIN_BIT_VECTOR_SHIFT == 2);
+  assert(ARTYZ7_PLAIN_DUMMY_REG_PLAIN_BIT_VECTOR_MASK == 15 << 2);
+}
+
+void test_generated_type()
+{
   // Assert positions within the generated type
   artyz7_regs_t regs;
   assert(sizeof(regs) == 4 * ARTYZ7_NUM_REGS);
 
   assert((void *)&regs == (void *)&regs.plain_dummy_reg);
-  assert((void *)&regs + 4 == (void *)&regs.dummy_regs[0].configuration);
-  assert((void *)&regs + 8 == (void *)&regs.dummy_regs[0].settings);
-  assert((void *)&regs + 12 == (void *)&regs.dummy_regs[1].configuration);
-  assert((void *)&regs + 16 == (void *)&regs.dummy_regs[1].settings);
-  assert((void *)&regs + 20 == (void *)&regs.dummy_regs[2].configuration);
-  assert((void *)&regs + 24 == (void *)&regs.dummy_regs[2].settings);
+  assert((void *)&regs + 4 == (void *)&regs.dummy_regs[0].array_dummy_reg);
+  assert((void *)&regs + 8 == (void *)&regs.dummy_regs[0].second_array_dummy_reg);
+  assert((void *)&regs + 12 == (void *)&regs.dummy_regs[1].array_dummy_reg);
+  assert((void *)&regs + 16 == (void *)&regs.dummy_regs[1].second_array_dummy_reg);
+  assert((void *)&regs + 20 == (void *)&regs.dummy_regs[2].array_dummy_reg);
+  assert((void *)&regs + 24 == (void *)&regs.dummy_regs[2].second_array_dummy_reg);
 
   // Some dummy code that uses the generated type
   regs.plain_dummy_reg = 0;
-  regs.dummy_regs[0].configuration = ARTYZ7_DUMMY_REGS_CONFIGURATION_ENABLE;
-  regs.dummy_regs[2].settings = (1 << ARTYZ7_DUMMY_REGS_CONFIGURATION_ENABLE_BIT);
+  regs.dummy_regs[0].array_dummy_reg = ARTYZ7_DUMMY_REGS_ARRAY_DUMMY_REG_ARRAY_BIT_VECTOR_MASK;
+  regs.dummy_regs[2].second_array_dummy_reg =
+    (1 << ARTYZ7_DUMMY_REGS_ARRAY_DUMMY_REG_ARRAY_BIT_B_SHIFT);
+}
+
+int main()
+{
+  test_constants();
+  test_addresses();
+  test_bit_indexes();
+  test_generated_type();
 
   return 0;
 }
@@ -110,55 +140,81 @@ int main()
 
 #include "include/artyz7.h"
 
-int main()
+void test_constants()
 {
-  // Assert constants
   assert(fpga_regs::Artyz7::data_width == 24);
   assert(fpga_regs::Artyz7::decrement == -8);
 
   assert(fpga_regs::Artyz7::num_registers == 7);
+
+  assert(fpga_regs::Artyz7::dummy_regs_array_length == 3);
+}
+
+void test_read_write_registers(fpga_regs::Artyz7 *artyz7, uint32_t *memory)
+{
+  // Set data and then check, according to the expected register addresses.
+  // Data is a ramp 0-6.
+  artyz7->set_plain_dummy_reg(0);
+  artyz7->set_dummy_regs_array_dummy_reg(0, 1);
+  // second_array_dummy_reg is read only, so set the value in the memory straight away
+  memory[2] = 2;
+  artyz7->set_dummy_regs_array_dummy_reg(1, 3);
+  memory[4] = 4;
+  artyz7->set_dummy_regs_array_dummy_reg(2, 5);
+  memory[6] = 6;
+
+  assert(artyz7->get_plain_dummy_reg() == 0);
+  assert(memory[0] == 0);
+
+  assert(artyz7->get_dummy_regs_array_dummy_reg(0) == 1);
+  assert(memory[1] == 1);
+
+  assert(artyz7->get_dummy_regs_second_array_dummy_reg(0) == 2);
+  assert(memory[2] == 2);
+
+  assert(artyz7->get_dummy_regs_array_dummy_reg(1) == 3);
+  assert(memory[3] == 3);
+
+  assert(artyz7->get_dummy_regs_second_array_dummy_reg(1) == 4);
+  assert(memory[4] == 4);
+
+  assert(artyz7->get_dummy_regs_array_dummy_reg(2) == 5);
+  assert(memory[5] == 5);
+
+  assert(artyz7->get_dummy_regs_second_array_dummy_reg(2) == 6);
+  assert(memory[6] == 6);
+}
+
+void test_bit_indexes()
+{
+  // Assert bit indexes of plain register
+  assert(fpga_regs::Artyz7::plain_dummy_reg_plain_bit_a_shift == 0);
+  assert(fpga_regs::Artyz7::plain_dummy_reg_plain_bit_a_mask == 1);
+  assert(fpga_regs::Artyz7::plain_dummy_reg_plain_bit_b_shift == 1);
+  assert(fpga_regs::Artyz7::plain_dummy_reg_plain_bit_b_mask == 2);
+  assert(fpga_regs::Artyz7::plain_dummy_reg_plain_bit_vector_shift == 2);
+  assert(fpga_regs::Artyz7::plain_dummy_reg_plain_bit_vector_mask == 15 << 2);
+
+  // Assert bit indexes of array register
+  assert(fpga_regs::Artyz7::dummy_regs_array_dummy_reg_array_bit_a_shift == 0);
+  assert(fpga_regs::Artyz7::dummy_regs_array_dummy_reg_array_bit_a_mask == 1);
+  assert(fpga_regs::Artyz7::dummy_regs_array_dummy_reg_array_bit_b_shift == 1);
+  assert(fpga_regs::Artyz7::dummy_regs_array_dummy_reg_array_bit_b_mask == 2);
+  assert(fpga_regs::Artyz7::dummy_regs_array_dummy_reg_array_bit_vector_shift == 2);
+  assert(fpga_regs::Artyz7::dummy_regs_array_dummy_reg_array_bit_vector_mask == 15 << 2);
+}
+
+int main()
+{
+  test_constants();
 
   // Allocate memory and instantiate the register class
   uint32_t memory[fpga_regs::Artyz7::num_registers];
   volatile uint8_t *base_address = reinterpret_cast<volatile uint8_t *>(memory);
   fpga_regs::Artyz7 artyz7 = fpga_regs::Artyz7(base_address);
 
-  // Set data and then check, according to the expected register addresses.
-  // Data is a ramp 0-6.
-  artyz7.set_plain_dummy_reg(0);
-  artyz7.set_dummy_regs_configuration(0, 1);
-  // dummy_regs_settings is read only, so set the value in the memory straight away
-  memory[2] = 2;
-  artyz7.set_dummy_regs_configuration(1, 3);
-  memory[4] = 4;
-  artyz7.set_dummy_regs_configuration(2, 5);
-  memory[6] = 6;
-
-  assert(artyz7.get_plain_dummy_reg() == 0);
-  assert(memory[0] == 0);
-
-  assert(artyz7.get_dummy_regs_configuration(0) == 1);
-  assert(memory[1] == 1);
-
-  assert(artyz7.get_dummy_regs_settings(0) == 2);
-  assert(memory[2] == 2);
-
-  assert(artyz7.get_dummy_regs_configuration(1) == 3);
-  assert(memory[3] == 3);
-
-  assert(artyz7.get_dummy_regs_settings(1) == 4);
-  assert(memory[4] == 4);
-
-  assert(artyz7.get_dummy_regs_configuration(2) == 5);
-  assert(memory[5] == 5);
-
-  assert(artyz7.get_dummy_regs_settings(2) == 6);
-  assert(memory[6] == 6);
-
-  // Assert bit indexes
-  assert(fpga_regs::Artyz7::plain_dummy_reg_inject == 1);
-  assert(fpga_regs::Artyz7::dummy_regs_configuration_enable == 1);
-  assert(fpga_regs::Artyz7::dummy_regs_configuration_disable == 2);
+  test_read_write_registers(&artyz7, memory);
+  test_bit_indexes();
 
   return 0;
 }
@@ -188,7 +244,7 @@ int main()
   fpga_regs::Artyz7 artyz7 = fpga_regs::Artyz7(base_address);
 
   // Index 3 is out of bounds (should be less than 3)
-  artyz7.set_dummy_regs_configuration(3, 1337);
+  artyz7.set_dummy_regs_array_dummy_reg(3, 1337);
 
   return 0;
 }

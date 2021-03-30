@@ -175,19 +175,5 @@ So in our :ref:`example build.py <example_build_py>` above we could have passed 
 Build result with utilization numbers
 -------------------------------------
 
-The :meth:`.VivadoProject.build` method will return a :class:`.BuildResult` object upon completion.
+The :meth:`.VivadoProject.build` method will return a :class:`.build_result.BuildResult` object upon completion.
 It can be inspected to see if the run passed or failed, and what the resource utilization of the build is.
-
-
-
-.. _project_list:
-
-FPGA build project list
------------------------
-
-Wrapper class around :class:`build projects <.VivadoProject>` that provides a simple interface, along with build parallelization.
-See :ref:`example_build_py` for usage example.
-
-.. autoclass:: tsfpga.build_project_list.BuildProjectList()
-    :members:
-

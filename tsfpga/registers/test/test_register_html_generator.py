@@ -34,49 +34,79 @@ class TestRegisterHtmlGenerator(unittest.TestCase):
             index=0,
             address="0x0000",
             mode="Read, Write",
-            default_value=1337,
+            default_value="0xE",
             html=html,
         )
 
         assert "Register array <strong>dummy_regs</strong>, repeated 3 times" in html, html
 
         self._check_register(
-            name="configuration",
+            name="array_dummy_reg",
             index="1 + i &times; 2",
             address="0x0004 + i &times; 0x0008",
             mode="Read, Write",
-            default_value=42,
+            default_value="0x31",
             html=html,
         )
 
         self._check_register(
-            name="settings",
+            name="second_array_dummy_reg",
             index="2 + i &times; 2",
             address="0x0008 + i &times; 0x0008",
             mode="Read",
-            default_value=0,
+            default_value="0x0",
             html=html,
         )
 
-    def test_bits(self):
+    def test_fields(self):
         """
         Test that all bits show up in the HTML with correct attributes.
         """
         html = self._create_html_and_read()
 
-        self._check_bit(
-            name="inject",
-            index=0,
+        # Fields in plain register
+        self._check_field(
+            name="plain_bit_a",
+            index="0",
+            default_value="0b0",
+            description="Bit A",
             html=html,
         )
-        self._check_bit(
-            name="enable",
-            index=0,
+        self._check_field(
+            name="plain_bit_b",
+            index="1",
+            default_value="0b1",
+            description="Bit B",
             html=html,
         )
-        self._check_bit(
-            name="disable",
-            index=1,
+        self._check_field(
+            name="plain_bit_vector",
+            index="5:2",
+            default_value="0b0011",
+            description="Bit vector",
+            html=html,
+        )
+
+        # Fields in register array
+        self._check_field(
+            name="array_bit_a",
+            index="0",
+            default_value="0b1",
+            description="Array register bit A",
+            html=html,
+        )
+        self._check_field(
+            name="array_bit_b",
+            index="1",
+            default_value="0b0",
+            description="Array register bit B",
+            html=html,
+        )
+        self._check_field(
+            name="array_bit_vector",
+            index="5:2",
+            default_value="0b1100",
+            description="Array register bit vector",
             html=html,
         )
 
@@ -114,14 +144,15 @@ class TestRegisterHtmlGenerator(unittest.TestCase):
         assert expected in html, f"{expected}\n\n{html}"
 
     @staticmethod
-    def _check_bit(name, index, html):
+    def _check_field(name, index, default_value, description, html):
         expected = f"""
   <tr>
     <td>&nbsp;&nbsp;<em>{name}</em></td>
     <td>&nbsp;&nbsp;{index}</td>
     <td></td>
     <td></td>
-    <td></td>
+    <td>{default_value}</td>
+    <td>{description}</td>
 """
         assert expected in html, f"{expected}\n\n{html}"
 

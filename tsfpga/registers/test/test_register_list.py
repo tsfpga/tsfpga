@@ -49,26 +49,26 @@ def test_header_constants():
 
 def test_invalid_register_mode_should_raise_exception():
     registers = RegisterList(None, None)
-    registers.append_register("test", "r_w")
+    registers.append_register(name="test", mode="r_w", description="")
 
     with pytest.raises(ValueError) as exception_info:
-        registers.append_register("hest", "x")
+        registers.append_register(name="hest", mode="x", description="")
     assert str(exception_info.value) == 'Invalid mode "x" for register "hest"'
 
     register_array = registers.append_register_array("array", 2)
-    register_array.append_register("apa", "r")
+    register_array.append_register(name="apa", mode="r", description="")
     with pytest.raises(ValueError) as exception_info:
-        register_array.append_register("zebra", "y")
+        register_array.append_register(name="zebra", mode="y", description="")
     assert str(exception_info.value) == 'Invalid mode "y" for register "zebra"'
 
 
 def test_registers_are_appended_properly_and_can_be_edited_in_place():
     register_array = RegisterList(name="apa", source_definition_file=Path("."))
 
-    register_hest = register_array.append_register(name="hest", mode="r")
+    register_hest = register_array.append_register(name="hest", mode="r", description="")
     assert register_hest.index == 0
 
-    register_zebra = register_array.append_register(name="zebra", mode="r")
+    register_zebra = register_array.append_register(name="zebra", mode="r", description="")
     assert register_zebra.index == 1
 
     register_hest.description = "new desc"
@@ -80,8 +80,8 @@ def test_register_arrays_are_appended_properly_and_can_be_edited_in_place():
 
     register_array_hest = register_array.append_register_array(name="hest", length=4)
     assert register_array_hest.base_index == 0
-    register_array_hest.append_register(name="foo", mode="r")
-    register_array_hest.append_register(name="bar", mode="w")
+    register_array_hest.append_register(name="foo", mode="r", description="")
+    register_array_hest.append_register(name="bar", mode="w", description="")
 
     register_array_zebra = register_array.append_register_array(name="zebra", length=2)
     assert register_array_zebra.base_index == 8
@@ -117,7 +117,7 @@ def test_repr_with_register_appended():
     register_list_b = RegisterList(name="apa", source_definition_file=Path("."))
     assert repr(register_list_a) == repr(register_list_b)
 
-    register_list_a.append_register(name="zebra", mode="w")
+    register_list_a.append_register(name="zebra", mode="w", description="")
 
     assert repr(register_list_a) != repr(register_list_b)
 
@@ -135,11 +135,9 @@ def test_repr_with_register_array_appended():
 def test_deep_copy_of_register_list_actually_copies_everything():
     original_list = RegisterList("original", Path("/original_file.txt"))
     original_list.add_constant("original_constant", value=2, description="original constant")
-    original_list.append_register(
-        "original_register", "w", description="original register", default_value=3
-    )
+    original_list.append_register("original_register", "w", description="original register")
     original_array = original_list.append_register_array("original_array", length=4)
-    original_array.append_register(name="original_register_in_array", mode="r")
+    original_array.append_register(name="original_register_in_array", mode="r", description="")
 
     copied_list = copy.deepcopy(original_list)
 
@@ -153,7 +151,7 @@ def test_deep_copy_of_register_list_actually_copies_everything():
     assert copied_list.register_objects[0] is not original_list.register_objects[0]
 
     # Original register in position 0, original register array in position 1, new register in 2
-    copied_list.append_register(name="new_register", mode="r")
+    copied_list.append_register(name="new_register", mode="r", description="")
     assert len(copied_list.register_objects) == 3 and len(original_list.register_objects) == 2
 
     assert copied_list.register_objects[1] is not original_list.register_objects[1]
@@ -164,7 +162,9 @@ def test_deep_copy_of_register_list_actually_copies_everything():
         copied_list.register_objects[1].registers[0]
         is not original_list.register_objects[1].registers[0]
     )
-    copied_list.register_objects[1].append_register(name="new_register_in_array", mode="r_w")
+    copied_list.register_objects[1].append_register(
+        name="new_register_in_array", mode="r_w", description=""
+    )
     assert len(copied_list.register_objects[1].registers) == 2
     assert len(original_list.register_objects[1].registers) == 1
 
@@ -181,7 +181,7 @@ class TestRegisterList(unittest.TestCase):
 [register.data]
 
 mode = "w"
-default_value = 3
+description = "My register"
 
 """
 

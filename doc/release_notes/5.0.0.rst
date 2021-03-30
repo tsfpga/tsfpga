@@ -33,7 +33,7 @@ Breaking changes
   See the :class:`class documentation <.BuildProjectList>`, the :ref:`minimal usage example <example_build_py>` and the `build.py example in the repo <https://gitlab.com/tsfpga/tsfpga/-/blob/master/examples/build.py>`__.
 * Change :class:`.VivadoProject` to catch non-zero exit code exception if Vivado call fails.
   If :meth:`.VivadoProject.create` or :meth:`.VivadoProject.open` fail they will return ``False``.
-  If :meth:`.VivadoProject.build` fails, the returned :class:`.BuildResult` object will have ``success`` set to ``False``.
+  If :meth:`.VivadoProject.build` fails, the returned :class:`.build_result.BuildResult` object will have ``success`` set to ``False``.
 * Rename ``<module>_reg_was_written_t`` to ``<module>_reg_was_accessed_t`` in generated register VHDL package.
 * Add mandatory generic ``width`` to ``resync.resync_slv_level`` and ``resync.resync_slv_level_on_signal``.
 * Rename ``BaseModule.add_config`` to :meth:`.BaseModule.add_vunit_config`.

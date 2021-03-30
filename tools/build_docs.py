@@ -115,9 +115,6 @@ def generate_apidoc():
         "tsfpga",
         # Exclude test files
         "**/test/**",
-        # Inherits from a VUnit class, which sphinx cant find.
-        # Might be possible to solve.
-        "tsfpga/build_project_list.py",
     ]
     check_call(cmd, cwd=tsfpga.REPO_ROOT)
 

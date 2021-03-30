@@ -4,11 +4,22 @@
 
 mode = "r_w"
 description = "A plain dummy register."
-default_value = 1337
 
-[register.plain_dummy_reg.bits]
+[register.plain_dummy_reg.bit.plain_bit_a]
 
-inject = ""
+description = "Bit A"
+default_value = "0"
+
+[register.plain_dummy_reg.bit.plain_bit_b]
+
+description = "Bit B"
+default_value = "1"
+
+[register.plain_dummy_reg.bit_vector.plain_bit_vector]
+
+description = "Bit vector"
+width = 4
+default_value = "0011"
 
 
 ################################################################################
@@ -16,19 +27,31 @@ inject = ""
 
 array_length = 3
 
-[register_array.dummy_regs.register.configuration]
+# ------------------------------------------------------------------------------
+[register_array.dummy_regs.register.array_dummy_reg]
 
-mode= "r_w"
+mode = "r_w"
 description = "The first register in the array."
-default_value = 42
 
-[register_array.dummy_regs.register.configuration.bits]
+[register_array.dummy_regs.register.array_dummy_reg.bit.array_bit_a]
 
-enable = ""
-disable = ""
+description = "Array register bit A"
+default_value = "1"
 
-[register_array.dummy_regs.register.settings]
+[register_array.dummy_regs.register.array_dummy_reg.bit.array_bit_b]
+
+description = "Array register bit B"
+default_value = "0"
+
+[register_array.dummy_regs.register.array_dummy_reg.bit_vector.array_bit_vector]
+
+description = "Array register bit vector"
+width = 4
+default_value = "1100"
+
+
+# ------------------------------------------------------------------------------
+[register_array.dummy_regs.register.second_array_dummy_reg]
 
 description = "The second register in the array."
-mode= "r"
-
+mode = "r"

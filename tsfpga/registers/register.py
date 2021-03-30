@@ -8,6 +8,7 @@
 
 
 from .bit import Bit
+from .bit_vector import BitVector
 
 
 class RegisterMode:
@@ -40,14 +41,13 @@ class Register:
     Used to represent a register and its fields.
     """
 
-    def __init__(self, name, index, mode, description=None, default_value=None):
+    def __init__(self, name, index, mode, description):
         """
         Arguments:
             name (str): The name of the register.
             index (int): The zero-based index of this register in its register list.
             mode (str): A valid register mode.
             description (str): Textual register description.
-            default_value (int): Default value for the register (signed).
         """
         if mode not in REGISTER_MODES:
             raise ValueError(f'Invalid mode "{mode}" for register "{name}"')
@@ -55,51 +55,90 @@ class Register:
         self.name = name
         self.index = index
         self.mode = mode
-        self.description = "" if description is None else description
-        self.default_value = 0 if default_value is None else default_value
-        self.bits = []
+        self.description = description
+        self.fields = []
         self.bit_index = 0
 
-    @staticmethod
-    def signed2unsigned(num, width):
-        """
-        Calculates two's complement of integer when needed.
-
-        Arguments:
-            num (int) : Number to be converted.
-            width (int) : Required number of output bits
-        """
-        result = 0
-        if num:
-            result = (-num ^ (2 ** width - 1)) + 1 if num < 0 else num
-        return result
-
-    def append_bit(self, name, description, width=1, default_value=None):
+    def append_bit(self, name, description, default_value):
         """
         Append a bit field to this register.
 
         Arguments:
-            name (str): The name of the bit field.
-            width (int) : The width of the bit field.
+            name (str): The name of the bit.
             description (str): Description of the bit.
+            default_value (str): Default value. Either "1" or "0".
+
         Return:
-            :class:`.Bit`: The bit array object that was created.
+            :class:`.Bit`: The bit object that was created.
         """
+        bit = Bit(
+            name=name, index=self.bit_index, description=description, default_value=default_value
+        )
+        self.fields.append(bit)
 
-        if width < 1 or width > 32:
-            raise ValueError(f'Invalid bit array width for register "{self.name}"')
-
-        value = self.signed2unsigned(default_value, width)
-        self.default_value += value * 2 ** self.bit_index
-
-        bits = Bit(name, self.bit_index, description, width, value)
-        self.bits.append(bits)
-
-        self.bit_index += width
+        self.bit_index += bit.width
         if self.bit_index > 32:
             raise ValueError(f'Maximum width exceeded for register "{self.name}"')
 
-        return bits
+        return bit
+
+    def append_bit_vector(self, name, description, width, default_value):
+        """
+        Append a bit vector field to this register.
+
+        Arguments:
+            name (str): The name of the bit vector.
+            width (int) : The width of the bit vector.
+            description (str): Description of the bit vector.
+            default_value (str): Default value as a string. Must be of length ``width`` and contain
+                only "1" and "0".
+
+        Return:
+            :class:`.BitVector`: The bit vector object that was created.
+        """
+        bit_vector = BitVector(
+            name=name,
+            base_index=self.bit_index,
+            description=description,
+            width=width,
+            default_value=default_value,
+        )
+        self.fields.append(bit_vector)
+
+        self.bit_index += bit_vector.width
+        if self.bit_index > 32:
+            raise ValueError(f'Maximum width exceeded for register "{self.name}"')
+
+        return bit_vector
+
+    @property
+    def default_value(self):
+        """
+        The default value of the register. Depends on the default values of it's fields.
+
+        Returns:
+            int: The default value.
+        """
+        default_value = 0
+        for field in self.fields:
+            default_value += field.default_value_uint * 2 ** field.base_index
+        return default_value
+
+    def get_field(self, field_name):
+        """
+        Get the field within this register that has the given name.
+
+        Arguments:
+            field_name (str): The name of the field.
+
+        Returns:
+            :class:`.RegisterField`: The field. Will return ``None`` if no field matches.
+        """
+        for field in self.fields:
+            if field.name == field_name:
+                return field
+
+        return None
 
     @property
     def address(self):
@@ -129,5 +168,5 @@ index={self.index},\
 mode={self.mode},\
 description={self.description},\
 default_value={self.default_value},\
-bits={','.join([repr(bit) for bit in self.bits])},\
+fields={','.join([repr(field) for field in self.fields])},\
 )"""

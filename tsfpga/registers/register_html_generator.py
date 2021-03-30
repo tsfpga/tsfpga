@@ -170,21 +170,21 @@ th {
     <td>{index}</td>
     <td>{address_readable}</td>
     <td>{REGISTER_MODES[register.mode].mode_readable}</td>
-    <td>{register.default_value}</td>
+    <td>{self._to_hex_string(register.default_value, num_nibbles=1)}</td>
     <td>{description}</td>
   </tr>"""
 
         return html
 
-    def _annotate_bit(self, bit):
-        description = self._html_translator.translate(bit.description)
+    def _annotate_field(self, field):
+        description = self._html_translator.translate(field.description)
         html = f"""
   <tr>
-    <td>&nbsp;&nbsp;<em>{bit.name}</em></td>
-    <td>&nbsp;&nbsp;{bit.bit_range}</td>
+    <td>&nbsp;&nbsp;<em>{field.name}</em></td>
+    <td>&nbsp;&nbsp;{field.range}</td>
     <td></td>
     <td></td>
-    <td></td>
+    <td>{field.default_value_str}</td>
     <td>{description}</td>
   </tr>"""
 
@@ -208,8 +208,8 @@ th {
         for register_object in register_objects:
             if isinstance(register_object, Register):
                 html += self._annotate_register(register_object)
-                for bit in register_object.bits:
-                    html += self._annotate_bit(bit)
+                for field in register_object.fields:
+                    html += self._annotate_field(field)
             else:
                 html += f"""
   <tr>
@@ -222,8 +222,8 @@ repeated {register_object.length} times
                 for register in register_object.registers:
                     register_index = register_object.base_index + register.index
                     html += self._annotate_register(register, register_index, array_index_increment)
-                    for bit in register.bits:
-                        html += self._annotate_bit(bit)
+                    for field in register.fields:
+                        html += self._annotate_field(field)
                 html += f"""
   <tr>
     <td colspan="6" class="array_header">

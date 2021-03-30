@@ -108,8 +108,8 @@ class SizeChecker:
     def check(self, result_size):
         """
         Arguments:
-            result_size (dict): A size dictionary as found in the :class:`.BuildResult`
-                object.
+            result_size (dict): A size dictionary as found in the
+                :class:`.build_result.BuildResult` object.
         """
         return self._check_value(self.resource_name, result_size[self.resource_name])
 

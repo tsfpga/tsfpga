@@ -21,15 +21,14 @@ use work.ddr_buffer_regs_pkg.all;
 
 entity ddr_buffer_top is
   port (
-    clk_axi_read : in std_logic;
+    clk : in std_logic;
+
     axi_read_m2s : out axi_read_m2s_t := axi_read_m2s_init;
     axi_read_s2m : in axi_read_s2m_t;
 
-    clk_axi_write : in std_logic;
     axi_write_m2s : out axi_write_m2s_t := axi_write_m2s_init;
     axi_write_s2m : in axi_write_s2m_t;
 
-    clk_regs : in std_logic;
     regs_m2s : in axil_m2s_t;
     regs_s2m : out axil_s2m_t := axil_s2m_init
   );
@@ -44,10 +43,12 @@ architecture a of ddr_buffer_top is
 
   signal regs_up, regs_down : ddr_buffer_regs_t := ddr_buffer_regs_init;
 
-  alias command_start is regs_down(ddr_buffer_command)(ddr_buffer_command_start);
-  alias status_idle is regs_up(ddr_buffer_status)(ddr_buffer_status_idle);
+  signal counter : unsigned(ddr_buffer_status_counter) := (others => '0');
 
 begin
+
+  regs_up(ddr_buffer_status)(ddr_buffer_status_counter) <= std_logic_vector(counter);
+
 
   ------------------------------------------------------------------------------
   axi_read_m2s.ar.addr(regs_down(0)'range) <= unsigned(regs_down(ddr_buffer_addrs_read_addr(current_addr_index)));
@@ -79,17 +80,17 @@ begin
   ctrl : process
     variable ar_done, aw_done : boolean := false;
   begin
-    wait until rising_edge(clk_regs);
+    wait until rising_edge(clk);
 
     case ctrl_state is
       when idle =>
-        status_idle <= '1';
+        regs_up(ddr_buffer_status)(ddr_buffer_status_idle) <= '1';
         ar_done := false;
         aw_done := false;
 
-        if command_start then
+        if regs_down(ddr_buffer_command)(ddr_buffer_command_start) then
           ctrl_state <= start;
-          status_idle <= '0';
+          regs_up(ddr_buffer_status)(ddr_buffer_status_idle) <= '0';
         end if;
 
       when start =>
@@ -113,6 +114,8 @@ begin
 
       when running =>
         if axi_write_m2s.w.valid and axi_write_s2m.w.ready and axi_write_m2s.w.last then
+          counter <= counter + 1;
+
           if current_addr_index = ddr_buffer_addrs_array_length - 1 then
             current_addr_index <= 0;
             ctrl_state <= idle;
@@ -132,7 +135,7 @@ begin
       default_values => ddr_buffer_regs_init
     )
     port map (
-      clk => clk_regs,
+      clk => clk,
 
       axil_m2s => regs_m2s,
       axil_s2m => regs_s2m,

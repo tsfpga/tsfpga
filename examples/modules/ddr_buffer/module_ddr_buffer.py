@@ -11,10 +11,12 @@ from tsfpga.module import BaseModule
 
 class Module(BaseModule):
 
-    version = 3
+    # This will be much nicer when the register generator supports integer fields.
+    # For now it is a bit vector field.
+    version = "00000011"
 
     def registers_hook(self):
         self.registers.add_constant(
-            "version", self.version, f"Version number for the {self.name} module."
+            "version", int(self.version, base=2), f"Version number for the {self.name} module."
         )
-        self.registers.get_register("version").default_value = int(self.version)
+        self.registers.get_register("version").get_field("version").default_value = self.version

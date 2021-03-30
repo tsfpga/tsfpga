@@ -29,7 +29,7 @@ class RegisterArray:
         self.length = length
         self.registers = []
 
-    def append_register(self, name, mode, description=None, default_value=None):
+    def append_register(self, name, mode, description):
         """
         Append a register to this array.
 
@@ -37,12 +37,12 @@ class RegisterArray:
             name (str): The name of the register.
             mode (str): A valid register mode.
             description (str): Textual register description.
-            default_value (int): Default value for the register (signed).
+
         Return:
             :class:`.Register`: The register object that was created.
         """
         index = len(self.registers)
-        register = Register(name, index, mode, description, default_value)
+        register = Register(name, index, mode, description)
 
         self.registers.append(register)
         return register

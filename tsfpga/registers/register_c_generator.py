@@ -99,7 +99,7 @@ class RegisterCGenerator(RegisterCodeGenerator):
         c_code = ""
         for register, register_array in self._iterate_registers(register_objects):
             c_code += self._addr_define(register, register_array)
-            c_code += self._bit_definitions(register, register_array)
+            c_code += self._field_definitions(register, register_array)
             c_code += "\n"
 
         return c_code
@@ -130,25 +130,24 @@ class RegisterCGenerator(RegisterCodeGenerator):
 
         return c_code
 
-    def _bit_definitions(self, register, register_array):
+    def _field_definitions(self, register, register_array):
         register_name = self._register_define_name(register, register_array)
         register_string = f'"{register.name}" register'
         if register_array is not None:
             register_string += f' within the "{register_array.name}" register array'
 
         c_code = ""
-        for bit in register.bits:
+        for field in register.fields:
             c_code += self._comment(
-                f'Index and mask for the "{bit.name}" bit in the {register_string}.'
+                f'Mask and shift for the "{field.name}" field in the {register_string}.'
             )
-            c_code += self._comment_block(bit.description)
+            c_code += self._comment_block(field.description)
 
-            bit_name = f"{register_name}_{bit.name.upper()}"
-            c_code += f"#define {bit_name}_BIT ({bit.index}u)\n"
-            if bit.width > 1:
-                c_code += f"#define {bit_name}_MASK ({(2**bit.width-1)*2**bit.index}u)\n"
-            else:
-                c_code += f"#define {bit_name} ({2**bit.index}u)\n"
+            field_name = f"{register_name}_{field.name.upper()}"
+            c_code += f"#define {field_name}_SHIFT ({field.base_index}u)\n"
+            c_code += (
+                f"#define {field_name}_MASK " f'(0b{"1" * field.width}u << {field.base_index}u)\n'
+            )
 
         return c_code
 

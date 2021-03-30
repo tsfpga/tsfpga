@@ -313,7 +313,7 @@ class VivadoProject:
                     This is a "kwargs" style argument. You can pass any number of named arguments.
 
         Return:
-            BuildResult: Result object with build information.
+            :class:`.build_result.BuildResult`: Result object with build information.
         """
         synth_only = synth_only or self.is_netlist_build
 

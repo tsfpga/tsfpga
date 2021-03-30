@@ -109,19 +109,21 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
         vhdl += "\n  );\n"
         return vhdl
 
-    def _register_bits(self, register_objects):
+    def _register_fields(self, register_objects):
         vhdl = ""
         for register, register_array in self._iterate_registers(register_objects):
-            for bit in register.bits:
-                name = f"{self._register_name(register, register_array)}_{bit.name}"
-                if bit.width == 1:
-                    vhdl += f"  constant {name} : integer := {bit.index};\n"
+            for field in register.fields:
+                name = f"{self._register_name(register, register_array)}_{field.name}"
+
+                if field.width == 1:
+                    vhdl += f"  constant {name} : integer := {field.base_index};\n"
                 else:
                     vhdl += (
                         f"  subtype {name} is integer range "
-                        f"{bit.width + bit.index - 1} downto {bit.index};\n"
+                        f"{field.width + field.base_index - 1} downto {field.base_index};\n"
                     )
-            if register.bits:
+
+            if register.fields:
                 vhdl += "\n"
 
         return vhdl
@@ -173,7 +175,7 @@ package {pkg_name} is
 {self._register_indexes(register_objects)}
 {self._array_constants(register_objects)}\
 {self._register_map(register_objects)}
-{self._register_bits(register_objects)}\
+{self._register_fields(register_objects)}\
 {self._constants(constants)}
 end package;
 

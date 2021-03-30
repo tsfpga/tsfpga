@@ -14,9 +14,6 @@ library osvvm;
 use osvvm.RandomPkg.all;
 
 library vunit_lib;
-use vunit_lib.memory_pkg.all;
-use vunit_lib.memory_utils_pkg.all;
-use vunit_lib.random_pkg.all;
 context vunit_lib.vunit_context;
 context vunit_lib.vc_context;
 
@@ -27,6 +24,7 @@ use axi.axil_pkg.all;
 library bfm;
 
 library reg_file;
+use reg_file.reg_file_pkg.all;
 use reg_file.reg_operations_pkg.all;
 
 use work.ddr_buffer_regs_pkg.all;
@@ -41,7 +39,7 @@ end entity;
 
 architecture tb of tb_ddr_buffer is
 
-  signal clk_axi : std_logic := '0';
+  signal clk : std_logic := '0';
   signal axi_read_m2s : axi_read_m2s_t := axi_read_m2s_init;
   signal axi_read_s2m : axi_read_s2m_t := axi_read_s2m_init;
 
@@ -64,22 +62,39 @@ architecture tb of tb_ddr_buffer is
 begin
 
   test_runner_watchdog(runner, 1 ms);
-  clk_axi <= not clk_axi after 10 ns;
+  clk <= not clk after 10 ns;
 
 
   ------------------------------------------------------------------------------
   main : process
     variable rnd : RandomPType;
-    variable memory_data : integer_array_t := null_integer_array;
-    variable buf : buffer_t;
+
+    procedure check_counter(expected : natural) is
+      variable reg_value : reg_t := (others => '0');
+    begin
+      read_reg(net, ddr_buffer_status, reg_value);
+      check_equal(
+        unsigned(reg_value(ddr_buffer_status_counter)),
+        expected
+      );
+    end procedure;
+
   begin
     test_runner_setup(runner, runner_cfg);
     rnd.InitSeed(rnd'instance_name);
 
     if run("test_ddr_buffer") then
+      check_counter(0);
+
       run_ddr_buffer_test(net, memory, rnd);
+      check_counter(ddr_buffer_addrs_array_length);
+
+      run_ddr_buffer_test(net, memory, rnd);
+      check_counter(2 * ddr_buffer_addrs_array_length);
+
     elsif run("test_version") then
       check_reg_equal(net, ddr_buffer_version, ddr_buffer_constant_version);
+
     end if;
 
     check_expected_was_written(memory);
@@ -93,7 +108,7 @@ begin
       bus_handle => regs_bus_master
     )
     port map (
-      clk => clk_axi,
+      clk => clk,
 
       axil_m2s => regs_m2s,
       axil_s2m => regs_s2m
@@ -108,7 +123,7 @@ begin
       data_width => axi_width
     )
     port map (
-      clk => clk_axi,
+      clk => clk,
 
       axi_read_m2s => axi_read_m2s,
       axi_read_s2m => axi_read_s2m,
@@ -121,15 +136,14 @@ begin
   ------------------------------------------------------------------------------
   dut : entity work.ddr_buffer_top
     port map (
-      clk_axi_read => clk_axi,
+      clk => clk,
+
       axi_read_m2s => axi_read_m2s,
       axi_read_s2m => axi_read_s2m,
 
-      clk_axi_write => clk_axi,
       axi_write_m2s => axi_write_m2s,
       axi_write_s2m => axi_write_s2m,
 
-      clk_regs => clk_axi,
       regs_m2s => regs_m2s,
       regs_s2m => regs_s2m
     );

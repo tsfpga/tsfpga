@@ -49,8 +49,14 @@ extensions = [
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 
+# Types that are used but sphinx cant find, because they are external
+nitpick_ignore = [
+    ("py:class", "abc.ABC"),
+    ("py:class", "vunit.test.report.TestReport"),
+    ("py:class", "vunit.test.report.TestResult"),
+    ("py:class", "vunit.test.runner.TestRunner"),
+]
 # Remove warning that built-in types cannot be referenced.
-nitpick_ignore = []
 for name in dir(builtins):
     nitpick_ignore.append(("py:class", name))
 

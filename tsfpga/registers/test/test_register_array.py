@@ -12,10 +12,10 @@ from tsfpga.registers.register_array import RegisterArray
 def test_registers_are_appended_properly_and_can_be_edited_in_place():
     register_array = RegisterArray(name="apa", base_index=0, length=4)
 
-    register_hest = register_array.append_register(name="hest", mode="r")
+    register_hest = register_array.append_register(name="hest", mode="r", description="")
     assert register_hest.index == 0
 
-    register_zebra = register_array.append_register(name="zebra", mode="r")
+    register_zebra = register_array.append_register(name="zebra", mode="r", description="")
     assert register_zebra.index == 1
 
     register_hest.description = "new desc"
@@ -44,14 +44,14 @@ def test_repr_basic():
 
 def test_repr_with_registers_appended():
     register_array_a = RegisterArray(name="apa", base_index=0, length=4)
-    register_array_a.append_register(name="hest", mode="r")
+    register_array_a.append_register(name="hest", mode="r", description="")
 
     register_array_b = RegisterArray(name="apa", base_index=0, length=4)
-    register_array_b.append_register(name="hest", mode="r")
+    register_array_b.append_register(name="hest", mode="r", description="")
 
     assert repr(register_array_a) == repr(register_array_b)
 
-    register_array_a.append_register(name="zebra", mode="w")
-    register_array_b.append_register(name="zebra", mode="r_w")
+    register_array_a.append_register(name="zebra", mode="w", description="")
+    register_array_b.append_register(name="zebra", mode="r_w", description="")
 
     assert repr(register_array_a) != repr(register_array_b)
