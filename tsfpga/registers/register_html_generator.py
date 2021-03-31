@@ -60,7 +60,13 @@ class RegisterHtmlGenerator:
 <html>
 <head>
   <title>{title}</title>
-   <link rel="stylesheet" href="regs_style.css">
+    <!-- Include the style both inline and as a link to a separate CSS file. -->
+    <!-- Some tools, e.g. Jenkins, will not render with an external styleesheet. -->
+    <!-- For other tools, e.g. page inclusion in sphinx, the style must be in the file. -->
+    <link rel="stylesheet" href="regs_style.css">
+    <style>
+      {self.get_page_style()}
+    </style>
 </head>
 <body>
   <h1>{title}</h1>
