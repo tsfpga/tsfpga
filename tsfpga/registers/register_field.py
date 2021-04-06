@@ -12,9 +12,20 @@ from abc import ABC, abstractmethod
 class RegisterField(ABC):
 
     """
-    Meta class for all register fields (bits, bit vectors, integers...).
+    Meta class for all register fields (bits, bit vectors, integers, ...).
     Lists a few methods that must be implemented.
     """
+
+    @property
+    @abstractmethod
+    def width(self):
+        """
+        Return the width, in number of bits, that this field occupies.
+
+        Returns:
+            int: The width.
+        """
+        raise NotImplementedError("Must be implemented in child class")
 
     @property
     @abstractmethod

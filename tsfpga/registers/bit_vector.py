@@ -30,30 +30,21 @@ class BitVector(RegisterField):
         self.base_index = base_index
         self.description = description
 
-        self._width = None
-        # Assign self._width via setter.
-        self.width = width
+        self._check_width(width)
+        self._width = width
 
         self._default_value = None
-        # Assign self.default_value via setter
+        # Assign self._default_value via setter
         self.default_value = default_value
 
     @property
     def width(self):
-        """
-        Getter for width.
-        """
         return self._width
 
-    @width.setter
-    def width(self, value):
+    def _check_width(self, value):
         """
-        Setter for width that performs sanity checks.
+        Santity checks for the provided width
         """
-        if self._width is not None:
-            message = f'Bit vector "{self.name}" changing "width" is not allowed. Got: "{value}".'
-            raise ValueError(message)
-
         if not isinstance(value, int):
             message = (
                 f'Bit vector "{self.name}" should have integer value for "width". Got: "{value}".'
@@ -62,8 +53,6 @@ class BitVector(RegisterField):
 
         if value < 1 or value > 32:
             raise ValueError(f'Invalid bit vector width for "{self.name}". Got: "{value}".')
-
-        self._width = value
 
     @property
     def default_value(self):

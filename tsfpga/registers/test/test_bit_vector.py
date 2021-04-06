@@ -60,16 +60,6 @@ def test_invalid_width():
     assert str(exception_info.value) == 'Invalid bit vector width for "foo". Got: "0".'
 
 
-def test_changing_width_of_bit_vector_should_raise_exception():
-    bit_vector = BitVector(name="foo", base_index=0, width=4, description="", default_value="0000")
-
-    with pytest.raises(ValueError) as exception_info:
-        bit_vector.width = 5
-    assert str(exception_info.value) == (
-        'Bit vector "foo" changing "width" is not allowed. Got: "5".'
-    )
-
-
 def test_invalid_default_value_should_raise_exception():
     with pytest.raises(ValueError) as exception_info:
         BitVector(name="hest", base_index=0, description="", width=4, default_value=1111)
