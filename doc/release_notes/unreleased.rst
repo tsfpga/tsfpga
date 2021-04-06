@@ -1,6 +1,7 @@
 Added
 
 * Add support for bit vector fields in register code generator.
+* Add optional ``vivado_project_class`` argument to :class:`tsfpga.vivado.ip_cores` constructor.
 
 Breaking changes
 

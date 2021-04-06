@@ -21,19 +21,21 @@ class VivadoIpCores:
 
     project_name = "vivado_ip_project"
 
-    def __init__(self, modules, output_path, part_name):
+    def __init__(self, modules, output_path, part_name, vivado_project_class=VivadoProject):
         """
         Arguments:
             modules (list(:class:`Module <.BaseModule>`)): IP cores from  these modules will be
                 included.
             output_path (`pathlib.Path`): The Vivado project will be placed here.
             part_name (str): Vivado part name to be used for the project.
+            vivado_project_class: The Vivado project class that will be used for the IP core
+                project. Is safe to leave at default in most cases.
         """
         self.project_directory = output_path.resolve() / self.project_name
         self._part_name = part_name
         self._hash_file = self.project_directory / "ip_files_hash.txt"
 
-        self._setup(modules)
+        self._setup(modules, vivado_project_class)
 
     @property
     def compile_order_file(self):
@@ -78,12 +80,12 @@ class VivadoIpCores:
 
         return False
 
-    def _setup(self, modules):
+    def _setup(self, modules, vivado_project_class):
         ip_tcl_files = []
         for module in modules:
             ip_tcl_files += module.get_ip_core_files()
 
-        self._vivado_project = VivadoProject(
+        self._vivado_project = vivado_project_class(
             name=self.project_name, modules=[], part=self._part_name, tcl_sources=ip_tcl_files
         )
 
