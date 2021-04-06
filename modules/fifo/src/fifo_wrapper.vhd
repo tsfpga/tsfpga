@@ -5,7 +5,7 @@
 -- https://tsfpga.com
 -- https://gitlab.com/tsfpga/tsfpga
 -- -------------------------------------------------------------------------------------------------
--- Wrapper that selects synchronous/asynchronous FIFO based on a generic.
+-- Wrapper that selects synchronous/asynchronous FIFO or passthrough depending on on generic values.
 -- -------------------------------------------------------------------------------------------------
 
 library ieee;
@@ -23,7 +23,7 @@ entity fifo_wrapper is
     -- Note that the default values are carefully chosen. Must be exactly the same as in fifo.vhd
     -- and asynchronous_fifo.vhd.
     width : positive;
-    depth : positive;
+    depth : natural;
     almost_full_level : integer range 0 to depth := depth;
     almost_empty_level : integer range 0 to depth := 0;
     enable_last : boolean := false;
@@ -67,7 +67,17 @@ architecture a of fifo_wrapper is
 
 begin
 
-  choose_fifo : if use_asynchronous_fifo generate
+  choose_fifo : if depth = 0 generate
+
+    assert not enable_packet_mode report "Can not use packet mode without FIFO";
+    assert not enable_drop_packet report "Can not use drop packet without FIFO";
+
+    write_ready <= read_ready;
+    read_valid <= write_valid;
+    read_data <= write_data;
+    read_last <= write_last;
+
+  elsif use_asynchronous_fifo generate
 
     ------------------------------------------------------------------------------
     asynchronous_fifo_inst : entity work.asynchronous_fifo
