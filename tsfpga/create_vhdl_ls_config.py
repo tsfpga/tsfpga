@@ -7,8 +7,9 @@
 # --------------------------------------------------------------------------------------------------
 
 from pathlib import Path
-import toml
+import tomlkit
 
+from tsfpga.system_utils import create_file
 from tsfpga.vivado.ip_cores import VivadoIpCores
 
 
@@ -93,5 +94,4 @@ def create_configuration(
         if not (ip_srcs_dir_exists or ip_gen_dir_exists):
             raise FileNotFoundError(f"Could not find IP directories: {ip_srcs_dir}, {ip_gen_dir}")
 
-    with (output_path / "vhdl_ls.toml").open("w") as output_file_handle:
-        toml.dump(toml_data, output_file_handle)
+    create_file(output_path / "vhdl_ls.toml", tomlkit.dumps(toml_data))

@@ -7,7 +7,7 @@ RUN apt-get update && \
   # A subset of requirements.txt, only what is needed for formal.py
   python3 -m pip --no-cache-dir install \
     colorama \
-    toml \
+    tomlkit \
     vunit_hdl  && \
   # Remove pip and all its dependencies again
   apt-get purge -y --auto-remove python3-pip && \

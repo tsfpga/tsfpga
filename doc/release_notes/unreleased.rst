@@ -14,3 +14,6 @@ Breaking changes
 
 * Rename generated register C header bit definitions to have ``_SHIFT`` and ``_MASK`` suffix.
   This is to be consistent with the naming for bit vector fields.
+
+Changes
+* Switch to using python package ``tomlkit`` instead of ``toml`` for parsing register TOML files.

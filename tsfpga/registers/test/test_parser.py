@@ -198,7 +198,7 @@ default_value="0000000000000011"
         with pytest.raises(ValueError) as exception_info:
             load_toml_file(self.toml_file)
         assert str(exception_info.value).startswith(
-            f"Error while parsing TOML file {self.toml_file}:\nKey name found without value."
+            f"Error while parsing TOML file {self.toml_file}:\nUnexpected character"
         )
 
     def test_plain_register_with_array_length_attribute_should_raise_exception(self):
@@ -283,8 +283,9 @@ mode = "w"
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
-        assert str(exception_info.value).startswith(
-            f"Error while parsing TOML file {self.toml_file}:\nWhat? irq already exists?"
+        assert (
+            str(exception_info.value)
+            == f'Error while parsing TOML file {self.toml_file}:\nKey "irq" already exists.'
         )
 
     def test_register_with_same_name_as_register_array_should_raise_exception(self):
@@ -319,8 +320,9 @@ description = "Declaration 2"
 
         with pytest.raises(ValueError) as exception_info:
             from_toml(self.module_name, self.toml_file)
-        assert str(exception_info.value).startswith(
-            f"Error while parsing TOML file {self.toml_file}:\nWhat? test_bit already exists?"
+        assert (
+            str(exception_info.value)
+            == f'Error while parsing TOML file {self.toml_file}:\nKey "test_bit" already exists.'
         )
 
     def test_overriding_default_register(self):

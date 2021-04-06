@@ -61,7 +61,7 @@ simulate:
   script:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git > /dev/null
-    - python3 -m pip install GitPython toml > /dev/null
+    - python3 -m pip install GitPython tomlkit > /dev/null
     - ghdl --version
     # Run minimal simulation subset for merge requests
     - if [ $CI_PIPELINE_SOURCE == "merge_request_event" ]; then export SIMULATE_FLAGS="--git-minimal"; fi;
