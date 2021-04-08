@@ -164,7 +164,9 @@ begin
   end process;
 
   write_addr_next_if_not_drop <= write_addr + to_int(write_ready and write_valid);
-  write_addr_next <= write_addr_next_if_not_drop when not(enable_drop_packet and drop_packet = '1') else write_addr_start_of_packet;
+  write_addr_next <=
+    write_addr_start_of_packet when enable_drop_packet and drop_packet = '1'
+    else write_addr_next_if_not_drop;
   read_addr_next <= read_addr + to_int(read_ready and read_valid);
 
 
