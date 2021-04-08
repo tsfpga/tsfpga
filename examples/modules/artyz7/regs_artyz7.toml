@@ -55,3 +55,15 @@ default_value = "1100"
 
 description = "The second register in the array."
 mode = "r"
+
+
+################################################################################
+[register_array.further_regs]
+
+array_length = 1
+
+# ------------------------------------------------------------------------------
+[register_array.further_regs.register.dummy_reg]
+
+mode = "r_w"
+description = "A register in a second register array"

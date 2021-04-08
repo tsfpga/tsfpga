@@ -68,7 +68,7 @@ class RegisterCGenerator(RegisterCodeGenerator):
             else:
                 array_struct_type = f"{self.module_name}_{register_object.name}_t"
 
-                array_structs = self._comment(
+                array_structs += self._comment(
                     f'Type for the "{register_object.name}" register array.'
                 )
                 array_structs += f"typedef struct {array_struct_type}\n"

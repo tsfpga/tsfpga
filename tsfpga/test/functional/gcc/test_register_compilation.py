@@ -67,8 +67,9 @@ void test_addresses()
   assert(ARTYZ7_DUMMY_REGS_SECOND_ARRAY_DUMMY_REG_ADDR(1) == 16);
   assert(ARTYZ7_DUMMY_REGS_ARRAY_DUMMY_REG_ADDR(2) == 20);
   assert(ARTYZ7_DUMMY_REGS_SECOND_ARRAY_DUMMY_REG_ADDR(2) == 24);
+  assert(ARTYZ7_FURTHER_REGS_DUMMY_REG_ADDR(0) == 28);
   // Last register
-  assert(ARTYZ7_DUMMY_REGS_SECOND_ARRAY_DUMMY_REG_ADDR(2) == 4 * (ARTYZ7_NUM_REGS - 1));
+  assert(ARTYZ7_FURTHER_REGS_DUMMY_REG_ADDR(0) == 4 * (ARTYZ7_NUM_REGS - 1));
 }
 
 void test_bit_indexes()
@@ -107,6 +108,7 @@ void test_generated_type()
   assert((void *)&regs + 16 == (void *)&regs.dummy_regs[1].second_array_dummy_reg);
   assert((void *)&regs + 20 == (void *)&regs.dummy_regs[2].array_dummy_reg);
   assert((void *)&regs + 24 == (void *)&regs.dummy_regs[2].second_array_dummy_reg);
+  assert((void *)&regs + 28 == (void *)&regs.further_regs[0].dummy_reg);
 
   // Some dummy code that uses the generated type
   regs.plain_dummy_reg = 0;
@@ -145,7 +147,7 @@ void test_constants()
   assert(fpga_regs::Artyz7::data_width == 24);
   assert(fpga_regs::Artyz7::decrement == -8);
 
-  assert(fpga_regs::Artyz7::num_registers == 7);
+  assert(fpga_regs::Artyz7::num_registers == 8);
 
   assert(fpga_regs::Artyz7::dummy_regs_array_length == 3);
 }
@@ -162,6 +164,7 @@ void test_read_write_registers(fpga_regs::Artyz7 *artyz7, uint32_t *memory)
   memory[4] = 4;
   artyz7->set_dummy_regs_array_dummy_reg(2, 5);
   memory[6] = 6;
+  artyz7->set_further_regs_dummy_reg(0, 7);
 
   assert(artyz7->get_plain_dummy_reg() == 0);
   assert(memory[0] == 0);
@@ -183,6 +186,9 @@ void test_read_write_registers(fpga_regs::Artyz7 *artyz7, uint32_t *memory)
 
   assert(artyz7->get_dummy_regs_second_array_dummy_reg(2) == 6);
   assert(memory[6] == 6);
+
+  assert(artyz7->get_further_regs_dummy_reg(0) == 7);
+  assert(memory[7] == 7);
 }
 
 void test_bit_indexes()
