@@ -110,6 +110,10 @@ begin
       check_equal(bit_data3'left, bit_data3'low);
       check_equal(bit_data3'right, bit_data3'high);
 
+    elsif run("test_count_ones") then
+      check_equal(count_ones(bit_data3), 3);
+      check_equal(count_ones(byte_data1), 12);
+
     end if;
 
     test_runner_cleanup(runner);

@@ -30,6 +30,8 @@ package types_pkg is
   function swap_byte_order(data : std_logic_vector) return std_logic_vector;
   function swap_bit_order(data : std_logic_vector) return std_logic_vector;
 
+  function count_ones(data : std_logic_vector) return natural;
+
 end package;
 
 package body types_pkg is
@@ -127,6 +129,15 @@ package body types_pkg is
       result(result'low + idx) := data(data'high - idx);
     end loop;
 
+    return result;
+  end function;
+
+  function count_ones(data : std_logic_vector) return natural is
+    variable result : integer range 0 to data'length := 0;
+  begin
+    for bit_idx in data'range loop
+      result := result + to_int(data(bit_idx));
+    end loop;
     return result;
   end function;
 
