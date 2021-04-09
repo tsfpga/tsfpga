@@ -31,13 +31,11 @@ class RegisterCGenerator(RegisterCodeGenerator):
 {self._file_header()}
 #ifndef {define_name}
 #define {define_name}
-#pragma pack(push, 1)
 
 {self._constants(constants)}
 {self._number_of_registers(register_objects)}
 {self._register_struct(register_objects)}
 {self._register_defines(register_objects)}\
-#pragma pack(pop)
 #endif {self._comment(define_name)}"""
 
         return c_code
