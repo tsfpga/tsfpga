@@ -72,26 +72,14 @@ def create_configuration(
         ip_core_vivado_project_directory = ip_core_vivado_project_directory.resolve()
         toml_data["libraries"]["xil_defaultlib"] = dict(files=[])
 
-        # Add file from the "synth" folder rather than "sim". It seems that "synth"
-        # always contains a VHDL file while "sim" sometimes contains a Verilog file.
-        ip_srcs_dir = (
-            ip_core_vivado_project_directory / f"{VivadoIpCores.project_name}.srcs" / "sources_1"
-        )
-        ip_srcs_dir_exists = ip_srcs_dir.exists()
-        if ip_srcs_dir_exists:
-            vhd_file_wildcard = ip_srcs_dir / "ip" / "**" / "*.vhd"
-            toml_data["libraries"]["xil_defaultlib"]["files"].append(str(vhd_file_wildcard))
-
         # Vivado 2020.2+ (?) seems to place the files in "gen"
         ip_gen_dir = (
             ip_core_vivado_project_directory / f"{VivadoIpCores.project_name}.gen" / "sources_1"
         )
-        ip_gen_dir_exists = ip_gen_dir.exists()
-        if ip_gen_dir_exists:
+        if ip_gen_dir.exists():
             vhd_file_wildcard = ip_gen_dir / "ip" / "**" / "*.vhd"
             toml_data["libraries"]["xil_defaultlib"]["files"].append(str(vhd_file_wildcard))
-
-        if not (ip_srcs_dir_exists or ip_gen_dir_exists):
-            raise FileNotFoundError(f"Could not find IP directories: {ip_srcs_dir}, {ip_gen_dir}")
+        else:
+            raise FileNotFoundError(f"Could not find IP directory: {ip_gen_dir}")
 
     create_file(output_path / "vhdl_ls.toml", tomlkit.dumps(toml_data))
