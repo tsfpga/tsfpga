@@ -81,6 +81,8 @@ architecture a of fifo is
 
   signal num_lasts_in_fifo : integer range 0 to depth := 0;
 
+  signal should_drop_packet : std_logic := '0';
+
 begin
 
   assert is_power_of_two(depth) report "Depth must be a power of two" severity failure;
@@ -117,7 +119,7 @@ begin
 
     if enable_packet_mode then
       num_lasts_in_fifo_next := num_lasts_in_fifo
-        + to_int(write_ready and write_valid and write_last)
+        + to_int(write_ready and write_valid and write_last and not should_drop_packet)
         - to_int(read_ready and read_valid and read_last);
 
       -- We look at num_lasts_in_fifo_next since we need to update read_valid the same cycle when
@@ -148,7 +150,7 @@ begin
       or read_addr(read_addr'high) =  write_addr_next_if_not_drop(write_addr_next'high));
 
     if enable_drop_packet then
-      if (not drop_packet) and write_ready and write_valid and write_last then
+      if write_ready and write_valid and write_last and not should_drop_packet then
         write_addr_start_of_packet <= write_addr_next;
       end if;
     end if;
@@ -163,10 +165,11 @@ begin
     level <= to_integer(write_addr_next - read_addr_next) mod (2 * depth);
   end process;
 
+  should_drop_packet <= to_sl(enable_drop_packet) and drop_packet;
+
   write_addr_next_if_not_drop <= write_addr + to_int(write_ready and write_valid);
   write_addr_next <=
-    write_addr_start_of_packet when enable_drop_packet and drop_packet = '1'
-    else write_addr_next_if_not_drop;
+    write_addr_start_of_packet when should_drop_packet else write_addr_next_if_not_drop;
   read_addr_next <= read_addr + to_int(read_ready and read_valid);
 
 

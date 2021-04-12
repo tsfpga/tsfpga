@@ -300,6 +300,9 @@ begin
 
       -- Make sure the packet was dropped
       check_equal(level, 0);
+      check_equal(read_valid, '0');
+      wait until rising_edge(clk);
+      check_equal(read_valid, '0');
 
     elsif run("test_almost_full") then
       check_equal(almost_full, '0');

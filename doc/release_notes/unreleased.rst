@@ -23,3 +23,7 @@ Breaking changes
 Changes
 
 * Switch to using python package ``tomlkit`` instead of ``toml`` for parsing register TOML files.
+
+Fixed
+
+* Fix bug in synchronous FIFO when ``drop_packet`` is asserted in same cycle as ``write_last``.
