@@ -32,6 +32,12 @@ class Module(BaseModule):
                 name = f"data_width_{data_width}"
                 tb.add_config(name=name, generics=dict(data_width=data_width))
 
+        tb = vunit_proj.library(self.library_name).test_bench("tb_axi_stream_pkg")
+        for data_width in [24, 32, 64]:
+            for user_width in [8, 16]:
+                generics = dict(data_width=data_width, user_width=user_width)
+                self.add_vunit_config(tb, generics=generics)
+
         tb = vunit_proj.library(self.library_name).test_bench("tb_axi_to_axil_vec")
         self.add_vunit_config(tb, generics=dict(pipeline=True))
         self.add_vunit_config(tb, generics=dict(pipeline=False))
@@ -54,6 +60,10 @@ class Module(BaseModule):
 
         tb = vunit_proj.library(self.library_name).test_bench("tb_axi_fifo")
         tb.add_config(name="passthrough", generics=dict(depth=0))
+        tb.add_config(name="synchronous", generics=dict(depth=16, asynchronous=False))
+        tb.add_config(name="asynchronous", generics=dict(depth=16, asynchronous=True))
+
+        tb = vunit_proj.library(self.library_name).test_bench("tb_axi_stream_fifo")
         tb.add_config(name="synchronous", generics=dict(depth=16, asynchronous=False))
         tb.add_config(name="asynchronous", generics=dict(depth=16, asynchronous=True))
 
