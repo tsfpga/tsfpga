@@ -79,7 +79,5 @@ def create_configuration(
         if ip_gen_dir.exists():
             vhd_file_wildcard = ip_gen_dir / "ip" / "**" / "*.vhd"
             toml_data["libraries"]["xil_defaultlib"]["files"].append(str(vhd_file_wildcard))
-        else:
-            raise FileNotFoundError(f"Could not find IP directory: {ip_gen_dir}")
 
     create_file(output_path / "vhdl_ls.toml", tomlkit.dumps(toml_data))
