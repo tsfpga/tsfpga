@@ -116,6 +116,16 @@ package reg_operations_pkg is
     timeout : delay_length := delay_length'high;
     message : string := "");
 
+  procedure wait_until_reg_equals(
+    signal net : inout network_t;
+    reg_index : in natural;
+    value : in integer;
+    base_address : in addr_t := (others => '0');
+    bus_handle : in bus_master_t := regs_bus_master;
+    timeout : delay_length := delay_length'high;
+    message : string := ""
+  );
+
   procedure wait_until_reg_equals_bits(
     signal net : inout network_t;
     reg_index : in natural;
@@ -280,7 +290,35 @@ package body reg_operations_pkg is
     message : string := "") is
     constant address : addr_t := base_address or to_unsigned(4 * reg_index, addr_t'length);
   begin
-    wait_until_read_equals(net, bus_handle, std_logic_vector(address), value, timeout, message);
+    wait_until_read_equals(
+      net=>net,
+      bus_handle=>bus_handle,
+      addr=>std_logic_vector(address),
+      value=>value,
+      timeout=>timeout,
+      msg=>message
+    );
+  end procedure;
+
+  procedure wait_until_reg_equals(
+    signal net : inout network_t;
+    reg_index : in natural;
+    value : in integer;
+    base_address : in addr_t := (others => '0');
+    bus_handle : in bus_master_t := regs_bus_master;
+    timeout : delay_length := delay_length'high;
+    message : string := ""
+  ) is
+  begin
+    wait_until_reg_equals(
+      net=>net,
+      reg_index=>reg_index,
+      value=>std_logic_vector(to_unsigned(value, reg_width)),
+      base_address=>base_address,
+      bus_handle=>bus_handle,
+      timeout=>timeout,
+      message=>message
+    );
   end procedure;
 
   procedure wait_until_reg_equals_bits(
