@@ -47,6 +47,21 @@ class RegisterArray:
         self.registers.append(register)
         return register
 
+    def get_register(self, name):
+        """
+        Get a register from this array. Will raise exception if no register matches.
+
+        Arguments:
+            name (str): The name of the register.
+        Return:
+            :class:`.Register`: The register.
+        """
+        for register in self.registers:
+            if register.name == name:
+                return register
+
+        raise ValueError(f'Could not find register "{name}" within register array "{self.name}"')
+
     @property
     def index(self):
         """
@@ -56,6 +71,22 @@ class RegisterArray:
             int: The highest index occupied by this array.
         """
         return self.base_index + self.length * len(self.registers) - 1
+
+    def get_start_index(self, array_index):
+        """
+        The index within the register list where array iteration number ``array_index`` starts.
+
+        Arguments:
+            array_index (int): The array iteration index.
+                Shall be less than or equal to the array ``length``.
+        """
+        if array_index >= self.length:
+            raise ValueError(
+                f'Index {array_index} out of range for register array "{self.name}" '
+                f"of length {self.length}."
+            )
+
+        return self.base_index + array_index * len(self.registers)
 
     def __repr__(self):
         return f"""{self.__class__.__name__}(\

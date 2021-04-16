@@ -40,3 +40,10 @@ class RegisterCodeGenerator:
             text_lines.pop()
 
         return "".join(self._comment(line, indentation=indentation) for line in text_lines)
+
+    @staticmethod
+    def _to_pascal_case(snake_string):
+        """
+        Returns e.g., my_funny_string -> MyFunnyString
+        """
+        return snake_string.title().replace("_", "")

@@ -6,6 +6,8 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+import pytest
+
 from tsfpga.registers.register_array import RegisterArray
 
 
@@ -20,6 +22,22 @@ def test_registers_are_appended_properly_and_can_be_edited_in_place():
 
     register_hest.description = "new desc"
     assert register_array.registers[0].description == "new desc"
+
+
+def test_get_register():
+    register_array = RegisterArray(name="apa", base_index=0, length=3)
+    hest = register_array.append_register(name="hest", mode="w", description="")
+    zebra = register_array.append_register(name="zebra", mode="r", description="")
+
+    assert register_array.get_register("hest") is hest
+    assert register_array.get_register("zebra") is zebra
+
+    with pytest.raises(ValueError) as exception_info:
+        assert register_array.get_register("non existing") is None
+    assert (
+        str(exception_info.value)
+        == 'Could not find register "non existing" within register array "apa"'
+    )
 
 
 def test_repr_basic():
@@ -55,3 +73,37 @@ def test_repr_with_registers_appended():
     register_array_b.append_register(name="zebra", mode="r_w", description="")
 
     assert repr(register_array_a) != repr(register_array_b)
+
+
+def test_index():
+    register_array = RegisterArray(name="apa", base_index=0, length=4)
+    register_array.append_register(name="hest", mode="r", description="")
+    assert register_array.index == 3
+
+    register_array.length = 5
+    assert register_array.index == 4
+
+    register_array.append_register(name="zebra", mode="r", description="")
+    assert register_array.index == 9
+
+
+def test_start_index():
+    register_array = RegisterArray(name="apa", base_index=10, length=4)
+    register_array.append_register(name="hest", mode="r", description="")
+    assert register_array.get_start_index(0) == 10
+    assert register_array.get_start_index(1) == 11
+    assert register_array.get_start_index(2) == 12
+
+    register_array.append_register(name="zebra", mode="r", description="")
+    assert register_array.get_start_index(0) == 10
+    assert register_array.get_start_index(1) == 12
+    assert register_array.get_start_index(2) == 14
+
+
+def test_start_index_with_argument_outside_of_length_should_raise_exception():
+    register_array = RegisterArray(name="apa", base_index=0, length=4)
+    register_array.append_register(name="hest", mode="r", description="")
+
+    with pytest.raises(ValueError) as exception_info:
+        register_array.get_start_index(4)
+    assert str(exception_info.value) == 'Index 4 out of range for register array "apa" of length 4.'

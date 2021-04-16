@@ -23,6 +23,7 @@ from .register_array import RegisterArray
 from .register_c_generator import RegisterCGenerator
 from .register_cpp_generator import RegisterCppGenerator
 from .register_html_generator import RegisterHtmlGenerator
+from .register_python_generator import RegisterPythonGenerator
 from .register_vhdl_generator import RegisterVhdlGenerator
 
 
@@ -89,18 +90,66 @@ class RegisterList:
     def get_register(self, name):
         """
         Get a register from this list. Will only find single registers, not registers in a
-        register array.
+        register array. Will raise exception if no register matches.
 
         Arguments:
             name (str): The name of the register.
         Return:
-            :class:`.Register`: The register. ``None`` if no register matched.
+            :class:`.Register`: The register.
         """
         for register_object in self.register_objects:
-            if register_object.name == name:
+            if isinstance(register_object, Register) and register_object.name == name:
                 return register_object
 
-        return None
+        raise ValueError(f'Could not find register "{name}" within register list "{self.name}"')
+
+    def get_register_array(self, name):
+        """
+        Get a register array from this list. Will raise exception if no register array matches.
+
+        Arguments:
+            name (str): The name of the register array.
+        Return:
+            :class:`.RegisterArray`: The register array.
+        """
+        for register_object in self.register_objects:
+            if isinstance(register_object, RegisterArray) and register_object.name == name:
+                return register_object
+
+        raise ValueError(
+            f'Could not find register array "{name}" within register list "{self.name}"'
+        )
+
+    def get_register_index(
+        self, register_name, register_array_name=None, register_array_index=None
+    ):
+        """
+        Get the zero-based index within the register list for the specified register.
+
+        Arguments:
+            register_name (str): The name of the register.
+            register_array_name (str): If the register is within a register array the name
+                of the array must be specified.
+            register_array_name (str): If the register is within a register array the array
+                iteration index must be specified.
+
+        Return:
+            int: The index.
+        """
+        if register_array_name is None and register_array_index is None:
+            # Target is plain register
+            register = self.get_register(register_name)
+
+            return register.index
+
+        # Target is in register array
+        register_array = self.get_register_array(register_array_name)
+        register_array_start_index = register_array.get_start_index(register_array_index)
+
+        register = register_array.get_register(register_name)
+        register_index = register.index
+
+        return register_array_start_index + register_index
 
     def add_constant(self, name, value, description=None):
         """
@@ -119,18 +168,18 @@ class RegisterList:
 
     def get_constant(self, name):
         """
-        Get a constant from this list.
+        Get a constant from this list. Will raise exception if no constant matches.
 
         Arguments:
             name (str): The name of the constant.
         Return:
-            :class:`.Constant`: The constant. ``None`` if no constant matched.
+            :class:`.Constant`: The constant.
         """
         for constant in self.constants:
             if constant.name == name:
                 return constant
 
-        return None
+        raise ValueError(f'Could not find constant "{name}" within register list "{self.name}"')
 
     def create_vhdl_package(self, output_path):
         """
@@ -283,6 +332,18 @@ class RegisterList:
         output_file = output_path / (self.name + "_constant_table.html")
         register_html_generator = RegisterHtmlGenerator(self.name, self._generated_source_info())
         create_file(output_file, register_html_generator.get_constant_table(self.constants))
+
+    def create_python_class(self, output_path):
+        """
+        Save a python class with all register and constant information.
+
+        Arguments:
+            output_path (`pathlib.Path`): Result will be placed here.
+        """
+        register_python_generator = RegisterPythonGenerator(
+            self.name, self._generated_source_info()
+        )
+        register_python_generator.create_class(register_list=self, output_folder=output_path)
 
     def copy_source_definition(self, output_path):
         """

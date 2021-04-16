@@ -129,4 +129,7 @@ def test_get_field():
 
     assert register.get_field("hest") is hest
     assert register.get_field("zebra") is zebra
-    assert register.get_field("unknown_name") is None
+
+    with pytest.raises(ValueError) as exception_info:
+        assert register.get_field("non existing") is None
+    assert str(exception_info.value) == 'Could not find field "non existing" within register "apa"'

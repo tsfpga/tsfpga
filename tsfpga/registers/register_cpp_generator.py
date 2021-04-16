@@ -191,13 +191,6 @@ class RegisterCppGenerator(RegisterCodeGenerator):
     def _file_header(self):
         return "".join([self._comment(header_line) for header_line in self.generated_info])
 
-    @staticmethod
-    def _to_pascal_case(snake_string):
-        """
-        Returns e.g., my_funny_string -> MyFunnyString
-        """
-        return snake_string.title().replace("_", "")
-
     def _constructor_signature(self):
         return f"{self._class_name}(volatile uint8_t *base_address)"
 

@@ -27,24 +27,24 @@ def get_test_default_registers():
 
 
 def test_header_constants():
-    registers = RegisterList(None, None)
-    constant_test = registers.add_constant("test", 123)
-    registers.add_constant("hest", 456, "hest is best!")
+    registers = RegisterList(name="apa", source_definition_file=None)
+    hest = registers.add_constant("hest", 123)
+    zebra = registers.add_constant("zebra", 456, "description")
 
     assert len(registers.constants) == 2
 
-    assert registers.get_constant("test").name == "test"
-    assert registers.get_constant("test").value == 123
-    assert registers.get_constant("test").description == ""
+    assert registers.get_constant("hest") == hest
+    assert registers.get_constant("zebra") == zebra
 
-    assert registers.get_constant("hest").name == "hest"
-    assert registers.get_constant("hest").value == 456
-    assert registers.get_constant("hest").description == "hest is best!"
+    with pytest.raises(ValueError) as exception_info:
+        assert registers.get_constant("non existing") is None
+    assert (
+        str(exception_info.value)
+        == 'Could not find constant "non existing" within register list "apa"'
+    )
 
-    assert registers.get_constant("apa") is None
-
-    constant_test.value = -5
-    assert registers.get_constant("test").value == -5
+    zebra.value = -5
+    assert registers.get_constant("zebra").value == -5
 
 
 def test_invalid_register_mode_should_raise_exception():
@@ -85,6 +85,82 @@ def test_register_arrays_are_appended_properly_and_can_be_edited_in_place():
 
     register_array_zebra = register_array.append_register_array(name="zebra", length=2)
     assert register_array_zebra.base_index == 8
+
+
+def test_get_register():
+    register_list = RegisterList(name="apa", source_definition_file=None)
+    hest = register_list.append_register(name="hest", mode="r", description="")
+    zebra = register_list.append_register(name="zebra", mode="r", description="")
+    register_list.append_register_array(name="register_array", length=3)
+
+    assert register_list.get_register("hest") is hest
+    assert register_list.get_register("zebra") is zebra
+
+    with pytest.raises(ValueError) as exception_info:
+        assert register_list.get_register("non existing") is None
+    assert (
+        str(exception_info.value)
+        == 'Could not find register "non existing" within register list "apa"'
+    )
+
+    with pytest.raises(ValueError) as exception_info:
+        assert register_list.get_register("register_array") is None
+    assert (
+        str(exception_info.value)
+        == 'Could not find register "register_array" within register list "apa"'
+    )
+    register_list.get_register_array("register_array")
+
+
+def test_get_register_array():
+    register_list = RegisterList(name="apa", source_definition_file=None)
+    hest = register_list.append_register_array(name="hest", length=3)
+    zebra = register_list.append_register_array(name="zebra", length=2)
+    register_list.append_register(name="register", mode="r", description="")
+
+    assert register_list.get_register_array("hest") is hest
+    assert register_list.get_register_array("zebra") is zebra
+
+    with pytest.raises(ValueError) as exception_info:
+        assert register_list.get_register_array("non existing") is None
+    assert (
+        str(exception_info.value)
+        == 'Could not find register array "non existing" within register list "apa"'
+    )
+
+    with pytest.raises(ValueError) as exception_info:
+        assert register_list.get_register_array("register") is None
+    assert (
+        str(exception_info.value)
+        == 'Could not find register array "register" within register list "apa"'
+    )
+    register_list.get_register("register")
+
+
+def test_get_register_index():
+    register_list = RegisterList(name=None, source_definition_file=None)
+
+    register_list.append_register(name="apa", mode="r", description="")
+    register_list.append_register(name="hest", mode="r", description="")
+
+    zebra = register_list.append_register_array(name="zebra", length=2)
+    zebra.append_register(name="bar", mode="r", description="")
+    zebra.append_register(name="baz", mode="r", description="")
+
+    assert register_list.get_register_index(register_name="apa") == 0
+    assert register_list.get_register_index(register_name="hest") == 1
+    assert (
+        register_list.get_register_index(
+            register_name="bar", register_array_name="zebra", register_array_index=0
+        )
+        == 2
+    )
+    assert (
+        register_list.get_register_index(
+            register_name="baz", register_array_name="zebra", register_array_index=1
+        )
+        == 5
+    )
 
 
 def test_repr_basic():

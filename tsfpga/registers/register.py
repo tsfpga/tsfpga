@@ -6,7 +6,6 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-
 from .bit import Bit
 from .bit_vector import BitVector
 
@@ -45,7 +44,11 @@ class Register:
         """
         Arguments:
             name (str): The name of the register.
-            index (int): The zero-based index of this register in its register list.
+            index (int): The zero-based index of this register.
+                If this register is part of a register array, the index shall be relative to the
+                start of the array. I.e. the index is zero for the first register in the array.
+                If the register is a plain register, the index shall be relative to the start of
+                the register list.
             mode (str): A valid register mode.
             description (str): Textual register description.
         """
@@ -126,19 +129,20 @@ class Register:
 
     def get_field(self, field_name):
         """
-        Get the field within this register that has the given name.
+        Get the field within this register that has the given name. Will raise exception if no
+        field matches.
 
         Arguments:
             field_name (str): The name of the field.
 
         Returns:
-            :class:`.RegisterField`: The field. Will return ``None`` if no field matches.
+            :class:`.RegisterField`: The field.
         """
         for field in self.fields:
             if field.name == field_name:
                 return field
 
-        return None
+        raise ValueError(f'Could not find field "{field_name}" within register "{self.name}"')
 
     @property
     def address(self):
