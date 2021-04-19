@@ -189,6 +189,7 @@ def generate_registers(modules, output_path):
             module.registers.create_html_page(output_path / "html")
             module.registers.create_html_register_table(output_path / "html" / "tables")
             module.registers.create_html_constant_table(output_path / "html" / "tables")
+            module.registers.create_python_class(output_path / "python")
 
 
 if __name__ == "__main__":
