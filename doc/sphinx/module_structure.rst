@@ -122,7 +122,7 @@ Another advantage of using TCL is that it is a full-fledged scripting language.
 We can use variables, loops and if/else branches to parameterize our IP core creation.
 In the TCL snippet above for example, the IP core name or some of the property values could be replaced by variables.
 
-To find the settings of an existing IP, the following TCL code can be executing with an existing design open:
+To find the settings of an existing IP, the following TCL code can be executed with an existing design open:
 
 .. code-block:: none
     :caption: Finding the non-default settings of all IP cores.
