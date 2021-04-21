@@ -8,7 +8,7 @@
 
 package attribute_pkg is
 
-  -- Commonly used attributes. Descriptions from UG901.
+  -- Commonly used attributes. Descriptions from UG901 and UG912.
 
   -- Prevent optimizations where signals are either optimized or absorbed into logic
   -- blocks. Works in the same way as KEEP or KEEP_HIERARCHY attributes; However unlike
@@ -16,11 +16,15 @@ package attribute_pkg is
   -- prevent logic optimization.
   --
   -- Use the DONT_TOUCH attribute in place of KEEP or KEEP_HIERARCHY.
+  --
+  -- Valid values: "true", "false"
   attribute dont_touch : string;
 
   -- Inform the tool that a register is capable of receiving asynchronous data in the D
   -- input pin relative to the source clock, or that the register is a synchronizing
   -- register within a synchronization chain.
+  --
+  -- Valid values: "true", "false"
   attribute async_reg : string;
 
   -- Instructs the Vivado synthesis tool on how to infer memory. Accepted values are:
@@ -42,11 +46,29 @@ package attribute_pkg is
   -- infer mults, mult-add, mult-sub, and mult-accumulate type structures into DSP blocks.
   -- Adders, subtracters, and accumulators can go into these blocks also, but by default
   -- are implemented with the logic instead of with DSP blocks.
+  --
+  -- Valid values: "yes", "no", "logic"
   attribute use_dsp : string;
 
   -- Indicates if a register should go into the I/O buffer. Place this attribute on the
   -- register that you want in the I/O buffer.
+  --
+  -- Valid values: "true", "false"
   attribute iob : string;
+
+  -- PULLUP applies a weak logic High on a tri-stateable output or bidirectional port to prevent it
+  -- from floating. The PULLUP property guarantees a logic High level to allow tri-stated nets to
+  -- avoid floating when not being driven.
+  --
+  -- Valid values: "true", "yes", "false", "no"
+  attribute pullup : string;
+
+  -- PULLDOWN applies a weak logic low level on a tri-stateable output or bidirectional port to
+  -- prevent it from floating. The PULLDOWN property guarantees a logic Low level to allow
+  -- tri-stated nets to avoid floating when not being driven.
+  --
+  -- Valid values: "true", "yes", "false", "no"
+  attribute pulldown : string;
 
 end package;
 
