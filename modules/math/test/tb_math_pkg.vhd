@@ -124,6 +124,18 @@ begin
     elsif run("vector_sum") then
       check_equal(vector_sum((0, 1, -4)), -3);
       check_equal(vector_sum((4, 1, 3)), 8);
+
+    elsif run("greatest_common_divisor") then
+      check_equal(greatest_common_divisor(6, 3), 3);
+      check_equal(greatest_common_divisor(7, 3), 1);
+      check_equal(greatest_common_divisor(7, 1), 1);
+      check_equal(greatest_common_divisor(8, 15), 1);
+
+    elsif run("is_mutual_prime") then
+      check_equal(is_mutual_prime(6, (3, 7)), false);
+      check_equal(is_mutual_prime(7, (3, 6)), true);
+      check_equal(is_mutual_prime(7, (1, 5)), true);
+      check_equal(is_mutual_prime(8, (3, 7)), true);
     end if;
 
     test_runner_cleanup(runner);

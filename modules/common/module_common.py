@@ -22,6 +22,11 @@ class Module(BaseModule):
             tb, generics=dict(reference_clock_rate_mhz=50, target_clock_rate_mhz=300)
         )
 
+        tb = vunit_proj.library(self.library_name).test_bench("tb_periodic_pulser")
+
+        for period in [5, 15, 37, 300, 4032]:
+            self.add_vunit_config(tb, generics=dict(period=period, shift_register_length=8))
+
         tb = vunit_proj.library(self.library_name).test_bench("tb_width_conversion")
 
         for input_width in [8, 16, 32]:
@@ -70,6 +75,7 @@ class Module(BaseModule):
         part = "xc7z020clg400-1"
         self._get_handshake_pipeline_build_projects(part, projects)
         self._get_clock_counter_build_projects(part, projects)
+        self._get_period_pulser_build_projects(part, projects)
         return projects
 
     def _get_handshake_pipeline_build_projects(self, part, projects):
@@ -172,3 +178,28 @@ class Module(BaseModule):
                 ],
             )
         )
+
+    def _get_period_pulser_build_projects(self, part, projects):
+        modules = get_tsfpga_modules(names_include=["common", "math"])
+
+        periods = [32, 37, 300, 63 * 64, 311000000]
+        total_luts = [2, 7, 4, 5, 18]
+        srls = [1, 0, 2, 3, 4]
+        ffs = [1, 6, 2, 3, 15]
+
+        for idx, period in enumerate(periods):
+            generics = dict(period=period, shift_register_length=32)
+            projects.append(
+                VivadoNetlistProject(
+                    name=self.test_case_name("periodic_pulser", generics),
+                    modules=modules,
+                    part=part,
+                    top="periodic_pulser",
+                    generics=generics,
+                    result_size_checkers=[
+                        TotalLuts(EqualTo(total_luts[idx])),
+                        Srls(EqualTo(srls[idx])),
+                        Ffs(EqualTo(ffs[idx])),
+                    ],
+                )
+            )

@@ -29,6 +29,9 @@ package math_pkg is
   function abs_vector(vector : integer_vector) return integer_vector;
   function vector_sum(vector : integer_vector) return integer;
 
+  function greatest_common_divisor(value1, value2 : positive) return integer;
+  function is_mutual_prime(candidate : integer; check_against : integer_vector) return boolean;
+
 end package;
 
 package body math_pkg is
@@ -123,6 +126,38 @@ package body math_pkg is
       result := result + vector(idx);
     end loop;
     return result;
+  end function;
+
+  function greatest_common_divisor(value1, value2 : positive) return integer is
+    variable tmp, smaller_value, larger_value : integer;
+  begin
+    -- Calculate the greatest_common_divisor between two values.
+    -- Uses the euclidean algorithm
+    smaller_value := minimum(value1, value2);
+    larger_value := maximum(value1, value2);
+
+    while smaller_value /= 0 loop
+      tmp := smaller_value;
+      smaller_value := larger_value mod smaller_value;
+      larger_value := tmp;
+    end loop;
+
+    return larger_value;
+  end function;
+
+  function is_mutual_prime(candidate : integer; check_against : integer_vector) return boolean is
+  begin
+    -- Check if a number is a mutual prime (i.e. the greatest common divisor is one)
+    -- with all numbers in a list.
+    for idx in check_against'range loop
+      if greatest_common_divisor(candidate, check_against(idx)) /= 1 then
+        return false;
+      end if;
+    end loop;
+
+    -- Greatest common divisor was 1 with all other factors, meaning that this
+    -- factor was a mutual prime with all.
+    return true;
   end function;
 
 end package body;
