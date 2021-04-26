@@ -265,6 +265,6 @@ int main()
         cmd = ["g++", main_file, cpp_class_file, f"-o{executable}", f"-I{self.include_dir}"]
         run_command(cmd)
 
-        process = subprocess.Popen([executable], stderr=subprocess.PIPE)
-        stderr = process.communicate()
+        with subprocess.Popen([executable], stderr=subprocess.PIPE) as process:
+            stderr = process.communicate()
         assert "Assertion `array_index < dummy_regs_array_length' failed" in str(stderr), stderr
