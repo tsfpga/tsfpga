@@ -43,7 +43,7 @@ class BitVector(RegisterField):
 
     def _check_width(self, value):
         """
-        Santity checks for the provided width
+        Sanity checks for the provided width
         """
         if not isinstance(value, int):
             message = (
