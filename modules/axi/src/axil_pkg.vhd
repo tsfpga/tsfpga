@@ -6,7 +6,7 @@
 -- https://gitlab.com/tsfpga/tsfpga
 -- -------------------------------------------------------------------------------------------------
 -- Data types for working with AXI4-Lite interfaces.
--- @details Based on the document "ARM IHI 0022E (ID022613): AMBA AXI and ACE Protocol Specification"
+-- Based on the document "ARM IHI 0022E (ID022613): AMBA AXI and ACE Protocol Specification"
 -- Available here (after login): http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ihi0022e/index.html
 -- -------------------------------------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ package axil_pkg is
   type axil_m2s_a_t is record
     valid : std_logic;
     addr : unsigned(axi_a_addr_sz - 1 downto 0);
-    -- @note Excluded members: prot
+    -- Excluded members: prot
     -- These are typically not changed on a transfer-to-transfer basis.
   end record;
 

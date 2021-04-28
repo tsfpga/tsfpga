@@ -48,7 +48,7 @@ package axi_pkg is
   constant axi_a_burst_incr : std_logic_vector(axi_a_burst_sz - 1 downto 0) := "01";
   constant axi_a_burst_wrap : std_logic_vector(axi_a_burst_sz - 1 downto 0) := "10";
 
-  constant axi_a_lock_sz : integer := 1; -- @note Two bits in AXI3
+  constant axi_a_lock_sz : integer := 1; -- Two bits in AXI3
   constant axi_a_lock_normal : std_logic_vector(axi_a_lock_sz - 1 downto 0) := "0";
   constant axi_a_lock_exclusive : std_logic_vector(axi_a_lock_sz - 1 downto 0) := "1";
   constant axi3_a_lock_normal : std_logic_vector(2 - 1 downto 0) := "00";
@@ -88,7 +88,7 @@ package axi_pkg is
     len : unsigned(axi_a_len_sz - 1 downto 0);
     size : unsigned(axi_a_size_sz - 1 downto 0);
     burst : std_logic_vector(axi_a_burst_sz - 1 downto 0);
-    -- @note Excluded members: lock, cache, prot, region.
+    -- Excluded members: lock, cache, prot, region.
     -- These are typically not changed on a transfer-to-transfer basis.
   end record;
 
