@@ -5,7 +5,7 @@
 -- https://tsfpga.com
 -- https://gitlab.com/tsfpga/tsfpga
 -- -------------------------------------------------------------------------------------------------
--- @brief Data types for working with AXI4-Lite interfaces
+-- Data types for working with AXI4-Lite interfaces.
 -- @details Based on the document "ARM IHI 0022E (ID022613): AMBA AXI and ACE Protocol Specification"
 -- Available here (after login): http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ihi0022e/index.html
 -- -------------------------------------------------------------------------------------------------

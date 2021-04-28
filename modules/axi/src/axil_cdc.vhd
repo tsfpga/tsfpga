@@ -5,7 +5,7 @@
 -- https://tsfpga.com
 -- https://gitlab.com/tsfpga/tsfpga
 -- -------------------------------------------------------------------------------------------------
--- @brief Clock crossing of an AXI-Lite bus
+-- Clock crossing of an AXI-Lite bus
 -- -------------------------------------------------------------------------------------------------
 
 library ieee;

@@ -5,8 +5,7 @@
 -- https://tsfpga.com
 -- https://gitlab.com/tsfpga/tsfpga
 -- -------------------------------------------------------------------------------------------------
--- @brief Width conversion of a data bus. Can handle wide to thin or thin
--- to wide, with some restrctions.
+-- Width conversion of a data bus. Can handle wide to thin or thin to wide, with some restrctions.
 -- -------------------------------------------------------------------------------------------------
 
 library ieee;

@@ -5,7 +5,7 @@
 -- https://tsfpga.com
 -- https://gitlab.com/tsfpga/tsfpga
 -- -------------------------------------------------------------------------------------------------
--- @brief Convert AXI transfers to AXI-Lite transfers.
+-- Convert AXI transfers to AXI-Lite transfers.
 --
 -- This module does not handle conversion of non-well behaved AXI transfers.
 -- Burst length has to be one and size must be the width of the bus. If these
