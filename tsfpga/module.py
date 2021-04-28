@@ -41,7 +41,7 @@ class BaseModule:
         Returns a list of files given a list of folders.
 
         Arguments:
-            folders (pathlib.Path): The forlders to search.
+            folders (pathlib.Path): The folders to search.
             file_endings (tuple(str)): File endings to include.
             files_include (set(pathlib.Path)): Optionally filter to only include these files.
             files_avoid (set(pathlib.Path)): Optionally filter to discard these files.
@@ -49,14 +49,20 @@ class BaseModule:
         files = []
         for folder in folders:
             for file in folder.glob("*"):
-                # pylint: disable=too-many-boolean-expressions
-                if (
-                    file.is_file()
-                    and file.name.lower().endswith(file_endings)
-                    and (files_include is None or file in files_include)
-                    and (files_avoid is None or file not in files_avoid)
-                ):
-                    files.append(file)
+                if not file.is_file():
+                    continue
+
+                if not file.name.lower().endswith(file_endings):
+                    continue
+
+                if files_include is not None and file not in files_include:
+                    continue
+
+                if files_avoid is not None and file in files_avoid:
+                    continue
+
+                files.append(file)
+
         return files
 
     def _get_hdl_file_list(self, folders, files_include, files_avoid):
@@ -143,7 +149,7 @@ class BaseModule:
 
     def get_simulation_files(self, include_tests=True, files_include=None, files_avoid=None):
         """
-        See :meth:`.get_synthesis_files` for insctructions on how to use ``files_include``
+        See :meth:`.get_synthesis_files` for instructions on how to use ``files_include``
         and ``files_avoid``.
 
         Arguments:
@@ -185,7 +191,7 @@ class BaseModule:
         (by calling :meth:`get_synthesis_files`).
         Overload this method to select files manually.
 
-        See :meth:`.get_synthesis_files` for insctructions on how to use ``files_include``
+        See :meth:`.get_synthesis_files` for instructions on how to use ``files_include``
         and ``files_avoid``.
 
         Arguments:
@@ -380,13 +386,17 @@ def get_modules(
 
     for module_folder in iterate_module_folders(modules_folders):
         module_name = module_folder.name
-        if (names_include is None or module_name in names_include) and (
-            names_avoid is None or module_name not in names_avoid
-        ):
-            modules.append(
-                get_module_object(
-                    module_folder, module_name, library_name_has_lib_suffix, default_registers
-                )
+
+        if names_include is not None and module_name not in names_include:
+            continue
+
+        if names_avoid is not None and module_name in names_avoid:
+            continue
+
+        modules.append(
+            get_module_object(
+                module_folder, module_name, library_name_has_lib_suffix, default_registers
             )
+        )
 
     return modules
