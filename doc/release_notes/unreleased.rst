@@ -11,6 +11,8 @@ Added
 
 * Add ``common.periodic_pulser`` VHDL entity.
 
+* Add support for byte strobe and unaligned burst length in ``common.width_conversion``.
+
 
 Breaking changes
 

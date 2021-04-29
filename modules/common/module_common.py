@@ -29,15 +29,23 @@ class Module(BaseModule):
 
         tb = vunit_proj.library(self.library_name).test_bench("tb_width_conversion")
 
+        test = tb.get_tests("test_data")[0]
         for input_width in [8, 16, 32]:
             for output_width in [8, 16, 32]:
                 if input_width == output_width:
                     continue
-                test = tb.get_tests("test_data")[0]
-                name = f"input_{input_width}.output_{output_width}"
-                test.add_config(
-                    name=name, generics=dict(input_width=input_width, output_width=output_width)
-                )
+
+                for enable_byte_strobe in [True, False]:
+                    generics = dict(
+                        input_width=input_width,
+                        output_width=output_width,
+                        enable_byte_strobe=enable_byte_strobe,
+                    )
+
+                    if enable_byte_strobe and input_width < output_width:
+                        generics["support_unaligned_burst_length"] = True
+
+                    self.add_vunit_config(test, generics=generics)
 
         test = tb.get_tests("test_full_throughput")[0]
         test.add_config(
@@ -76,6 +84,7 @@ class Module(BaseModule):
         self._get_handshake_pipeline_build_projects(part, projects)
         self._get_clock_counter_build_projects(part, projects)
         self._get_period_pulser_build_projects(part, projects)
+        self._get_width_conversion_build_projects(part, projects)
         return projects
 
     def _get_handshake_pipeline_build_projects(self, part, projects):
@@ -143,7 +152,7 @@ class Module(BaseModule):
         )
 
     def _get_clock_counter_build_projects(self, part, projects):
-        modules = get_tsfpga_modules()
+        modules = get_tsfpga_modules(names_include=[self.name, "resync"])
 
         # The design could be optimized by using shift registers instead of a freerunning
         # counter in the reference domain.
@@ -191,7 +200,7 @@ class Module(BaseModule):
             generics = dict(period=period, shift_register_length=32)
             projects.append(
                 VivadoNetlistProject(
-                    name=self.test_case_name("periodic_pulser", generics),
+                    name=self.test_case_name(f"{self.name}.periodic_pulser", generics),
                     modules=modules,
                     part=part,
                     top="periodic_pulser",
@@ -199,6 +208,39 @@ class Module(BaseModule):
                     result_size_checkers=[
                         TotalLuts(EqualTo(total_luts[idx])),
                         Srls(EqualTo(srls[idx])),
+                        Ffs(EqualTo(ffs[idx])),
+                    ],
+                )
+            )
+
+    def _get_width_conversion_build_projects(self, part, projects):
+        modules = [self]
+        generic_configurations = [
+            dict(input_width=32, output_width=16, enable_byte_strobe=False),
+            dict(input_width=16, output_width=32, enable_byte_strobe=False),
+            dict(input_width=32, output_width=16, enable_byte_strobe=True),
+            dict(
+                input_width=16,
+                output_width=32,
+                enable_byte_strobe=True,
+                support_unaligned_burst_length=True,
+            ),
+        ]
+        total_luts = [21, 36, 26, 46]
+        ffs = [52, 52, 62, 65]
+
+        for idx, generics in enumerate(generic_configurations):
+            projects.append(
+                VivadoNetlistProject(
+                    name=self.test_case_name(
+                        name=f"{self.name}.width_conversion", generics=generics
+                    ),
+                    modules=modules,
+                    part=part,
+                    top="width_conversion",
+                    generics=generics,
+                    result_size_checkers=[
+                        TotalLuts(EqualTo(total_luts[idx])),
                         Ffs(EqualTo(ffs[idx])),
                     ],
                 )
