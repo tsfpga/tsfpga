@@ -235,7 +235,7 @@ begin
     ------------------------------------------------------------------------------
     -- This value is not used in the write clock domain if we are in drop_packet mode
     resync_write_addr : if not enable_drop_packet generate
-      resync_write_addr : entity resync.resync_counter
+      resync_counter_inst : entity resync.resync_counter
         generic map (
           width => write_addr'length
         )
