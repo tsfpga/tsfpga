@@ -7,6 +7,10 @@ Added
 * Add :meth:`.RegisterList.create_python_class`, :meth:`.RegisterList.get_register_array` and
   :meth:`.RegisterList.get_register_index` methods.
 
+* Add ``axi.axi_stream_pkg`` VHDL package and ``axi.axi_stream_fifo`` VHDL entity.
+
+* Add ``common.periodic_pulser`` VHDL entity.
+
 
 Breaking changes
 
