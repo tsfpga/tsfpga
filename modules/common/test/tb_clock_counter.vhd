@@ -13,6 +13,9 @@ use ieee.std_logic_1164.all;
 library vunit_lib;
 context vunit_lib.vunit_context;
 
+library math;
+use math.math_pkg.all;
+
 
 entity tb_clock_counter is
   generic (
@@ -52,7 +55,7 @@ begin
     if run("test_target_tick_count") then
       -- For the first 2 ** resolution_bits cycles, the value is zero,
       -- the next 2 ** resolution_bits cycles, the value is almost correct but a little too low.
-      for wait_cycle in 0 to 2 * 2**resolution_bits - 1 loop
+      for wait_cycle in 0 to 2 * 2 ** resolution_bits - 1 loop
         wait until rising_edge(reference_clock);
       end loop;
 

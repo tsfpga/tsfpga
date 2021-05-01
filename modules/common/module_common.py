@@ -152,10 +152,8 @@ class Module(BaseModule):
         )
 
     def _get_clock_counter_build_projects(self, part, projects):
-        modules = get_tsfpga_modules(names_include=[self.name, "resync"])
+        modules = get_tsfpga_modules(names_include=[self.name, "math", "resync"])
 
-        # The design could be optimized by using shift registers instead of a freerunning
-        # counter in the reference domain.
         generics = dict(resolution_bits=24, max_relation_bits=6)
         projects.append(
             VivadoNetlistProject(
@@ -165,9 +163,9 @@ class Module(BaseModule):
                 top="clock_counter",
                 generics=generics,
                 result_size_checkers=[
-                    TotalLuts(EqualTo(81)),
-                    Srls(EqualTo(0)),
-                    Ffs(EqualTo(204)),
+                    TotalLuts(EqualTo(84)),
+                    Srls(EqualTo(5)),
+                    Ffs(EqualTo(185)),
                 ],
             )
         )
@@ -181,15 +179,15 @@ class Module(BaseModule):
                 top="clock_counter",
                 generics=generics,
                 result_size_checkers=[
-                    TotalLuts(EqualTo(43)),
-                    Srls(EqualTo(0)),
-                    Ffs(EqualTo(94)),
+                    TotalLuts(EqualTo(38)),
+                    Srls(EqualTo(2)),
+                    Ffs(EqualTo(86)),
                 ],
             )
         )
 
     def _get_period_pulser_build_projects(self, part, projects):
-        modules = get_tsfpga_modules(names_include=["common", "math"])
+        modules = get_tsfpga_modules(names_include=[self.name, "math"])
 
         periods = [32, 37, 300, 63 * 64, 311000000]
         total_luts = [2, 7, 4, 5, 18]

@@ -23,13 +23,19 @@ library ieee;
 use ieee.numeric_std.all;
 use ieee.std_logic_1164.all;
 
+library math;
+use math.math_pkg.all;
+
 library resync;
 
 
 entity clock_counter is
   generic (
     resolution_bits : positive;
-    max_relation_bits : positive
+    max_relation_bits : positive;
+    -- The shift register length is device specific.
+    -- For Xilinx ultrascale and 7 series devices, it should be set to 32
+    shift_register_length : integer := 32
   );
   port (
     target_clock : in std_logic;
@@ -45,7 +51,7 @@ architecture a of clock_counter is
   signal tick_count, tick_count_resync, tick_count_resync_previous :
     unsigned(target_tick_count'range) := (others => '0');
 
-  signal reference_clock_counter : integer range 0 to 2 ** resolution_bits - 1 := 0;
+  signal reference_tick : std_logic := '0';
 
 begin
 
@@ -72,13 +78,23 @@ begin
 
 
   ------------------------------------------------------------------------------
+  periodic_pulse_inst : entity work.periodic_pulser
+    generic map (
+      period => 2 ** resolution_bits,
+      shift_register_length => shift_register_length)
+    port map (
+      clk => reference_clock,
+      count_enable => '1',
+      pulse => reference_tick
+      );
+
+
+  ------------------------------------------------------------------------------
   assign_result : process
   begin
     wait until rising_edge(reference_clock);
 
-    reference_clock_counter <= (reference_clock_counter + 1) mod 2 ** resolution_bits;
-
-    if reference_clock_counter = 2 ** resolution_bits - 1 then
+    if reference_tick then
       target_tick_count <= tick_count_resync - tick_count_resync_previous;
       tick_count_resync_previous <= tick_count_resync;
     end if;
