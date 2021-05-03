@@ -23,7 +23,7 @@ entity tb_width_conversion is
   generic (
     input_width : positive;
     output_width : positive;
-    enable_byte_strobe : boolean;
+    enable_strobe : boolean;
     support_unaligned_burst_length : boolean := false;
     data_jitter : boolean := true;
     runner_cfg : string
@@ -44,8 +44,11 @@ architecture tb of tb_width_conversion is
   signal input_data : std_logic_vector(input_width - 1 downto 0);
   signal output_data : std_logic_vector(output_width - 1 downto 0);
 
-  signal input_strobe : std_logic_vector(input_width / 8 - 1 downto 0) := (others => '0');
-  signal output_strobe : std_logic_vector(output_width / 8 - 1 downto 0) := (others => '0');
+  constant strobe_unit_width : positive := 8;
+  signal input_strobe : std_logic_vector(input_width / strobe_unit_width - 1 downto 0) :=
+    (others => '0');
+  signal output_strobe : std_logic_vector(output_width / strobe_unit_width - 1 downto 0) :=
+    (others => '0');
 
   -- If there is strobing, there will be more words, but the amount of enabled bytes will be
   -- the same in the end.
@@ -128,7 +131,7 @@ begin
       num_input_words_sent := 0;
 
       while num_bytes_remaining > 0 loop
-        if enable_byte_strobe then
+        if enable_strobe then
           num_strobes_in_word :=
             minimum(rnd_jitter.RandInt(1, input_bytes_per_beat), num_bytes_remaining);
 
@@ -196,7 +199,7 @@ begin
         wait until (output_ready and output_valid) = '1' and rising_edge(clk);
 
         for byte_lane_idx in 0 to output_bytes_per_beat - 1 loop
-          if (not enable_byte_strobe) or output_strobe(byte_lane_idx) = '1' then
+          if (not enable_strobe) or output_strobe(byte_lane_idx) = '1' then
             -- Build up the expected output data vector in same way that input data
             -- is generated above. Note that the same random seed is used.
             random_slv(rnd_data, expected_byte);
@@ -236,7 +239,8 @@ begin
     generic map (
       input_width => input_width,
       output_width => output_width,
-      enable_byte_strobe => enable_byte_strobe,
+      enable_strobe => enable_strobe,
+      strobe_unit_width => strobe_unit_width,
       support_unaligned_burst_length => support_unaligned_burst_length
     )
     port map (

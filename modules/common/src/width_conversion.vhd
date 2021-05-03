@@ -9,12 +9,11 @@
 -- to wide). The data widths must be a power-of-two multiple of each other. E.g. 4->16 is
 -- supported while 8->24 is not.
 --
--- There is a generic to enable byte strobing of data. When this is enabled both the input and
--- output ports must have a width that is a multiple of eight.
--- The data and strobe will be passed on from 'input' to 'output' side as is. This means that there
--- might be output words where all byte lanes have strobe zero.
+-- There is a generic to enable strobing of data. The data and strobe will be passed on from
+-- 'input' to 'output' side as is. This means that there might be output words where all strobe
+-- lanes are zero.
 --
--- We have done some experimentation with removing bytes that are strobed out, so that they never
+-- We have done some experimentation with removing words that are strobed out, so that they never
 -- reach the 'output' side. See comments in code. It increases the resource utilization by a lot,
 -- and it is not super clear if it is correct behavior for the common use case.
 --
@@ -23,7 +22,7 @@
 -- Consider the example when converting 32->64, and 'last' is asserted in the third 'input' word.
 -- Unless the 'support_unaligned_burst_length' generic is set there will still only be one word sent
 -- to the 'output'. If the generic is set, however, the 'input' stream will be padded so that a
--- whole 'output' word is filled. The padded byte lanes will have their 'strobe' set to zero.
+-- whole 'output' word is filled. The padded lanes will have their 'strobe' set to zero.
 -- -------------------------------------------------------------------------------------------------
 
 library ieee;
@@ -39,8 +38,12 @@ entity width_conversion is
     output_width : positive;
     -- Enable usage of the 'input_strobe' and 'output_strobe' ports.
     -- Will increase the logic footprint.
-    enable_byte_strobe : boolean := false;
-    -- Enabled if 'input' burst lengths are not a multiple of the 'output' width.
+    enable_strobe : boolean := false;
+    -- In the typical use case where we want a "byte strobe", this would be set to 8.
+    -- In other cases, for example when the data is packed, we migh use a higher value.
+    -- Must assign a positive value if 'enable_strobe' is true.
+    strobe_unit_width : integer := -1;
+    -- Enable if 'input' burst lengths are not a multiple of the 'output' width.
     -- Will increase the logic footprint.
     support_unaligned_burst_length : boolean := false
   );
@@ -51,15 +54,17 @@ entity width_conversion is
     input_valid : in std_logic;
     input_last : in std_logic;
     input_data : in std_logic_vector(input_width - 1 downto 0);
-    -- Optional byte strobe. Must set 'enable_byte_strobe' generic in order to use this.
-    input_strobe : in std_logic_vector(input_width / 8 - 1 downto 0) := (others => '1');
+    -- Optional word strobe. Must set 'enable_strobe' generic in order to use this.
+    input_strobe : in std_logic_vector(input_width / strobe_unit_width - 1 downto 0) :=
+      (others => '1');
     --
     output_ready : in std_logic;
     output_valid : out std_logic := '0';
     output_last : out std_logic;
     output_data : out std_logic_vector(output_width - 1 downto 0);
-    -- Optional byte strobe. Must set 'enable_byte_strobe' generic in order to use this.
-    output_strobe : out std_logic_vector(output_width / 8 - 1 downto 0) := (others => '1')
+    -- Optional word strobe. Must set 'enable_strobe' generic in order to use this.
+    output_strobe : out std_logic_vector(output_width / strobe_unit_width - 1 downto 0) :=
+      (others => '1')
   );
 end entity;
 
@@ -67,8 +72,8 @@ architecture a of width_conversion is
 
   function get_atom_width return positive is
   begin
-    if enable_byte_strobe then
-      return 8;
+    if enable_strobe then
+      return strobe_unit_width;
     end if;
 
     -- When converting e.g. 16->32 the data atom that is handled internally will be of width 16.
@@ -82,7 +87,7 @@ architecture a of width_conversion is
   constant num_atoms_per_output : positive := output_width / atom_width;
 
   -- +1 for last
-  constant packed_atom_width : positive := atom_width + 1 + to_int(enable_byte_strobe);
+  constant packed_atom_width : positive := atom_width + 1 + to_int(enable_strobe);
   constant stored_atom_count_max : positive := num_atoms_per_input + num_atoms_per_output;
 
   constant shift_reg_length : positive := stored_atom_count_max * packed_atom_width;
@@ -99,7 +104,7 @@ architecture a of width_conversion is
   begin
     result(atom_data'range) := atom_data;
 
-    if enable_byte_strobe then
+    if enable_strobe then
       result(result'high - 1) := atom_strobe;
     end if;
 
@@ -117,7 +122,7 @@ architecture a of width_conversion is
   begin
     atom_data := packed(atom_data'range);
 
-    if enable_byte_strobe then
+    if enable_strobe then
       atom_strobe := packed(packed'high - 1);
     end if;
 
@@ -140,13 +145,13 @@ begin
   assert (output_width / input_width) mod 2 = 0 and (input_width / output_width) mod 2 = 0
     report "Larger width has to be power of two multiple of smaller." severity failure;
 
-  assert (input_width mod 8 = 0 and output_width mod 8 = 0) or not enable_byte_strobe
-    report "Byte strobe is only supported for width multiples of 8." severity failure;
+  assert strobe_unit_width > 0 or not enable_strobe
+    report "Must set a valid strobe width when strobing is enabled." severity failure;
 
   assert input_width < output_width or not support_unaligned_burst_length
     report "Unaligned burst length only makes sense when upconverting." severity failure;
 
-  assert enable_byte_strobe or not support_unaligned_burst_length
+  assert enable_strobe or not support_unaligned_burst_length
     report "Must enable strobing when doing unaligned bursts." severity failure;
 
 
@@ -248,17 +253,17 @@ begin
 
     shift_reg_next := shift_reg;
     if padded_input_ready and padded_input_valid then
-      if enable_byte_strobe then
+      if enable_strobe then
         num_atoms_strobed := count_ones(padded_input_strobe);
       end if;
 
-      -- In order to remove bytes that are strobed out, num_atoms_strobed could be used instead
+      -- In order to remove words that are strobed out, num_atoms_strobed could be used instead
       -- of num_atoms_per_input below. This increases the LUT usage by a factor of four.
       num_atoms_next := num_atoms_next + num_atoms_per_input;
 
       for input_atom_idx in 0 to num_atoms_per_input - 1 loop
-        if enable_byte_strobe then
-          -- When strobing, the atom is always a byte, so this indexing works.
+        if enable_strobe then
+          -- When strobing, the atom size is always one strobe unit, so this indexing works.
           atom_strobe := padded_input_strobe(input_atom_idx);
         end if;
 
@@ -335,9 +340,9 @@ begin
       end if;
     end loop;
 
-    if enable_byte_strobe then
-      -- The top byte might be strobed out and not have 'last' set. Instead it is found in one of
-      -- the lower bytes.
+    if enable_strobe then
+      -- The top atome might be strobed out and not have 'last' set. Instead it is found in one of
+      -- the lower atoms.
       output_last <= or atom_last;
       output_strobe <= atom_strobe;
     else

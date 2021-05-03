@@ -35,14 +35,14 @@ class Module(BaseModule):
                 if input_width == output_width:
                     continue
 
-                for enable_byte_strobe in [True, False]:
+                for enable_strobe in [True, False]:
                     generics = dict(
                         input_width=input_width,
                         output_width=output_width,
-                        enable_byte_strobe=enable_byte_strobe,
+                        enable_strobe=enable_strobe,
                     )
 
-                    if enable_byte_strobe and input_width < output_width:
+                    if enable_strobe and input_width < output_width:
                         generics["support_unaligned_burst_length"] = True
 
                     self.add_vunit_config(test, generics=generics)
@@ -216,13 +216,13 @@ class Module(BaseModule):
     def _get_width_conversion_build_projects(self, part, projects):
         modules = [self]
         generic_configurations = [
-            dict(input_width=32, output_width=16, enable_byte_strobe=False),
-            dict(input_width=16, output_width=32, enable_byte_strobe=False),
-            dict(input_width=32, output_width=16, enable_byte_strobe=True),
+            dict(input_width=32, output_width=16, enable_strobe=False),
+            dict(input_width=16, output_width=32, enable_strobe=False),
+            dict(input_width=32, output_width=16, enable_strobe=True),
             dict(
                 input_width=16,
                 output_width=32,
-                enable_byte_strobe=True,
+                enable_strobe=True,
                 support_unaligned_burst_length=True,
             ),
         ]
