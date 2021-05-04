@@ -65,3 +65,4 @@ Logic level distribution:
 +-----------------+-------------+-----+----+---+----+\
 """
     assert build_result.report() == expected
+    assert build_result.maximum_logic_level == 3

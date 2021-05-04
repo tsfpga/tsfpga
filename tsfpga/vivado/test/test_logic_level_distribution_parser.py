@@ -9,7 +9,7 @@
 from tsfpga.vivado.logic_level_distribution_parser import LogicLevelDistributionParser
 
 
-def test_logic_level_distribution_parser():
+def test_get_table():
     report = """
 
 1. Logic Level Distribution
@@ -31,3 +31,23 @@ def test_logic_level_distribution_parser():
 +-----------------+-------------+-----+----+---+----+\
 """
     assert LogicLevelDistributionParser.get_table(report) == expected
+
+
+def test_get_maximum_logic_level():
+    table = """\
++-----------------+-------------+-----+----+---+----+
+| End Point Clock | Requirement |  0  |  1 | 2 |  3 |
++-----------------+-------------+-----+----+---+----+
+| clk_fpga_0      | 2.000ns     | 491 | 12 | 1 | 11 |
++-----------------+-------------+-----+----+---+----+\
+"""
+    assert LogicLevelDistributionParser.get_maximum_logic_level(table) == 3
+
+    table = """\
++-----------------+-------------+-----+----+---+----+
+| End Point Clock | Requirement |  0  |  1 | 2 |  7 |
++-----------------+-------------+-----+----+---+----+
+| clk_fpga_0      | 2.000ns     | 491 | 12 | 1 | 11 |
++-----------------+-------------+-----+----+---+----+\
+"""
+    assert LogicLevelDistributionParser.get_maximum_logic_level(table) == 7

@@ -13,6 +13,9 @@ Added
 
 * Add support for byte strobe and unaligned burst length in ``common.width_conversion``.
 
+* Add support for checking maximum logic level in netlist builds via the :class:`.MaximumLogicLevel`
+  class and the ``build_result_checkers`` argument to :meth:`.VivadoNetlistProject.__init__`.
+
 
 Breaking changes
 
@@ -32,6 +35,13 @@ Breaking changes
 * The methods :meth:`.RegisterList.get_register`, :meth:`.RegisterList.get_constant`,
   :meth:`.RegisterArray.get_register`, :meth:`.Register.get_field`,
   will now raise exception if nothing matches, instead of returning ``None``.
+
+* Move the classes ``LessThan``, ``EqualTo``, ``TotalLuts``, ``LogicLuts``, ``LutRams``, ``Srls``,
+  ``Ffs``, ``Ramb36``, ``Ramb18`` and ``DspBlocks`` from ``tsfpga.vivado.size_checker`` to
+  :mod:`tsfpga.vivado.build_result_checker`.
+
+* Rename :meth:`.VivadoNetlistProject.__init__` argument ``result_size_checkers`` to
+  ``build_result_checkers``.
 
 
 Changes

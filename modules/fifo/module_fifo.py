@@ -8,7 +8,7 @@
 
 from tsfpga.module import BaseModule
 from tsfpga.vivado.project import VivadoNetlistProject
-from tsfpga.vivado.size_checker import EqualTo, Ffs, Ramb18, Ramb36, TotalLuts
+from tsfpga.vivado.build_result_checker import EqualTo, Ffs, Ramb18, Ramb36, TotalLuts
 from examples.tsfpga_example_env import get_tsfpga_modules
 
 
@@ -121,7 +121,7 @@ class Module(BaseModule):
                 part=part,
                 top="fifo_netlist_build_wrapper",
                 generics=generics,
-                result_size_checkers=[
+                build_result_checkers=[
                     TotalLuts(EqualTo(14)),
                     Ffs(EqualTo(24)),
                     Ramb36(EqualTo(1)),
@@ -140,7 +140,7 @@ class Module(BaseModule):
                 part=part,
                 top="fifo_wrapper",
                 generics=generics,
-                result_size_checkers=[
+                build_result_checkers=[
                     TotalLuts(EqualTo(26)),
                     Ffs(EqualTo(35)),
                     Ramb36(EqualTo(1)),
@@ -158,7 +158,7 @@ class Module(BaseModule):
                 part=part,
                 top="fifo_wrapper",
                 generics=generics,
-                result_size_checkers=[
+                build_result_checkers=[
                     TotalLuts(EqualTo(26)),
                     Ffs(EqualTo(35)),
                     Ramb36(EqualTo(1)),
@@ -177,7 +177,7 @@ class Module(BaseModule):
                 part=part,
                 top="fifo_wrapper",
                 generics=generics,
-                result_size_checkers=[
+                build_result_checkers=[
                     TotalLuts(EqualTo(41)),
                     Ffs(EqualTo(46)),
                     Ramb36(EqualTo(1)),
@@ -196,7 +196,7 @@ class Module(BaseModule):
                 part=part,
                 top="fifo_wrapper",
                 generics=generics,
-                result_size_checkers=[
+                build_result_checkers=[
                     TotalLuts(EqualTo(47)),
                     Ffs(EqualTo(57)),
                     Ramb36(EqualTo(1)),
@@ -217,7 +217,7 @@ class Module(BaseModule):
                 part=part,
                 top="fifo_netlist_build_wrapper",
                 generics=generics,
-                result_size_checkers=[
+                build_result_checkers=[
                     TotalLuts(EqualTo(44)),
                     Ffs(EqualTo(90)),
                     Ramb36(EqualTo(1)),
@@ -236,7 +236,7 @@ class Module(BaseModule):
                 part=part,
                 top="fifo_wrapper",
                 generics=generics,
-                result_size_checkers=[
+                build_result_checkers=[
                     TotalLuts(EqualTo(67)),
                     Ffs(EqualTo(112)),
                     Ramb36(EqualTo(1)),
@@ -254,7 +254,7 @@ class Module(BaseModule):
                 part=part,
                 top="fifo_wrapper",
                 generics=generics,
-                result_size_checkers=[
+                build_result_checkers=[
                     TotalLuts(EqualTo(67)),
                     Ffs(EqualTo(112)),
                     Ramb36(EqualTo(1)),
@@ -273,7 +273,7 @@ class Module(BaseModule):
                 part=part,
                 top="fifo_wrapper",
                 generics=generics,
-                result_size_checkers=[
+                build_result_checkers=[
                     TotalLuts(EqualTo(86)),
                     Ffs(EqualTo(167)),
                     Ramb36(EqualTo(1)),
@@ -293,7 +293,7 @@ class Module(BaseModule):
                 part=part,
                 top="fifo_wrapper",
                 generics=generics,
-                result_size_checkers=[
+                build_result_checkers=[
                     TotalLuts(EqualTo(66)),
                     Ffs(EqualTo(134)),
                     Ramb36(EqualTo(1)),

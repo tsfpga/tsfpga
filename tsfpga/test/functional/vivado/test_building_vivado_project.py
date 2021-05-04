@@ -15,7 +15,7 @@ import tsfpga
 from tsfpga.constraint import Constraint
 from tsfpga.module import get_modules
 from tsfpga.system_utils import create_file, run_command
-from tsfpga.vivado.size_checker import LessThan, TotalLuts
+from tsfpga.vivado.build_result_checker import LessThan, TotalLuts
 from tsfpga.vivado.project import VivadoNetlistProject, VivadoProject
 from tsfpga.test import file_contains_string
 
@@ -261,7 +261,7 @@ create_clock -period 4 -waveform {1.0 1.2} -name clk_out [get_ports clk_out]
             part="xc7z020clg400-1",
             # Faster
             default_run_index=2,
-            result_size_checkers=[TotalLuts(LessThan(1000))],
+            build_result_checkers=[TotalLuts(LessThan(1000))],
         )
         assert project.create(self.project_folder)
 

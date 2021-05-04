@@ -14,7 +14,7 @@ Breaking changes
 * Rename :class:`.vivado.project.VivadoNetlistProject` constructor
   argument ``analyze_clock_interaction`` to ``analyze_synthesis_timing``.
 * Remove ``tsfpga.vivado.size_checker.Dsp48Blocks`` in favor
-  of :class:`.vivado.size_checker.DspBlocks`.
+  of ``.vivado.size_checker.DspBlocks``.
 * Add a pipelining step to improve timing of ``axi.axi_read_throttle`` and
   ``axi.axi_write_throttle``. This introduces three new generics that must be set.
 * Change ``bfm.axi_slave`` and ``bfm.axil_slave`` interfaces to require two ``axi_slave_t``

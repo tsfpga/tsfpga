@@ -8,7 +8,7 @@
 
 from tsfpga.module import BaseModule
 from tsfpga.vivado.project import VivadoNetlistProject
-from tsfpga.vivado.size_checker import EqualTo, Ffs, LogicLuts, Ramb18, Ramb36, TotalLuts
+from tsfpga.vivado.build_result_checker import EqualTo, Ffs, LogicLuts, Ramb18, Ramb36, TotalLuts
 from examples.tsfpga_example_env import get_tsfpga_modules
 
 
@@ -39,7 +39,7 @@ class Module(BaseModule):
                 modules=all_modules,
                 part=part,
                 top="axil_reg_file_wrapper",
-                result_size_checkers=[
+                build_result_checkers=[
                     TotalLuts(EqualTo(199)),
                     LogicLuts(EqualTo(199)),
                     Ffs(EqualTo(456)),

@@ -14,6 +14,9 @@ class LogicLevelDistributionParser:
     """
     Used for parsing the ``report_design_analysis -logic_level_distribution`` report generated
     by Vivado.
+
+    This code is very hard coded for how the report and table is formatted. See the unit tests
+    for examples of this formatting.
     """
 
     @staticmethod
@@ -31,3 +34,19 @@ class LogicLevelDistributionParser:
             return match.group(1)
 
         raise ValueError(f"Could not find table in report: {report}")
+
+    @staticmethod
+    def get_maximum_logic_level(table):
+        """
+        Returns the maximum logic level in the table.
+
+        Arguments:
+            table (str): The table as returned by :meth:`.get_table`.
+
+        Returns:
+            int: The maximum logic level.
+        """
+        header_line = table.split("\n")[1]
+        right_most_heading = header_line.split("|")[-2]
+        maximum_logic_level = int(right_most_heading.strip())
+        return maximum_logic_level

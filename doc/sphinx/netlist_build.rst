@@ -5,7 +5,7 @@ Netlist builds
 
 Feedback on timing and resource utilization is critical in the design of an HDL component.
 To this puropse, tsfpga has a concept called netlist builds for running synthesis on individual components or your full project.
-The build result can be checked towards expected resource utilization figures by attaching atuomated :ref:`size_checkers`.
+The build result can be checked towards expected resource utilization figures by attaching atuomated :ref:`build_result_checkers`.
 
 With netlist builds and size checkers you can quickly and automatically check the utilization.
 This is a great tool when area optimizing a design, or e.g. trying to make arithmetic map to DSP blocks.
@@ -14,30 +14,36 @@ Since the builds are typically very small, it is reasonable to parameterize many
 
 
 
-.. _size_checkers:
+.. _build_result_checkers:
 
-Size checkers
--------------
+Build result checkers
+---------------------
 
-Size checkers are executed after the succesful synthesis.
+Build result checkers are executed after the succesful synthesis.
 They will fail the build and printout what went wrong if the conditions are not fulfilled.
 They are attached to a build in this fashion:
 
 .. code-block:: python
-    :caption: Size checker example.
+    :caption: Build result checker example.
 
     VivadoNetlistProject(
-        ...,
-        result_size_checkers=[
+        modules=modules,
+        part="xc7z020clg400-1",
+        top="example_top_level",
+        build_result_checkers=[
             TotalLuts(LessThan(50)),
             Ramb36(EqualTo(0)),
             Ramb18(EqualTo(1)),
+            MaxLogicLevel(EqualTo(4)),
         ]
     )
 
 See the repo for other examples.
-There are checkers available for most of the Xilinx primitives, e.g. ``Total LUTs``, ``RAMB18``, ``RAMB36`` as shown in the example.
-See the :mod:`API documentation <.size_checker>` for more.
+
+There are checkers available for all the Xilinx primitives, e.g. ``Total LUTs``, ``RAMB18``, ``RAMB36``, etc. as shown in the example.
+It is also possibe to put a condition on the maximum logic level of the design, also shown above.
+
+See the :mod:`API documentation <.build_result_checker>` for more.
 
 
 

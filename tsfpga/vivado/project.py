@@ -13,8 +13,8 @@ from tsfpga.system_utils import create_file, read_file
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
 from .build_result import BuildResult
 from .common import run_vivado_tcl, run_vivado_gui
+from .hierarchical_utilization_parser import HierarchicalUtilizationParser
 from .logic_level_distribution_parser import LogicLevelDistributionParser
-from .size_checker import UtilizationParser
 from .tcl import VivadoTcl
 
 
@@ -410,7 +410,7 @@ class VivadoProject:
         report_as_string = read_file(
             project_path / f"{self.name}.runs" / run / "hierarchical_utilization.rpt"
         )
-        return UtilizationParser.get_size(report_as_string)
+        return HierarchicalUtilizationParser.get_size(report_as_string)
 
     def _get_logic_level_distribution(self, project_path, run):
         """
@@ -444,7 +444,7 @@ class VivadoNetlistProject(VivadoProject):
     Used for handling Vivado build of a module without top level pinning.
     """
 
-    def __init__(self, analyze_synthesis_timing=False, result_size_checkers=None, **kwargs):
+    def __init__(self, analyze_synthesis_timing=False, build_result_checkers=None, **kwargs):
         """
         Arguments:
             analyze_synthesis_timing (bool): Enable analysis of the synthesized design's timing.
@@ -453,9 +453,9 @@ class VivadoNetlistProject(VivadoProject):
                 Enabling it will add significant build time (can be as much as +40%).
                 Also, in order for clock crossing check to work, the clocks have to be created
                 using a constraint file.
-            result_size_checkers (list(:class:`.SizeChecker`)): Size checkers that will be
-                executed after a successful build. Is used to automatically check that
-                resource utilization is not greater than expected.
+            build_result_checkers (list(:class:`.SizeChecker`, :class:`.MaximumLogicLevel`)):
+                Checkers that will be executed after a successful build. Is used to automatically
+                check that e.g. resource utilization is not greater than expected.
             kwargs: Other arguments accepted by :meth:`.VivadoProject.__init__`.
         """
         super().__init__(**kwargs)
@@ -463,7 +463,7 @@ class VivadoNetlistProject(VivadoProject):
         self.is_netlist_build = True
         self.analyze_synthesis_timing = analyze_synthesis_timing
         self.report_logic_level_distribution = True
-        self.result_size_checkers = [] if result_size_checkers is None else result_size_checkers
+        self.build_result_checkers = [] if build_result_checkers is None else build_result_checkers
 
     def build(self, **kwargs):  # pylint: disable=arguments-differ
         """
@@ -479,12 +479,12 @@ class VivadoNetlistProject(VivadoProject):
 
     def _check_size(self, build_result):
         if not build_result.success:
-            print(f"Can not do post_build size check for {self.name} since it did not succeed.")
+            print(f"Can not do post_build check for {self.name} since it did not succeed.")
             return False
 
         success = True
-        for result_size_checker in self.result_size_checkers:
-            result = result_size_checker.check(build_result.synthesis_size)
-            success = success and result
+        for build_result_checker in self.build_result_checkers:
+            checker_result = build_result_checker.check(build_result)
+            success = success and checker_result
 
         return success

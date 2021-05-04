@@ -1,6 +1,6 @@
 Added
 
-* Add automatic size checkers for netlist builds: :ref:`size_checkers`.
+* Add automatic size checkers for netlist builds: :ref:`build_result_checkers`.
 * Add ``resync.resync_cycles`` VHDL entity.
 
 Breaking changes

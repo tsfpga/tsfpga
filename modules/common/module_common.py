@@ -8,7 +8,7 @@
 
 from tsfpga.module import BaseModule
 from tsfpga.vivado.project import VivadoNetlistProject
-from tsfpga.vivado.size_checker import EqualTo, Ffs, Srls, TotalLuts
+from tsfpga.vivado.build_result_checker import EqualTo, Ffs, Srls, TotalLuts
 from examples.tsfpga_example_env import get_tsfpga_modules
 
 
@@ -98,7 +98,7 @@ class Module(BaseModule):
                 part=part,
                 top="handshake_pipeline",
                 generics=generics,
-                result_size_checkers=[
+                build_result_checkers=[
                     TotalLuts(EqualTo(1)),
                     Ffs(EqualTo(34)),
                 ],
@@ -114,7 +114,7 @@ class Module(BaseModule):
                 part=part,
                 top="handshake_pipeline",
                 generics=generics,
-                result_size_checkers=[
+                build_result_checkers=[
                     TotalLuts(EqualTo(37)),
                     Ffs(EqualTo(70)),
                 ],
@@ -129,7 +129,7 @@ class Module(BaseModule):
                 part=part,
                 top="handshake_pipeline",
                 generics=generics,
-                result_size_checkers=[
+                build_result_checkers=[
                     TotalLuts(EqualTo(2)),
                     Ffs(EqualTo(34)),
                 ],
@@ -144,7 +144,7 @@ class Module(BaseModule):
                 part=part,
                 top="handshake_pipeline",
                 generics=generics,
-                result_size_checkers=[
+                build_result_checkers=[
                     TotalLuts(EqualTo(1)),
                     Ffs(EqualTo(35)),
                 ],
@@ -162,7 +162,7 @@ class Module(BaseModule):
                 part=part,
                 top="clock_counter",
                 generics=generics,
-                result_size_checkers=[
+                build_result_checkers=[
                     TotalLuts(EqualTo(84)),
                     Srls(EqualTo(5)),
                     Ffs(EqualTo(185)),
@@ -178,7 +178,7 @@ class Module(BaseModule):
                 part=part,
                 top="clock_counter",
                 generics=generics,
-                result_size_checkers=[
+                build_result_checkers=[
                     TotalLuts(EqualTo(38)),
                     Srls(EqualTo(2)),
                     Ffs(EqualTo(86)),
@@ -203,7 +203,7 @@ class Module(BaseModule):
                     part=part,
                     top="periodic_pulser",
                     generics=generics,
-                    result_size_checkers=[
+                    build_result_checkers=[
                         TotalLuts(EqualTo(total_luts[idx])),
                         Srls(EqualTo(srls[idx])),
                         Ffs(EqualTo(ffs[idx])),
@@ -216,12 +216,18 @@ class Module(BaseModule):
         generic_configurations = [
             dict(input_width=32, output_width=16, enable_strobe=False),
             dict(input_width=16, output_width=32, enable_strobe=False),
-            dict(input_width=32, output_width=16, enable_strobe=True),
+            dict(
+                input_width=32,
+                output_width=16,
+                enable_strobe=True,
+                strobe_unit_width=8,
+            ),
             dict(
                 input_width=16,
                 output_width=32,
                 enable_strobe=True,
                 support_unaligned_burst_length=True,
+                strobe_unit_width=8,
             ),
         ]
         total_luts = [21, 36, 26, 46]
@@ -237,7 +243,7 @@ class Module(BaseModule):
                     part=part,
                     top="width_conversion",
                     generics=generics,
-                    result_size_checkers=[
+                    build_result_checkers=[
                         TotalLuts(EqualTo(total_luts[idx])),
                         Ffs(EqualTo(ffs[idx])),
                     ],

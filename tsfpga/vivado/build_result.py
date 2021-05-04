@@ -8,6 +8,8 @@
 
 import json
 
+from .logic_level_distribution_parser import LogicLevelDistributionParser
+
 
 class BuildResult:
 
@@ -19,7 +21,7 @@ class BuildResult:
             synthesized design. Will be ``None`` if synthesis failed or did not run.
         implementation_size (`dict`): A dictionary with the utilization of primitives for
             the implemented design. Will be ``None`` if implementation failed or did not run.
-        logic_level_distribution (str): A table with logic level distribution as reported by Vivado.
+        maximum_logic_level (int): The maximum level in the the logic level distribution.
             Will be ``None`` if synthesis failed or did not run.
     """
 
@@ -32,7 +34,8 @@ class BuildResult:
         self.success = True
         self.synthesis_size = None
         self.implementation_size = None
-        self.logic_level_distribution = None
+        self._logic_level_distribution = None
+        self.maximum_logic_level = None
 
     def size_summary(self):
         """
@@ -69,3 +72,20 @@ class BuildResult:
             result = f"{result}\nLogic level distribution:\n{self.logic_level_distribution}"
 
         return result
+
+    @property
+    def logic_level_distribution(self):
+        """
+        str: A table with logic level distribution as reported by Vivado.
+        Will be ``None`` if synthesis failed or did not run.
+        """
+        # Getter for logic_level_distribution.
+        return self._logic_level_distribution
+
+    @logic_level_distribution.setter
+    def logic_level_distribution(self, value):
+        """
+        Setter for logic_level_distribution that also sets the calculated maximum logic level.
+        """
+        self._logic_level_distribution = value
+        self.maximum_logic_level = LogicLevelDistributionParser.get_maximum_logic_level(value)

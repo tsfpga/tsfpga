@@ -73,6 +73,9 @@ architecture a of width_conversion is
   function get_atom_width return positive is
   begin
     if enable_strobe then
+      assert strobe_unit_width > 0
+        report "Must set a valid strobe width when strobing is enabled."
+        severity failure;
       return strobe_unit_width;
     end if;
 
