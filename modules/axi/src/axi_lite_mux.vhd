@@ -27,37 +27,37 @@ use math.math_pkg.all;
 library common;
 use common.addr_pkg.all;
 
-use work.axil_pkg.all;
+use work.axi_lite_pkg.all;
 use work.axi_pkg.all;
 
 
-entity axil_mux is
+entity axi_lite_mux is
   generic (
     slave_addrs : addr_and_mask_vec_t
   );
   port (
     clk : in std_logic;
 
-    axil_m2s : in axil_m2s_t;
-    axil_s2m : out axil_s2m_t := axil_s2m_init;
+    axi_lite_m2s : in axi_lite_m2s_t;
+    axi_lite_s2m : out axi_lite_s2m_t := axi_lite_s2m_init;
 
-    axil_m2s_vec : out axil_m2s_vec_t(slave_addrs'range) := (others => axil_m2s_init);
-    axil_s2m_vec : in axil_s2m_vec_t(slave_addrs'range)
+    axi_lite_m2s_vec : out axi_lite_m2s_vec_t(slave_addrs'range) := (others => axi_lite_m2s_init);
+    axi_lite_s2m_vec : in axi_lite_s2m_vec_t(slave_addrs'range)
   );
 end entity;
 
-architecture a of axil_mux is
+architecture a of axi_lite_mux is
 
   -- Decode function will return upper index + 1 if no slave matched
-  constant decode_failed : integer := axil_m2s_vec'length;
+  constant decode_failed : integer := axi_lite_m2s_vec'length;
 
   constant slave_decode_error_idx : integer := decode_failed;
   constant slave_not_selected_idx : integer := decode_failed + 1;
 
   signal read_slave_select, write_slave_select : integer range 0 to slave_not_selected_idx := slave_not_selected_idx;
 
-  signal read_decode_error_s2m : axil_read_s2m_t := axil_read_s2m_init;
-  signal write_decode_error_s2m : axil_write_s2m_t := axil_write_s2m_init;
+  signal read_decode_error_s2m : axi_lite_read_s2m_t := axi_lite_read_s2m_init;
+  signal write_decode_error_s2m : axi_lite_write_s2m_t := axi_lite_write_s2m_init;
 
 begin
 
@@ -66,20 +66,20 @@ begin
   begin
     if read_slave_select = slave_not_selected_idx then
       -- Wait for the master to assert address valid so that we can select the correct slave
-      axil_s2m.read.ar <= (ready => '0');
-      axil_s2m.read.r <= (valid => '0', others => (others => '-'));
+      axi_lite_s2m.read.ar <= (ready => '0');
+      axi_lite_s2m.read.r <= (valid => '0', others => (others => '-'));
 
     elsif read_slave_select = slave_decode_error_idx then
       -- Master requested a slave address that does not exist. Return decode error.
       -- State machine will perform handshake on the different channels.
-      axil_s2m.read.ar <= (ready => read_decode_error_s2m.ar.ready);
-      axil_s2m.read.r <= (valid => read_decode_error_s2m.r.valid,
+      axi_lite_s2m.read.ar <= (ready => read_decode_error_s2m.ar.ready);
+      axi_lite_s2m.read.r <= (valid => read_decode_error_s2m.r.valid,
                           resp => axi_resp_decerr,
                           data => (others => '-'));
 
     else
       -- Connect the selected slave. State machine will un-select when all transactions are done.
-      axil_s2m.read <= axil_s2m_vec(read_slave_select).read;
+      axi_lite_s2m.read <= axi_lite_s2m_vec(read_slave_select).read;
     end if;
   end process;
 
@@ -89,21 +89,21 @@ begin
   begin
     if write_slave_select = slave_not_selected_idx then
       -- Wait for the master to assert address valid so that we can select the correct slave
-      axil_s2m.write.aw <= (ready => '0');
-      axil_s2m.write.w <= (ready => '0');
-      axil_s2m.write.b <= (valid => '0', others => (others => '-'));
+      axi_lite_s2m.write.aw <= (ready => '0');
+      axi_lite_s2m.write.w <= (ready => '0');
+      axi_lite_s2m.write.b <= (valid => '0', others => (others => '-'));
 
     elsif write_slave_select = slave_decode_error_idx then
       -- Master requested a slave address that does not exist. Return decode error.
       -- State machine will perform handshake on the different channels.
-      axil_s2m.write.aw <= (ready => write_decode_error_s2m.aw.ready);
-      axil_s2m.write.w <= (ready => write_decode_error_s2m.w.ready);
-      axil_s2m.write.b <= (valid => write_decode_error_s2m.b.valid,
+      axi_lite_s2m.write.aw <= (ready => write_decode_error_s2m.aw.ready);
+      axi_lite_s2m.write.w <= (ready => write_decode_error_s2m.w.ready);
+      axi_lite_s2m.write.b <= (valid => write_decode_error_s2m.b.valid,
                            resp => axi_resp_decerr);
 
     else
       -- Connect the selected slave. State machine will un-select when all transactions are done.
-      axil_s2m.write <= axil_s2m_vec(write_slave_select).write;
+      axi_lite_s2m.write <= axi_lite_s2m_vec(write_slave_select).write;
     end if;
   end process;
 
@@ -111,18 +111,18 @@ begin
   ------------------------------------------------------------------------------
   assign_m2s_vec : process(all)
   begin
-    for slave in axil_m2s_vec'range loop
-      axil_m2s_vec(slave) <= axil_m2s;
+    for slave in axi_lite_m2s_vec'range loop
+      axi_lite_m2s_vec(slave) <= axi_lite_m2s;
 
       if write_slave_select /= slave then
-        axil_m2s_vec(slave).write.aw.valid <= '0';
-        axil_m2s_vec(slave).write.w.valid <= '0';
-        axil_m2s_vec(slave).write.b.ready <= '0';
+        axi_lite_m2s_vec(slave).write.aw.valid <= '0';
+        axi_lite_m2s_vec(slave).write.w.valid <= '0';
+        axi_lite_m2s_vec(slave).write.b.ready <= '0';
       end if;
 
       if read_slave_select /= slave then
-        axil_m2s_vec(slave).read.ar.valid <= '0';
-        axil_m2s_vec(slave).read.r.ready <= '0';
+        axi_lite_m2s_vec(slave).read.ar.valid <= '0';
+        axi_lite_m2s_vec(slave).read.r.ready <= '0';
       end if;
     end loop;
   end process;
@@ -140,8 +140,8 @@ begin
 
       case state is
         when waiting =>
-          if axil_m2s.read.ar.valid then
-            decoded_idx := decode(axil_m2s.read.ar.addr, slave_addrs);
+          if axi_lite_m2s.read.ar.valid then
+            decoded_idx := decode(axi_lite_m2s.read.ar.addr, slave_addrs);
 
             if decoded_idx = decode_failed then
               -- If there is no AXI-Lite slave on the requested address, we have to complete the
@@ -151,10 +151,10 @@ begin
 
               -- Complete the AR transaction.
               -- Note that m2s valid is high, so transaction will occur straight away.
-              assert not axil_s2m.read.ar.ready;
+              assert not axi_lite_s2m.read.ar.ready;
               read_decode_error_s2m.ar.ready <= '1';
 
-              assert not axil_s2m.read.r.valid;
+              assert not axi_lite_s2m.read.r.valid;
               read_decode_error_s2m.r.valid <= '1';
 
               state <= decode_error;
@@ -169,7 +169,7 @@ begin
         when decode_error =>
           read_decode_error_s2m.ar.ready <= '0';
 
-          if axil_m2s.read.r.ready and axil_s2m.read.r.valid then
+          if axi_lite_m2s.read.r.ready and axi_lite_s2m.read.r.valid then
             read_decode_error_s2m.r.valid <= '0';
 
             read_slave_select <= slave_not_selected_idx;
@@ -177,7 +177,7 @@ begin
           end if;
 
         when reading =>
-          if axil_m2s.read.r.ready and axil_s2m.read.r.valid then
+          if axi_lite_m2s.read.r.ready and axi_lite_s2m.read.r.valid then
             read_slave_select <= slave_not_selected_idx;
             state <= waiting;
           end if;
@@ -198,8 +198,8 @@ begin
 
       case state is
         when waiting =>
-          if axil_m2s.write.aw.valid then
-            decoded_idx := decode(axil_m2s.write.aw.addr, slave_addrs);
+          if axi_lite_m2s.write.aw.valid then
+            decoded_idx := decode(axi_lite_m2s.write.aw.addr, slave_addrs);
 
             if decoded_idx = decode_failed then
               -- If there is no AXI-Lite slave on the requested address, we have to complete the
@@ -209,10 +209,10 @@ begin
 
               -- Complete the AW transaction.
               -- Note that m2s valid is high, so transaction will occur straight away.
-              assert not axil_s2m.write.aw.ready;
+              assert not axi_lite_s2m.write.aw.ready;
               write_decode_error_s2m.aw.ready <= '1';
 
-              assert not axil_s2m.write.w.ready;
+              assert not axi_lite_s2m.write.w.ready;
               write_decode_error_s2m.w.ready <= '1';
 
               state <= decode_error_w;
@@ -227,17 +227,17 @@ begin
         when decode_error_w =>
           write_decode_error_s2m.aw.ready <= '0';
 
-          if axil_s2m.write.w.ready and axil_m2s.write.w.valid then
+          if axi_lite_s2m.write.w.ready and axi_lite_m2s.write.w.valid then
             write_decode_error_s2m.w.ready <= '0';
 
-            assert not axil_s2m.write.b.valid;
+            assert not axi_lite_s2m.write.b.valid;
             write_decode_error_s2m.b.valid <= '1';
 
             state <= decode_error_b;
           end if;
 
         when decode_error_b =>
-          if axil_m2s.write.b.ready and axil_s2m.write.b.valid then
+          if axi_lite_m2s.write.b.ready and axi_lite_s2m.write.b.valid then
             write_decode_error_s2m.b.valid <= '0';
 
             write_slave_select <= slave_not_selected_idx;
@@ -245,7 +245,7 @@ begin
           end if;
 
         when writing =>
-          if axil_m2s.write.b.ready and axil_s2m.write.b.valid then
+          if axi_lite_m2s.write.b.ready and axi_lite_s2m.write.b.valid then
             write_slave_select <= slave_not_selected_idx;
             state <= waiting;
           end if;

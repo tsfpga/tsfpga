@@ -17,11 +17,11 @@ use common.attribute_pkg.all;
 
 library fifo;
 
-use work.axil_pkg.all;
+use work.axi_lite_pkg.all;
 use work.axi_pkg.all;
 
 
-entity axil_cdc is
+entity axi_lite_cdc is
   generic (
     data_width : positive;
     addr_width : positive;
@@ -30,16 +30,16 @@ entity axil_cdc is
   );
   port (
     clk_master : in std_logic;
-    master_m2s : in axil_m2s_t;
-    master_s2m : out axil_s2m_t := axil_s2m_init;
+    master_m2s : in axi_lite_m2s_t;
+    master_s2m : out axi_lite_s2m_t := axi_lite_s2m_init;
     --
     clk_slave : in std_logic;
-    slave_m2s : out axil_m2s_t := axil_m2s_init;
-    slave_s2m : in axil_s2m_t
+    slave_m2s : out axi_lite_m2s_t := axi_lite_m2s_init;
+    slave_s2m : in axi_lite_s2m_t
   );
 end entity;
 
-architecture a of axil_cdc is
+architecture a of axi_lite_cdc is
 
 begin
 
@@ -53,7 +53,7 @@ begin
 
     aw_asynchronous_fifo_inst : entity fifo.asynchronous_fifo
       generic map (
-        width => axil_m2s_a_sz(addr_width),
+        width => axi_lite_m2s_a_sz(addr_width),
         depth => fifo_depth,
         ram_type => ram_type
       )
@@ -73,12 +73,12 @@ begin
 
   ------------------------------------------------------------------------------
   w_block : block
-    constant w_width : integer := axil_m2s_w_sz(data_width);
+    constant w_width : integer := axi_lite_m2s_w_sz(data_width);
     signal write_data, read_data : std_logic_vector(w_width - 1 downto 0);
   begin
 
-    slave_m2s.write.w.data <= to_axil_m2s_w(read_data, data_width).data;
-    slave_m2s.write.w.strb <= to_axil_m2s_w(read_data, data_width).strb;
+    slave_m2s.write.w.data <= to_axi_lite_m2s_w(read_data, data_width).data;
+    slave_m2s.write.w.strb <= to_axi_lite_m2s_w(read_data, data_width).strb;
     write_data <= to_slv(master_m2s.write.w, data_width);
 
     w_asynchronous_fifo_inst : entity fifo.asynchronous_fifo
@@ -104,7 +104,7 @@ begin
   ------------------------------------------------------------------------------
   b_asynchronous_fifo_inst : entity fifo.asynchronous_fifo
     generic map (
-      width => axil_s2m_b_sz,
+      width => axi_lite_s2m_b_sz,
       depth => fifo_depth,
       ram_type => ram_type
     )
@@ -131,7 +131,7 @@ begin
 
     ar_asynchronous_fifo_inst : entity fifo.asynchronous_fifo
       generic map (
-        width => axil_m2s_a_sz(addr_width),
+        width => axi_lite_m2s_a_sz(addr_width),
         depth => fifo_depth,
         ram_type => ram_type
       )
@@ -151,12 +151,12 @@ begin
 
   ------------------------------------------------------------------------------
   r_block : block
-    constant r_width : integer := axil_s2m_r_sz(data_width);
+    constant r_width : integer := axi_lite_s2m_r_sz(data_width);
     signal read_data, write_data : std_logic_vector(r_width - 1 downto 0);
   begin
 
-    master_s2m.read.r.data <= to_axil_s2m_r(read_data, data_width).data;
-    master_s2m.read.r.resp <= to_axil_s2m_r(read_data, data_width).resp;
+    master_s2m.read.r.data <= to_axi_lite_s2m_r(read_data, data_width).data;
+    master_s2m.read.r.resp <= to_axi_lite_s2m_r(read_data, data_width).resp;
     write_data <= to_slv(slave_s2m.read.r, data_width);
 
     r_asynchronous_fifo_inst : entity fifo.asynchronous_fifo

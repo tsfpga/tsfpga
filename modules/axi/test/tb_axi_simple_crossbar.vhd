@@ -19,7 +19,7 @@ use osvvm.RandomPkg.all;
 
 library axi;
 use axi.axi_pkg.all;
-use axi.axil_pkg.all;
+use axi.axi_lite_pkg.all;
 
 library bfm;
 
@@ -132,36 +132,36 @@ begin
 
   ------------------------------------------------------------------------------
   bfm_generate : if test_axi_lite generate
-    signal inputs_read_m2s : axil_read_m2s_vec_t(0 to num_inputs - 1) := (others => axil_read_m2s_init);
-    signal inputs_read_s2m : axil_read_s2m_vec_t(inputs_read_m2s'range) := (others => axil_read_s2m_init);
+    signal inputs_read_m2s : axi_lite_read_m2s_vec_t(0 to num_inputs - 1) := (others => axi_lite_read_m2s_init);
+    signal inputs_read_s2m : axi_lite_read_s2m_vec_t(inputs_read_m2s'range) := (others => axi_lite_read_s2m_init);
 
-    signal inputs_write_m2s : axil_write_m2s_vec_t(0 to num_inputs - 1) := (others => axil_write_m2s_init);
-    signal inputs_write_s2m : axil_write_s2m_vec_t(inputs_read_m2s'range) := (others => axil_write_s2m_init);
+    signal inputs_write_m2s : axi_lite_write_m2s_vec_t(0 to num_inputs - 1) := (others => axi_lite_write_m2s_init);
+    signal inputs_write_s2m : axi_lite_write_s2m_vec_t(inputs_read_m2s'range) := (others => axi_lite_write_s2m_init);
 
-    signal output_m2s : axil_m2s_t := axil_m2s_init;
-    signal output_s2m : axil_s2m_t := axil_s2m_init;
+    signal output_m2s : axi_lite_m2s_t := axi_lite_m2s_init;
+    signal output_s2m : axi_lite_s2m_t := axi_lite_s2m_init;
   begin
 
     ------------------------------------------------------------------------------
     input_masters_gen : for idx in inputs_read_m2s'range generate
     begin
-      axil_master_inst : entity bfm.axil_master
+      axi_lite_master_inst : entity bfm.axi_lite_master
         generic map (
           bus_handle => input_masters(idx)
         )
         port map (
           clk => clk,
           --
-          axil_m2s.read => inputs_read_m2s(idx),
-          axil_m2s.write => inputs_write_m2s(idx),
-          axil_s2m.read => inputs_read_s2m(idx),
-          axil_s2m.write => inputs_write_s2m(idx)
+          axi_lite_m2s.read => inputs_read_m2s(idx),
+          axi_lite_m2s.write => inputs_write_m2s(idx),
+          axi_lite_s2m.read => inputs_read_s2m(idx),
+          axi_lite_s2m.write => inputs_write_s2m(idx)
         );
     end generate;
 
 
     ------------------------------------------------------------------------------
-    axi_slave_inst : entity bfm.axil_slave
+    axi_slave_inst : entity bfm.axi_lite_slave
       generic map (
         axi_read_slave => axi_read_slave,
         axi_write_slave => axi_write_slave,
@@ -170,16 +170,16 @@ begin
       port map (
         clk => clk,
         --
-        axil_write_m2s => output_m2s.write,
-        axil_write_s2m => output_s2m.write,
+        axi_lite_write_m2s => output_m2s.write,
+        axi_lite_write_s2m => output_s2m.write,
         --
-        axil_read_m2s => output_m2s.read,
-        axil_read_s2m => output_s2m.read
+        axi_lite_read_m2s => output_m2s.read,
+        axi_lite_read_s2m => output_s2m.read
       );
 
 
     ------------------------------------------------------------------------------
-    dut_read : entity work.axil_simple_read_crossbar
+    dut_read : entity work.axi_lite_simple_read_crossbar
       generic map(
         num_inputs => num_inputs
       )
@@ -194,7 +194,7 @@ begin
       );
 
     ------------------------------------------------------------------------------
-    dut_write : entity work.axil_simple_write_crossbar
+    dut_write : entity work.axi_lite_simple_write_crossbar
       generic map(
         num_inputs => num_inputs
       )

@@ -21,10 +21,10 @@ use osvvm.RandomPkg.all;
 library bfm;
 
 use work.axi_pkg.all;
-use work.axil_pkg.all;
+use work.axi_lite_pkg.all;
 
 
-entity tb_axil_cdc is
+entity tb_axi_lite_cdc is
   generic (
     master_clk_fast : boolean := false;
     slave_clk_fast : boolean := false;
@@ -32,7 +32,7 @@ entity tb_axil_cdc is
   );
 end entity;
 
-architecture tb of tb_axil_cdc is
+architecture tb of tb_axi_lite_cdc is
 
   constant data_width : integer := 32;
   constant addr_width : integer := 24;
@@ -43,16 +43,16 @@ architecture tb of tb_axil_cdc is
 
   signal clk_master, clk_slave : std_logic := '0';
 
-  signal master_m2s, slave_m2s : axil_m2s_t;
-  signal master_s2m, slave_s2m : axil_s2m_t;
+  signal master_m2s, slave_m2s : axi_lite_m2s_t;
+  signal master_s2m, slave_s2m : axi_lite_s2m_t;
 
-  constant axil_master : bus_master_t := new_bus(
+  constant axi_lite_master : bus_master_t := new_bus(
     data_length => data_width,
      address_length => master_m2s.read.ar.addr'length
     );
 
   constant memory : memory_t := new_memory;
-  constant axil_read_slave, axil_write_slave : axi_slave_t := new_axi_slave(
+  constant axi_lite_read_slave, axi_lite_write_slave : axi_slave_t := new_axi_slave(
     memory => memory,
     address_fifo_depth => 8,
     write_response_fifo_depth => 8,
@@ -61,7 +61,7 @@ architecture tb of tb_axil_cdc is
     write_response_stall_probability => 0.3,
     min_response_latency => 8 * clk_fast_period,
     max_response_latency => 16 * clk_slow_period,
-    logger => get_logger("axil_slave_slave")
+    logger => get_logger("axi_lite_slave_slave")
   );
 
 begin
@@ -98,7 +98,7 @@ begin
       data := rnd.RandSlv(data'length);
 
        -- Call is non-blocking. I.e. we will build up a queue of writes.
-      write_bus(net, axil_master, address, data);
+      write_bus(net, axi_lite_master, address, data);
       set_expected_word(memory, address, data);
       wait until rising_edge(clk_master);
     end loop;
@@ -107,7 +107,7 @@ begin
       address := 4 * idx;
       data := read_word(memory, address, 4);
 
-      check_bus(net, axil_master, address, data);
+      check_bus(net, axi_lite_master, address, data);
     end loop;
 
     test_runner_cleanup(runner);
@@ -115,39 +115,39 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axil_master_inst : entity bfm.axil_master
+  axi_lite_master_inst : entity bfm.axi_lite_master
     generic map (
-      bus_handle => axil_master
+      bus_handle => axi_lite_master
     )
     port map (
       clk => clk_master,
 
-      axil_m2s => master_m2s,
-      axil_s2m => master_s2m
+      axi_lite_m2s => master_m2s,
+      axi_lite_s2m => master_s2m
     );
 
 
   ------------------------------------------------------------------------------
-  axil_slave_inst : entity bfm.axil_slave
+  axi_lite_slave_inst : entity bfm.axi_lite_slave
     generic map (
-      axi_read_slave => axil_read_slave,
-      axi_write_slave => axil_write_slave,
+      axi_read_slave => axi_lite_read_slave,
+      axi_write_slave => axi_lite_write_slave,
       data_width => data_width
     )
     port map (
       clk => clk_slave,
       --
-      axil_read_m2s => slave_m2s.read,
-      axil_read_s2m => slave_s2m.read,
+      axi_lite_read_m2s => slave_m2s.read,
+      axi_lite_read_s2m => slave_s2m.read,
       --
-      axil_write_m2s => slave_m2s.write,
-      axil_write_s2m => slave_s2m.write
+      axi_lite_write_m2s => slave_m2s.write,
+      axi_lite_write_s2m => slave_s2m.write
     );
 
 
 
   ------------------------------------------------------------------------------
-  dut : entity work.axil_cdc
+  dut : entity work.axi_lite_cdc
     generic map (
       data_width => data_width,
       addr_width => addr_width

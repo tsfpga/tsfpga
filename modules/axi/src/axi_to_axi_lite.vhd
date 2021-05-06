@@ -28,10 +28,10 @@ library math;
 use math.math_pkg.all;
 
 use work.axi_pkg.all;
-use work.axil_pkg.all;
+use work.axi_lite_pkg.all;
 
 
-entity axi_to_axil is
+entity axi_to_axi_lite is
   generic (
     data_width : integer
   );
@@ -41,12 +41,12 @@ entity axi_to_axil is
     axi_m2s : in axi_m2s_t := axi_m2s_init;
     axi_s2m : out axi_s2m_t := axi_s2m_init;
 
-    axil_m2s : out axil_m2s_t := axil_m2s_init;
-    axil_s2m : in axil_s2m_t := axil_s2m_init
+    axi_lite_m2s : out axi_lite_m2s_t := axi_lite_m2s_init;
+    axi_lite_s2m : in axi_lite_s2m_t := axi_lite_s2m_init
   );
 end entity;
 
-architecture a of axi_to_axil is
+architecture a of axi_to_axi_lite is
 
   constant len : integer := 0;
   constant size : integer := log2(data_width / 8);
@@ -63,39 +63,39 @@ architecture a of axi_to_axil is
 begin
 
   ------------------------------------------------------------------------------
-  axil_m2s.read.ar.valid <= axi_m2s.read.ar.valid and not ar_done;
-  axil_m2s.read.ar.addr <= axi_m2s.read.ar.addr;
+  axi_lite_m2s.read.ar.valid <= axi_m2s.read.ar.valid and not ar_done;
+  axi_lite_m2s.read.ar.addr <= axi_m2s.read.ar.addr;
 
-  axi_s2m.read.ar.ready <= axil_s2m.read.ar.ready and not ar_done;
+  axi_s2m.read.ar.ready <= axi_lite_s2m.read.ar.ready and not ar_done;
 
-  axil_m2s.read.r.ready <= axi_m2s.read.r.ready;
+  axi_lite_m2s.read.r.ready <= axi_m2s.read.r.ready;
 
-  axi_s2m.read.r.valid <= axil_s2m.read.r.valid;
+  axi_s2m.read.r.valid <= axi_lite_s2m.read.r.valid;
   axi_s2m.read.r.id <= read_id;
-  axi_s2m.read.r.data(data_rng) <= axil_s2m.read.r.data(data_rng);
-  axi_s2m.read.r.resp <= axi_resp_slverr when read_error else axil_s2m.read.r.resp;
+  axi_s2m.read.r.data(data_rng) <= axi_lite_s2m.read.r.data(data_rng);
+  axi_s2m.read.r.resp <= axi_resp_slverr when read_error else axi_lite_s2m.read.r.resp;
   axi_s2m.read.r.last <= '1';
 
 
   ------------------------------------------------------------------------------
-  axil_m2s.write.aw.valid <= axi_m2s.write.aw.valid and not aw_done;
-  axil_m2s.write.aw.addr <= axi_m2s.write.aw.addr;
+  axi_lite_m2s.write.aw.valid <= axi_m2s.write.aw.valid and not aw_done;
+  axi_lite_m2s.write.aw.addr <= axi_m2s.write.aw.addr;
 
-  axi_s2m.write.aw.ready <= axil_s2m.write.aw.ready and not aw_done;
+  axi_s2m.write.aw.ready <= axi_lite_s2m.write.aw.ready and not aw_done;
 
-  axil_m2s.write.w.valid <= axi_m2s.write.w.valid and not w_done;
-  axil_m2s.write.w.data(data_rng) <= axi_m2s.write.w.data(data_rng);
-  axil_m2s.write.w.strb(strb_rng) <= axi_m2s.write.w.strb(strb_rng);
+  axi_lite_m2s.write.w.valid <= axi_m2s.write.w.valid and not w_done;
+  axi_lite_m2s.write.w.data(data_rng) <= axi_m2s.write.w.data(data_rng);
+  axi_lite_m2s.write.w.strb(strb_rng) <= axi_m2s.write.w.strb(strb_rng);
 
-  axi_s2m.write.w.ready <= axil_s2m.write.w.ready and not w_done;
+  axi_s2m.write.w.ready <= axi_lite_s2m.write.w.ready and not w_done;
 
 
   ------------------------------------------------------------------------------
-  axil_m2s.write.b.ready <= axi_m2s.write.b.ready;
+  axi_lite_m2s.write.b.ready <= axi_m2s.write.b.ready;
 
-  axi_s2m.write.b.valid <= axil_s2m.write.b.valid;
+  axi_s2m.write.b.valid <= axi_lite_s2m.write.b.valid;
   axi_s2m.write.b.id <= write_id;
-  axi_s2m.write.b.resp <= axi_resp_slverr when write_error else axil_s2m.write.b.resp;
+  axi_s2m.write.b.resp <= axi_resp_slverr when write_error else axi_lite_s2m.write.b.resp;
 
 
   ------------------------------------------------------------------------------

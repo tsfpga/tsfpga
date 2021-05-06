@@ -20,13 +20,13 @@ class Module(BaseModule):
                     generics = dict(data_width=data_width, id_width=id_width, addr_width=addr_width)
                     self.add_vunit_config(tb, generics=generics)
 
-        tb = vunit_proj.library(self.library_name).test_bench("tb_axil_pkg")
+        tb = vunit_proj.library(self.library_name).test_bench("tb_axi_lite_pkg")
         for data_width in [32, 64]:
             for addr_width in [32, 40]:
                 generics = dict(data_width=data_width, addr_width=addr_width)
                 self.add_vunit_config(tb, generics=generics)
 
-        for tb_name in ["tb_axi_to_axil", "tb_axi_to_axil_bus_error"]:
+        for tb_name in ["tb_axi_to_axi_lite", "tb_axi_to_axi_lite_bus_error"]:
             tb = vunit_proj.library(self.library_name).test_bench(tb_name)
             for data_width in [32, 64]:
                 name = f"data_width_{data_width}"
@@ -38,7 +38,7 @@ class Module(BaseModule):
                 generics = dict(data_width=data_width, user_width=user_width)
                 self.add_vunit_config(tb, generics=generics)
 
-        tb = vunit_proj.library(self.library_name).test_bench("tb_axi_to_axil_vec")
+        tb = vunit_proj.library(self.library_name).test_bench("tb_axi_to_axi_lite_vec")
         self.add_vunit_config(tb, generics=dict(pipeline=True))
         self.add_vunit_config(tb, generics=dict(pipeline=False))
 
@@ -53,7 +53,7 @@ class Module(BaseModule):
         )
         tb.add_config(name="same_clocks", generics=dict(max_burst_length_beats=16))
 
-        tb = vunit_proj.library(self.library_name).test_bench("tb_axil_cdc")
+        tb = vunit_proj.library(self.library_name).test_bench("tb_axi_lite_cdc")
         tb.add_config(name="master_clk_fast", generics=dict(master_clk_fast=True))
         tb.add_config(name="slave_clk_fast", generics=dict(slave_clk_fast=True))
         tb.add_config(name="same_clocks")
@@ -71,9 +71,9 @@ class Module(BaseModule):
         tb.add_config(name="axi_lite", generics=dict(test_axi_lite=True))
         tb.add_config(name="axi", generics=dict(test_axi_lite=False))
 
-        tb = vunit_proj.library(self.library_name).test_bench("tb_axil_mux")
-        tb.test("read_from_non_existent_slave_base_address").set_generic("use_axil_bfm", False)
-        tb.test("write_to_non_existent_slave_base_address").set_generic("use_axil_bfm", False)
+        tb = vunit_proj.library(self.library_name).test_bench("tb_axi_lite_mux")
+        tb.test("read_from_non_existent_slave_base_address").set_generic("use_axi_lite_bfm", False)
+        tb.test("write_to_non_existent_slave_base_address").set_generic("use_axi_lite_bfm", False)
 
     def get_build_projects(self):
         projects = []

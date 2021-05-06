@@ -15,11 +15,11 @@ use ieee.numeric_std.all;
 
 library common;
 
-use work.axil_pkg.all;
+use work.axi_lite_pkg.all;
 use work.axi_pkg.all;
 
 
-entity axil_pipeline is
+entity axi_lite_pipeline is
   generic (
     data_width : positive;
     addr_width : positive
@@ -27,15 +27,15 @@ entity axil_pipeline is
   port (
     clk : in std_logic;
     --
-    master_m2s : in axil_m2s_t;
-    master_s2m : out axil_s2m_t := axil_s2m_init;
+    master_m2s : in axi_lite_m2s_t;
+    master_s2m : out axi_lite_s2m_t := axi_lite_s2m_init;
     --
-    slave_m2s : out axil_m2s_t := axil_m2s_init;
-    slave_s2m : in axil_s2m_t
+    slave_m2s : out axi_lite_m2s_t := axi_lite_m2s_init;
+    slave_s2m : in axi_lite_s2m_t
   );
 end entity;
 
-architecture a of axil_pipeline is
+architecture a of axi_lite_pipeline is
 
 begin
 
@@ -49,7 +49,7 @@ begin
 
     aw_handshake_pipeline_inst : entity common.handshake_pipeline
       generic map (
-        data_width => axil_m2s_a_sz(addr_width)
+        data_width => axi_lite_m2s_a_sz(addr_width)
       )
       port map(
         clk => clk,
@@ -67,12 +67,12 @@ begin
 
   ------------------------------------------------------------------------------
   w_block : block
-    constant w_width : integer := axil_m2s_w_sz(data_width);
+    constant w_width : integer := axi_lite_m2s_w_sz(data_width);
     signal master_m2s_w, slave_m2s_w : std_logic_vector(w_width - 1 downto 0);
   begin
 
-    slave_m2s.write.w.data <= to_axil_m2s_w(slave_m2s_w, data_width).data;
-    slave_m2s.write.w.strb <= to_axil_m2s_w(slave_m2s_w, data_width).strb;
+    slave_m2s.write.w.data <= to_axi_lite_m2s_w(slave_m2s_w, data_width).data;
+    slave_m2s.write.w.strb <= to_axi_lite_m2s_w(slave_m2s_w, data_width).strb;
     master_m2s_w <= to_slv(master_m2s.write.w, data_width);
 
     handshake_pipeline_inst : entity common.handshake_pipeline
@@ -96,7 +96,7 @@ begin
   ------------------------------------------------------------------------------
   b_handshake_pipeline_inst : entity common.handshake_pipeline
     generic map (
-      data_width => axil_s2m_b_sz
+      data_width => axi_lite_s2m_b_sz
     )
     port map(
       clk => clk,
@@ -121,7 +121,7 @@ begin
 
     ar_handshake_pipeline_inst : entity common.handshake_pipeline
       generic map (
-        data_width => axil_m2s_a_sz(addr_width)
+        data_width => axi_lite_m2s_a_sz(addr_width)
       )
       port map(
         clk => clk,
@@ -139,12 +139,12 @@ begin
 
   ------------------------------------------------------------------------------
   r_block : block
-    constant r_width : integer := axil_s2m_r_sz(data_width);
+    constant r_width : integer := axi_lite_s2m_r_sz(data_width);
     signal master_s2m_r, slave_s2m_r : std_logic_vector(r_width - 1 downto 0);
   begin
 
-    master_s2m.read.r.data <= to_axil_s2m_r(master_s2m_r, data_width).data;
-    master_s2m.read.r.resp <= to_axil_s2m_r(master_s2m_r, data_width).resp;
+    master_s2m.read.r.data <= to_axi_lite_s2m_r(master_s2m_r, data_width).data;
+    master_s2m.read.r.resp <= to_axi_lite_s2m_r(master_s2m_r, data_width).resp;
     slave_s2m_r <= to_slv(slave_s2m.read.r, data_width);
 
     handshake_pipeline_inst : entity common.handshake_pipeline

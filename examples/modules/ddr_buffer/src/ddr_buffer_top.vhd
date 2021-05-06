@@ -12,7 +12,7 @@ use ieee.numeric_std.all;
 
 library axi;
 use axi.axi_pkg.all;
-use axi.axil_pkg.all;
+use axi.axi_lite_pkg.all;
 
 library reg_file;
 
@@ -29,8 +29,8 @@ entity ddr_buffer_top is
     axi_write_m2s : out axi_write_m2s_t := axi_write_m2s_init;
     axi_write_s2m : in axi_write_s2m_t;
 
-    regs_m2s : in axil_m2s_t;
-    regs_s2m : out axil_s2m_t := axil_s2m_init
+    regs_m2s : in axi_lite_m2s_t;
+    regs_s2m : out axi_lite_s2m_t := axi_lite_s2m_init
   );
 end entity;
 
@@ -129,7 +129,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axil_reg_file_inst : entity reg_file.axil_reg_file
+  axi_lite_reg_file_inst : entity reg_file.axi_lite_reg_file
     generic map (
       regs => ddr_buffer_reg_map,
       default_values => ddr_buffer_regs_init
@@ -137,8 +137,8 @@ begin
     port map (
       clk => clk,
 
-      axil_m2s => regs_m2s,
-      axil_s2m => regs_s2m,
+      axi_lite_m2s => regs_m2s,
+      axi_lite_s2m => regs_s2m,
 
       regs_up => regs_up,
       regs_down => regs_down

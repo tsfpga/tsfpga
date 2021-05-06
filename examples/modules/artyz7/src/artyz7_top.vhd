@@ -12,7 +12,7 @@ use ieee.numeric_std.all;
 
 library axi;
 use axi.axi_pkg.all;
-use axi.axil_pkg.all;
+use axi.axi_lite_pkg.all;
 
 library ddr_buffer;
 library fifo;
@@ -40,8 +40,8 @@ architecture a of artyz7_top is
   signal s_hp0_m2s : axi_m2s_t := axi_m2s_init;
   signal s_hp0_s2m : axi_s2m_t := axi_s2m_init;
 
-  signal regs_m2s : axil_m2s_vec_t(reg_slaves'range) := (others => axil_m2s_init);
-  signal regs_s2m : axil_s2m_vec_t(reg_slaves'range) := (others => axil_s2m_init);
+  signal regs_m2s : axi_lite_m2s_vec_t(reg_slaves'range) := (others => axi_lite_m2s_init);
+  signal regs_s2m : axi_lite_s2m_vec_t(reg_slaves'range) := (others => axi_lite_s2m_init);
 
 begin
 
@@ -72,9 +72,9 @@ begin
   begin
 
     ------------------------------------------------------------------------------
-    axi_to_regs_inst : entity axi.axi_to_axil_vec
+    axi_to_regs_inst : entity axi.axi_to_axi_lite_vec
       generic map (
-        axil_slaves => reg_slaves,
+        axi_lite_slaves => reg_slaves,
         clocks_are_the_same => clocks_are_the_same
       )
       port map (
@@ -82,16 +82,16 @@ begin
         axi_m2s => m_gp0_m2s,
         axi_s2m => m_gp0_s2m,
 
-        clk_axil_vec(ddr_buffer_regs_idx) => clk_s_hp0,
-        clk_axil_vec(dummy_reg_slaves) => (dummy_reg_slaves => '0'),
-        axil_m2s_vec => regs_m2s,
-        axil_s2m_vec => regs_s2m
+        clk_axi_lite_vec(ddr_buffer_regs_idx) => clk_s_hp0,
+        clk_axi_lite_vec(dummy_reg_slaves) => (dummy_reg_slaves => '0'),
+        axi_lite_m2s_vec => regs_m2s,
+        axi_lite_s2m_vec => regs_s2m
       );
 
 
     ------------------------------------------------------------------------------
     register_maps : for slave in dummy_reg_slaves generate
-      axil_reg_file_inst : entity reg_file.axil_reg_file
+      axi_lite_reg_file_inst : entity reg_file.axi_lite_reg_file
         generic map (
           regs => artyz7_reg_map,
           default_values => artyz7_regs_init
@@ -99,8 +99,8 @@ begin
         port map (
           clk => clk_m_gp0,
 
-          axil_m2s => regs_m2s(slave),
-          axil_s2m => regs_s2m(slave)
+          axi_lite_m2s => regs_m2s(slave),
+          axi_lite_s2m => regs_s2m(slave)
         );
     end generate;
   end block;

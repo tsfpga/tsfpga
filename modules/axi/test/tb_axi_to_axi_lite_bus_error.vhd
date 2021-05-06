@@ -22,27 +22,27 @@ use osvvm.RandomPkg.all;
 library math;
 use math.math_pkg.all;
 
-use work.axil_pkg.all;
+use work.axi_lite_pkg.all;
 use work.axi_pkg.all;
 use work.axi_pkg.axi_resp_okay;
 use work.axi_pkg.axi_resp_slverr;
 
 
-entity tb_axi_to_axil_bus_error is
+entity tb_axi_to_axi_lite_bus_error is
   generic (
     data_width : integer;
     runner_cfg : string
   );
 end entity;
 
-architecture tb of tb_axi_to_axil_bus_error is
+architecture tb of tb_axi_to_axi_lite_bus_error is
   signal clk : std_logic := '0';
 
   signal axi_m2s : axi_m2s_t;
   signal axi_s2m : axi_s2m_t;
 
-  signal axil_m2s : axil_m2s_t;
-  signal axil_s2m : axil_s2m_t := axil_s2m_init;
+  signal axi_lite_m2s : axi_lite_m2s_t;
+  signal axi_lite_s2m : axi_lite_s2m_t := axi_lite_s2m_init;
 
   constant correct_size : integer := log2(data_width / 8);
   constant correct_len : integer := 0;
@@ -57,7 +57,7 @@ begin
   main : process
     procedure test_ar(len, size : integer; resp : std_logic_vector) is
     begin
-      axil_s2m.read.ar.ready <= '1';
+      axi_lite_s2m.read.ar.ready <= '1';
 
       axi_m2s.read.ar.valid <= '1';
       axi_m2s.read.ar.len <= to_unsigned(len, axi_m2s.read.ar.len'length);
@@ -65,7 +65,7 @@ begin
 
       wait until (axi_m2s.read.ar.valid and axi_s2m.read.ar.ready) = '1' and rising_edge(clk);
       axi_m2s.read.r.ready <= '1';
-      axil_s2m.read.r.valid <= '1';
+      axi_lite_s2m.read.r.valid <= '1';
 
       wait until (axi_s2m.read.r.valid and axi_m2s.read.r.ready) = '1' and rising_edge(clk);
       check_equal(axi_s2m.read.r.resp, resp);
@@ -73,7 +73,7 @@ begin
 
     procedure test_aw(len, size : integer; resp : std_logic_vector) is
     begin
-      axil_s2m.write.aw.ready <= '1';
+      axi_lite_s2m.write.aw.ready <= '1';
 
       axi_m2s.write.aw.valid <= '1';
       axi_m2s.write.aw.len <= to_unsigned(len, axi_m2s.write.aw.len'length);
@@ -81,7 +81,7 @@ begin
 
       wait until (axi_m2s.write.aw.valid and axi_s2m.write.aw.ready) = '1' and rising_edge(clk);
       axi_m2s.write.b.ready <= '1';
-      axil_s2m.write.b.valid <= '1';
+      axi_lite_s2m.write.b.valid <= '1';
 
       wait until (axi_s2m.write.b.valid and axi_m2s.write.b.ready) = '1' and rising_edge(clk);
       check_equal(axi_s2m.write.b.resp, resp);
@@ -113,7 +113,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  dut : entity work.axi_to_axil
+  dut : entity work.axi_to_axi_lite
     generic map (
       data_width => data_width
     )
@@ -123,8 +123,8 @@ begin
       axi_m2s => axi_m2s,
       axi_s2m => axi_s2m,
 
-      axil_m2s => axil_m2s,
-      axil_s2m => axil_s2m
+      axi_lite_m2s => axi_lite_m2s,
+      axi_lite_s2m => axi_lite_s2m
     );
 
 end architecture;

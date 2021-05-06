@@ -14,27 +14,27 @@ use ieee.std_logic_1164.all;
 
 library axi;
 use axi.axi_pkg.all;
-use axi.axil_pkg.all;
+use axi.axi_lite_pkg.all;
 
 
-entity axil_simple_read_crossbar is
+entity axi_lite_simple_read_crossbar is
   generic(
     num_inputs : integer
   );
   port(
     clk : in std_logic;
     --
-    input_ports_m2s : in axil_read_m2s_vec_t(0 to num_inputs - 1) :=
-      (others => axil_read_m2s_init);
-    input_ports_s2m : out axil_read_s2m_vec_t(0 to num_inputs - 1) :=
-      (others => axil_read_s2m_init);
+    input_ports_m2s : in axi_lite_read_m2s_vec_t(0 to num_inputs - 1) :=
+      (others => axi_lite_read_m2s_init);
+    input_ports_s2m : out axi_lite_read_s2m_vec_t(0 to num_inputs - 1) :=
+      (others => axi_lite_read_s2m_init);
     --
-    output_m2s : out axil_read_m2s_t := axil_read_m2s_init;
-    output_s2m : in axil_read_s2m_t := axil_read_s2m_init
+    output_m2s : out axi_lite_read_m2s_t := axi_lite_read_m2s_init;
+    output_s2m : in axi_lite_read_s2m_t := axi_lite_read_s2m_init
   );
 end entity;
 
-architecture a of axil_simple_read_crossbar is
+architecture a of axi_lite_simple_read_crossbar is
 
   signal input_ports_axi_m2s : axi_read_m2s_vec_t(0 to num_inputs - 1) :=
     (others => axi_read_m2s_init);

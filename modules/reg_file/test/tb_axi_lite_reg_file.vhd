@@ -26,19 +26,19 @@ use common.addr_pkg.all;
 
 library axi;
 use axi.axi_pkg.all;
-use axi.axil_pkg.all;
+use axi.axi_lite_pkg.all;
 
 use work.reg_file_pkg.all;
 
 
-entity tb_axil_reg_file is
+entity tb_axi_lite_reg_file is
   generic (
-    use_axil_bfm : boolean := true;
+    use_axi_lite_bfm : boolean := true;
     runner_cfg : string
   );
 end entity;
 
-architecture tb of tb_axil_reg_file is
+architecture tb of tb_axi_lite_reg_file is
 
   constant regs : reg_definition_vec_t(0 to 15 - 1) := (
     (idx => 0, reg_type => r),
@@ -60,14 +60,14 @@ architecture tb of tb_axil_reg_file is
 
   signal clk : std_logic := '0';
 
-  signal hardcoded_m2s, axil_m2s : axil_m2s_t;
-  signal axil_s2m : axil_s2m_t;
+  signal hardcoded_m2s, axi_lite_m2s : axi_lite_m2s_t;
+  signal axi_lite_s2m : axi_lite_s2m_t;
 
   signal regs_up : reg_vec_t(regs'range) := (others => (others => '0'));
   signal regs_down : reg_vec_t(regs'range);
   signal reg_was_read, reg_was_written : std_logic_vector(regs'range);
 
-  constant axi_master : bus_master_t := new_bus(data_length => reg_width, address_length => axil_m2s.read.ar.addr'length);
+  constant axi_master : bus_master_t := new_bus(data_length => reg_width, address_length => axi_lite_m2s.read.ar.addr'length);
 
   constant reg_zero : reg_t := (others => '0');
   constant reg_was_accessed_zero : std_logic_vector(reg_was_written'range) := (others => '0');
@@ -145,11 +145,11 @@ begin
     begin
       hardcoded_m2s.read.ar.addr <= to_unsigned(4 * reg_index, hardcoded_m2s.read.ar.addr'length);
       hardcoded_m2s.read.ar.valid <= '1';
-      wait until (axil_s2m.read.ar.ready and axil_m2s.read.ar.valid) = '1' and rising_edge(clk);
+      wait until (axi_lite_s2m.read.ar.ready and axi_lite_m2s.read.ar.valid) = '1' and rising_edge(clk);
       hardcoded_m2s.read.ar.valid <= '0';
 
       hardcoded_m2s.read.r.ready <= '1';
-      wait until (axil_m2s.read.r.ready and axil_s2m.read.r.valid) = '1' and rising_edge(clk);
+      wait until (axi_lite_m2s.read.r.ready and axi_lite_s2m.read.r.valid) = '1' and rising_edge(clk);
       hardcoded_m2s.read.r.ready <= '0';
     end procedure;
 
@@ -157,15 +157,15 @@ begin
     begin
       hardcoded_m2s.write.aw.addr <= to_unsigned(4 * reg_index, hardcoded_m2s.write.aw.addr'length);
       hardcoded_m2s.write.aw.valid <= '1';
-      wait until (axil_s2m.write.aw.ready and axil_m2s.write.aw.valid) = '1' and rising_edge(clk);
+      wait until (axi_lite_s2m.write.aw.ready and axi_lite_m2s.write.aw.valid) = '1' and rising_edge(clk);
       hardcoded_m2s.write.aw.valid <= '0';
 
       hardcoded_m2s.write.w.valid <= '1';
-      wait until (axil_s2m.write.w.ready and axil_m2s.write.w.valid) = '1' and rising_edge(clk);
+      wait until (axi_lite_s2m.write.w.ready and axi_lite_m2s.write.w.valid) = '1' and rising_edge(clk);
       hardcoded_m2s.write.w.valid <= '0';
 
       hardcoded_m2s.write.b.ready <= '1';
-      wait until (axil_m2s.write.b.ready and axil_s2m.write.b.valid) = '1' and rising_edge(clk);
+      wait until (axi_lite_m2s.write.b.ready and axi_lite_s2m.write.b.valid) = '1' and rising_edge(clk);
       hardcoded_m2s.write.b.ready <= '0';
     end procedure;
 
@@ -186,33 +186,33 @@ begin
 
     elsif run("read_from_non_existent_register") then
       read_hardcoded(regs(regs'high).idx + 1);
-      check_equal(axil_s2m.read.r.resp, axi_resp_slverr);
+      check_equal(axi_lite_s2m.read.r.resp, axi_resp_slverr);
 
       read_hardcoded(regs(regs'high).idx);
-      check_equal(axil_s2m.read.r.resp, axi_resp_okay);
+      check_equal(axi_lite_s2m.read.r.resp, axi_resp_okay);
 
     elsif run("write_to_non_existent_register") then
       write_hardcoded(regs(regs'high).idx + 1);
-      check_equal(axil_s2m.write.b.resp, axi_resp_slverr);
+      check_equal(axi_lite_s2m.write.b.resp, axi_resp_slverr);
 
       write_hardcoded(regs(regs'high).idx);
-      check_equal(axil_s2m.write.b.resp, axi_resp_okay);
+      check_equal(axi_lite_s2m.write.b.resp, axi_resp_okay);
 
     elsif run("read_from_non_read_type_register") then
       assert regs(3).reg_type = w;
       read_hardcoded(3);
-      check_equal(axil_s2m.read.r.resp, axi_resp_slverr);
+      check_equal(axi_lite_s2m.read.r.resp, axi_resp_slverr);
 
       read_hardcoded(regs(regs'high).idx);
-      check_equal(axil_s2m.read.r.resp, axi_resp_okay);
+      check_equal(axi_lite_s2m.read.r.resp, axi_resp_okay);
 
     elsif run("write_to_non_write_type_register") then
       assert regs(0).reg_type = r;
       write_hardcoded(0);
-      check_equal(axil_s2m.write.b.resp, axi_resp_slverr);
+      check_equal(axi_lite_s2m.write.b.resp, axi_resp_slverr);
 
       write_hardcoded(regs(regs'high).idx);
-      check_equal(axil_s2m.write.b.resp, axi_resp_okay);
+      check_equal(axi_lite_s2m.write.b.resp, axi_resp_okay);
     end if;
 
 
@@ -221,33 +221,33 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axil_master_generate : if use_axil_bfm generate
-    axil_master_inst : entity bfm.axil_master
+  axi_lite_master_generate : if use_axi_lite_bfm generate
+    axi_lite_master_inst : entity bfm.axi_lite_master
       generic map (
         bus_handle => axi_master
       )
       port map (
         clk => clk,
 
-        axil_m2s => axil_m2s,
-        axil_s2m => axil_s2m
+        axi_lite_m2s => axi_lite_m2s,
+        axi_lite_s2m => axi_lite_s2m
       );
 
   else generate
-    axil_m2s <= hardcoded_m2s;
+    axi_lite_m2s <= hardcoded_m2s;
   end generate;
 
 
   ------------------------------------------------------------------------------
-  dut : entity work.axil_reg_file
+  dut : entity work.axi_lite_reg_file
     generic map (
       regs => regs
     )
     port map (
       clk => clk,
       --
-      axil_m2s => axil_m2s,
-      axil_s2m => axil_s2m,
+      axi_lite_m2s => axi_lite_m2s,
+      axi_lite_s2m => axi_lite_s2m,
       --
       regs_up => regs_up,
       regs_down => regs_down,

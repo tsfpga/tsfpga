@@ -17,12 +17,12 @@ use common.addr_pkg.all;
 
 library axi;
 use axi.axi_pkg.all;
-use axi.axil_pkg.all;
+use axi.axi_lite_pkg.all;
 
 use work.reg_file_pkg.all;
 
 
-entity axil_reg_file is
+entity axi_lite_reg_file is
   generic (
     regs : reg_definition_vec_t;
     default_values : reg_vec_t(regs'range) := (others => (others => '0'))
@@ -30,15 +30,15 @@ entity axil_reg_file is
   port (
     clk : in std_logic;
     -- Register control bus
-    axil_m2s : in axil_m2s_t;
-    axil_s2m : out axil_s2m_t := (
+    axi_lite_m2s : in axi_lite_m2s_t;
+    axi_lite_s2m : out axi_lite_s2m_t := (
       read => (
         ar => (ready => '1'),
-        r => axil_s2m_r_init),
+        r => axi_lite_s2m_r_init),
       write => (
         aw => (ready => '1'),
-        w => axil_s2m_w_init,
-        b => axil_s2m_b_init)
+        w => axi_lite_s2m_w_init,
+        b => axi_lite_s2m_b_init)
       );
     -- Register values
     regs_up : in reg_vec_t(regs'range) := default_values;
@@ -49,7 +49,7 @@ entity axil_reg_file is
   );
 end entity;
 
-architecture a of axil_reg_file is
+architecture a of axi_lite_reg_file is
 
   constant addr_and_mask_vec : addr_and_mask_vec_t := to_addr_and_mask_vec(regs);
 
@@ -78,37 +78,37 @@ begin
     begin
       wait until rising_edge(clk);
 
-      axil_s2m.read.r.valid <= '0';
+      axi_lite_s2m.read.r.valid <= '0';
 
       reg_was_read <= (others => '0');
 
       if valid_read_address then
-        axil_s2m.read.r.resp <= axi_resp_okay;
+        axi_lite_s2m.read.r.resp <= axi_resp_okay;
 
         if is_fabric_gives_value_type(regs(read_idx).reg_type) then
-          axil_s2m.read.r.data(reg_values(0)'range) <= regs_up(read_idx);
+          axi_lite_s2m.read.r.data(reg_values(0)'range) <= regs_up(read_idx);
         else
-          axil_s2m.read.r.data(reg_values(0)'range) <= reg_values(read_idx);
+          axi_lite_s2m.read.r.data(reg_values(0)'range) <= reg_values(read_idx);
         end if;
       else
-        axil_s2m.read.r.resp <= axi_resp_slverr;
-        axil_s2m.read.r.data <= (others => '-');
+        axi_lite_s2m.read.r.resp <= axi_resp_slverr;
+        axi_lite_s2m.read.r.data <= (others => '-');
       end if;
 
       case read_state is
         when ar =>
-          if axil_m2s.read.ar.valid and axil_s2m.read.ar.ready then
-            axil_s2m.read.ar.ready <= '0';
-            read_idx <= decode(axil_m2s.read.ar.addr, addr_and_mask_vec);
+          if axi_lite_m2s.read.ar.valid and axi_lite_s2m.read.ar.ready then
+            axi_lite_s2m.read.ar.ready <= '0';
+            read_idx <= decode(axi_lite_m2s.read.ar.addr, addr_and_mask_vec);
 
             read_state <= r;
           end if;
 
         when r =>
-          axil_s2m.read.r.valid <= '1';
-          if axil_m2s.read.r.ready and axil_s2m.read.r.valid then
-            axil_s2m.read.r.valid <= '0';
-            axil_s2m.read.ar.ready <= '1';
+          axi_lite_s2m.read.r.valid <= '1';
+          if axi_lite_m2s.read.r.ready and axi_lite_s2m.read.r.valid then
+            axi_lite_s2m.read.r.valid <= '0';
+            axi_lite_s2m.read.ar.ready <= '1';
 
             if valid_read_address then
               reg_was_read(read_idx) <= '1';
@@ -144,9 +144,9 @@ begin
       reg_was_written <= (others => '0');
 
       if valid_write_address then
-        axil_s2m.write.b.resp <= axi_resp_okay;
+        axi_lite_s2m.write.b.resp <= axi_resp_okay;
       else
-        axil_s2m.write.b.resp <= axi_resp_slverr;
+        axi_lite_s2m.write.b.resp <= axi_resp_slverr;
       end if;
 
       for list_idx in regs'range loop
@@ -159,31 +159,31 @@ begin
 
       case write_state is
         when aw =>
-          if axil_m2s.write.aw.valid and axil_s2m.write.aw.ready then
-            axil_s2m.write.aw.ready <= '0';
-            axil_s2m.write.w.ready <= '1';
+          if axi_lite_m2s.write.aw.valid and axi_lite_s2m.write.aw.ready then
+            axi_lite_s2m.write.aw.ready <= '0';
+            axi_lite_s2m.write.w.ready <= '1';
 
-            write_idx <= decode(axil_m2s.write.aw.addr, addr_and_mask_vec);
+            write_idx <= decode(axi_lite_m2s.write.aw.addr, addr_and_mask_vec);
             write_state <= w;
           end if;
 
         when w =>
-          if axil_m2s.write.w.valid and axil_s2m.write.w.ready then
+          if axi_lite_m2s.write.w.valid and axi_lite_s2m.write.w.ready then
             if valid_write_address then
-              reg_values(write_idx) <= axil_m2s.write.w.data(reg_values(0)'range);
+              reg_values(write_idx) <= axi_lite_m2s.write.w.data(reg_values(0)'range);
               reg_was_written(write_idx) <= '1';
             end if;
 
-            axil_s2m.write.w.ready <= '0';
-            axil_s2m.write.b.valid <= '1';
+            axi_lite_s2m.write.w.ready <= '0';
+            axi_lite_s2m.write.b.valid <= '1';
 
             write_state <= b;
           end if;
 
         when b =>
-          if axil_m2s.write.b.ready and axil_s2m.write.b.valid then
-            axil_s2m.write.aw.ready <= '1';
-            axil_s2m.write.b.valid <= '0';
+          if axi_lite_m2s.write.b.ready and axi_lite_s2m.write.b.valid then
+            axi_lite_s2m.write.aw.ready <= '1';
+            axi_lite_s2m.write.b.valid <= '0';
             write_state <= aw;
           end if;
       end case;
@@ -207,7 +207,7 @@ begin
     -- Hence it is important that reg_was_read is asserted after the actual read (R) transaction
     -- has occured, and not e.g. after the AR transaction.
     -- psl reg_was_read_should_pulse_when_read_transaction_occurs : assert always
-    --   (reg_was_read /= reg_was_accessed_zero) -> prev(axil_m2s.read.r.ready and axil_s2m.read.r.valid);
+    --   (reg_was_read /= reg_was_accessed_zero) -> prev(axi_lite_m2s.read.r.ready and axi_lite_s2m.read.r.valid);
   end block;
 
 end architecture;

@@ -21,25 +21,25 @@ use osvvm.RandomPkg.all;
 library bfm;
 
 use work.axi_pkg.all;
-use work.axil_pkg.all;
+use work.axi_lite_pkg.all;
 
 
-entity tb_axi_to_axil is
+entity tb_axi_to_axi_lite is
   generic (
     data_width : integer;
     runner_cfg : string
   );
 end entity;
 
-architecture tb of tb_axi_to_axil is
+architecture tb of tb_axi_to_axi_lite is
   signal clk : std_logic := '0';
   constant clk_period : time := 10 ns;
 
   signal axi_m2s : axi_m2s_t;
   signal axi_s2m : axi_s2m_t;
 
-  signal axil_m2s : axil_m2s_t;
-  signal axil_s2m : axil_s2m_t := axil_s2m_init;
+  signal axi_lite_m2s : axi_lite_m2s_t;
+  signal axi_lite_s2m : axi_lite_s2m_t := axi_lite_s2m_init;
 
   constant memory : memory_t := new_memory;
   constant axi_read_slave, axi_write_slave : axi_slave_t := new_axi_slave(
@@ -110,7 +110,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axil_slave_inst : entity bfm.axil_slave
+  axi_lite_slave_inst : entity bfm.axi_lite_slave
     generic map (
       axi_read_slave => axi_read_slave,
       axi_write_slave => axi_write_slave,
@@ -119,16 +119,16 @@ begin
     port map (
       clk => clk,
       --
-      axil_read_m2s => axil_m2s.read,
-      axil_read_s2m => axil_s2m.read,
+      axi_lite_read_m2s => axi_lite_m2s.read,
+      axi_lite_read_s2m => axi_lite_s2m.read,
       --
-      axil_write_m2s => axil_m2s.write,
-      axil_write_s2m => axil_s2m.write
+      axi_lite_write_m2s => axi_lite_m2s.write,
+      axi_lite_write_s2m => axi_lite_s2m.write
     );
 
 
   ------------------------------------------------------------------------------
-  dut : entity work.axi_to_axil
+  dut : entity work.axi_to_axi_lite
     generic map (
       data_width => data_width
     )
@@ -138,8 +138,8 @@ begin
       axi_m2s => axi_m2s,
       axi_s2m => axi_s2m,
 
-      axil_m2s => axil_m2s,
-      axil_s2m => axil_s2m
+      axi_lite_m2s => axi_lite_m2s,
+      axi_lite_s2m => axi_lite_s2m
     );
 
 end architecture;

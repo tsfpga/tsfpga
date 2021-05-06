@@ -14,15 +14,15 @@ from examples.tsfpga_example_env import get_tsfpga_modules
 
 class Module(BaseModule):
     def setup_vunit(self, vunit_proj, **kwargs):
-        tb = vunit_proj.library(self.library_name).test_bench("tb_axil_reg_file")
-        tb.test("read_from_non_existent_register").set_generic("use_axil_bfm", False)
-        tb.test("read_from_non_read_type_register").set_generic("use_axil_bfm", False)
-        tb.test("write_to_non_existent_register").set_generic("use_axil_bfm", False)
-        tb.test("write_to_non_write_type_register").set_generic("use_axil_bfm", False)
+        tb = vunit_proj.library(self.library_name).test_bench("tb_axi_lite_reg_file")
+        tb.test("read_from_non_existent_register").set_generic("use_axi_lite_bfm", False)
+        tb.test("read_from_non_read_type_register").set_generic("use_axi_lite_bfm", False)
+        tb.test("write_to_non_existent_register").set_generic("use_axi_lite_bfm", False)
+        tb.test("write_to_non_write_type_register").set_generic("use_axi_lite_bfm", False)
 
     def setup_formal(self, formal_proj, **kwargs):
         formal_proj.add_config(
-            top="axil_reg_file_wrapper",
+            top="axi_lite_reg_file_wrapper",
             engine_command="smtbmc",
             solver_command="z3",
             mode="prove",
@@ -35,10 +35,10 @@ class Module(BaseModule):
 
         projects.append(
             VivadoNetlistProject(
-                name="axil_reg_file",
+                name="axi_lite_reg_file",
                 modules=all_modules,
                 part=part,
-                top="axil_reg_file_wrapper",
+                top="axi_lite_reg_file_wrapper",
                 build_result_checkers=[
                     TotalLuts(EqualTo(199)),
                     LogicLuts(EqualTo(199)),

@@ -19,7 +19,7 @@ context vunit_lib.vc_context;
 
 library axi;
 use axi.axi_pkg.all;
-use axi.axil_pkg.all;
+use axi.axi_lite_pkg.all;
 
 library bfm;
 
@@ -46,8 +46,8 @@ architecture tb of tb_ddr_buffer is
   signal axi_write_m2s : axi_write_m2s_t := axi_write_m2s_init;
   signal axi_write_s2m : axi_write_s2m_t := axi_write_s2m_init;
 
-  signal regs_m2s : axil_m2s_t := axil_m2s_init;
-  signal regs_s2m : axil_s2m_t := axil_s2m_init;
+  signal regs_m2s : axi_lite_m2s_t := axi_lite_m2s_init;
+  signal regs_s2m : axi_lite_s2m_t := axi_lite_s2m_init;
 
   constant axi_width : integer := 64;
   constant burst_length : integer := 16;
@@ -103,15 +103,15 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axil_master_inst : entity bfm.axil_master
+  axi_lite_master_inst : entity bfm.axi_lite_master
     generic map (
       bus_handle => regs_bus_master
     )
     port map (
       clk => clk,
 
-      axil_m2s => regs_m2s,
-      axil_s2m => regs_s2m
+      axi_lite_m2s => regs_m2s,
+      axi_lite_s2m => regs_s2m
     );
 
 

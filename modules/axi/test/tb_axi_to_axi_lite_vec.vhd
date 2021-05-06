@@ -23,21 +23,21 @@ use reg_file.reg_operations_pkg.all;
 
 library axi;
 use axi.axi_pkg.all;
-use axi.axil_pkg.all;
+use axi.axi_lite_pkg.all;
 
 library bfm;
 
 
-entity tb_axi_to_axil_vec is
+entity tb_axi_to_axi_lite_vec is
   generic (
     pipeline : boolean;
     runner_cfg : string
   );
 end entity;
 
-architecture tb of tb_axi_to_axil_vec is
+architecture tb of tb_axi_to_axi_lite_vec is
 
-  constant axil_slaves : addr_and_mask_vec_t(0 to 6 - 1) := (
+  constant axi_lite_slaves : addr_and_mask_vec_t(0 to 6 - 1) := (
     0 => (addr => x"0000_0000", mask => x"0000_7000"),
     1 => (addr => x"0000_1000", mask => x"0000_7000"),
     2 => (addr => x"0000_2000", mask => x"0000_7000"),
@@ -52,32 +52,32 @@ architecture tb of tb_axi_to_axil_vec is
   );
 
   constant clk_axi_period : time := 7 ns;
-  constant clk_axil_slow_period : time := 3 ns;
-  constant clk_axil_fast_period : time := 11 ns;
+  constant clk_axi_lite_slow_period : time := 3 ns;
+  constant clk_axi_lite_fast_period : time := 11 ns;
 
   -- Two of the slaves have same clock as axi clock. Two have a faster clock
   -- and two have a slower. Corresponds to the clock assignments further below.
-  constant clocks_are_the_same : boolean_vector(axil_slaves'range) :=
+  constant clocks_are_the_same : boolean_vector(axi_lite_slaves'range) :=
     (0 => true, 1 => true, 2 => false, 3 => false, 4 => false, 5 => false);
 
   signal clk_axi : std_logic := '0';
-  signal clk_axil_vec : std_logic_vector(axil_slaves'range) := (others => '0');
+  signal clk_axi_lite_vec : std_logic_vector(axi_lite_slaves'range) := (others => '0');
 
   signal axi_m2s : axi_m2s_t;
   signal axi_s2m : axi_s2m_t;
 
-  signal axil_m2s_vec : axil_m2s_vec_t(axil_slaves'range);
-  signal axil_s2m_vec : axil_s2m_vec_t(axil_slaves'range);
+  signal axi_lite_m2s_vec : axi_lite_m2s_vec_t(axi_lite_slaves'range);
+  signal axi_lite_s2m_vec : axi_lite_s2m_vec_t(axi_lite_slaves'range);
 
 begin
 
   clk_axi <= not clk_axi after clk_axi_period / 2;
-  clk_axil_vec(0) <= not clk_axil_vec(0) after clk_axi_period / 2;
-  clk_axil_vec(1) <= not clk_axil_vec(1) after clk_axi_period / 2;
-  clk_axil_vec(2) <= not clk_axil_vec(2) after clk_axil_slow_period / 2;
-  clk_axil_vec(3) <= not clk_axil_vec(3) after clk_axil_slow_period / 2;
-  clk_axil_vec(4) <= not clk_axil_vec(4) after clk_axil_fast_period / 2;
-  clk_axil_vec(5) <= not clk_axil_vec(5) after clk_axil_fast_period / 2;
+  clk_axi_lite_vec(0) <= not clk_axi_lite_vec(0) after clk_axi_period / 2;
+  clk_axi_lite_vec(1) <= not clk_axi_lite_vec(1) after clk_axi_period / 2;
+  clk_axi_lite_vec(2) <= not clk_axi_lite_vec(2) after clk_axi_lite_slow_period / 2;
+  clk_axi_lite_vec(3) <= not clk_axi_lite_vec(3) after clk_axi_lite_slow_period / 2;
+  clk_axi_lite_vec(4) <= not clk_axi_lite_vec(4) after clk_axi_lite_fast_period / 2;
+  clk_axi_lite_vec(5) <= not clk_axi_lite_vec(5) after clk_axi_lite_fast_period / 2;
 
   test_runner_watchdog(runner, 2 ms);
 
@@ -89,23 +89,23 @@ begin
   begin
     test_runner_setup(runner, runner_cfg);
 
-    for slave_under_test_idx in axil_slaves'range loop
-      for slave_idx in axil_slaves'range loop
+    for slave_under_test_idx in axi_lite_slaves'range loop
+      for slave_idx in axi_lite_slaves'range loop
         -- Write init value to all
-        write_reg(net, 0, beef, axil_slaves(slave_idx).addr);
-        check_reg_equal(net, 0, beef, axil_slaves(slave_idx).addr);
+        write_reg(net, 0, beef, axi_lite_slaves(slave_idx).addr);
+        check_reg_equal(net, 0, beef, axi_lite_slaves(slave_idx).addr);
       end loop;
 
       -- Write special value to one of them
-      write_reg(net, 0, dead, axil_slaves(slave_under_test_idx).addr);
+      write_reg(net, 0, dead, axi_lite_slaves(slave_under_test_idx).addr);
 
-      for slave_idx in axil_slaves'range loop
+      for slave_idx in axi_lite_slaves'range loop
         if slave_idx = slave_under_test_idx then
           -- Check special value
-          check_reg_equal(net, 0, dead, axil_slaves(slave_idx).addr);
+          check_reg_equal(net, 0, dead, axi_lite_slaves(slave_idx).addr);
         else
           -- The others should still have old value
-          check_reg_equal(net, 0, beef, axil_slaves(slave_idx).addr);
+          check_reg_equal(net, 0, beef, axi_lite_slaves(slave_idx).addr);
         end if;
       end loop;
     end loop;
@@ -131,24 +131,24 @@ begin
 
 
   ------------------------------------------------------------------------------
-  register_maps : for slave in axil_slaves'range generate
-    axil_reg_file_inst : entity reg_file.axil_reg_file
+  register_maps : for slave in axi_lite_slaves'range generate
+    axi_lite_reg_file_inst : entity reg_file.axi_lite_reg_file
     generic map (
       regs => reg_map
     )
     port map (
-      clk => clk_axil_vec(slave),
+      clk => clk_axi_lite_vec(slave),
 
-      axil_m2s => axil_m2s_vec(slave),
-      axil_s2m => axil_s2m_vec(slave)
+      axi_lite_m2s => axi_lite_m2s_vec(slave),
+      axi_lite_s2m => axi_lite_s2m_vec(slave)
     );
   end generate;
 
 
   ------------------------------------------------------------------------------
-  dut : entity work.axi_to_axil_vec
+  dut : entity work.axi_to_axi_lite_vec
   generic map (
-    axil_slaves => axil_slaves,
+    axi_lite_slaves => axi_lite_slaves,
     clocks_are_the_same => clocks_are_the_same,
     pipeline => pipeline,
     data_width => reg_width
@@ -158,9 +158,9 @@ begin
     axi_m2s => axi_m2s,
     axi_s2m => axi_s2m,
 
-    clk_axil_vec => clk_axil_vec,
-    axil_m2s_vec => axil_m2s_vec,
-    axil_s2m_vec => axil_s2m_vec
+    clk_axi_lite_vec => clk_axi_lite_vec,
+    axi_lite_m2s_vec => axi_lite_m2s_vec,
+    axi_lite_s2m_vec => axi_lite_s2m_vec
   );
 
 end architecture;
