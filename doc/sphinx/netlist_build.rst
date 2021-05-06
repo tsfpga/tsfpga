@@ -27,6 +27,7 @@ They are attached to a build in this fashion:
     :caption: Build result checker example.
 
     VivadoNetlistProject(
+        name="result_checker_example",
         modules=modules,
         part="xc7z020clg400-1",
         top="example_top_level",
