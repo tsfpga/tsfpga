@@ -86,7 +86,6 @@ Comments describe what attributes are optional and which are required.
   # The value specified must be an integer.
   # The registers within the array will be repeated this many times.
   array_length = 3
-
   # The "description" property is optional for a register array. Will default to "" if not specified.
   # The value specified must be a string.
   description = "One set of base addresses for each feature."
