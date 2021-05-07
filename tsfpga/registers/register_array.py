@@ -16,17 +16,20 @@ class RegisterArray:
     number of times in a register list.
     """
 
-    def __init__(self, name, base_index, length):
+    def __init__(self, name, base_index, length, description):
         """
         Arguments:
             name (str): The name of this register array.
             base_index (int): The zero-based index of the first register of this array in
                 the register list.
             length (int): The number of times the register sequence shall be repeated.
+            description (str): Textual register array description.
         """
         self.name = name
         self.base_index = base_index
         self.length = length
+        self.description = description
+
         self.registers = []
 
     def append_register(self, name, mode, description):
@@ -93,5 +96,6 @@ class RegisterArray:
 name={self.name},\
 base_index={self.base_index},\
 length={self.length},\
+description={self.description},\
 registers={','.join([repr(register) for register in self.registers])},\
 )"""

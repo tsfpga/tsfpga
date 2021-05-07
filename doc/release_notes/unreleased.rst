@@ -2,6 +2,8 @@ Added
 
 * Add support for bit vector fields in register code generator.
 
+* Add possibility of setting a description for register arrays.
+
 * Add optional ``vivado_project_class`` argument to :class:`.VivadoIpCores` constructor.
 
 * Add :meth:`.RegisterList.create_python_class`, :meth:`.RegisterList.get_register_array` and

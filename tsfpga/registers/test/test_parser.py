@@ -85,6 +85,7 @@ default_value = "0110"
 [register_array.configuration]
 
 array_length = 3
+description = "A register array"
 
 # ------------------------------------------------------------------------------
 [register_array.configuration.register.input_settings]
@@ -154,6 +155,7 @@ default_value="0000000000000011"
 
         assert registers[2].name == "configuration"
         assert registers[2].length == 3
+        assert registers[2].description == "A register array"
         assert registers[2].index == 2 + 2 * 3 - 1
         assert len(registers[2].registers) == 2
         assert registers[2].registers[0].name == "input_settings"

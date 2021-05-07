@@ -26,6 +26,7 @@ default_value = "0011"
 [register_array.dummy_regs]
 
 array_length = 3
+description = "An array with some dummy regs"
 
 # ------------------------------------------------------------------------------
 [register_array.dummy_regs.register.array_dummy_reg]

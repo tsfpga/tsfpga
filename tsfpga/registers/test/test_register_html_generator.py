@@ -38,7 +38,13 @@ class TestRegisterHtmlGenerator(unittest.TestCase):
             html=html,
         )
 
-        assert "Register array <strong>dummy_regs</strong>, repeated 3 times" in html, html
+        self._check_register_array(
+            name="dummy_regs",
+            length=3,
+            iterator_range="i &isin; [0, 2]",
+            description="An array with some dummy regs",
+            html=html,
+        )
 
         self._check_register(
             name="array_dummy_reg",
@@ -153,6 +159,19 @@ class TestRegisterHtmlGenerator(unittest.TestCase):
     <td></td>
     <td>{default_value}</td>
     <td>{description}</td>
+"""
+        assert expected in html, f"{expected}\n\n{html}"
+
+    @staticmethod
+    def _check_register_array(name, length, iterator_range, description, html):
+        expected = f"""
+  <tr>
+    <td class="array_header" colspan=5>
+      Register array <strong>{name}</strong>, repeated {length} times.
+      Iterator <i>{iterator_range}.</i>
+    </td>
+    <td class="array_header">{description}</td>
+  </tr>
 """
         assert expected in html, f"{expected}\n\n{html}"
 

@@ -52,7 +52,7 @@ class RegisterParser:
 
     recognized_constant_items = {"value", "description"}
     recognized_register_items = {"mode", "description", "bit", "bit_vector"}
-    recognized_register_array_items = {"array_length", "register"}
+    recognized_register_array_items = {"array_length", "description", "register"}
     recognized_bit_items = {"description", "default_value"}
     recognized_bit_vector_items = {"description", "width", "default_value"}
 
@@ -176,7 +176,10 @@ class RegisterParser:
                 raise ValueError(message)
 
         length = items["array_length"]
-        register_array = self._register_list.append_register_array(name, length)
+        description = items.get("description", "")
+        register_array = self._register_list.append_register_array(
+            name=name, length=length, description=description
+        )
 
         for register_name, register_items in items["register"].items():
             # The only required field

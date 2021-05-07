@@ -68,7 +68,7 @@ class RegisterList:
 
         return register
 
-    def append_register_array(self, name, length):
+    def append_register_array(self, name, length, description):
         """
         Append a register array to this list.
 
@@ -82,7 +82,9 @@ class RegisterList:
             base_index = self.register_objects[-1].index + 1
         else:
             base_index = 0
-        register_array = RegisterArray(name, base_index, length)
+        register_array = RegisterArray(
+            name=name, base_index=base_index, length=length, description=description
+        )
 
         self.register_objects.append(register_array)
         return register_array
@@ -299,17 +301,18 @@ class RegisterList:
         """
         register_html_generator = RegisterHtmlGenerator(self.name, self._generated_source_info())
 
-        output_file = output_path / (self.name + "_regs.html")
+        html_file = output_path / (self.name + "_regs.html")
         create_file(
-            output_file, register_html_generator.get_page(self.register_objects, self.constants)
+            html_file, register_html_generator.get_page(self.register_objects, self.constants)
         )
 
-        output_file = output_path / "regs_style.css"
-        if not output_file.exists():
+        stylesheet = register_html_generator.get_page_style()
+        stylesheet_file = output_path / "regs_style.css"
+        if (not stylesheet_file.exists()) or read_file(stylesheet_file) != stylesheet:
             # Create the file only once. This mechanism could be made more smart, but at the moment
             # there is no use case. Perhaps there should be a separate stylesheet for each
             # HTML file?
-            create_file(output_file, register_html_generator.get_page_style())
+            create_file(stylesheet_file, stylesheet)
 
     def create_html_register_table(self, output_path):
         """

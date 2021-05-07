@@ -113,12 +113,18 @@ table {
   border-collapse: collapse;
 }
 td, th {
-  border: 1px solid #ddd;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #ddd;
   padding: 8px;
 }
 td.array_header {
-  background-color: #4cacaf;
-  color: white;
+  border-top-width: 10px;
+  border-top-color: #4cacaf;
+}
+td.array_footer {
+  border-bottom-width: 10px;
+  border-bottom-color: #4cacaf;
 }
 tr:nth-child(even) {
   background-color: #f2f2f2;
@@ -152,6 +158,29 @@ th {
         formatting_string = "0x{:0%iX}" % num_nibbles
         return formatting_string.format(value)
 
+    def _annotate_register_array(self, register_object):
+        html = f"""
+  <tr>
+    <td class="array_header" colspan=5>
+      Register array <strong>{register_object.name}</strong>, \
+repeated {register_object.length} times.
+      Iterator <i>i &isin; [0, {register_object.length - 1}].</i>
+    </td>
+    <td class="array_header">{register_object.description}</td>
+  </tr>"""
+        array_index_increment = len(register_object.registers)
+        for register in register_object.registers:
+            register_index = register_object.base_index + register.index
+            html += self._annotate_register(register, register_index, array_index_increment)
+
+        html += f"""
+  <tr>
+    <td colspan="6" class="array_footer">
+      End register array <strong>{register_object.name}.</strong>
+    </td>
+  </tr>"""
+        return html
+
     def _annotate_register(self, register, register_array_index=None, array_index_increment=None):
         if register_array_index is None:
             address_readable = self._to_hex_string(register.address)
@@ -173,6 +202,9 @@ th {
     <td>{self._to_hex_string(register.default_value, num_nibbles=1)}</td>
     <td>{description}</td>
   </tr>"""
+
+        for field in register.fields:
+            html += self._annotate_field(field)
 
         return html
 
@@ -208,28 +240,8 @@ th {
         for register_object in register_objects:
             if isinstance(register_object, Register):
                 html += self._annotate_register(register_object)
-                for field in register_object.fields:
-                    html += self._annotate_field(field)
             else:
-                html += f"""
-  <tr>
-    <td colspan="6" class="array_header">
-      Register array <strong>{register_object.name}</strong>, \
-repeated {register_object.length} times
-    </td>
-  </tr>"""
-                array_index_increment = len(register_object.registers)
-                for register in register_object.registers:
-                    register_index = register_object.base_index + register.index
-                    html += self._annotate_register(register, register_index, array_index_increment)
-                    for field in register.fields:
-                        html += self._annotate_field(field)
-                html += f"""
-  <tr>
-    <td colspan="6" class="array_header">
-      End register array <strong>{register_object.name}</strong>
-    </td>
-  </tr>"""
+                html += self._annotate_register_array(register_object)
 
         html += """
 </tbody>

@@ -55,7 +55,7 @@ def test_invalid_register_mode_should_raise_exception():
         registers.append_register(name="hest", mode="x", description="")
     assert str(exception_info.value) == 'Invalid mode "x" for register "hest"'
 
-    register_array = registers.append_register_array("array", 2)
+    register_array = registers.append_register_array("array", 2, "")
     register_array.append_register(name="apa", mode="r", description="")
     with pytest.raises(ValueError) as exception_info:
         register_array.append_register(name="zebra", mode="y", description="")
@@ -78,12 +78,16 @@ def test_registers_are_appended_properly_and_can_be_edited_in_place():
 def test_register_arrays_are_appended_properly_and_can_be_edited_in_place():
     register_array = RegisterList(name="apa", source_definition_file=Path("."))
 
-    register_array_hest = register_array.append_register_array(name="hest", length=4)
+    register_array_hest = register_array.append_register_array(
+        name="hest", length=4, description=""
+    )
     assert register_array_hest.base_index == 0
     register_array_hest.append_register(name="foo", mode="r", description="")
     register_array_hest.append_register(name="bar", mode="w", description="")
 
-    register_array_zebra = register_array.append_register_array(name="zebra", length=2)
+    register_array_zebra = register_array.append_register_array(
+        name="zebra", length=2, description=""
+    )
     assert register_array_zebra.base_index == 8
 
 
@@ -91,7 +95,7 @@ def test_get_register():
     register_list = RegisterList(name="apa", source_definition_file=None)
     hest = register_list.append_register(name="hest", mode="r", description="")
     zebra = register_list.append_register(name="zebra", mode="r", description="")
-    register_list.append_register_array(name="register_array", length=3)
+    register_list.append_register_array(name="register_array", length=3, description="")
 
     assert register_list.get_register("hest") is hest
     assert register_list.get_register("zebra") is zebra
@@ -114,8 +118,8 @@ def test_get_register():
 
 def test_get_register_array():
     register_list = RegisterList(name="apa", source_definition_file=None)
-    hest = register_list.append_register_array(name="hest", length=3)
-    zebra = register_list.append_register_array(name="zebra", length=2)
+    hest = register_list.append_register_array(name="hest", length=3, description="")
+    zebra = register_list.append_register_array(name="zebra", length=2, description="")
     register_list.append_register(name="register", mode="r", description="")
 
     assert register_list.get_register_array("hest") is hest
@@ -143,7 +147,7 @@ def test_get_register_index():
     register_list.append_register(name="apa", mode="r", description="")
     register_list.append_register(name="hest", mode="r", description="")
 
-    zebra = register_list.append_register_array(name="zebra", length=2)
+    zebra = register_list.append_register_array(name="zebra", length=2, description="")
     zebra.append_register(name="bar", mode="r", description="")
     zebra.append_register(name="baz", mode="r", description="")
 
@@ -203,7 +207,7 @@ def test_repr_with_register_array_appended():
     register_list_b = RegisterList(name="apa", source_definition_file=Path("."))
     assert repr(register_list_a) == repr(register_list_b)
 
-    register_list_a.append_register_array(name="zebra", length=4)
+    register_list_a.append_register_array(name="zebra", length=4, description="")
 
     assert repr(register_list_a) != repr(register_list_b)
 
@@ -212,7 +216,7 @@ def test_deep_copy_of_register_list_actually_copies_everything():
     original_list = RegisterList("original", Path("/original_file.txt"))
     original_list.add_constant("original_constant", value=2, description="original constant")
     original_list.append_register("original_register", "w", description="original register")
-    original_array = original_list.append_register_array("original_array", length=4)
+    original_array = original_list.append_register_array("original_array", length=4, description="")
     original_array.append_register(name="original_register_in_array", mode="r", description="")
 
     copied_list = copy.deepcopy(original_list)
