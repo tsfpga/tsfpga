@@ -138,7 +138,9 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
                     vhdl += f"  {self._register_function_signature(register, register_object)} is\n"
                     vhdl += "  begin\n"
                     vhdl += f"    assert array_index < {array_length} \n"
-                    vhdl += '      report "Array index out of bounds: " & to_string(array_index)\n'
+                    vhdl += (
+                        '      report "Array index out of bounds: " & natural\'image(array_index)\n'
+                    )
                     vhdl += "      severity failure;\n"
                     vhdl += (
                         f"    return {register_object.base_index} + "
