@@ -54,7 +54,7 @@ class HtmlTranslator:
         """
         Replace markdown/rst syntax with HTML tags.
         """
-        result = re.sub(self._re_strong_pattern, r"<b>\g<1></b>", text)
+        result = re.sub(self._re_strong_pattern, r"<strong>\g<1></strong>", text)
         result = re.sub(self._re_emphasis_pattern, r"<em>\g<1></em>", result)
         # Remove the escape sign
         result = re.sub(self._re_escaped_literal_pattern, r"\g<1>", result)

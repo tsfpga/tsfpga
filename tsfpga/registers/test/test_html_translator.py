@@ -16,7 +16,7 @@ class TestTranslator(unittest.TestCase):
         self.html_translator = HtmlTranslator()
 
     def test_markdown_parser_can_handle_annotating_sentences(self):
-        expected = "This sentence <b>should have a large portion</b> in bold face"
+        expected = "This sentence <strong>should have a large portion</strong> in bold face"
         text = r"This sentence **should have a large portion** in bold face"
         assert expected in self.html_translator.translate(text)
 
@@ -68,7 +68,7 @@ class TestTranslator(unittest.TestCase):
 
     def test_literal_underscore_can_be_used(self):
         # We do not translate underscores, unlike some markdown
-        expected = "This sentence <b>contains_underscores</b> in some_places"
+        expected = "This sentence <strong>contains_underscores</strong> in some_places"
         text = r"This sentence **contains_underscores** in some_places"
         assert expected in self.html_translator.translate(text)
 

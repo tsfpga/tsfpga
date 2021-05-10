@@ -3,7 +3,7 @@
 [register.plain_dummy_reg]
 
 mode = "r_w"
-description = "A plain dummy register."
+description = "A plain **dummy** register."
 
 [register.plain_dummy_reg.bit.plain_bit_a]
 
@@ -17,7 +17,7 @@ default_value = "1"
 
 [register.plain_dummy_reg.bit_vector.plain_bit_vector]
 
-description = "Bit vector"
+description = "Bit **vector**"
 width = 4
 default_value = "0011"
 
@@ -26,7 +26,7 @@ default_value = "0011"
 [register_array.dummy_regs]
 
 array_length = 3
-description = "An array with some dummy regs"
+description = "An **array** with some dummy regs"
 
 # ------------------------------------------------------------------------------
 [register_array.dummy_regs.register.array_dummy_reg]

@@ -159,6 +159,7 @@ th {
         return formatting_string.format(value)
 
     def _annotate_register_array(self, register_object):
+        description = self._html_translator.translate(register_object.description)
         html = f"""
   <tr>
     <td class="array_header" colspan=5>
@@ -166,7 +167,7 @@ th {
 repeated {register_object.length} times.
       Iterator <i>i &isin; [0, {register_object.length - 1}].</i>
     </td>
-    <td class="array_header">{register_object.description}</td>
+    <td class="array_header">{description}</td>
   </tr>"""
         array_index_increment = len(register_object.registers)
         for register in register_object.registers:

@@ -35,6 +35,7 @@ class TestRegisterHtmlGenerator(unittest.TestCase):
             address="0x0000",
             mode="Read, Write",
             default_value="0xE",
+            description="A plain <strong>dummy</strong> register.",
             html=html,
         )
 
@@ -42,7 +43,7 @@ class TestRegisterHtmlGenerator(unittest.TestCase):
             name="dummy_regs",
             length=3,
             iterator_range="i &isin; [0, 2]",
-            description="An array with some dummy regs",
+            description="An <strong>array</strong> with some dummy regs",
             html=html,
         )
 
@@ -52,6 +53,7 @@ class TestRegisterHtmlGenerator(unittest.TestCase):
             address="0x0004 + i &times; 0x0008",
             mode="Read, Write",
             default_value="0x31",
+            description="The first register in the array.",
             html=html,
         )
 
@@ -61,6 +63,7 @@ class TestRegisterHtmlGenerator(unittest.TestCase):
             address="0x0008 + i &times; 0x0008",
             mode="Read",
             default_value="0x0",
+            description="The second register in the array.",
             html=html,
         )
 
@@ -89,7 +92,7 @@ class TestRegisterHtmlGenerator(unittest.TestCase):
             name="plain_bit_vector",
             index="5:2",
             default_value="0b0011",
-            description="Bit vector",
+            description="Bit <strong>vector</strong>",
             html=html,
         )
 
@@ -138,7 +141,8 @@ class TestRegisterHtmlGenerator(unittest.TestCase):
         return read_file(self.tmp_path / "artyz7_regs.html")
 
     @staticmethod
-    def _check_register(name, index, address, mode, default_value, html):
+    # pylint: disable=too-many-arguments
+    def _check_register(name, index, address, mode, default_value, description, html):
         expected = f"""
   <tr>
     <td><strong>{name}</strong></td>
@@ -146,6 +150,8 @@ class TestRegisterHtmlGenerator(unittest.TestCase):
     <td>{address}</td>
     <td>{mode}</td>
     <td>{default_value}</td>
+    <td>{description}</td>
+  </tr>
 """
         assert expected in html, f"{expected}\n\n{html}"
 
