@@ -175,24 +175,24 @@ class TestVivadoProject(unittest.TestCase):
             )
 
     def test_build_module_pre_build_hook_and_create_regs_are_called(self):
-        module_one = MagicMock(spec=BaseModule)
-        module_two = MagicMock(spec=BaseModule)
-
-        project = VivadoProject(name="apa", modules=[module_one, module_two], part="")
+        project = VivadoProject(
+            name="apa", modules=[MagicMock(spec=BaseModule), MagicMock(spec=BaseModule)], part=""
+        )
         build_result = self._build(project)
         assert build_result.success
 
-        module_one.pre_build.assert_called_once_with(
-            project=project,
-            other_parameter="hest",
-            project_path=self.project_path,
-            output_path=self.output_path,
-            run_index=self.run_index,
-            generics=self.build_time_generics,
-            synth_only=self.synth_only,
-            num_threads=self.num_threads,
-        )
-        module_one.create_regs_vhdl_package.assert_called_once()
+        for module in project.modules:
+            module.pre_build.assert_called_once_with(
+                project=project,
+                other_parameter="hest",
+                project_path=self.project_path,
+                output_path=self.output_path,
+                run_index=self.run_index,
+                generics=self.build_time_generics,
+                synth_only=self.synth_only,
+                num_threads=self.num_threads,
+            )
+            module.create_regs_vhdl_package.assert_called_once()
 
     def test_default_pre_and_post_build_hooks_should_pass(self):
         class CustomVivadoProject(VivadoProject):
@@ -249,12 +249,12 @@ class TestVivadoProject(unittest.TestCase):
         module.name = "whatever"
         project = VivadoProject(name="apa", modules=[module], part="")
 
-        module.pre_build.return_value = True
+        project.modules[0].pre_build.return_value = True
         build_result = self._build(project)
         assert build_result.success
         self.mocked_run_vivado_tcl.assert_called_once()
 
-        module.pre_build.return_value = False
+        project.modules[0].pre_build.return_value = False
         build_result = self._build(project)
         assert not build_result.success
         self.mocked_run_vivado_tcl.assert_not_called()
@@ -291,3 +291,31 @@ class TestVivadoProject(unittest.TestCase):
         assert build_result.success
         _, kwargs = mocked_vivado_tcl.return_value.build.call_args
         assert kwargs["generics"] == dict(runtime="a value")
+
+    def test_modules_are_deep_copied_before_pre_create_hook(self):
+        class CustomVivadoProject(VivadoProject):
+            def pre_create(self, **kwargs):
+                self.modules[0].registers = "Some other value"
+                return True
+
+        module = MagicMock(spec=BaseModule)
+        module.registers = "Some value"
+
+        project = CustomVivadoProject(name="apa", modules=[module], part="")
+        assert self._create(project)
+
+        assert module.registers == "Some value"
+
+    def test_modules_are_deep_copied_before_pre_build_hook(self):
+        class CustomVivadoProject(VivadoProject):
+            def pre_build(self, **kwargs):
+                self.modules[0].registers = "Some other value"
+                return True
+
+        module = MagicMock(spec=BaseModule)
+        module.registers = "Some value"
+
+        project = CustomVivadoProject(name="apa", modules=[module], part="")
+        assert self._build(project).success
+
+        assert module.registers == "Some value"

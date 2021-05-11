@@ -6,6 +6,7 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+from copy import deepcopy
 import shutil
 
 from tsfpga import TSFPGA_TCL
@@ -185,6 +186,14 @@ class VivadoProject:
         self._setup_tcl_sources()
         self._setup_build_step_hooks()
 
+        # The pre-create hook migh have side effects. E.g. change some register constants.
+        # So we make a deep copy of the module list before the hook is called.
+        # Note that the modules are copied before the pre-build hooks as well,
+        # since we do not know if we might be performing a create-only or
+        # build-only operation. The copy does not take any significant time, so this is not
+        # an issue.
+        self.modules = deepcopy(self.modules)
+
         if not self.pre_create(project_path=project_path, ip_cache_path=ip_cache_path):
             print("ERROR: Project pre-create hook returned False. Failing the build.")
             return False
@@ -337,6 +346,14 @@ class VivadoProject:
             synth_only=synth_only,
             num_threads=num_threads,
         )
+
+        # The pre-build hooks (either project pre-build hook or any of the module's pre-build hooks)
+        # migh have side effects. E.g. change some register constants. So we make a deep copy of the
+        # module list before any of these hooks are called. Note that the modules are copied before
+        # the pre-create hook as well, since we do not know if we might be performing a create-only
+        # or build-only operation. The copy does not take any significant time, so this is not
+        # an issue.
+        self.modules = deepcopy(self.modules)
 
         result = BuildResult(self.name)
 
