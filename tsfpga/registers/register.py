@@ -127,22 +127,22 @@ class Register:
             default_value += field.default_value_uint * 2 ** field.base_index
         return default_value
 
-    def get_field(self, field_name):
+    def get_field(self, name):
         """
         Get the field within this register that has the given name. Will raise exception if no
         field matches.
 
         Arguments:
-            field_name (str): The name of the field.
+            name (str): The name of the field.
 
         Returns:
             :class:`.RegisterField`: The field.
         """
         for field in self.fields:
-            if field.name == field_name:
+            if field.name == name:
                 return field
 
-        raise ValueError(f'Could not find field "{field_name}" within register "{self.name}"')
+        raise ValueError(f'Could not find field "{name}" within register "{self.name}"')
 
     @property
     def address(self):
