@@ -57,6 +57,12 @@ class Bit(RegisterField):
 
         self._default_value = value
 
+    def get_value(self, register_value):
+        shift = self.base_index
+        mask = 1 << self.base_index
+        value = (register_value & mask) >> shift
+        return value
+
     @property
     def range(self):
         return str(self.base_index)

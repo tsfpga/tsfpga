@@ -11,6 +11,19 @@ import pytest
 from tsfpga.registers.bit_vector import BitVector
 
 
+def test_get_value():
+    bit = BitVector(name="", base_index=2, description="", width=4, default_value="0000")
+
+    register_value = int("111000011", base=2)
+    assert bit.get_value(register_value) == 0
+
+    register_value = int("000111100", base=2)
+    assert bit.get_value(register_value) == 15
+
+    register_value = int("101010101", base=2)
+    assert bit.get_value(register_value) == 5
+
+
 def test_repr():
     # Check that repr is an actual representation, not just "X object at 0xABCDEF"
     assert "apa" in repr(

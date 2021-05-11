@@ -11,6 +11,16 @@ import pytest
 from tsfpga.registers.bit import Bit
 
 
+def test_get_value():
+    bit = Bit(name="", index=2, description="", default_value="1")
+
+    register_value = int("1111011", base=2)
+    assert bit.get_value(register_value) == 0
+
+    register_value = int("0000100", base=2)
+    assert bit.get_value(register_value) == 1
+
+
 def test_repr():
     # Check that repr is an actual representation, not just "X object at 0xABCDEF"
     assert "apa" in repr(Bit(name="apa", index=0, description="", default_value="0"))

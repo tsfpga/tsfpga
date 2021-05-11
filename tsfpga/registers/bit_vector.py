@@ -90,6 +90,16 @@ class BitVector(RegisterField):
 
         self._default_value = value
 
+    def get_value(self, register_value):
+        shift = self.base_index
+        mask_at_base = (1 << self.width) - 1
+        mask = mask_at_base << shift
+        value = (register_value & mask) >> shift
+
+        print(bin(mask))
+
+        return value
+
     @property
     def range(self):
         return f"{self.base_index + self.width - 1}:{self.base_index}"

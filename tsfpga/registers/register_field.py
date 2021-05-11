@@ -60,3 +60,17 @@ class RegisterField(ABC):
             int: The default value.
         """
         raise NotImplementedError("Must be implemented in child class")
+
+    @abstractmethod
+    def get_value(self, register_value):
+        """
+        Get the value of this field, given the supplied register value.
+        Child classes might implement sanity checks on the value.
+
+        Arguments:
+            register_value (int): Value of the register that this field belongs to.
+
+        Returns:
+            int: The value.
+        """
+        raise NotImplementedError("Must be implemented in child class")
