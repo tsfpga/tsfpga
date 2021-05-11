@@ -237,9 +237,10 @@ class VivadoProject:
         elif generics is None:
             all_generics = self.static_generics
         else:
-            # Add the two dictionaries
-            all_generics = self.static_generics.copy()
-            all_generics.update(generics)
+            # Add the two dictionaries. This will prefer the values in the run-time generics,
+            # if the same generic is present in both.
+            all_generics = generics
+            all_generics.update(self.static_generics)
 
         build_vivado_project_tcl = project_path / "build_vivado_project.tcl"
         tcl = self.tcl.build(

@@ -284,6 +284,16 @@ class TestVivadoProject(unittest.TestCase):
         _, kwargs = mocked_vivado_tcl.return_value.build.call_args
         assert kwargs["generics"] == dict(static="value", runtime="a value")
 
+        self.build_time_generics = dict(static_and_runtime="value")
+        build_result = self._build(
+            VivadoProject(
+                name="apa", modules=[], part="", generics=dict(static_and_runtime="new value")
+            )
+        )
+        assert build_result.success
+        _, kwargs = mocked_vivado_tcl.return_value.build.call_args
+        assert kwargs["generics"] == dict(static_and_runtime="new value")
+
         self.build_time_generics = None
         build_result = self._build(
             VivadoProject(name="apa", modules=[], part="", generics=dict(runtime="a value"))
