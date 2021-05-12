@@ -95,9 +95,6 @@ class BitVector(RegisterField):
         mask_at_base = (1 << self.width) - 1
         mask = mask_at_base << shift
         value = (register_value & mask) >> shift
-
-        print(bin(mask))
-
         return value
 
     @property
