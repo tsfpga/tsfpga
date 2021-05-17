@@ -55,3 +55,13 @@ def test_read_last_lines_of_file_with_trailing_newlines(tmp_path):
     data = "a\nb\n\n  \n\n"
     file = create_file(tmp_path / "data.txt", contents=data)
     assert read_last_lines_of_file(file, num_lines=10) == data
+
+
+def test_read_last_lines_of_file_with_empty_file(tmp_path):
+    data = ""
+    file = create_file(tmp_path / "data.txt", contents=data)
+    assert read_last_lines_of_file(file, num_lines=10) == data
+
+    data = "\n"
+    file = create_file(tmp_path / "data.txt", contents=data)
+    assert read_last_lines_of_file(file, num_lines=10) == data
