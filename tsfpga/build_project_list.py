@@ -241,14 +241,15 @@ class BuildProjectList:
         report.set_real_total_time(time.time() - start_time)
 
         # True if the builds are for the "build" step (not "create" or "open")
-        if isinstance(build_wrappers[0], BuildProjectBuildWrapper):
-            # Print summary for builds, which contains resource utilization and other information.
-            # The length of the summary depends on if it is a netlist build or a regular one, so
-            # set the length given by one of the project objects.
+        builds_are_build_step = isinstance(build_wrappers[0], BuildProjectBuildWrapper)
+        # If we are building, we should print the summary that is at the end of the console output.
+        # (however if we are creating or opening a project we should not print anything extra).
+        # However if anything has failed, we should also print.
+        if builds_are_build_step:
+            # The length of the build summary depends on if we are working with netlist builds or
+            # regular ones, so set the length given by one of the project objects.
             report.set_report_length(build_wrappers[0].build_result_report_length)
-            report.print_str()
-        elif not all_builds_ok:
-            # In cases where something has failed show some log directly in the console output.
+        if builds_are_build_step or not all_builds_ok:
             report.print_str()
 
         return all_builds_ok
