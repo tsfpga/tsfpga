@@ -1,4 +1,4 @@
-|pic_website| |pic_gitlab| |pic_pip_install| |pic_license| |pic_python_line_coverage| |pic_vhdl_line_coverage| |pic_vhdl_branch_coverage|
+|pic_website| |pic_gitlab| |pic_gitter| |pic_pip_install| |pic_license| |pic_python_line_coverage| |pic_vhdl_line_coverage| |pic_vhdl_branch_coverage|
 
 .. |pic_website| image:: https://tsfpga.com/badges/website.svg
   :alt: Website
@@ -7,6 +7,10 @@
 .. |pic_gitlab| image:: https://tsfpga.com/badges/gitlab.svg
   :alt: Gitlab
   :target: https://gitlab.com/tsfpga/tsfpga
+
+.. |pic_gitter| image:: https://badges.gitter.im/owner/repo.png
+  :alt: Gitter
+  :target: https://gitter.im/tsfpga/tsfpga
 
 .. |pic_pip_install| image:: https://tsfpga.com/badges/pip_install.svg
   :alt: pypi
