@@ -4,10 +4,10 @@ Added
 
 * Add possibility of setting a description for register arrays.
 
-* Add optional ``vivado_project_class`` argument to :class:`.VivadoIpCores` constructor.
-
 * Add :meth:`.RegisterList.create_python_class`, :meth:`.RegisterList.get_register_array` and
   :meth:`.RegisterList.get_register_index` methods.
+
+* Add optional ``vivado_project_class`` argument to :class:`.VivadoIpCores` constructor.
 
 * Add ``axi.axi_stream_pkg`` VHDL package and ``axi.axi_stream_fifo`` VHDL entity.
 
