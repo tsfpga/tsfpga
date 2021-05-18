@@ -61,7 +61,7 @@ class RegisterHtmlGenerator:
 <head>
   <title>{title}</title>
     <!-- Include the style both inline and as a link to a separate CSS file. -->
-    <!-- Some tools, e.g. Jenkins, will not render with an external styleesheet. -->
+    <!-- Some tools, e.g. Jenkins, will not render with an inline styleesheet. -->
     <!-- For other tools, e.g. page inclusion in sphinx, the style must be in the file. -->
     <link rel="stylesheet" href="regs_style.css">
     <style>
