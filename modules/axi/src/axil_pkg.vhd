@@ -31,7 +31,7 @@ package axil_pkg is
   end record;
 
   constant axil_m2s_a_init : axil_m2s_a_t := (valid => '0', others => (others => '0'));
-  function axil_m2s_a_sz(addr_width : natural) return natural;
+  function axil_m2s_a_sz(addr_width : positive) return positive;
 
   type axil_s2m_a_t is record
     ready : std_logic;
@@ -45,8 +45,8 @@ package axil_pkg is
   ------------------------------------------------------------------------------
 
    -- Max values
-  constant axil_data_sz : integer := 64;
-  constant axil_w_strb_sz : integer := axil_data_sz / 8;
+  constant axil_data_sz : positive := 64;
+  constant axil_w_strb_sz : positive := axil_data_sz / 8;
 
   type axil_m2s_w_t is record
     valid : std_logic;
@@ -56,9 +56,9 @@ package axil_pkg is
 
   constant axil_m2s_w_init : axil_m2s_w_t := (valid => '0', others => (others => '-'));
 
-  function axil_m2s_w_sz(data_width : natural) return natural;
-  function to_slv(data : axil_m2s_w_t; data_width : natural) return std_logic_vector;
-  function to_axil_m2s_w(data : std_logic_vector; data_width : natural) return axil_m2s_w_t;
+  function axil_m2s_w_sz(data_width : positive) return positive;
+  function to_slv(data : axil_m2s_w_t; data_width : positive) return std_logic_vector;
+  function to_axil_m2s_w(data : std_logic_vector; data_width : positive) return axil_m2s_w_t;
 
   type axil_s2m_w_t is record
     ready : std_logic;
@@ -84,7 +84,7 @@ package axil_pkg is
 
   constant axil_s2m_b_init : axil_s2m_b_t := (valid => '0', others => (others => '0'));
   -- Exluded member: valid
-  constant axil_s2m_b_sz : integer := axi_resp_sz;
+  constant axil_s2m_b_sz : positive := axi_resp_sz;
 
 
   ------------------------------------------------------------------------------
@@ -104,9 +104,9 @@ package axil_pkg is
   end record;
 
   constant axil_s2m_r_init : axil_s2m_r_t := (valid => '0', others => (others => '0'));
-  function axil_s2m_r_sz(data_width : natural) return natural;
-  function to_slv(data : axil_s2m_r_t; data_width : natural) return std_logic_vector;
-  function to_axil_s2m_r(data : std_logic_vector; data_width : natural) return axil_s2m_r_t;
+  function axil_s2m_r_sz(data_width : positive) return positive;
+  function to_slv(data : axil_s2m_r_t; data_width : positive) return std_logic_vector;
+  function to_axil_s2m_r(data : std_logic_vector; data_width : positive) return axil_s2m_r_t;
 
 
   ------------------------------------------------------------------------------
@@ -167,20 +167,20 @@ end;
 
 package body axil_pkg is
 
-  function axil_m2s_a_sz(addr_width : natural) return natural is
+  function axil_m2s_a_sz(addr_width : positive) return positive is
   begin
     -- Excluded membed: valid.
     return addr_width;
   end function;
 
-  function axil_m2s_w_sz(data_width : natural) return natural is
+  function axil_m2s_w_sz(data_width : positive) return positive is
   begin
     assert data_width = 32 or data_width = 64 report "AXI4-Lite protocol only supports data width 32 or 64" severity failure;
     -- Exluded member: valid
     return data_width + axi_w_strb_width(data_width);
   end function;
 
-  function to_slv(data : axil_m2s_w_t; data_width : natural) return std_logic_vector is
+  function to_slv(data : axil_m2s_w_t; data_width : positive) return std_logic_vector is
     variable result : std_logic_vector(axil_m2s_w_sz(data_width) - 1 downto 0);
     variable lo, hi : natural := 0;
   begin
@@ -194,7 +194,7 @@ package body axil_pkg is
     return result;
   end function;
 
-  function to_axil_m2s_w(data : std_logic_vector; data_width : natural) return axil_m2s_w_t is
+  function to_axil_m2s_w(data : std_logic_vector; data_width : positive) return axil_m2s_w_t is
     variable result : axil_m2s_w_t := axil_m2s_w_init;
     variable lo, hi : natural := 0;
   begin
@@ -208,13 +208,13 @@ package body axil_pkg is
     return result;
   end function;
 
-  function axil_s2m_r_sz(data_width : natural)  return natural is
+  function axil_s2m_r_sz(data_width : positive)  return positive is
   begin
     -- Exluded member: valid
     return data_width + axi_resp_sz;
   end function;
 
-  function to_slv(data : axil_s2m_r_t; data_width : natural) return std_logic_vector is
+  function to_slv(data : axil_s2m_r_t; data_width : positive) return std_logic_vector is
     variable result : std_logic_vector(axil_s2m_r_sz(data_width) - 1 downto 0);
     variable lo, hi : natural := 0;
   begin
@@ -228,7 +228,7 @@ package body axil_pkg is
     return result;
   end function;
 
-  function to_axil_s2m_r(data : std_logic_vector; data_width : natural) return axil_s2m_r_t is
+  function to_axil_s2m_r(data : std_logic_vector; data_width : positive) return axil_s2m_r_t is
     variable result : axil_s2m_r_t := axil_s2m_r_init;
     variable lo, hi : natural := 0;
   begin

@@ -22,10 +22,10 @@ use math.math_pkg.all;
 package axi_pkg is
 
   -- Max value
-  constant axi_id_sz : integer := 24;
+  constant axi_id_sz : positive := 24;
 
-  constant axi_max_burst_length_beats : integer := 256;
-  constant axi3_max_burst_length_beats : integer := 16;
+  constant axi_max_burst_length_beats : positive := 256;
+  constant axi3_max_burst_length_beats : positive := 16;
 
 
   ------------------------------------------------------------------------------
@@ -33,28 +33,28 @@ package axi_pkg is
   ------------------------------------------------------------------------------
 
   -- Max value
-  constant axi_a_addr_sz : integer := 64;
+  constant axi_a_addr_sz : positive := 64;
   -- Number of transfers = len + 1
-  constant axi_a_len_sz : integer := 8;
+  constant axi_a_len_sz : positive := 8;
   -- Bytes per transfer = 2^size
-  constant axi_a_size_sz : integer := 3;
+  constant axi_a_size_sz : positive := 3;
 
-  function to_len(burst_length_beats : natural) return unsigned;
-  function to_size(data_width_bits : natural) return unsigned;
+  function to_len(burst_length_beats : positive) return unsigned;
+  function to_size(data_width_bits : positive) return unsigned;
 
-  constant axi_a_burst_sz : integer := 2;
+  constant axi_a_burst_sz : positive := 2;
   constant axi_a_burst_fixed : std_logic_vector(axi_a_burst_sz - 1 downto 0) := "00";
   constant axi_a_burst_incr : std_logic_vector(axi_a_burst_sz - 1 downto 0) := "01";
   constant axi_a_burst_wrap : std_logic_vector(axi_a_burst_sz - 1 downto 0) := "10";
 
-  constant axi_a_lock_sz : integer := 1; -- Two bits in AXI3
+  constant axi_a_lock_sz : positive := 1; -- Two bits in AXI3
   constant axi_a_lock_normal : std_logic_vector(axi_a_lock_sz - 1 downto 0) := "0";
   constant axi_a_lock_exclusive : std_logic_vector(axi_a_lock_sz - 1 downto 0) := "1";
   constant axi3_a_lock_normal : std_logic_vector(2 - 1 downto 0) := "00";
   constant axi3_a_lock_exclusive : std_logic_vector(2 - 1 downto 0) := "01";
   constant axi3_a_lock_locked : std_logic_vector(2 - 1 downto 0) := "10";
 
-  constant axi_a_cache_sz : integer := 4;
+  constant axi_a_cache_sz : positive := 4;
   constant axi_a_cache_device_non_bufferable : std_logic_vector(axi_a_cache_sz - 1 downto 0) := "0000";
   constant axi_a_cache_device_bufferable : std_logic_vector(axi_a_cache_sz - 1 downto 0) := "0001";
   constant axi_a_cache_normal_non_cacheable_non_bufferable : std_logic_vector(axi_a_cache_sz - 1 downto 0) := "0010";
@@ -70,7 +70,7 @@ package axi_pkg is
   constant axi_a_cache_write_back_write_allocate : std_logic_vector(axi_a_cache_sz - 1 downto 0) := "1011";
   constant axi_a_cache_write_back_read_and_write_allocate : std_logic_vector(axi_a_cache_sz - 1 downto 0) := "1111";
 
-  constant axi_a_prot_sz : integer := 3;
+  constant axi_a_prot_sz : positive := 3;
   constant axi_a_prot_privileged : std_logic_vector(axi_a_prot_sz - 1 downto 0) := "001";
   constant axi_a_prot_unprivileged : std_logic_vector(axi_a_prot_sz - 1 downto 0) := "000";
   constant axi_a_prot_secure : std_logic_vector(axi_a_prot_sz - 1 downto 0) := "000";
@@ -78,7 +78,7 @@ package axi_pkg is
   constant axi_a_prot_data : std_logic_vector(axi_a_prot_sz - 1 downto 0) := "000";
   constant axi_a_prot_instruction : std_logic_vector(axi_a_prot_sz - 1 downto 0) := "100";
 
-  constant axi_a_region_sz : integer := 4;
+  constant axi_a_region_sz : positive := 4;
 
   type axi_m2s_a_t is record
     valid : std_logic;
@@ -96,14 +96,14 @@ package axi_pkg is
     burst => (others => '0'),
     others => (others => '0')
   );
-  function axi_m2s_a_sz(id_width : natural; addr_width : natural)  return natural;
+  function axi_m2s_a_sz(id_width : natural; addr_width : positive)  return positive;
   type axi_m2s_a_vec_t is array (integer range <>) of axi_m2s_a_t;
 
   function to_slv(
-    data : axi_m2s_a_t; id_width : natural; addr_width : natural
+    data : axi_m2s_a_t; id_width : natural; addr_width : positive
   ) return std_logic_vector;
   function to_axi_m2s_a(
-    data : std_logic_vector; id_width : natural; addr_width : natural
+    data : std_logic_vector; id_width : natural; addr_width : positive
   ) return axi_m2s_a_t;
 
   type axi_s2m_a_t is record
@@ -119,10 +119,10 @@ package axi_pkg is
   ------------------------------------------------------------------------------
 
   -- Max values
-  constant axi_data_sz : integer := 128;
-  constant axi_w_strb_sz : integer := axi_data_sz / 8;
+  constant axi_data_sz : positive := 128;
+  constant axi_w_strb_sz : positive := axi_data_sz / 8;
 
-  function to_strb(data_width : natural) return std_logic_vector;
+  function to_strb(data_width : positive) return std_logic_vector;
 
   type axi_m2s_w_t is record
     valid : std_logic;
@@ -141,16 +141,16 @@ package axi_pkg is
     id => (others => '-'),
     others => (others => '0')
   );
-  function axi_m2s_w_sz(data_width : natural; id_width : natural := 0) return natural;
+  function axi_m2s_w_sz(data_width : positive; id_width : natural := 0) return positive;
   type axi_m2s_w_vec_t is array (integer range <>) of axi_m2s_w_t;
 
-  function axi_w_strb_width(data_width : natural) return natural;
+  function axi_w_strb_width(data_width : positive) return positive;
 
   function to_slv(
-    data : axi_m2s_w_t; data_width : natural; id_width : natural := 0
+    data : axi_m2s_w_t; data_width : positive; id_width : natural := 0
   ) return std_logic_vector;
   function to_axi_m2s_w(
-    data : std_logic_vector; data_width : natural; id_width : natural := 0
+    data : std_logic_vector; data_width : positive; id_width : natural := 0
   ) return axi_m2s_w_t;
 
   type axi_s2m_w_t is record
@@ -171,7 +171,7 @@ package axi_pkg is
 
   constant axi_m2s_b_init : axi_m2s_b_t := (ready => '0');
 
-  constant axi_resp_sz : integer := 2;
+  constant axi_resp_sz : positive := 2;
   constant axi_resp_okay : std_logic_vector(axi_resp_sz - 1 downto 0) := "00";
   -- Exclusive access okay.
   constant axi_resp_exokay : std_logic_vector(axi_resp_sz - 1 downto 0) := "01";
@@ -191,7 +191,7 @@ package axi_pkg is
     id => (others => '0'),
     resp => (others => '0')
   );
-  function axi_s2m_b_sz(id_width : natural) return natural;
+  function axi_s2m_b_sz(id_width : natural) return positive;
   type axi_s2m_b_vec_t is array (integer range <>) of axi_s2m_b_t;
 
   function to_slv(data : axi_s2m_b_t; id_width : natural) return std_logic_vector;
@@ -223,11 +223,11 @@ package axi_pkg is
     id => (others => '0'),
     others => (others => '0')
   );
-  function axi_s2m_r_sz(data_width : natural; id_width : natural)  return natural;
+  function axi_s2m_r_sz(data_width : positive; id_width : natural)  return positive;
   type axi_s2m_r_vec_t is array (integer range <>) of axi_s2m_r_t;
 
-  function to_slv(data : axi_s2m_r_t; data_width : natural; id_width : natural) return std_logic_vector;
-  function to_axi_s2m_r(data : std_logic_vector; data_width : natural; id_width : natural) return axi_s2m_r_t;
+  function to_slv(data : axi_s2m_r_t; data_width : positive; id_width : natural) return std_logic_vector;
+  function to_axi_s2m_r(data : std_logic_vector; data_width : positive; id_width : natural) return axi_s2m_r_t;
 
 
   ------------------------------------------------------------------------------
@@ -291,7 +291,7 @@ end;
 
 package body axi_pkg is
 
-  function to_len(burst_length_beats : natural) return unsigned is
+  function to_len(burst_length_beats : positive) return unsigned is
     variable result : unsigned(axi_a_len_sz - 1 downto 0);
   begin
     -- burst_length_beats is number of transfers
@@ -299,21 +299,21 @@ package body axi_pkg is
     return result;
   end function;
 
-  function to_size(data_width_bits : natural) return unsigned is
+  function to_size(data_width_bits : positive) return unsigned is
     variable result : unsigned(axi_a_size_sz - 1 downto 0);
   begin
     result := to_unsigned(log2(data_width_bits / 8), result'length);
     return result;
   end function;
 
-  function axi_m2s_a_sz(id_width : natural; addr_width : natural) return natural is
+  function axi_m2s_a_sz(id_width : natural; addr_width : positive) return positive is
   begin
     -- Exluded member: valid
     return id_width + addr_width + axi_a_len_sz + axi_a_size_sz + axi_a_burst_sz;
   end function;
 
   function to_slv(
-    data : axi_m2s_a_t; id_width : natural; addr_width : natural
+    data : axi_m2s_a_t; id_width : natural; addr_width : positive
   ) return std_logic_vector is
     variable result : std_logic_vector(axi_m2s_a_sz(id_width, addr_width) - 1 downto 0);
     variable lo, hi : natural := 0;
@@ -340,7 +340,7 @@ package body axi_pkg is
   end function;
 
   function to_axi_m2s_a(
-    data : std_logic_vector; id_width : natural; addr_width : natural
+    data : std_logic_vector; id_width : natural; addr_width : positive
   ) return axi_m2s_a_t is
     constant offset : natural := data'low;
     variable result : axi_m2s_a_t := axi_m2s_a_init;
@@ -367,19 +367,19 @@ package body axi_pkg is
     return result;
   end function;
 
-  function to_strb(data_width : natural) return std_logic_vector is
+  function to_strb(data_width : positive) return std_logic_vector is
     variable result : std_logic_vector(axi_w_strb_sz - 1 downto 0) := (others => '0');
   begin
     result(data_width / 8 - 1 downto 0) := (others => '1');
     return result;
   end function;
 
-  function axi_w_strb_width(data_width : natural) return natural is
+  function axi_w_strb_width(data_width : positive) return positive is
   begin
     return data_width / 8;
   end function;
 
-  function axi_m2s_w_sz(data_width : natural; id_width : natural := 0) return natural is
+  function axi_m2s_w_sz(data_width : positive; id_width : natural := 0) return positive is
   begin
     -- Exluded member: valid.
     -- The 1 is "last".
@@ -387,7 +387,7 @@ package body axi_pkg is
   end function;
 
   function to_slv(
-    data : axi_m2s_w_t; data_width : natural; id_width : natural := 0
+    data : axi_m2s_w_t; data_width : positive; id_width : natural := 0
   ) return std_logic_vector is
     variable result :
       std_logic_vector(axi_m2s_w_sz(data_width=>data_width, id_width=>id_width) - 1 downto 0) :=
@@ -415,7 +415,7 @@ package body axi_pkg is
   end function;
 
   function to_axi_m2s_w(
-    data : std_logic_vector; data_width : natural; id_width : natural := 0
+    data : std_logic_vector; data_width : positive; id_width : natural := 0
   ) return axi_m2s_w_t is
     constant offset : natural := data'low;
     variable result : axi_m2s_w_t := axi_m2s_w_init;
@@ -441,7 +441,7 @@ package body axi_pkg is
     return result;
   end function;
 
-  function axi_s2m_b_sz(id_width : natural) return natural is
+  function axi_s2m_b_sz(id_width : natural) return positive is
   begin
     -- Exluded member: valid
     return id_width + axi_resp_sz;
@@ -480,14 +480,14 @@ package body axi_pkg is
     return result;
   end function;
 
-  function axi_s2m_r_sz(data_width : natural; id_width : natural) return natural is
+  function axi_s2m_r_sz(data_width : positive; id_width : natural) return positive is
   begin
     -- Exluded member: valid.
     -- The 1 is "last".
     return data_width + id_width + axi_resp_sz + 1;
   end function;
 
-  function to_slv(data : axi_s2m_r_t; data_width : natural; id_width : natural) return std_logic_vector is
+  function to_slv(data : axi_s2m_r_t; data_width : positive; id_width : natural) return std_logic_vector is
     variable result : std_logic_vector(axi_s2m_r_sz(data_width, id_width) - 1 downto 0);
     variable lo, hi : natural := 0;
   begin
@@ -509,7 +509,7 @@ package body axi_pkg is
     return result;
   end function;
 
-  function to_axi_s2m_r(data : std_logic_vector; data_width : natural; id_width : natural) return axi_s2m_r_t is
+  function to_axi_s2m_r(data : std_logic_vector; data_width : positive; id_width : natural) return axi_s2m_r_t is
     constant offset : natural := data'low;
     variable result : axi_s2m_r_t := axi_s2m_r_init;
     variable lo, hi : natural := 0;

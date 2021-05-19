@@ -21,10 +21,10 @@ use work.axi_stream_pkg.all;
 
 entity axi_stream_fifo is
   generic (
-    data_width : natural;
+    data_width : positive;
     user_width : natural;
     asynchronous : boolean;
-    depth : natural := 16;
+    depth : positive;
     ram_type : ram_style_t := ram_style_auto
   );
   port (

@@ -18,15 +18,15 @@ use ieee.numeric_std.all;
 package axi_stream_pkg is
 
   -- Max value
-  constant axi_stream_id_sz : integer := 8;
-  constant axi_stream_dest_sz : integer := 4;
+  constant axi_stream_id_sz : positive := 8;
+  constant axi_stream_dest_sz : positive := 4;
 
   -- Data bus width in bytes, 128b seems reasonable at the moment.
-  constant axi_stream_data_sz : integer := 128;
+  constant axi_stream_data_sz : positive := 128;
   -- Integer multiple of the width of the interface in bytes.
-  constant axi_stream_user_sz : integer := axi_stream_data_sz / 8;
-  constant axi_stream_strb_sz : integer := axi_stream_data_sz / 8;
-  constant axi_stream_keep_sz : integer := axi_stream_data_sz / 8;
+  constant axi_stream_user_sz : positive := axi_stream_data_sz / 8;
+  constant axi_stream_strb_sz : positive := axi_stream_data_sz / 8;
+  constant axi_stream_keep_sz : positive := axi_stream_data_sz / 8;
 
   type axi_stream_m2s_t is record
     valid : std_logic;
@@ -50,17 +50,17 @@ package axi_stream_pkg is
 
   constant axi_stream_s2m_init : axi_stream_s2m_t := (ready => '1');
 
-  function axi_stream_m2s_sz(data_width : natural; user_width : natural) return natural;
+  function axi_stream_m2s_sz(data_width : positive; user_width : natural) return natural;
 
   function to_slv(
     data : axi_stream_m2s_t;
-    data_width : natural;
+    data_width : positive;
     user_width : natural
   ) return std_logic_vector;
 
   function to_axi_stream_m2s(
     data : std_logic_vector;
-    data_width : natural;
+    data_width : positive;
     user_width : natural;
     valid : std_logic
   ) return axi_stream_m2s_t;
@@ -69,7 +69,7 @@ end;
 
 package body axi_stream_pkg is
 
-  function axi_stream_m2s_sz(data_width : natural; user_width : natural) return natural is
+  function axi_stream_m2s_sz(data_width : positive; user_width : natural) return natural is
   begin
     -- Exluded member: valid
     -- The 1 is last
@@ -78,7 +78,7 @@ package body axi_stream_pkg is
 
   function to_slv(
     data : axi_stream_m2s_t;
-    data_width : natural;
+    data_width : positive;
     user_width : natural
   ) return std_logic_vector is
     variable result : std_logic_vector(axi_stream_m2s_sz(data_width, user_width) - 1 downto 0);
@@ -99,7 +99,7 @@ package body axi_stream_pkg is
 
   function to_axi_stream_m2s(
     data : std_logic_vector;
-    data_width : natural;
+    data_width : positive;
     user_width : natural;
     valid : std_logic
   ) return axi_stream_m2s_t is
