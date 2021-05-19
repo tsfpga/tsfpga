@@ -34,7 +34,7 @@ entity axil_to_vec is
     axil_m2s : in axil_m2s_t;
     axil_s2m : out axil_s2m_t;
 
-    -- Only need to set if different from axi_clk
+    -- Only need to set if different from clk_axil
     clk_axil_vec : in std_logic_vector(axil_slaves'range) := (others => '0');
     axil_m2s_vec : out axil_m2s_vec_t(axil_slaves'range);
     axil_s2m_vec : in axil_s2m_vec_t(axil_slaves'range)
