@@ -499,7 +499,9 @@ class BuildResult(TestResult):
 
         Inherited and adapted from the VUnit function.
         """
-        if self.passed:
+        if self.passed and self.report_length_lines is not None:
+            # Build passed, print build summary of the specified length. The length is only
+            # set if this is a "build" result (not "create" or "open").
             self._print_output(printer, num_lines=self.report_length_lines)
         else:
             # The build failed, which can either be caused by
