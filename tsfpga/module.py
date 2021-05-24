@@ -88,7 +88,7 @@ class BaseModule:
             # Only create object once
             return self._registers
 
-        toml_file = self.path / (f"regs_{self.name}.toml")
+        toml_file = self.path / f"regs_{self.name}.toml"
         if toml_file.exists():
             self._registers = from_toml(self.name, toml_file, self._default_registers)
             self.registers_hook()
