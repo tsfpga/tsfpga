@@ -260,7 +260,7 @@ In order the save time, :meth:`.RegisterList.create_vhdl_package` maintains a ha
    :language: vhdl
 
 For the plain registers the register index is simply an integer, e.g. ``ddr_buffer_config``, but for the register arrays is is a function, e.g. ``ddr_buffer_addrs_read_addr()``.
-The function takes an array index arguments and will assert if it is out of bounds of the array.
+The function takes an array index argument and will assert if it is out of bounds of the array.
 
 Note that there is a large eco-system of register related components in tsfpga.
 Firstly there are wrappers available for easier working with VUnit verification components.
