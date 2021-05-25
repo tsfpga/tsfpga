@@ -22,9 +22,8 @@ class Module(BaseModule):
 
         tb = vunit_proj.library(self.library_name).test_bench("tb_axi_lite_pkg")
         for data_width in [32, 64]:
-            for addr_width in [32, 40]:
-                generics = dict(data_width=data_width, addr_width=addr_width)
-                self.add_vunit_config(tb, generics=generics)
+            generics = dict(data_width=data_width)
+            self.add_vunit_config(tb, generics=generics)
 
         for tb_name in ["tb_axi_to_axi_lite", "tb_axi_to_axi_lite_bus_error"]:
             tb = vunit_proj.library(self.library_name).test_bench(tb_name)

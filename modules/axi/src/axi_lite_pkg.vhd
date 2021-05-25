@@ -48,6 +48,8 @@ package axi_lite_pkg is
   constant axi_lite_data_sz : positive := 64;
   constant axi_lite_w_strb_sz : positive := axi_lite_data_sz / 8;
 
+  function to_axi_lite_strb(data_width : positive) return std_logic_vector;
+
   type axi_lite_m2s_w_t is record
     valid : std_logic;
     data : std_logic_vector(axi_lite_data_sz - 1 downto 0);
@@ -199,6 +201,13 @@ package body axi_lite_pkg is
       report "AXI4-Lite protocol only supports data width 32 or 64" severity failure;
     -- Exluded member: valid
     return data_width + axi_w_strb_width(data_width);
+  end function;
+
+  function to_axi_lite_strb(data_width : positive) return std_logic_vector is
+    variable result : std_logic_vector(axi_lite_w_strb_sz - 1 downto 0) := (others => '0');
+  begin
+    result(data_width / 8 - 1 downto 0) := (others => '1');
+    return result;
   end function;
 
   function to_slv(data : axi_lite_m2s_w_t; data_width : positive) return std_logic_vector is
