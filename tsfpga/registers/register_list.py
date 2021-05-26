@@ -6,6 +6,7 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+import copy
 import hashlib
 import datetime
 import re
@@ -39,13 +40,34 @@ class RegisterList:
             name (str): The name of this register list. Typically the name of the module that uses
                 it.
             source_definition_file (`pathlib.Path`): The TOML source file that defined this
-                register list.
+                register list. Will be displayed in generated source code and documentation
+                for traceability.
         """
         self.name = name
         self.source_definition_file = source_definition_file
 
         self.register_objects = []
         self.constants = []
+
+    @classmethod
+    def from_default_registers(cls, name, source_definition_file, default_registers):
+        """
+        Factory method. Create a RegisterList object from a plain list of registers.
+
+        Arguments:
+            name (str): The name of this register list.
+            source_definition_file (`pathlib.Path`): The source file that defined this
+                register list. Will be displayed in generated source code and documentation
+                for traceability.
+
+                Can be set to ``None`` if this information does not make sense in the current
+                use case.
+            default_registers (list(.Register)): These registers will be inserted in the
+               register list.
+        """
+        register_list = cls(name=name, source_definition_file=source_definition_file)
+        register_list.register_objects = copy.deepcopy(default_registers)
+        return register_list
 
     def append_register(self, name, mode, description):
         """
@@ -232,7 +254,7 @@ class RegisterList:
     def _create_vhdl_package(self, vhd_file, self_hash):
         print(f"Creating VHDL register package {vhd_file}")
         # Add a header line with the hash
-        generated_info = self._generated_source_info() + [
+        generated_info = self.generated_source_info() + [
             f"Register hash {self_hash}, generator version {__version__}."
         ]
         register_vhdl_generator = RegisterVhdlGenerator(self.name, generated_info)
@@ -249,7 +271,7 @@ class RegisterList:
             output_path (`pathlib.Path`): Result will be placed here.
         """
         output_file = output_path / (self.name + "_regs.h")
-        register_c_generator = RegisterCGenerator(self.name, self._generated_source_info())
+        register_c_generator = RegisterCGenerator(self.name, self.generated_source_info())
         create_file(
             output_file, register_c_generator.get_header(self.register_objects, self.constants)
         )
@@ -263,7 +285,7 @@ class RegisterList:
             output_path (`pathlib.Path`): Result will be placed here.
         """
         output_file = output_path / ("i_" + self.name + ".h")
-        register_cpp_generator = RegisterCppGenerator(self.name, self._generated_source_info())
+        register_cpp_generator = RegisterCppGenerator(self.name, self.generated_source_info())
         create_file(
             output_file, register_cpp_generator.get_interface(self.register_objects, self.constants)
         )
@@ -276,7 +298,7 @@ class RegisterList:
             output_path (`pathlib.Path`): Result will be placed here.
         """
         output_file = output_path / (self.name + ".h")
-        register_cpp_generator = RegisterCppGenerator(self.name, self._generated_source_info())
+        register_cpp_generator = RegisterCppGenerator(self.name, self.generated_source_info())
         create_file(output_file, register_cpp_generator.get_header(self.register_objects))
 
     def create_cpp_implementation(self, output_path):
@@ -287,7 +309,7 @@ class RegisterList:
             output_path (`pathlib.Path`): Result will be placed here.
         """
         output_file = output_path / (self.name + ".cpp")
-        register_cpp_generator = RegisterCppGenerator(self.name, self._generated_source_info())
+        register_cpp_generator = RegisterCppGenerator(self.name, self.generated_source_info())
         create_file(output_file, register_cpp_generator.get_implementation(self.register_objects))
 
     def create_html_page(self, output_path):
@@ -299,7 +321,7 @@ class RegisterList:
         Arguments:
             output_path (`pathlib.Path`): Result will be placed here.
         """
-        register_html_generator = RegisterHtmlGenerator(self.name, self._generated_source_info())
+        register_html_generator = RegisterHtmlGenerator(self.name, self.generated_source_info())
 
         html_file = output_path / (self.name + "_regs.html")
         create_file(
@@ -322,7 +344,7 @@ class RegisterList:
             output_path (`pathlib.Path`): Result will be placed here.
         """
         output_file = output_path / (self.name + "_register_table.html")
-        register_html_generator = RegisterHtmlGenerator(self.name, self._generated_source_info())
+        register_html_generator = RegisterHtmlGenerator(self.name, self.generated_source_info())
         create_file(output_file, register_html_generator.get_register_table(self.register_objects))
 
     def create_html_constant_table(self, output_path):
@@ -333,7 +355,7 @@ class RegisterList:
             output_path (`pathlib.Path`): Result will be placed here.
         """
         output_file = output_path / (self.name + "_constant_table.html")
-        register_html_generator = RegisterHtmlGenerator(self.name, self._generated_source_info())
+        register_html_generator = RegisterHtmlGenerator(self.name, self.generated_source_info())
         create_file(output_file, register_html_generator.get_constant_table(self.constants))
 
     def create_python_class(self, output_path):
@@ -343,30 +365,30 @@ class RegisterList:
         Arguments:
             output_path (`pathlib.Path`): Result will be placed here.
         """
-        register_python_generator = RegisterPythonGenerator(
-            self.name, self._generated_source_info()
-        )
+        register_python_generator = RegisterPythonGenerator(self.name, self.generated_source_info())
         register_python_generator.create_class(register_list=self, output_folder=output_path)
 
     def copy_source_definition(self, output_path):
         """
-        Copy the TOML file that created this register list.
+        Copy the source file that created this register list. If no source file is set, nothing will
+        be copied.
 
         Arguments:
             output_path (`pathlib.Path`): Result will be placed here.
         """
-        create_directory(output_path, empty=False)
-        copy2(self.source_definition_file, output_path)
+        if self.source_definition_file is not None:
+            create_directory(output_path, empty=False)
+            copy2(self.source_definition_file, output_path)
 
     @staticmethod
-    def _generated_info():
+    def generated_info():
         """
         Return:
             list(str): Line(s) informing the user that a file is automatically generated.
         """
         return ["This file is automatically generated by tsfpga."]
 
-    def _generated_source_info(self):
+    def generated_source_info(self):
         """
         Return:
             list(str): Line(s) informing the user that a file is automatically generated, containing
@@ -374,15 +396,19 @@ class RegisterList:
         """
         time_info = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
+        file_info = ""
+        if self.source_definition_file is not None:
+            file_info = f" from file {self.source_definition_file.name}"
+
         commit_info = ""
         if git_commands_are_available(directory=Path(".")):
             commit_info = f" at commit {get_git_commit(directory=Path('.'))}"
         elif svn_commands_are_available():
             commit_info = f" at revision {get_svn_revision_information()}"
 
-        info = f"Generated {time_info} from file {self.source_definition_file.name}{commit_info}."
+        info = f"Generated {time_info}{file_info}{commit_info}."
 
-        return self._generated_info() + [info]
+        return self.generated_info() + [info]
 
     def _hash(self):
         """
