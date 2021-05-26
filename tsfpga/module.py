@@ -82,7 +82,8 @@ class BaseModule:
     @property
     def registers(self):
         """
-        :class:`.RegisterList`: Get the registers for this module.
+        :class:`.RegisterList`: Get the registers for this module. Can be ``None`` if no TOML file
+            exists and no hook creates registers.
         """
         if self._registers is not None:
             # Only create object once
@@ -91,15 +92,15 @@ class BaseModule:
         toml_file = self.path / f"regs_{self.name}.toml"
         if toml_file.exists():
             self._registers = from_toml(self.name, toml_file, self._default_registers)
-            self.registers_hook()
-            return self._registers
 
-        return None
+        self.registers_hook()
+        return self._registers
 
     def registers_hook(self):
         """
         This function will be called directly after creating this module's registers from
-        the TOML definition file.
+        the TOML definition file. If the TOML file does not exist this hook will still be called,
+        but the module's registers will be ``None``.
 
         This is a good place if you want to add or modify some registers from Python.
         Override this method and implement the desired behavior in a child class.

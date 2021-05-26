@@ -93,6 +93,32 @@ def test_test_case_name():
     )
 
 
+def test_getting_registers_calls_registers_hook(tmp_path):
+    with mock.patch("tsfpga.module.from_toml", autospec=True) as from_toml, mock.patch(
+        "tsfpga.module.BaseModule.registers_hook", autospec=True
+    ) as registers_hook:
+        create_file(tmp_path / "a" / "regs_a.toml")
+        module = BaseModule(path=tmp_path / "a", library_name="a")
+        registers = module.registers
+
+        # TOML file exists so register creation from TOML should run
+        from_toml.assert_called_once()
+        registers_hook.assert_called_once()
+        assert registers is not None
+
+    with mock.patch("tsfpga.module.from_toml", autospec=True) as from_toml, mock.patch(
+        "tsfpga.module.BaseModule.registers_hook", autospec=True
+    ) as registers_hook:
+        module = BaseModule(path=tmp_path / "b", library_name="b")
+        registers = module.registers
+
+        # TOML file does not exist, so register creation from TOML should not run
+        from_toml.assert_not_called()
+        # Register hook shall still run however
+        registers_hook.assert_called_once()
+        assert registers is None
+
+
 @pytest.mark.usefixtures("fixture_tmp_path")
 class TestGetModules(TestCase):
 
@@ -158,7 +184,7 @@ class Module(BaseModule):
                 assert False
 
     @mock.patch("tsfpga.module.from_toml", autospec=True)
-    def test_register_object_creation_synthesis(self, from_toml):
+    def test_register_object_creation_called_when_getting_synthesis_files(self, from_toml):
         toml_file = create_file(self.tmp_path / "a" / "regs_a.toml")
 
         module = get_modules(self.modules_folders).get("a")
@@ -168,7 +194,7 @@ class Module(BaseModule):
         from_toml.assert_called_once_with("a", toml_file, mock.ANY)
 
     @mock.patch("tsfpga.module.from_toml", autospec=True)
-    def test_register_object_creation_simulation(self, from_toml):
+    def test_register_object_creation_called_when_getting_simulation_files(self, from_toml):
         toml_file = create_file(self.tmp_path / "a" / "regs_a.toml")
 
         module = get_modules(self.modules_folders).get("a")
@@ -178,7 +204,7 @@ class Module(BaseModule):
         from_toml.assert_called_once_with("a", toml_file, mock.ANY)
 
     @mock.patch("tsfpga.module.from_toml", autospec=True)
-    def test_register_object_creation_mixed(self, from_toml):
+    def test_register_object_creation_called_once_when_getting_mixed_files(self, from_toml):
         toml_file = create_file(self.tmp_path / "a" / "regs_a.toml")
 
         module = get_modules(self.modules_folders).get("a")
