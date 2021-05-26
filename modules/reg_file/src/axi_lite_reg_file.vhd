@@ -198,10 +198,10 @@ begin
     -- psl default clock is rising_edge(clk);
     --
     -- psl reg_was_written_should_pulse_only_one_clock_cycle : assert always
-    --   (reg_was_written /= reg_was_accessed_zero) |=> (reg_was_written = reg_was_accessed_zero);
+    --   {reg_was_written /= reg_was_accessed_zero} |=> (reg_was_written = reg_was_accessed_zero);
     --
     -- psl reg_was_read_should_pulse_only_one_clock_cycle : assert always
-    --   (reg_was_read /= reg_was_accessed_zero) |=> (reg_was_read = reg_was_accessed_zero);
+    --   {reg_was_read /= reg_was_accessed_zero} |=> (reg_was_read = reg_was_accessed_zero);
     --
     -- Asserting reg_was_read typically prompts something in the PL that changes the register value.
     -- Hence it is important that reg_was_read is asserted after the actual read (R) transaction

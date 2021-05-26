@@ -239,10 +239,10 @@ begin
     --
     -- Latency since data must propagate through BRAM.
     -- psl read_valid_goes_high_two_cycles_after_write : assert always
-    --   (write_valid and write_ready) |=> next[1] (read_valid);
+    --   (write_valid and write_ready) -> next[2] (read_valid);
     --
     -- psl read_valid_stays_high_until_read_ready : assert always
-    --   (read_valid) |-> (read_valid) until (read_ready);
+    --   (read_valid) -> (read_valid) until (read_ready);
     --
     -- psl read_data_should_be_stable_until_handshake_transaction : assert always
     --   (not first_cycle) and prev(read_valid and not read_ready) -> stable(read_data);
@@ -254,14 +254,14 @@ begin
     --   first_cycle = '0' and fell(read_valid) -> prev(read_ready);
     --
     -- psl level_should_stay_the_same_if_there_is_both_read_and_write : assert always
-    --   level = 2 and (read_ready and read_valid and write_ready and write_valid) = '1'
+    --   {level = 2 and (read_ready and read_valid and write_ready and write_valid) = '1'}
     --     |=> level = 2;
     --
     -- psl level_should_decrease_cycle_after_read_if_there_is_no_write : assert always
-    --   level = 2 and (read_ready and read_valid and not write_valid) = '1' |=> level = 1;
+    --   {level = 2 and (read_ready and read_valid and not write_valid) = '1'} |=> level = 1;
     --
     -- psl level_should_increase_cycle_after_write_if_there_is_no_read : assert always
-    --   level = 2 and (write_ready and write_valid and not read_ready) = '1' |=> level = 3;
+    --   {level = 2 and (write_ready and write_valid and not read_ready) = '1'} |=> level = 3;
 
     -- The formal verification flow doesn't handle generics very well, so the
     -- check below is only done if the depth is 4.
