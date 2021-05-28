@@ -5,7 +5,8 @@
 -- https://tsfpga.com
 -- https://gitlab.com/tsfpga/tsfpga
 -- -------------------------------------------------------------------------------------------------
--- Resync a vector from one clock domain to another.
+-- Resync a vector from one clock domain to another. This simple vector resync mechanism does not
+-- guarantee any coherency between the bits. There might be a large skew between different bits.
 --
 -- See resync_level header for details about constraining.
 -- -------------------------------------------------------------------------------------------------
@@ -33,17 +34,19 @@ begin
 
   resync_gen : for i in data_in'range generate
   begin
-    resync_level_inst : entity work.resync_level
-    generic map (
-      default_value => default_value(i)
-    )
-    port map (
-      clk_in => clk_in,
-      data_in => data_in(i),
 
-      clk_out => clk_out,
-      data_out => data_out(i)
-    );
+    resync_level_inst : entity work.resync_level
+      generic map (
+        default_value => default_value(i)
+      )
+      port map (
+        clk_in => clk_in,
+        data_in => data_in(i),
+
+        clk_out => clk_out,
+        data_out => data_out(i)
+      );
+
   end generate;
 
 end architecture;
