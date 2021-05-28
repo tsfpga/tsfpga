@@ -151,6 +151,8 @@ begin
 
 
   ------------------------------------------------------------------------------
+  -- Build with an instance of each of the available resync block. To show that the constraints work
+  -- and the build passes timing.
   resync_test_block : block
     -- Dummy bits for input
     alias misc_dummy_input is regs_m2s(ddr_buffer_regs_idx).write.w.data;
