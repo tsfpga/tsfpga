@@ -26,7 +26,8 @@ use work.artyz7_regs_pkg.all;
 entity artyz7_top is
   port (
     clk_ext : in std_logic;
-    led : out std_logic_vector(0 to 3)
+    led : out std_logic_vector(0 to 3) := (others => '0');
+    dummy_output : out std_logic_vector(16 - 1 downto 0) := (others => '0')
   );
 end entity;
 
@@ -54,6 +55,8 @@ begin
     count := count + 1;
   end process;
 
+
+  ------------------------------------------------------------------------------
   blink_1 : process
     variable count : unsigned(27 - 1 downto 0) := (others => '0');
   begin
@@ -81,7 +84,7 @@ begin
         clk_axi => clk_m_gp0,
         axi_m2s => m_gp0_m2s,
         axi_s2m => m_gp0_s2m,
-
+        --
         clk_axi_lite_vec(ddr_buffer_regs_idx) => clk_s_hp0,
         clk_axi_lite_vec(dummy_reg_slaves) => (dummy_reg_slaves => '0'),
         axi_lite_m2s_vec => regs_m2s,
@@ -98,7 +101,7 @@ begin
         )
         port map (
           clk => clk_m_gp0,
-
+          --
           axi_lite_m2s => regs_m2s(slave),
           axi_lite_s2m => regs_s2m(slave)
         );
@@ -110,13 +113,13 @@ begin
   ddr_buffer_inst : entity ddr_buffer.ddr_buffer_top
     port map (
       clk => clk_s_hp0,
-
+      --
       axi_read_m2s => s_hp0_m2s.read,
       axi_read_s2m => s_hp0_s2m.read,
-
+      --
       axi_write_m2s => s_hp0_m2s.write,
       axi_write_s2m => s_hp0_s2m.write,
-
+      --
       regs_m2s => regs_m2s(ddr_buffer_regs_idx),
       regs_s2m => regs_s2m(ddr_buffer_regs_idx)
     );
@@ -130,16 +133,17 @@ begin
     clk_m_gp0 <= pl_clk0;
     clk_s_hp0 <= pl_clk1;
 
+    ------------------------------------------------------------------------------
     block_design_inst : entity work.block_design_wrapper
     port map (
       clk_m_gp0 => clk_m_gp0,
       m_gp0_m2s => m_gp0_m2s,
       m_gp0_s2m => m_gp0_s2m,
-
+      --
       clk_s_hp0 => clk_s_hp0,
       s_hp0_m2s => s_hp0_m2s,
       s_hp0_s2m => s_hp0_s2m,
-
+      --
       pl_clk0 => pl_clk0,
       pl_clk1 => pl_clk1
     );
@@ -148,61 +152,184 @@ begin
 
   ------------------------------------------------------------------------------
   resync_test_block : block
-    signal afifo_read_data            : std_logic_vector(1 downto 0);
-    signal led_data                   : std_logic_vector(2 to 3) := (others => '0');
-    signal afifo_read_ready           : std_logic;
-    signal afifo_read_valid           : std_logic;
-    signal ddr_buffer_reg_was_read    : std_logic;
-    signal ddr_buffer_reg_was_written : std_logic := '0';
+    -- Dummy bits for input
+    alias misc_dummy_input is regs_m2s(ddr_buffer_regs_idx).write.w.data;
+    signal dummy_output_m1 : std_logic_vector(dummy_output'range) := (others => '0');
+
+    -- Dummy signal in clk_ext domain
+    signal sample_value : std_logic := '0';
   begin
 
     -- Some dummy logic that instantiates a lot of the resync blocks.
-
-    -- Write fifo when a ddr buffer register was written, and read when a register was read
-    ddr_buffer_reg_was_written <= regs_m2s(ddr_buffer_regs_idx).write.w.valid and regs_s2m(ddr_buffer_regs_idx).write.w.ready;
-    ddr_buffer_reg_was_read    <= regs_s2m(ddr_buffer_regs_idx).read.r.valid and regs_m2s(ddr_buffer_regs_idx).read.r.ready;
-
-    resync_pulse_inst: entity resync.resync_pulse
-      port map (
-        clk_in    => clk_s_hp0,
-        pulse_in  => ddr_buffer_reg_was_read,
-        clk_out   => clk_ext,
-        pulse_out => afifo_read_ready
-      );
-
-    asynchronous_fifo_inst : entity fifo.asynchronous_fifo
-      generic map (
-        width => afifo_read_data'length,
-        depth => 1024 -- Depth is selected to create a BRAM
-        )
-      port map (
-        clk_read     => clk_ext,
-        read_ready   => afifo_read_ready,
-        read_valid   => afifo_read_valid,
-        read_data    => afifo_read_data,
-        clk_write    => clk_s_hp0,
-        write_ready  => open,
-        write_valid  => ddr_buffer_reg_was_written,
-        write_data   => regs_m2s(ddr_buffer_regs_idx).write.w.data(1 downto 0)
-        );
-
-    latch_led_data : process
+    -- All resync should be from internal clock to clk_ext.
+    assign_output : process
     begin
       wait until rising_edge(clk_ext);
-      if afifo_read_ready and afifo_read_valid then
-        led_data <= afifo_read_data;
-      end if;
+      dummy_output <= dummy_output_m1;
     end process;
 
-    resync_slv_level_inst: entity resync.resync_slv_level
+
+    ------------------------------------------------------------------------------
+    resync_counter_inst: entity resync.resync_counter
       generic map (
-        width => led_data'length
+        width => 4
       )
       port map (
-        data_in  => led_data,
-        clk_out  => clk_s_hp0,
-        data_out => led(2 to 3)
+        clk_in => clk_s_hp0,
+        counter_in => unsigned(misc_dummy_input(3 downto 0)),
+        --
+        clk_out => clk_ext,
+        std_logic_vector(counter_out) => dummy_output_m1(3 downto 0)
       );
+
+
+    ------------------------------------------------------------------------------
+    resync_cycles_inst: entity resync.resync_cycles
+      generic map (
+        counter_width => 8
+      )
+      port map (
+        clk_in => clk_s_hp0,
+        data_in => misc_dummy_input(4),
+        --
+        clk_out => clk_ext,
+        data_out => dummy_output_m1(4)
+      );
+
+
+    ------------------------------------------------------------------------------
+    resync_level_on_signal_inst: entity resync.resync_level_on_signal
+      port map (
+        data_in => misc_dummy_input(5),
+        --
+        clk_out => clk_ext,
+        sample_value => sample_value,
+        data_out => dummy_output_m1(5)
+      );
+
+
+    ------------------------------------------------------------------------------
+    resync_level_with_clk_in_inst: entity resync.resync_level
+      port map (
+        clk_in => clk_s_hp0,
+        data_in => misc_dummy_input(6),
+        --
+        clk_out => clk_ext,
+        data_out => dummy_output_m1(6)
+      );
+
+
+    ------------------------------------------------------------------------------
+    resync_level_without_clk_in_inst: entity resync.resync_level
+      port map (
+        data_in => misc_dummy_input(7),
+        --
+        clk_out => clk_ext,
+        data_out => dummy_output_m1(7)
+      );
+
+    sample_value <= dummy_output(7);
+
+
+    ------------------------------------------------------------------------------
+    resync_slv_level_on_signal_inst: entity resync.resync_slv_level_on_signal
+      generic map (
+        width => 2
+      )
+      port map (
+        data_in => misc_dummy_input(9 downto 8),
+        --
+        clk_out => clk_ext,
+        sample_value => sample_value,
+        data_out => dummy_output_m1(9 downto 8)
+      );
+
+
+    ------------------------------------------------------------------------------
+    resync_slv_level_inst: entity resync.resync_slv_level
+      generic map (
+        width => 2
+      )
+      port map (
+        data_in => misc_dummy_input(11 downto 10),
+        --
+        clk_out => clk_ext,
+        data_out => dummy_output_m1(11 downto 10)
+      );
+
+
+    ------------------------------------------------------------------------------
+    asynchronous_fifo_block : block
+
+      -- We need to use a somewhat wide word in order to get Vivado to pack data in BRAM.
+      -- We do no want to use the same bits as some other resync, so for FIFO we use another
+      -- dummy input word.
+      alias fifo_dummy_input is regs_m2s(dummy_reg_slaves'low).write.w.data;
+      signal deep_read_data, shallow_read_data : std_logic_vector(16 - 1 downto 0) :=
+        (others => '0');
+      signal fifo_write_valid, fifo_read_ready : std_logic := '0';
+
+    begin
+
+      fifo_write_valid <=
+        regs_s2m(dummy_reg_slaves'low).write.w.ready
+        and regs_m2s(dummy_reg_slaves'low).write.w.valid;
+
+      dummy_output_m1(14) <= xor deep_read_data;
+      dummy_output_m1(15) <= xor shallow_read_data;
+
+
+      ------------------------------------------------------------------------------
+      deep_asynchronous_fifo_inst : entity fifo.asynchronous_fifo
+        generic map (
+          width => deep_read_data'length,
+          -- Depth is selected to create a BRAM
+          depth => 1024
+        )
+        port map (
+          clk_read => clk_ext,
+          read_ready => fifo_read_ready,
+          read_valid => open,
+          read_data => deep_read_data,
+          --
+          clk_write => clk_m_gp0,
+          write_ready => open,
+          write_valid => fifo_write_valid,
+          write_data => fifo_dummy_input(31 downto 16)
+        );
+
+
+      ------------------------------------------------------------------------------
+      shallow_asynchronous_fifo_inst : entity fifo.asynchronous_fifo
+        generic map (
+          width => shallow_read_data'length,
+          -- Depth is selected to create a LUTRAM
+          depth => 16
+        )
+        port map (
+          clk_read => clk_ext,
+          read_ready => fifo_read_ready,
+          read_valid => open,
+          read_data => shallow_read_data,
+          --
+          clk_write => clk_m_gp0,
+          write_ready => open,
+          write_valid => fifo_write_valid,
+          write_data => fifo_dummy_input(15 downto 0)
+        );
+
+
+      ------------------------------------------------------------------------------
+      resync_pulse_inst: entity resync.resync_pulse
+        port map (
+          clk_in => clk_m_gp0,
+          pulse_in => fifo_write_valid,
+          --
+          clk_out => clk_ext,
+          pulse_out => fifo_read_ready
+        );
+
+    end block;
 
   end block;
 
