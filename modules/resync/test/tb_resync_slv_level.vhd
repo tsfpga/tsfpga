@@ -16,63 +16,122 @@ context vunit_lib.vunit_context;
 
 entity tb_resync_slv_level is
   generic (
+    test_coherent : boolean;
+    output_clock_is_faster : boolean;
     runner_cfg : string
   );
 end entity;
 
 architecture tb of tb_resync_slv_level is
-  signal clk_out : std_logic := '0';
-  signal data_in, data_out : std_logic_vector(16-1 downto 0) := (others => '0');
+
+  constant clock_period_fast : time := 2 ns;
+  constant clock_period_medium : time := 10 ns;
+  constant clock_period_slow : time := 10 ns;
+
+  function clk_out_period return time is
+  begin
+    if output_clock_is_faster then
+      return clock_period_fast;
+    else
+      return clock_period_slow;
+    end if;
+  end function;
+
+  constant one : std_logic_vector(16 - 1 downto 0) := x"1111";
+  constant two : std_logic_vector(one'range) := x"2222";
+
+  signal clk_in, clk_out : std_logic := '0';
+  signal data_in, data_out : std_logic_vector(one'range) := one;
+
 begin
 
   test_runner_watchdog(runner, 10 ms);
-  clk_out <= not clk_out after 2 ns;
+  clk_out <= not clk_out after clk_out_period / 2;
+  clk_in <= not clk_in after clock_period_medium / 2;
 
 
   ------------------------------------------------------------------------------
   main : process
+
     procedure wait_cycles(signal clk : std_logic; num_cycles : in integer) is
     begin
       for i in 0 to num_cycles-1 loop
         wait until rising_edge(clk);
       end loop;
     end procedure;
-    constant zero : std_logic_vector(data_in'range) := (others => '0');
-    constant value : std_logic_vector(data_in'range) := x"BAAD";
+
+    procedure wait_for_input_value_to_propagate is
+    begin
+      wait_cycles(clk_out, 3);
+
+      if test_coherent then
+        wait_cycles(clk_in, 3);
+      end if;
+    end procedure;
+
   begin
     test_runner_setup(runner, runner_cfg);
 
-    -- Module functionality is very simple. This is basically a connectivity test.
+    -- Default value
+    check_equal(data_out, one);
 
     wait until rising_edge(clk_out);
-    check_equal(data_out, zero);
-
-    wait_cycles(clk_out, 40);
-    check_equal(data_out, zero);
-    data_in <= value;
-
-    wait until rising_edge(clk_out);
-    wait until rising_edge(clk_out);
-    wait until rising_edge(clk_out);
-    check_equal(data_out, value);
+    check_equal(data_out, one);
 
     wait_cycles(clk_out, 40);
-    check_equal(data_out, value);
+    check_equal(data_out, one);
+    data_in <= two;
+
+    wait_for_input_value_to_propagate;
+    check_equal(data_out, two);
+
+    wait_cycles(clk_out, 40);
+    check_equal(data_out, two);
 
     test_runner_cleanup(runner);
   end process;
 
 
   ------------------------------------------------------------------------------
-  dut : entity work.resync_slv_level
-    generic map (
-      width => data_in'length
-    )
-    port map (
-      data_in => data_in,
+  assert_output_always_valid_value : process
+  begin
+    wait until rising_edge(clk_out);
+    assert data_out = one or data_out = two;
+  end process;
 
-      clk_out => clk_out,
-      data_out => data_out
-    );
+
+  ------------------------------------------------------------------------------
+  choose_dut : if test_coherent generate
+
+    dut : entity work.resync_slv_level_coherent
+      generic map (
+        width => data_in'length,
+        default_value => one
+      )
+      port map (
+        clk_in => clk_in,
+        data_in => data_in,
+
+        clk_out => clk_out,
+        data_out => data_out
+      );
+
+  else generate
+
+    dut : entity work.resync_slv_level
+      generic map (
+        width => data_in'length,
+        default_value => one
+      )
+      port map (
+        clk_in => clk_in,
+        data_in => data_in,
+
+        clk_out => clk_out,
+        data_out => data_out
+      );
+
+  end generate;
+
 
 end architecture;

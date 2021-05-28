@@ -7,10 +7,21 @@
 # --------------------------------------------------------------------------------------------------
 
 from tsfpga.module import BaseModule
+from tsfpga.vivado.build_result_checker import EqualTo, Ffs, TotalLuts
+from tsfpga.vivado.project import VivadoNetlistProject
+from examples.tsfpga_example_env import get_tsfpga_modules
 
 
 class Module(BaseModule):
     def setup_vunit(self, vunit_proj, **kwargs):
+        tb = vunit_proj.library(self.library_name).test_bench("tb_resync_slv_level")
+        for output_clock_is_faster in [True, False]:
+            for test_coherent in [True, False]:
+                generics = dict(
+                    output_clock_is_faster=output_clock_is_faster, test_coherent=test_coherent
+                )
+                self.add_vunit_config(tb, generics=generics)
+
         tb = vunit_proj.library(self.library_name).test_bench("tb_resync_pulse")
         for input_pulse_overload in [True, False]:
             name = "pulse_gating." if input_pulse_overload else ""
@@ -41,3 +52,41 @@ class Module(BaseModule):
 
             generics = dict(active_high=active_high, output_clock_is_slower=True)
             self.add_vunit_config(tb, generics=generics)
+
+    def get_build_projects(self):
+        projects = []
+        modules = get_tsfpga_modules()
+        part = "xc7z020clg400-1"
+        generics = dict(width=16)
+
+        projects.append(
+            VivadoNetlistProject(
+                name=self.test_case_name(
+                    f"{self.library_name}.resync_slv_level_coherent", generics
+                ),
+                modules=modules,
+                part=part,
+                top="resync_slv_level_coherent",
+                generics=generics,
+                build_result_checkers=[
+                    TotalLuts(EqualTo(3)),
+                    Ffs(EqualTo(38)),
+                ],
+            )
+        )
+
+        projects.append(
+            VivadoNetlistProject(
+                name=self.test_case_name(f"{self.library_name}.resync_counter", generics),
+                modules=modules,
+                part=part,
+                top="resync_counter",
+                generics=generics,
+                build_result_checkers=[
+                    TotalLuts(EqualTo(23)),
+                    Ffs(EqualTo(48)),
+                ],
+            )
+        )
+
+        return projects

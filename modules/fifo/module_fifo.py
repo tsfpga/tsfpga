@@ -301,3 +301,23 @@ class Module(BaseModule):
                 ],
             )
         )
+
+        # A shallow FIFO, which commonly would be used to resync a coherent bit vector.
+        # Note that this uses the minimal top level wrapper so that only the barebone features
+        # are available.
+        generics = dict(use_asynchronous_fifo=True, width=16, depth=8)
+        projects.append(
+            VivadoNetlistProject(
+                name=self.test_case_name("resync_fifo", generics),
+                modules=modules,
+                part=part,
+                top="fifo_netlist_build_wrapper",
+                generics=generics,
+                build_result_checkers=[
+                    TotalLuts(EqualTo(35)),
+                    Ffs(EqualTo(50)),
+                    Ramb36(EqualTo(0)),
+                    Ramb18(EqualTo(0)),
+                ],
+            )
+        )

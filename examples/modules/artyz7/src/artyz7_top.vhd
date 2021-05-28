@@ -261,6 +261,20 @@ begin
 
 
     ------------------------------------------------------------------------------
+    resync_slv_level_coherent_inst: entity resync.resync_slv_level_coherent
+      generic map (
+        width => 2
+      )
+      port map (
+        clk_in => clk_s_hp0,
+        data_in => misc_dummy_input(13 downto 12),
+        --
+        clk_out => clk_ext,
+        data_out => dummy_output_m1(13 downto 12)
+      );
+
+
+    ------------------------------------------------------------------------------
     asynchronous_fifo_block : block
 
       -- We need to use a somewhat wide word in order to get Vivado to pack data in BRAM.
