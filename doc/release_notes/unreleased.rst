@@ -10,3 +10,6 @@ Breaking changes
 
 * Always call :meth:`.BaseModule.registers_hook` from :meth:`.BaseModule.registers`, even when TOML file does not exists.
   This means that ``self._registers`` might be ``None`` when entering :meth:`.BaseModule.registers_hook`.
+
+* Add mandatory generic ``enable_input_register`` to ``resync.resync_level`` and ``resync.resync_slv_level`` VHDL entities.
+  See ``resync_level.vhd`` file header for details.

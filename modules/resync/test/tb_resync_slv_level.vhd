@@ -18,6 +18,7 @@ entity tb_resync_slv_level is
   generic (
     test_coherent : boolean;
     output_clock_is_faster : boolean;
+    enable_input_register : boolean;
     runner_cfg : string
   );
 end entity;
@@ -61,12 +62,23 @@ begin
     end procedure;
 
     procedure wait_for_input_value_to_propagate is
+      variable clk_in_wait_count, clk_out_wait_count : natural := 0;
     begin
-      wait_cycles(clk_out, 3);
+      -- Wait to assign input value in tb
+      clk_in_wait_count := 1;
+      -- Two registers
+      clk_out_wait_count := 2;
 
       if test_coherent then
-        wait_cycles(clk_in, 3);
+        clk_in_wait_count := clk_in_wait_count + 3;
       end if;
+
+      if enable_input_register then
+        clk_in_wait_count := clk_in_wait_count + 1;
+      end if;
+
+      wait_cycles(clk_in, clk_in_wait_count);
+      wait_cycles(clk_out, clk_out_wait_count);
     end procedure;
 
   begin
@@ -121,6 +133,7 @@ begin
     dut : entity work.resync_slv_level
       generic map (
         width => data_in'length,
+        enable_input_register => enable_input_register,
         default_value => one
       )
       port map (

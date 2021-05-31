@@ -17,10 +17,17 @@ class Module(BaseModule):
         tb = vunit_proj.library(self.library_name).test_bench("tb_resync_slv_level")
         for output_clock_is_faster in [True, False]:
             for test_coherent in [True, False]:
-                generics = dict(
-                    output_clock_is_faster=output_clock_is_faster, test_coherent=test_coherent
-                )
-                self.add_vunit_config(tb, generics=generics)
+                for enable_input_register in [True, False]:
+                    if test_coherent and enable_input_register:
+                        # Coherent implementation does not have the 'input_register' mode
+                        continue
+
+                    generics = dict(
+                        output_clock_is_faster=output_clock_is_faster,
+                        test_coherent=test_coherent,
+                        enable_input_register=enable_input_register,
+                    )
+                    self.add_vunit_config(tb, generics=generics)
 
         tb = vunit_proj.library(self.library_name).test_bench("tb_resync_pulse")
         for input_pulse_overload in [True, False]:

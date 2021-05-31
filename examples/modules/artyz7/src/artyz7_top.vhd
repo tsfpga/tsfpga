@@ -177,7 +177,7 @@ begin
 
 
     ------------------------------------------------------------------------------
-    resync_counter_inst: entity resync.resync_counter
+    resync_counter_inst : entity resync.resync_counter
       generic map (
         width => 4
       )
@@ -191,7 +191,7 @@ begin
 
 
     ------------------------------------------------------------------------------
-    resync_cycles_inst: entity resync.resync_cycles
+    resync_cycles_inst : entity resync.resync_cycles
       generic map (
         counter_width => 8
       )
@@ -205,7 +205,7 @@ begin
 
 
     ------------------------------------------------------------------------------
-    resync_level_on_signal_inst: entity resync.resync_level_on_signal
+    resync_level_on_signal_inst : entity resync.resync_level_on_signal
       port map (
         data_in => misc_dummy_input(5),
         --
@@ -216,7 +216,10 @@ begin
 
 
     ------------------------------------------------------------------------------
-    resync_level_with_clk_in_inst: entity resync.resync_level
+    resync_level_with_clk_in_inst : entity resync.resync_level
+      generic map (
+        enable_input_register => false
+      )
       port map (
         clk_in => clk_s_hp0,
         data_in => misc_dummy_input(6),
@@ -227,55 +230,88 @@ begin
 
 
     ------------------------------------------------------------------------------
-    resync_level_without_clk_in_inst: entity resync.resync_level
+    resync_level_with_clk_in_and_input_register_inst : entity resync.resync_level
+      generic map (
+        enable_input_register => true
+      )
       port map (
+        clk_in => clk_s_hp0,
         data_in => misc_dummy_input(7),
         --
         clk_out => clk_ext,
         data_out => dummy_output_m1(7)
       );
 
-    sample_value <= dummy_output(7);
+
+    ------------------------------------------------------------------------------
+    resync_level_without_clk_in_inst : entity resync.resync_level
+      generic map (
+        enable_input_register => false
+      )
+      port map (
+        data_in => misc_dummy_input(8),
+        --
+        clk_out => clk_ext,
+        data_out => dummy_output_m1(8)
+      );
+
+    sample_value <= dummy_output(8);
 
 
     ------------------------------------------------------------------------------
-    resync_slv_level_on_signal_inst: entity resync.resync_slv_level_on_signal
+    resync_slv_level_on_signal_inst : entity resync.resync_slv_level_on_signal
       generic map (
         width => 2
       )
       port map (
-        data_in => misc_dummy_input(9 downto 8),
+        data_in => misc_dummy_input(10 downto 9),
         --
         clk_out => clk_ext,
         sample_value => sample_value,
-        data_out => dummy_output_m1(9 downto 8)
+        data_out => dummy_output_m1(10 downto 9)
       );
 
 
     ------------------------------------------------------------------------------
-    resync_slv_level_inst: entity resync.resync_slv_level
+    resync_slv_level_without_clk_in_inst : entity resync.resync_slv_level
       generic map (
-        width => 2
+        width => 2,
+        enable_input_register => false
       )
       port map (
-        data_in => misc_dummy_input(11 downto 10),
+        data_in => misc_dummy_input(12 downto 11),
         --
         clk_out => clk_ext,
-        data_out => dummy_output_m1(11 downto 10)
+        data_out => dummy_output_m1(12 downto 11)
       );
 
 
     ------------------------------------------------------------------------------
-    resync_slv_level_coherent_inst: entity resync.resync_slv_level_coherent
+    resync_slv_level_with_input_register_inst : entity resync.resync_slv_level
+      generic map (
+        width => 2,
+        enable_input_register => true
+      )
+      port map (
+        clk_in => clk_s_hp0,
+        data_in => misc_dummy_input(14 downto 13),
+        --
+        clk_out => clk_ext,
+        data_out => dummy_output_m1(14 downto 13)
+      );
+
+
+    ------------------------------------------------------------------------------
+    resync_slv_level_coherent_inst : entity resync.resync_slv_level_coherent
       generic map (
         width => 2
       )
       port map (
         clk_in => clk_s_hp0,
-        data_in => misc_dummy_input(13 downto 12),
+        data_in => misc_dummy_input(16 downto 15),
         --
         clk_out => clk_ext,
-        data_out => dummy_output_m1(13 downto 12)
+        data_out => dummy_output_m1(16 downto 15)
       );
 
 
@@ -296,8 +332,8 @@ begin
         regs_s2m(dummy_reg_slaves'low).write.w.ready
         and regs_m2s(dummy_reg_slaves'low).write.w.valid;
 
-      dummy_output_m1(14) <= xor deep_read_data;
-      dummy_output_m1(15) <= xor shallow_read_data;
+      dummy_output_m1(17) <= xor deep_read_data;
+      dummy_output_m1(18) <= xor shallow_read_data;
 
 
       ------------------------------------------------------------------------------
@@ -341,7 +377,7 @@ begin
 
 
       ------------------------------------------------------------------------------
-      resync_pulse_inst: entity resync.resync_pulse
+      resync_pulse_inst : entity resync.resync_pulse
         port map (
           clk_in => clk_m_gp0,
           pulse_in => fifo_write_valid,

@@ -68,6 +68,8 @@ begin
   ------------------------------------------------------------------------------
   resync_level_to_output_inst : entity work.resync_level
     generic map (
+      -- Value is driven by a FF so this is not needed
+      enable_input_register => false,
       default_value => level_default_value
     )
     port map (
@@ -82,6 +84,8 @@ begin
   ------------------------------------------------------------------------------
   resync_level_to_input_inst : entity work.resync_level
     generic map (
+      -- Value is driven by a FF so this is not needed
+      enable_input_register => false,
       default_value => level_default_value
     )
     port map (

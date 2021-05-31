@@ -57,24 +57,32 @@ begin
 
   ------------------------------------------------------------------------------
   level_in_resync_inst : entity work.resync_level
-  port map (
-    clk_in => clk_in,
-    data_in => level_in,
+    generic map (
+      -- Value is drive by a FF so this is not needed
+      enable_input_register => false
+    )
+    port map (
+      clk_in => clk_in,
+      data_in => level_in,
 
-    clk_out => clk_out,
-    data_out => level_out
-  );
+      clk_out => clk_out,
+      data_out => level_out
+    );
 
 
   ------------------------------------------------------------------------------
   level_out_resync_inst : entity work.resync_level
-  port map (
-    clk_in => clk_out,
-    data_in => level_out,
+    generic map (
+      -- Value is drive by a FF so this is not needed
+      enable_input_register => false
+    )
+    port map (
+      clk_in => clk_out,
+      data_in => level_out,
 
-    clk_out => clk_in,
-    data_out => level_out_feedback
-  );
+      clk_out => clk_in,
+      data_out => level_out_feedback
+    );
 
 
   ------------------------------------------------------------------------------

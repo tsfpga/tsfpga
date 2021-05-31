@@ -42,6 +42,10 @@ begin
 
   ------------------------------------------------------------------------------
   resync_level_inst : entity resync.resync_level
+    generic map (
+      -- We do not know the input clock, so set this to false
+      enable_input_register => false
+    )
     port map (
       data_in => noisy_input,
       --
