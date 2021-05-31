@@ -11,6 +11,9 @@
 -- Without input gating, if multiple pulses arrive close to each other, pulse overload will occur and
 -- some or even all of them can be missed and not arrive on the output.
 -- With input gating, if multiple pulses arrive one and only one will arrive on the output.
+--
+-- Note that unlike e.g. resync_level, it is safe to drive the input of this entity with LUTs
+-- as well as FFs.
 -- -------------------------------------------------------------------------------------------------
 
 library ieee;

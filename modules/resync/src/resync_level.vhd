@@ -48,6 +48,8 @@ begin
 
   data_out <= data_out_int;
 
+
+  ------------------------------------------------------------------------------
   main : process
   begin
     wait until rising_edge(clk_out);

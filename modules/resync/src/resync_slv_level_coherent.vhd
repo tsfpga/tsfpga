@@ -9,6 +9,9 @@
 -- entity contains a mechanism that guarantees bit coherency. An asynchronous FIFO can also be used
 -- to achieve this task, but this entity results in a smaller logic footprint.
 --
+-- Note that unlike e.g. resync_level, it is safe to drive the input of this entity with LUTs
+-- as well as FFs.
+--
 -- A level signal is rotated around between input and output side, with three registers in each
 -- direction. The level toggles for each roundtrip, and data is sampled on each side upon a level
 -- transition.
@@ -39,6 +42,8 @@ use ieee.std_logic_1164.all;
 entity resync_slv_level_coherent is
   generic (
     width : positive;
+    -- Initial value for the ouput that will be set for a few cycles before the first input
+    -- value has propagated.
     default_value : std_logic_vector(width - 1 downto 0) := (others => '0')
   );
   port (

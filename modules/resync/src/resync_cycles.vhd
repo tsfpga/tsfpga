@@ -13,6 +13,9 @@
 -- how many clk_out cycles the output bit should be asserted.
 -- The module may fail when clk_out is slower than clk_in and the input is
 -- asserted many cycles in a row. An assertion is made to check for this case.
+--
+-- Note that unlike e.g. resync_level, it is safe to drive the input of this entity with LUTs
+-- as well as FFs.
 -- -------------------------------------------------------------------------------------------------
 
 library ieee;
@@ -48,6 +51,7 @@ begin
   input : process
   begin
     wait until rising_edge(clk_in);
+
     if data_in = active_level then
       counter_in <= (counter_in + 1);
     end if;
@@ -56,16 +60,16 @@ begin
 
   ------------------------------------------------------------------------------
   counter_in_resync_inst : entity work.resync_counter
-  generic map (
-    width => counter_width
-  )
-  port map (
-    clk_in => clk_in,
-    counter_in => counter_in,
+    generic map (
+      width => counter_width
+    )
+    port map (
+      clk_in => clk_in,
+      counter_in => counter_in,
 
-    clk_out => clk_out,
-    counter_out => counter_in_resync
-  );
+      clk_out => clk_out,
+      counter_out => counter_in_resync
+    );
 
 
   ------------------------------------------------------------------------------

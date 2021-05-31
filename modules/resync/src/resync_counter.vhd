@@ -9,6 +9,9 @@
 --
 -- This module assumes that the input counter value only increments
 -- and decrements in steps of one.
+--
+-- Note that unlike e.g. resync_level, it is safe to drive the input of this entity with LUTs
+-- as well as FFs.
 -- -------------------------------------------------------------------------------------------------
 
 library ieee;
@@ -25,16 +28,19 @@ use math.math_pkg.all;
 entity resync_counter is
   generic (
     width : positive;
+    -- Initial value for the ouput that will be set for a few cycles before the first input
+    -- value has propagated.
     default_value   : unsigned(width - 1 downto 0) := (others => '0');
+    -- Optional pipeline step on the output after Gray conversion
     pipeline_output : boolean := false
-    );
+  );
   port (
     clk_in     : in std_logic;
     counter_in : in unsigned(default_value'range);
 
     clk_out     : in std_logic;
     counter_out : out unsigned(default_value'range) := default_value
-    );
+  );
 end entity;
 
 architecture a of resync_counter is
@@ -46,27 +52,39 @@ architecture a of resync_counter is
   attribute async_reg of counter_out_gray   : signal is "true";
 begin
 
+  ------------------------------------------------------------------------------
   clk_in_process : process
   begin
     wait until rising_edge(clk_in);
+
     counter_in_gray <= to_gray(counter_in);
   end process;
 
+
+  ------------------------------------------------------------------------------
   clk_out_process : process
   begin
     wait until rising_edge(clk_out);
+
     counter_out_gray   <= counter_in_gray_p1;
     counter_in_gray_p1 <= counter_in_gray;
   end process;
 
+
+  ------------------------------------------------------------------------------
   optional_output_pipe : if pipeline_output generate
+
     pipe : process
     begin
       wait until rising_edge(clk_out);
+
       counter_out <= from_gray(counter_out_gray);
     end process;
+
   else generate
+
     counter_out <= from_gray(counter_out_gray);
+
   end generate;
 
 end architecture;

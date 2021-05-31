@@ -32,9 +32,11 @@ end entity;
 architecture a of resync_slv_level is
 begin
 
+  ------------------------------------------------------------------------------
   resync_gen : for i in data_in'range generate
   begin
 
+    ------------------------------------------------------------------------------
     resync_level_inst : entity work.resync_level
       generic map (
         default_value => default_value(i)
