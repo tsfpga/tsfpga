@@ -8,7 +8,15 @@
 
 from tsfpga.module import BaseModule
 from tsfpga.vivado.project import VivadoNetlistProject
-from tsfpga.vivado.build_result_checker import EqualTo, Ffs, LogicLuts, Ramb18, Ramb36, TotalLuts
+from tsfpga.vivado.build_result_checker import (
+    EqualTo,
+    Ffs,
+    LogicLuts,
+    MaximumLogicLevel,
+    Ramb18,
+    Ramb36,
+    TotalLuts,
+)
 from examples.tsfpga_example_env import get_tsfpga_modules
 
 
@@ -35,7 +43,7 @@ class Module(BaseModule):
 
         projects.append(
             VivadoNetlistProject(
-                name="axi_lite_reg_file",
+                name=f"{self.library_name}.axi_lite_reg_file",
                 modules=all_modules,
                 part=part,
                 top="axi_lite_reg_file_wrapper",
@@ -45,6 +53,21 @@ class Module(BaseModule):
                     Ffs(EqualTo(456)),
                     Ramb36(EqualTo(0)),
                     Ramb18(EqualTo(0)),
+                    MaximumLogicLevel(EqualTo(4)),
+                ],
+            )
+        )
+
+        projects.append(
+            VivadoNetlistProject(
+                name=f"{self.library_name}.interrupt_register",
+                modules=all_modules,
+                part=part,
+                top="interrupt_register",
+                build_result_checkers=[
+                    TotalLuts(EqualTo(45)),
+                    Ffs(EqualTo(32)),
+                    MaximumLogicLevel(EqualTo(4)),
                 ],
             )
         )
