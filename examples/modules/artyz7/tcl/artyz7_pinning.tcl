@@ -1,5 +1,5 @@
-# Original filename "Arty-Z7-20-Master.xdc"
-# Downloaded from https://github.com/Digilent/digilent-xdc at commit 01e6bf6
+# Downloaded from https://github.com/Digilent/digilent-xdc/blob/master/Arty-Z7-20-Master.xdc
+# at commit 01e6bf6
 # Further pins and all original names available there.
 
 ## Clock Signal
@@ -31,3 +31,11 @@ set_property -dict {package_pin W16 iostandard lvcmos33} [get_ports dummy_output
 set_property -dict {package_pin V16 iostandard lvcmos33} [get_ports dummy_output[13]];
 set_property -dict {package_pin W13 iostandard lvcmos33} [get_ports dummy_output[14]];
 set_property -dict {package_pin V12 iostandard lvcmos33} [get_ports dummy_output[15]];
+
+## RGB LEDs
+set_property -dict {package_pin L15 iostandard lvcmos33} [get_ports dummy_output[16]];
+set_property -dict {package_pin G17 iostandard lvcmos33} [get_ports dummy_output[17]];
+set_property -dict {package_pin N15 iostandard lvcmos33} [get_ports dummy_output[18]];
+set_property -dict {package_pin G14 iostandard lvcmos33} [get_ports dummy_output[19]];
+set_property -dict {package_pin L14 iostandard lvcmos33} [get_ports dummy_output[20]];
+set_property -dict {package_pin M15 iostandard lvcmos33} [get_ports dummy_output[21]];

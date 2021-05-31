@@ -27,7 +27,7 @@ entity artyz7_top is
   port (
     clk_ext : in std_logic;
     led : out std_logic_vector(0 to 3) := (others => '0');
-    dummy_output : out std_logic_vector(16 - 1 downto 0) := (others => '0')
+    dummy_output : out std_logic_vector(22 - 1 downto 0) := (others => '0')
   );
 end entity;
 
@@ -154,9 +154,9 @@ begin
   -- Build with an instance of each of the available resync block. To show that the constraints work
   -- and the build passes timing.
   resync_test_block : block
-    -- Dummy bits for input
-    alias misc_dummy_input is regs_m2s(ddr_buffer_regs_idx).write.w.data;
-    signal dummy_output_m1 : std_logic_vector(dummy_output'range) := (others => '0');
+
+    signal misc_dummy_input, dummy_output_m1 : std_logic_vector(dummy_output'range) :=
+      (others => '0');
 
     -- Dummy signal in clk_ext domain
     signal sample_value : std_logic := '0';
@@ -169,6 +169,11 @@ begin
       wait until rising_edge(clk_ext);
       dummy_output <= dummy_output_m1;
     end process;
+
+    -- Dummy bits for input.
+    -- Do not use more than the 32 bits that are actually assigned by the register bus.
+    -- Vivado will strip the logic since input will be '-'.
+    misc_dummy_input <= regs_m2s(ddr_buffer_regs_idx).write.w.data(misc_dummy_input'range);
 
 
     ------------------------------------------------------------------------------
