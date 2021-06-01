@@ -65,9 +65,9 @@ class Module(BaseModule):
                 part=part,
                 top="interrupt_register",
                 build_result_checkers=[
-                    TotalLuts(EqualTo(45)),
-                    Ffs(EqualTo(32)),
-                    MaximumLogicLevel(EqualTo(4)),
+                    TotalLuts(EqualTo(39)),
+                    Ffs(EqualTo(33)),
+                    MaximumLogicLevel(EqualTo(5)),
                 ],
             )
         )
