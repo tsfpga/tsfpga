@@ -83,6 +83,9 @@ end architecture;
         # Default top level
         resync = """
   code_block : entity resync.resync_level
+  generic map (
+    enable_input_register => false
+  )
   port map (
     data_in => input_p1,
 
@@ -177,6 +180,9 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
     signal resynced_input : std_logic;
   begin
     resync_level_inst : entity resync.resync_level
+    generic map (
+      enable_input_register => false
+    )
     port map (
       data_in => input_p1,
 
