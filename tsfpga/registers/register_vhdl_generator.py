@@ -79,6 +79,30 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
             return ""
 
         map_name = f"{self.module_name}_reg_map"
+        range_name = f"{self.module_name}_reg_range"
+
+        last_index = register_objects[-1].index
+        vhdl = "  -- Declare register map constants here, but define them in body.\n"
+        vhdl += "  -- This is done so that functions have been elaborated when they are called.\n"
+        vhdl += f"  subtype {range_name} is integer range 0 to {last_index};\n"
+        vhdl += f"  constant {map_name} : reg_definition_vec_t({range_name});\n"
+        vhdl += f"  subtype {self.module_name}_regs_t is reg_vec_t({range_name});\n"
+        vhdl += (
+            "  subtype "
+            f"{self.module_name}_reg_was_accessed_t is std_logic_vector({range_name});\n"
+        )
+        vhdl += f"  constant {self.module_name}_regs_init : {self.module_name}_regs_t;\n"
+        vhdl += "\n"
+
+        return vhdl
+
+    def _register_map_body(self, register_objects):
+        if not register_objects:
+            # It is possible that we have constants but no registers
+            return ""
+
+        map_name = f"{self.module_name}_reg_map"
+        range_name = f"{self.module_name}_reg_range"
 
         register_definitions = []
         default_values = []
@@ -100,16 +124,10 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
                             f"  std_logic_vector(to_signed({register.default_value}, 32))"
                         )
 
-        last_index = register_objects[-1].index
-        vhdl = f"  constant {map_name} : reg_definition_vec_t(0 to {last_index}) := (\n  "
+        vhdl = f"  constant {map_name} : reg_definition_vec_t({range_name}) := (\n  "
         vhdl += ",\n  ".join(register_definitions)
         vhdl += "\n  );\n"
         vhdl += "\n"
-        vhdl += f"  subtype {self.module_name}_regs_t is reg_vec_t({map_name}'range);\n"
-        vhdl += (
-            "  subtype "
-            f"{self.module_name}_reg_was_accessed_t is std_logic_vector({map_name}'range);\n"
-        )
         vhdl += f"  constant {self.module_name}_regs_init : {self.module_name}_regs_t := (\n  "
         vhdl += ",\n  ".join(default_values)
         vhdl += "\n  );\n\n"
@@ -194,6 +212,7 @@ end package;
 package body {pkg_name} is
 
 {self._array_index_functions(register_objects)}\
+{self._register_map_body(register_objects)}\
 end package body;
 """
 
