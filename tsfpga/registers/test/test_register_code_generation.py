@@ -6,6 +6,10 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+"""
+Some happy path tests to show that all register code generation can run without error.
+"""
+
 import pytest
 
 import tsfpga
@@ -13,19 +17,6 @@ from tsfpga.system_utils import read_file
 from tsfpga.registers.parser import from_toml
 
 from examples.tsfpga_example_env import get_default_registers
-
-"""
-Some happy path tests to show that all register code generation can run without error.
-"""
-
-
-class RegisterConfiguration:
-    def __init__(self, module_name, source_toml_file):
-        self.register_list = from_toml(
-            module_name=module_name,
-            toml_file=source_toml_file,
-            default_registers=get_default_registers(),
-        )
 
 
 # Test with the two example TOML files that we have available

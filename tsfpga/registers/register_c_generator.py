@@ -86,10 +86,13 @@ class RegisterCGenerator(RegisterCodeGenerator):
         return array_structs + register_struct
 
     def _number_of_registers(self, register_objects):
+        # It is possible that we have constants but no registers
+        num_regs = 0
+        if register_objects:
+            num_regs = register_objects[-1].index + 1
+
         c_code = self._comment("Number of registers within this register map.")
-        c_code += (
-            f"#define {self.module_name.upper()}_NUM_REGS ({register_objects[-1].index + 1}u)\n"
-        )
+        c_code += f"#define {self.module_name.upper()}_NUM_REGS ({num_regs}u)\n"
 
         return c_code
 

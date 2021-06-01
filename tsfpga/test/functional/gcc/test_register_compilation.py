@@ -34,20 +34,32 @@ class TestRegisterCompilation(unittest.TestCase):
         self.registers.add_constant("data_width", 24)
         self.registers.add_constant("decrement", -8)
 
-    def test_compiling_c_header(self):
-        main_file = self.working_dir / "main.c"
-        main = """\
-#include <assert.h>
-#include <stdint.h>
-#include "artyz7_regs.h"
+    def _compile_and_test_c_header(self, test_constants, test_registers):
+        main_function = ""
+        functions = ""
+        if test_constants:
+            main_function += "  test_constants();\n"
 
-
+            functions += """
 void test_constants()
 {
   assert(ARTYZ7_DATA_WIDTH == 24);
   assert(ARTYZ7_DECREMENT == -8);
 }
+"""
 
+        if not test_registers:
+            # If no registers, the constant shall be zero
+            main_function += "  assert(ARTYZ7_NUM_REGS == 0);\n"
+        else:
+            main_function += """\
+  assert(ARTYZ7_NUM_REGS == 8);
+  test_addresses();
+  test_bit_indexes();
+  test_generated_type();
+"""
+
+            functions += """
 void test_addresses()
 {
   // Assert that indexes are correct
@@ -116,16 +128,22 @@ void test_generated_type()
   regs.dummy_regs[2].second_array_dummy_reg =
     (1 << ARTYZ7_DUMMY_REGS_ARRAY_DUMMY_REG_ARRAY_BIT_B_SHIFT);
 }
+"""
+
+        main_file = self.working_dir / "main.c"
+        main = f"""\
+#include <assert.h>
+#include <stdint.h>
+#include "artyz7_regs.h"
+
+{functions}
 
 int main()
-{
-  test_constants();
-  test_addresses();
-  test_bit_indexes();
-  test_generated_type();
+{{
+{main_function}
 
   return 0;
-}
+}}
 """
         create_file(main_file, main)
         self.registers.create_c_header(self.include_dir)
@@ -135,23 +153,50 @@ int main()
         run_command(cmd)
         run_command([executable])
 
-    def test_compiling_cpp(self):
-        main_file = self.working_dir / "main.cpp"
-        main = """\
-#include <assert.h>
+    def test_c_header_with_registers_and_constants(self):
+        self._compile_and_test_c_header(test_registers=True, test_constants=True)
 
-#include "include/artyz7.h"
+    def test_c_header_with_only_registers(self):
+        self.registers.constants = []
+        self._compile_and_test_c_header(test_registers=True, test_constants=False)
 
+    def test_c_header_with_only_constants(self):
+        self.registers.register_objects = []
+        self._compile_and_test_c_header(test_registers=False, test_constants=True)
+
+    def _compile_and_test_cpp(self, test_registers, test_constants):
+        main_function = ""
+        functions = ""
+        if test_constants:
+            main_function += "  test_constants();\n"
+
+            functions += """\
 void test_constants()
 {
   assert(fpga_regs::Artyz7::data_width == 24);
   assert(fpga_regs::Artyz7::decrement == -8);
-
-  assert(fpga_regs::Artyz7::num_registers == 8);
-
-  assert(fpga_regs::Artyz7::dummy_regs_array_length == 3);
 }
 
+"""
+
+        if not test_registers:
+            # If no registers, the constant shall be zero
+            main_function += "  assert(fpga_regs::Artyz7::num_registers == 0);\n"
+        else:
+            main_function += """\
+  assert(fpga_regs::Artyz7::num_registers == 8);
+  assert(fpga_regs::Artyz7::dummy_regs_array_length == 3);
+
+  // Allocate memory and instantiate the register class
+  uint32_t memory[fpga_regs::Artyz7::num_registers];
+  volatile uint8_t *base_address = reinterpret_cast<volatile uint8_t *>(memory);
+  fpga_regs::Artyz7 artyz7 = fpga_regs::Artyz7(base_address);
+
+  test_read_write_registers(&artyz7, memory);
+  test_bit_indexes();
+"""
+
+            functions += """\
 void test_read_write_registers(fpga_regs::Artyz7 *artyz7, uint32_t *memory)
 {
   // Set data and then check, according to the expected register addresses.
@@ -210,20 +255,20 @@ void test_bit_indexes()
   assert(fpga_regs::Artyz7::dummy_regs_array_dummy_reg_array_bit_vector_mask == 15 << 2);
 }
 
+"""
+
+        main_file = self.working_dir / "main.cpp"
+        main = f"""\
+#include <assert.h>
+
+#include "include/artyz7.h"
+
+{functions}
 int main()
-{
-  test_constants();
-
-  // Allocate memory and instantiate the register class
-  uint32_t memory[fpga_regs::Artyz7::num_registers];
-  volatile uint8_t *base_address = reinterpret_cast<volatile uint8_t *>(memory);
-  fpga_regs::Artyz7 artyz7 = fpga_regs::Artyz7(base_address);
-
-  test_read_write_registers(&artyz7, memory);
-  test_bit_indexes();
-
+{{
+{main_function}
   return 0;
-}
+}}
 """
         create_file(main_file, main)
         self.registers.create_cpp_interface(self.include_dir)
@@ -235,6 +280,17 @@ int main()
         cmd = ["g++", main_file, cpp_class_file, f"-o{executable}", f"-I{self.include_dir}"]
         run_command(cmd)
         run_command([executable])
+
+    def test_cpp_with_registers_and_constants(self):
+        self._compile_and_test_cpp(test_registers=True, test_constants=True)
+
+    def test_cpp_with_only_registers(self):
+        self.registers.constants = []
+        self._compile_and_test_cpp(test_registers=True, test_constants=False)
+
+    def test_cpp_with_only_constants(self):
+        self.registers.register_objects = []
+        self._compile_and_test_cpp(test_registers=False, test_constants=True)
 
     def test_setting_cpp_register_array_out_of_bounds_should_crash(self):
         main_file = self.working_dir / "main.cpp"

@@ -27,7 +27,7 @@ class TestRegisterHtmlGenerator(unittest.TestCase):
         """
         Test that all registers show up in the HTML with correct attributes.
         """
-        html = self._create_html_and_read()
+        html = self._create_html_page()
 
         self._check_register(
             name="plain_dummy_reg",
@@ -67,11 +67,11 @@ class TestRegisterHtmlGenerator(unittest.TestCase):
             html=html,
         )
 
-    def test_fields(self):
+    def test_register_fields(self):
         """
         Test that all bits show up in the HTML with correct attributes.
         """
-        html = self._create_html_and_read()
+        html = self._create_html_page()
 
         # Fields in plain register
         self._check_field(
@@ -119,26 +119,45 @@ class TestRegisterHtmlGenerator(unittest.TestCase):
             html=html,
         )
 
-    def test_register_constants(self):
+    def test_registers_and_constants(self):
         """
         Test that all constant show up in the HTML with correct attributes.
         Should only appear if there are actually any constants set.
         """
-        html = self._create_html_and_read()
-        assert "<h2>Constants</h2>" not in html, html
+        html = self._create_html_page()
+        assert "The following constants are part of the register interface" not in html, html
 
         # Add some constants and assert
         self.registers.add_constant("data_width", 24)
         self.registers.add_constant("decrement", -8)
-        html = self._create_html_and_read()
+        html = self._create_html_page()
+
+        assert "Registers" in html, html
+        assert "dummy_regs" in html, html
+
+        assert "The following constants are part of the register interface" in html, html
+        self._check_constant(name="data_width", value=24, html=html)
+        self._check_constant(name="decrement", value=-8, html=html)
+
+    def test_constants_and_no_registers(self):
+        self.registers.register_objects = []
+
+        # Add some constants and assert
+        self.registers.add_constant("data_width", 24)
+        self.registers.add_constant("decrement", -8)
+        html = self._create_html_page()
+
+        assert "This module does not have any registers" in html, html
+        assert "dummy_regs" not in html, html
 
         assert "<h2>Constants</h2>" in html, html
         self._check_constant(name="data_width", value=24, html=html)
         self._check_constant(name="decrement", value=-8, html=html)
 
-    def _create_html_and_read(self):
+    def _create_html_page(self):
         self.registers.create_html_page(self.tmp_path)
-        return read_file(self.tmp_path / "artyz7_regs.html")
+        html = read_file(self.tmp_path / "artyz7_regs.html")
+        return html
 
     @staticmethod
     # pylint: disable=too-many-arguments
@@ -189,3 +208,17 @@ class TestRegisterHtmlGenerator(unittest.TestCase):
     <td>{value}</td>
 """
         assert expected in html, f"{expected}\n\n{html}"
+
+    def test_register_table_is_empty_string_if_no_registers_are_available(self):
+        self.registers.register_objects = []
+
+        self.registers.create_html_register_table(self.tmp_path)
+        html = read_file(self.tmp_path / "artyz7_register_table.html")
+        assert html == "", html
+
+    def test_constant_table_is_empty_string_if_no_constants_are_available(self):
+        self.registers.constants = []
+
+        self.registers.create_html_constant_table(self.tmp_path)
+        html = read_file(self.tmp_path / "artyz7_constant_table.html")
+        assert html == "", html

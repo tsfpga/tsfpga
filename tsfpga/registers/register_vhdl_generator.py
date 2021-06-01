@@ -54,6 +54,8 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
                 )
             else:
                 vhdl += f"  {self._register_function_signature(register, register_array)};\n"
+        if vhdl:
+            vhdl += "\n"
 
         return vhdl
 
@@ -72,6 +74,10 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
         return vhdl
 
     def _register_map(self, register_objects):
+        if not register_objects:
+            # It is possible that we have constants but no registers
+            return ""
+
         map_name = f"{self.module_name}_reg_map"
 
         register_definitions = []
@@ -106,7 +112,8 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
         )
         vhdl += f"  constant {self.module_name}_regs_init : {self.module_name}_regs_t := (\n  "
         vhdl += ",\n  ".join(default_values)
-        vhdl += "\n  );\n"
+        vhdl += "\n  );\n\n"
+
         return vhdl
 
     def _register_fields(self, register_objects):
@@ -157,6 +164,9 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
                 "  constant "
                 f"{self.module_name}_constant_{constant.name} : integer := {constant.value};\n"
             )
+        if vhdl:
+            vhdl += "\n"
+
         return vhdl
 
     def get_package(self, register_objects, constants):
@@ -174,11 +184,11 @@ use reg_file.reg_file_pkg.all;
 
 package {pkg_name} is
 
-{self._register_indexes(register_objects)}
+{self._register_indexes(register_objects)}\
 {self._array_constants(register_objects)}\
-{self._register_map(register_objects)}
+{self._register_map(register_objects)}\
 {self._register_fields(register_objects)}\
-{self._constants(constants)}
+{self._constants(constants)}\
 end package;
 
 package body {pkg_name} is

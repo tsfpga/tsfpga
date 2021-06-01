@@ -39,8 +39,7 @@ class RegisterCppGenerator(RegisterCodeGenerator):
         if constants:
             cpp_code += "\n"
 
-        cpp_code += self._comment("Number of registers within this register map.", indentation=2)
-        cpp_code += f"  static const size_t num_registers = {register_objects[-1].index + 1}uL;\n\n"
+        cpp_code += self._num_registers(register_objects)
 
         for register_object in register_objects:
             if isinstance(register_object, RegisterArray):
@@ -93,6 +92,16 @@ class RegisterCppGenerator(RegisterCodeGenerator):
 
 """
         return cpp_code_top + self._with_namespace(cpp_code)
+
+    def _num_registers(self, register_objects):
+        # It is possible that we have constants but no registers
+        num_registers = 0
+        if register_objects:
+            num_registers = register_objects[-1].index + 1
+
+        cpp_code = self._comment("Number of registers within this register map.", indentation=2)
+        cpp_code += f"  static const size_t num_registers = {num_registers}uL;\n\n"
+        return cpp_code
 
     def get_header(self, register_objects):
         cpp_code = f"class {self._class_name} : public I{self._class_name}\n"

@@ -27,6 +27,9 @@ class RegisterHtmlGenerator:
         Returns:
             str: HTML code.
         """
+        if not register_objects:
+            return ""
+
         html = self._file_header()
         html += self._get_register_table(register_objects)
         return html
@@ -76,16 +79,24 @@ class RegisterHtmlGenerator:
   <h2>Register modes</h2>
   <p>The following register modes are available.</p>
 {self._get_mode_descriptions()}
-  <h2>Registers</h2>
+"""
+
+        html += "  <h2>Registers</h2>\n"
+        if register_objects:
+            html += f"""
   <p>The following registers make up the register map.</p>
 {self._get_register_table(register_objects)}
 """
+        else:
+            html += "  <p>This module does not have any registers.</p>"
 
+        html += "  <h2>Constants</h2>\n"
         if constants:
             html += f"""
-  <h2>Constants</h2>
   <p>The following constants are part of the register interface.</p>
 {self._get_constant_table(constants)}"""
+        else:
+            html += "  <p>This module does not have any constants.</p>"
 
         html += """
 </body>
