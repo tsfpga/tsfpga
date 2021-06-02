@@ -81,12 +81,13 @@ begin
   periodic_pulse_inst : entity work.periodic_pulser
     generic map (
       period => 2 ** resolution_bits,
-      shift_register_length => shift_register_length)
+      shift_register_length => shift_register_length
+    )
     port map (
       clk => reference_clock,
       count_enable => '1',
       pulse => reference_tick
-      );
+    );
 
 
   ------------------------------------------------------------------------------

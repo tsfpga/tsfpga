@@ -60,7 +60,9 @@ def main():
         ip_core_vivado_project_directory=ip_core_vivado_project_directory,
     )
 
-    if vunit_proj.simulator_supports_coverage():
+    # Utilize coverage only for GHDL by default, since even if a commercial simulator supports
+    # coverage we do not know if we have a license for it.
+    if vunit_proj.get_simulator_name() == "ghdl" and vunit_proj.simulator_supports_coverage():
         vunit_proj.set_compile_option("enable_coverage", True)
         vunit_proj.set_sim_option("enable_coverage", True)
 

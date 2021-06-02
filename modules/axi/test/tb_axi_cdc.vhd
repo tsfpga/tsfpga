@@ -29,8 +29,8 @@ use work.axi_pkg.all;
 
 entity tb_axi_cdc is
   generic (
-    input_clk_fast : boolean;
-    output_clk_fast : boolean;
+    input_clk_fast : boolean := false;
+    output_clk_fast : boolean := false;
     max_burst_length_beats : positive;
     runner_cfg : string
   );

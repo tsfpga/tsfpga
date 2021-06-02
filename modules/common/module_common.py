@@ -16,10 +16,10 @@ class Module(BaseModule):
     def setup_vunit(self, vunit_proj, **kwargs):
         tb = vunit_proj.library(self.library_name).test_bench("tb_clock_counter")
         self.add_vunit_config(
-            tb, generics=dict(reference_clock_rate_mhz=300, target_clock_rate_mhz=50)
+            tb, generics=dict(reference_clock_rate_mhz=250, target_clock_rate_mhz=50)
         )
         self.add_vunit_config(
-            tb, generics=dict(reference_clock_rate_mhz=50, target_clock_rate_mhz=300)
+            tb, generics=dict(reference_clock_rate_mhz=50, target_clock_rate_mhz=250)
         )
 
         tb = vunit_proj.library(self.library_name).test_bench("tb_periodic_pulser")
@@ -50,11 +50,11 @@ class Module(BaseModule):
         test = tb.get_tests("test_full_throughput")[0]
         test.add_config(
             name="input_16.output_8",
-            generics=dict(input_width=16, output_width=8, data_jitter=False),
+            generics=dict(input_width=16, output_width=8, enable_strobe=False, data_jitter=False),
         )
         test.add_config(
             name="input_8.output_16",
-            generics=dict(input_width=8, output_width=16, data_jitter=False),
+            generics=dict(input_width=8, output_width=16, enable_strobe=False, data_jitter=False),
         )
 
         for test in (

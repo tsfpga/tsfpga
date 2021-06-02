@@ -244,7 +244,7 @@ begin
     variable num_atoms_next : natural range 0 to stored_atom_count_max;
 
     variable atom_strobe, atom_last : std_logic := '0';
-    variable num_atoms_strobed : positive range 0 to num_atoms_per_input := num_atoms_per_input;
+    variable num_atoms_strobed : natural range 0 to num_atoms_per_input := num_atoms_per_input;
 
     variable packed_data_to_shift_in : std_logic_vector(packed_atom_width - 1 downto 0) :=
       (others => '0');

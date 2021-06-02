@@ -40,8 +40,8 @@ architecture tb of tb_axi_lite_pipeline is
 
   signal clk : std_logic := '0';
 
-  signal master_m2s, slave_m2s : axi_lite_m2s_t;
-  signal master_s2m, slave_s2m : axi_lite_s2m_t;
+  signal master_m2s, slave_m2s : axi_lite_m2s_t := axi_lite_m2s_init;
+  signal master_s2m, slave_s2m : axi_lite_s2m_t := axi_lite_s2m_init;
 
   constant axi_lite_master : bus_master_t := new_bus(
     data_length => data_width,
