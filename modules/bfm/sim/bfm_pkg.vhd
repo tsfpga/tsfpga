@@ -1,7 +1,9 @@
 -- -------------------------------------------------------------------------------------------------
--- Copyright (c) Truestream AB. All rights reserved.
+-- Copyright (c) Lukas Vik. All rights reserved.
 --
--- Rights to use, copy, modify and distribute are granted through contract.
+-- This file is part of the tsfpga project.
+-- https://tsfpga.com
+-- https://gitlab.com/tsfpga/tsfpga
 -- -------------------------------------------------------------------------------------------------
 
 library ieee;
