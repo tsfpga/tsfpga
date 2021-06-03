@@ -6,6 +6,14 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+"""
+Some limited unit tests that check the generated code.
+
+It is also functionally tested in the file tb_artyz.vhd.
+That testbench compiles the VHDL package and performs some run-time assertions on the
+generated values. That test is considered more meaningful and exhaustive than a unit test would be.
+"""
+
 import pytest
 
 import tsfpga
