@@ -42,7 +42,7 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
     def _register_function_signature(self, register, register_array):
         return (
             "function "
-            f"{self._register_name(register, register_array)}(array_index : natural) return integer"
+            f"{self._register_name(register, register_array)}(array_index : natural) return natural"
         )
 
     def _register_indexes(self, register_objects):
@@ -50,7 +50,7 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
         for register, register_array in self._iterate_registers(register_objects):
             if register_array is None:
                 vhdl += (
-                    f"  constant {self._register_name(register)} : integer := {register.index};\n"
+                    f"  constant {self._register_name(register)} : natural := {register.index};\n"
                 )
             else:
                 vhdl += f"  {self._register_function_signature(register, register_array)};\n"
@@ -67,7 +67,7 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
         for register_object in register_objects:
             if isinstance(register_object, RegisterArray):
                 constant = self._array_length_constant_name(register_object)
-                vhdl += f"  constant {constant} : integer := {register_object.length};\n"
+                vhdl += f"  constant {constant} : natural := {register_object.length};\n"
         if vhdl:
             vhdl += "\n"
 
@@ -84,7 +84,7 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
         last_index = register_objects[-1].index
         vhdl = "  -- Declare register map constants here, but define them in body.\n"
         vhdl += "  -- This is done so that functions have been elaborated when they are called.\n"
-        vhdl += f"  subtype {range_name} is integer range 0 to {last_index};\n"
+        vhdl += f"  subtype {range_name} is natural range 0 to {last_index};\n"
         vhdl += f"  constant {map_name} : reg_definition_vec_t({range_name});\n"
         vhdl += f"  subtype {self.module_name}_regs_t is reg_vec_t({range_name});\n"
         vhdl += (
@@ -152,10 +152,10 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
                 name = f"{self._register_name(register, register_array)}_{field.name}"
 
                 if field.width == 1:
-                    vhdl += f"  constant {name} : integer := {field.base_index};\n"
+                    vhdl += f"  constant {name} : natural := {field.base_index};\n"
                 else:
                     vhdl += (
-                        f"  subtype {name} is integer range "
+                        f"  subtype {name} is natural range "
                         f"{field.width + field.base_index - 1} downto {field.base_index};\n"
                     )
 
