@@ -11,6 +11,7 @@ import pytest
 import tsfpga
 from tsfpga.system_utils import read_file
 from tsfpga.registers.parser import from_toml
+from tsfpga.registers.register_list import RegisterList
 
 
 class RegisterConfiguration:
@@ -57,3 +58,24 @@ def test_vhdl_package_with_registers_and_no_constants(tmp_path, register_configu
 def test_vhdl_package_with_constants_and_no_registers(tmp_path, register_configuration):
     register_configuration.register_list.register_objects = []
     register_configuration.test_vhdl_package(tmp_path, test_registers=False, test_constants=True)
+
+
+def test_vhdl_package_with_only_one_register(tmp_path):
+    """
+    Test that reg_map constant has valid VHDL syntax even when there is only one register.
+    """
+    register_list = RegisterList(name="apa", source_definition_file=None)
+    register_list.append_register(name="hest", mode="r", description="a single register")
+    register_list.create_vhdl_package(tmp_path)
+    vhdl = read_file(tmp_path / "apa_regs_pkg.vhd")
+
+    expected = """
+  constant apa_reg_map : reg_definition_vec_t(apa_reg_range) := (
+    0 => (idx => apa_hest, reg_type => r)
+  );
+
+  constant apa_regs_init : apa_regs_t := (
+    0 => std_logic_vector(to_signed(0, 32))
+  );
+"""
+    assert expected in vhdl, vhdl

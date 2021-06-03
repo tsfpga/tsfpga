@@ -106,23 +106,34 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
 
         register_definitions = []
         default_values = []
+        vhdl_array_index = 0
         for register_object in register_objects:
             if isinstance(register_object, Register):
                 idx = self._register_name(register_object)
-                register_definitions.append(f"  (idx => {idx}, reg_type => {register_object.mode})")
-                default_values.append(
-                    f"  std_logic_vector(to_signed({register_object.default_value}, 32))"
+                opening = f"  {vhdl_array_index} => "
+
+                register_definitions.append(
+                    f"{opening}(idx => {idx}, reg_type => {register_object.mode})"
                 )
+                default_values.append(
+                    f"{opening}std_logic_vector(to_signed({register_object.default_value}, 32))"
+                )
+
+                vhdl_array_index = vhdl_array_index + 1
             else:
                 for array_index in range(register_object.length):
                     for register in register_object.registers:
                         idx = f"{self._register_name(register, register_object)}({array_index})"
+                        opening = f"  {vhdl_array_index} => "
+
                         register_definitions.append(
-                            f"  (idx => {idx}, reg_type => {register.mode})"
+                            f"{opening}(idx => {idx}, reg_type => {register.mode})"
                         )
                         default_values.append(
-                            f"  std_logic_vector(to_signed({register.default_value}, 32))"
+                            f"{opening}std_logic_vector(to_signed({register.default_value}, 32))"
                         )
+
+                        vhdl_array_index = vhdl_array_index + 1
 
         vhdl = f"  constant {map_name} : reg_definition_vec_t({range_name}) := (\n  "
         vhdl += ",\n  ".join(register_definitions)
