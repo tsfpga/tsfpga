@@ -186,7 +186,7 @@ class VivadoProject:
         self._setup_tcl_sources()
         self._setup_build_step_hooks()
 
-        # The pre-create hook migh have side effects. E.g. change some register constants.
+        # The pre-create hook might have side effects. E.g. change some register constants.
         # So we make a deep copy of the module list before the hook is called.
         # Note that the modules are copied before the pre-build hooks as well,
         # since we do not know if we might be performing a create-only or
@@ -349,7 +349,7 @@ class VivadoProject:
         )
 
         # The pre-build hooks (either project pre-build hook or any of the module's pre-build hooks)
-        # migh have side effects. E.g. change some register constants. So we make a deep copy of the
+        # might have side effects. E.g. change some register constants. So we make a deep copy of the
         # module list before any of these hooks are called. Note that the modules are copied before
         # the pre-create hook as well, since we do not know if we might be performing a create-only
         # or build-only operation. The copy does not take any significant time, so this is not
