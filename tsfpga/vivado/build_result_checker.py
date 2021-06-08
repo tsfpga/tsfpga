@@ -151,6 +151,11 @@ class Ramb18(SizeChecker):
     resource_name = "RAMB18"
 
 
+class Uram(SizeChecker):
+
+    resource_name = "URAM"
+
+
 class DspBlocks(SizeChecker):
 
     """
