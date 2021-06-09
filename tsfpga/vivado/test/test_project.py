@@ -28,7 +28,7 @@ def test_modules_list_should_be_copied():
     assert len(proj.modules) == 1
 
 
-def test_generics_dictionary_should_be_copied():
+def test_static_generics_dictionary_should_be_copied():
     generics = dict(apa=1)
     proj = VivadoProject(name="name", modules=[], part="part", generics=generics)
 
@@ -263,6 +263,7 @@ class TestVivadoProject(unittest.TestCase):
     def test_different_generic_combinations(self, mocked_vivado_tcl):
         mocked_vivado_tcl.return_value.build.return_value = ""
 
+        # No generics
         self.build_time_generics = None
         build_result = self._build(VivadoProject(name="apa", modules=[], part=""))
         assert build_result.success
@@ -270,30 +271,34 @@ class TestVivadoProject(unittest.TestCase):
         _, kwargs = mocked_vivado_tcl.return_value.build.call_args
         assert kwargs["generics"] is None
 
-        self.build_time_generics = dict(static="value")
+        # Only build time generics
+        self.build_time_generics = dict(runtime="value")
         build_result = self._build(VivadoProject(name="apa", modules=[], part=""))
         assert build_result.success
         _, kwargs = mocked_vivado_tcl.return_value.build.call_args
-        assert kwargs["generics"] == dict(static="value")
+        assert kwargs["generics"] == dict(runtime="value")
 
-        self.build_time_generics = dict(static="value")
+        # Static and build time generics
+        self.build_time_generics = dict(runtime="value")
         build_result = self._build(
-            VivadoProject(name="apa", modules=[], part="", generics=dict(runtime="a value"))
+            VivadoProject(name="apa", modules=[], part="", generics=dict(static="a value"))
         )
         assert build_result.success
         _, kwargs = mocked_vivado_tcl.return_value.build.call_args
-        assert kwargs["generics"] == dict(static="value", runtime="a value")
+        assert kwargs["generics"] == dict(runtime="value", static="a value")
 
-        self.build_time_generics = dict(static_and_runtime="value")
+        # Same key in both static and build time generic. Should prefer build time.
+        self.build_time_generics = dict(static_and_runtime="build value")
         build_result = self._build(
             VivadoProject(
-                name="apa", modules=[], part="", generics=dict(static_and_runtime="new value")
+                name="apa", modules=[], part="", generics=dict(static_and_runtime="static value")
             )
         )
         assert build_result.success
         _, kwargs = mocked_vivado_tcl.return_value.build.call_args
-        assert kwargs["generics"] == dict(static_and_runtime="new value")
+        assert kwargs["generics"] == dict(static_and_runtime="build value")
 
+        # Only static generics
         self.build_time_generics = None
         build_result = self._build(
             VivadoProject(name="apa", modules=[], part="", generics=dict(runtime="a value"))
@@ -301,6 +306,17 @@ class TestVivadoProject(unittest.TestCase):
         assert build_result.success
         _, kwargs = mocked_vivado_tcl.return_value.build.call_args
         assert kwargs["generics"] == dict(runtime="a value")
+
+    @patch("tsfpga.vivado.project.VivadoTcl", autospec=True)
+    def test_build_time_generics_are_copied(self, mocked_vivado_tcl):
+        mocked_vivado_tcl.return_value.build.return_value = ""
+
+        self.build_time_generics = dict(runtime="value")
+        build_result = self._build(
+            VivadoProject(name="apa", modules=[], part="", generics=dict(static="a value"))
+        )
+        assert build_result.success
+        assert self.build_time_generics == dict(runtime="value")
 
     def test_modules_are_deep_copied_before_pre_create_hook(self):
         class CustomVivadoProject(VivadoProject):

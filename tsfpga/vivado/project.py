@@ -76,6 +76,7 @@ class VivadoProject:
         self.constraints = [] if constraints is None else constraints.copy()
         self.tcl_sources = [] if tcl_sources is None else tcl_sources.copy()
         self.build_step_hooks = [] if build_step_hooks is None else build_step_hooks.copy()
+        self._vivado_path = vivado_path
         self.default_run_index = default_run_index
         self.defined_at = defined_at
 
@@ -85,7 +86,6 @@ class VivadoProject:
         self.report_logic_level_distribution = False
 
         self.top = name + "_top" if top is None else top
-        self._vivado_path = vivado_path
 
         self.tcl = VivadoTcl(name=self.name)
 
@@ -222,7 +222,9 @@ class VivadoProject:
         """
         return True
 
-    def _build_tcl(self, project_path, output_path, num_threads, run_index, generics, synth_only):
+    def _build_tcl(
+        self, project_path, output_path, num_threads, run_index, build_time_generics, synth_only
+    ):
         """
         Make a TCL file that builds a Vivado project
         """
@@ -233,14 +235,14 @@ class VivadoProject:
             )
 
         if self.static_generics is None:
-            all_generics = generics
-        elif generics is None:
+            all_generics = build_time_generics
+        elif build_time_generics is None:
             all_generics = self.static_generics
         else:
-            # Add the two dictionaries. This will prefer the values in the run-time generics,
-            # if the same generic is present in both.
-            all_generics = generics
-            all_generics.update(self.static_generics)
+            # Add the two dictionaries. This will prefer the values in the build-time generics,
+            # if the same generic key is present in both.
+            all_generics = self.static_generics
+            all_generics.update(build_time_generics)
 
         build_vivado_project_tcl = project_path / "build_vivado_project.tcl"
         tcl = self.tcl.build(
@@ -335,6 +337,9 @@ class VivadoProject:
         else:
             print(f"Building Vivado project in {project_path}, placing artifacts in {output_path}")
 
+        # Must be copied since it might be manipulated by e.g. pre-hook
+        build_time_generics = None if generics is None else generics.copy()
+
         # Run index is optional to specify at build-time
         run_index = self.default_run_index if run_index is None else run_index
 
@@ -343,7 +348,7 @@ class VivadoProject:
             project_path=project_path,
             output_path=output_path,
             run_index=run_index,
-            generics=generics,
+            generics=build_time_generics,
             synth_only=synth_only,
             num_threads=num_threads,
         )
@@ -379,7 +384,7 @@ class VivadoProject:
             output_path=output_path,
             num_threads=num_threads,
             run_index=run_index,
-            generics=generics,
+            build_time_generics=build_time_generics,
             synth_only=synth_only,
         )
 

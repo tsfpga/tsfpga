@@ -2,6 +2,10 @@ Added
 
 * Add ``resync.resync_slv_level_coherent`` VHDL entity.
 
+Fixed
+
+* Fix bug where Vivado build-time generics dictionary was not copied, which could result in incorrect generic values for parallel builds.
+
 Breaking changes
 
 * Rename all VHDL files/entities/types/constants with prefix ``axil_`` to have prefix ``axi_lite_``.
