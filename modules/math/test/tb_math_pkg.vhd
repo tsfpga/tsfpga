@@ -48,7 +48,23 @@ begin
   begin
     test_runner_setup(runner, runner_cfg);
 
-    if run("log2") then
+    if run("ceil_log2") then
+      check_equal(ceil_log2(1), 0);
+
+      check_equal(ceil_log2(2), 1);
+
+      check_equal(ceil_log2(3), 2);
+      check_equal(ceil_log2(4), 2);
+
+      check_equal(ceil_log2(5), 3);
+      check_equal(ceil_log2(7), 3);
+      check_equal(ceil_log2(8), 3);
+
+      check_equal(ceil_log2(9), 4);
+
+    elsif run("log2") then
+      check_equal(log2(1), 0);
+      check_equal(log2(2), 1);
       check_equal(log2(32), 5);
       check_equal(log2(64), 6);
       check_equal(log2(128), 7);
@@ -63,6 +79,20 @@ begin
       check_equal(num_bits_needed(7), 3);
       check_equal(num_bits_needed(8), 4);
       check_equal(num_bits_needed(9), 4);
+
+    elsif run("round_up_to_power_of_two") then
+      check_equal(round_up_to_power_of_two(1), 1);
+
+      check_equal(round_up_to_power_of_two(2), 2);
+
+      check_equal(round_up_to_power_of_two(3), 4);
+      check_equal(round_up_to_power_of_two(4), 4);
+
+      check_equal(round_up_to_power_of_two(5), 8);
+
+      check_equal(round_up_to_power_of_two(127), 128);
+      check_equal(round_up_to_power_of_two(128), 128);
+      check_equal(round_up_to_power_of_two(129), 256);
 
     elsif run("num_bits_needed_vector") then
       value_slv := "00000000";

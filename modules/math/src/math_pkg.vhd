@@ -14,11 +14,14 @@ use ieee.math_real.all;
 
 package math_pkg is
 
-  function log2(value            : integer) return integer;
-  function is_power_of_two(value : integer) return boolean;
+  function ceil_log2(value : positive) return natural;
+  function log2(value : positive) return natural;
+  function is_power_of_two(value : positive) return boolean;
 
-  function num_bits_needed(value : integer) return integer;
-  function num_bits_needed(value : unsigned) return integer;
+  function num_bits_needed(value : natural) return positive;
+  function num_bits_needed(value : unsigned) return positive;
+
+  function round_up_to_power_of_two(value : positive) return positive;
 
   function lt_0(value  : signed) return boolean;
   function geq_0(value : signed) return boolean;
@@ -29,32 +32,38 @@ package math_pkg is
   function abs_vector(vector : integer_vector) return integer_vector;
   function vector_sum(vector : integer_vector) return integer;
 
-  function greatest_common_divisor(value1, value2 : positive) return integer;
-  function is_mutual_prime(candidate : integer; check_against : integer_vector) return boolean;
+  function greatest_common_divisor(value1, value2 : positive) return positive;
+  function is_mutual_prime(candidate : positive; check_against : integer_vector) return boolean;
 
 end package;
 
 package body math_pkg is
 
-  function log2_no_assert(value : integer) return integer is
+  function ceil_log2(value : positive) return natural is
   begin
-    return integer(log2(real(value)));
+    -- 2-base logarithm rounded up
+    return natural(ceil(log2(real(value))));
   end function;
 
-  function log2(value : integer) return integer is
+  function floor_log2(value : positive) return natural is
   begin
+    return natural(log2(real(value)));
+  end function;
+
+  function log2(value : positive) return natural is
+  begin
+    -- 2-base logarithm where argument must be a power of two
     assert is_power_of_two(value) report "Must be power of two: " & to_string(value) severity failure;
-    return log2_no_assert(value);
+    return floor_log2(value);
   end function;
 
-  function is_power_of_two(value : integer) return boolean is
-    constant log2_value : integer := log2_no_assert(value);
+  function is_power_of_two(value : positive) return boolean is
+    constant log2_value : integer := floor_log2(value);
   begin
     return 2 ** log2_value = value;
   end function;
 
-  function num_bits_needed(value : unsigned) return integer is
-    variable result : integer;
+  function num_bits_needed(value : unsigned) return positive is
   begin
     -- The number of bits needed to express the given value.
     assert value'high > value'low report "Use only with descending range" severity failure;
@@ -68,13 +77,18 @@ package body math_pkg is
     return 1;
   end function;
 
-  function num_bits_needed(value : integer) return integer is
+  function num_bits_needed(value : natural) return positive is
     constant value_vector : unsigned(64 - 1 downto 0) := to_unsigned(value, 64);
-    constant result : integer := num_bits_needed(value_vector);
+    constant result : positive := num_bits_needed(value_vector);
   begin
     -- The number of bits needed to express the given value in an unsigned vector.
     assert value <= 2**result - 1 report "Calculated value not correct: " & to_string(value) & " " & to_string(result) severity failure;
     return result;
+  end function;
+
+  function round_up_to_power_of_two(value : positive) return positive is
+  begin
+    return 2 ** ceil_log2(value);
   end function;
 
   function lt_0(value : signed) return boolean is
@@ -128,8 +142,8 @@ package body math_pkg is
     return result;
   end function;
 
-  function greatest_common_divisor(value1, value2 : positive) return integer is
-    variable tmp, smaller_value, larger_value : integer;
+  function greatest_common_divisor(value1, value2 : positive) return positive is
+    variable tmp, smaller_value, larger_value : natural;
   begin
     -- Calculate the greatest_common_divisor between two values.
     -- Uses the euclidean algorithm
@@ -145,7 +159,7 @@ package body math_pkg is
     return larger_value;
   end function;
 
-  function is_mutual_prime(candidate : integer; check_against : integer_vector) return boolean is
+  function is_mutual_prime(candidate : positive; check_against : integer_vector) return boolean is
   begin
     -- Check if a number is a mutual prime (i.e. the greatest common divisor is one)
     -- with all numbers in a list.
