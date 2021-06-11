@@ -7,7 +7,8 @@
 # --------------------------------------------------------------------------------------------------
 
 from pathlib import Path
-from unittest import mock, TestCase
+from unittest import TestCase
+from unittest.mock import ANY, patch
 
 import pytest
 
@@ -58,6 +59,20 @@ def test_file_list_filtering(tmp_path):
     assert set(files) == set(synth_files)
 
 
+def test_get_synthesis_files_calls_get_simulation_files_with_correct_arguments():
+    module = BaseModule(path=Path(), library_name="")
+    with patch("tsfpga.module.BaseModule.get_synthesis_files") as get_synthesis_files:
+        module.get_simulation_files(files_include=True, files_avoid=False, apa=123)
+        get_synthesis_files.assert_called_once_with(files_include=True, files_avoid=False, apa=123)
+
+
+def test_get_formal_files_calls_get_simulation_files_with_correct_arguments():
+    module = BaseModule(path=Path(), library_name="")
+    with patch("tsfpga.module.BaseModule.get_synthesis_files") as get_synthesis_files:
+        module.get_formal_files(files_include=True, files_avoid=False, apa=123)
+        get_synthesis_files.assert_called_once_with(files_include=True, files_avoid=False, apa=123)
+
+
 def test_scoped_constraints(tmp_path):
     module_path = tmp_path / "apa"
     create_file(module_path / "src" / "hest.vhd")
@@ -94,7 +109,7 @@ def test_test_case_name():
 
 
 def test_getting_registers_calls_registers_hook(tmp_path):
-    with mock.patch("tsfpga.module.from_toml", autospec=True) as from_toml, mock.patch(
+    with patch("tsfpga.module.from_toml", autospec=True) as from_toml, patch(
         "tsfpga.module.BaseModule.registers_hook", autospec=True
     ) as registers_hook:
         create_file(tmp_path / "a" / "regs_a.toml")
@@ -106,7 +121,7 @@ def test_getting_registers_calls_registers_hook(tmp_path):
         registers_hook.assert_called_once()
         assert registers is not None
 
-    with mock.patch("tsfpga.module.from_toml", autospec=True) as from_toml, mock.patch(
+    with patch("tsfpga.module.from_toml", autospec=True) as from_toml, patch(
         "tsfpga.module.BaseModule.registers_hook", autospec=True
     ) as registers_hook:
         module = BaseModule(path=tmp_path / "b", library_name="b")
@@ -183,7 +198,7 @@ class Module(BaseModule):
             else:
                 assert False
 
-    @mock.patch("tsfpga.module.from_toml", autospec=True)
+    @patch("tsfpga.module.from_toml", autospec=True)
     def test_register_object_creation_called_when_getting_synthesis_files(self, from_toml):
         toml_file = create_file(self.tmp_path / "a" / "regs_a.toml")
 
@@ -191,9 +206,9 @@ class Module(BaseModule):
         module.get_synthesis_files()
         module.get_synthesis_files()
 
-        from_toml.assert_called_once_with("a", toml_file, mock.ANY)
+        from_toml.assert_called_once_with("a", toml_file, ANY)
 
-    @mock.patch("tsfpga.module.from_toml", autospec=True)
+    @patch("tsfpga.module.from_toml", autospec=True)
     def test_register_object_creation_called_when_getting_simulation_files(self, from_toml):
         toml_file = create_file(self.tmp_path / "a" / "regs_a.toml")
 
@@ -201,9 +216,9 @@ class Module(BaseModule):
         module.get_simulation_files()
         module.get_simulation_files()
 
-        from_toml.assert_called_once_with("a", toml_file, mock.ANY)
+        from_toml.assert_called_once_with("a", toml_file, ANY)
 
-    @mock.patch("tsfpga.module.from_toml", autospec=True)
+    @patch("tsfpga.module.from_toml", autospec=True)
     def test_register_object_creation_called_once_when_getting_mixed_files(self, from_toml):
         toml_file = create_file(self.tmp_path / "a" / "regs_a.toml")
 
@@ -211,4 +226,4 @@ class Module(BaseModule):
         module.get_synthesis_files()
         module.get_simulation_files()
 
-        from_toml.assert_called_once_with("a", toml_file, mock.ANY)
+        from_toml.assert_called_once_with("a", toml_file, ANY)

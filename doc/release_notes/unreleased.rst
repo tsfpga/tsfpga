@@ -2,6 +2,12 @@ Added
 
 * Add ``resync.resync_slv_level_coherent`` VHDL entity.
 
+* Add :class:`.VivadoIpCoreProject` class which is the default ``vivado_project_class`` for :meth:`.VivadoIpCores.__init__`.
+  If you use a custom class it is a good idea to inherit from this new class instead of :class:`.VivadoProject`.
+
+* Add :class:`.IpCoreFile` class to represent IP core files, which adds the possibility of
+  parameterizing IP core creation.
+
 Fixed
 
 * Fix bug where Vivado build-time generics dictionary was not copied, which could result in incorrect generic values for parallel builds.

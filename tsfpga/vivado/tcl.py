@@ -35,21 +35,38 @@ class VivadoTcl:
         build_step_hooks=None,
         ip_cache_path=None,
         disable_io_buffers=True,
+        # Add no sources other than IP cores
+        ip_cores_only=False,
+        # Will be passed on to module functions. Enables parameterization of e.g. IP cores.
+        other_arguments=None,
     ):
+        generics = dict() if generics is None else generics
+        other_arguments = dict() if other_arguments is None else other_arguments
+
         tcl = f"create_project {self.name} {{{to_tcl_path(project_folder)}}} -part {part}\n"
         tcl += "set_property target_language VHDL [current_project]\n"
+
         if ip_cache_path is not None:
             tcl += f"config_ip_cache -use_cache_location {{{to_tcl_path(ip_cache_path)}}}\n"
-        tcl += "\n"
-        tcl += self._add_tcl_sources(tcl_sources)
-        tcl += "\n"
-        tcl += self._add_modules(modules)
-        tcl += "\n"
-        tcl += self._add_generics(generics)
-        tcl += "\n"
-        tcl += self._add_constraints(self._iterate_constraints(modules, constraints))
-        tcl += "\n"
-        tcl += self._add_build_step_hooks(build_step_hooks, project_folder)
+            tcl += "\n"
+
+        if not ip_cores_only:
+            tcl += self._add_tcl_sources(tcl_sources)
+            tcl += "\n"
+            tcl += self._add_module_source_files(modules=modules, other_arguments=other_arguments)
+            tcl += "\n"
+            tcl += self._add_generics(generics)
+            tcl += "\n"
+            tcl += self._add_constraints(
+                self._iterate_constraints(
+                    modules=modules, constraints=constraints, other_arguments=other_arguments
+                )
+            )
+            tcl += "\n"
+            tcl += self._add_build_step_hooks(build_step_hooks, project_folder)
+            tcl += "\n"
+
+        tcl += self._add_ip_cores(modules=modules, other_arguments=other_arguments)
         tcl += "\n"
         tcl += self._add_project_settings()
         tcl += "\n"
@@ -58,21 +75,23 @@ class VivadoTcl:
         tcl += f"set_property top {top} [current_fileset]\n"
         tcl += "reorder_files -auto -disable_unused\n"
         tcl += "\n"
+
         if disable_io_buffers:
             tcl += (
                 "set_property -name {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} "
                 f"-value -no_iobuf -objects [get_runs synth_{run_index}]"
             )
-        tcl += "\n"
+            tcl += "\n"
+
         tcl += "exit\n"
         return tcl
 
-    def _add_modules(self, modules):
+    def _add_module_source_files(self, modules, other_arguments):
         tcl = ""
         for module in modules:
             vhdl_files = []
             verilog_source_files = []
-            for hdl_file in module.get_synthesis_files():
+            for hdl_file in module.get_synthesis_files(**other_arguments):
                 if hdl_file.is_vhdl:
                     vhdl_files.append(hdl_file.path)
                 elif hdl_file.is_verilog_source:
@@ -96,7 +115,6 @@ class VivadoTcl:
                 files_string = self._to_file_list(verilog_source_files)
                 tcl += f"read_verilog {files_string}\n"
 
-            tcl += self._add_tcl_sources(module.get_ip_core_files())
         return tcl
 
     @staticmethod
@@ -120,6 +138,26 @@ class VivadoTcl:
         tcl = ""
         for tcl_source_file in tcl_sources:
             tcl += f"source -notrace {{{to_tcl_path(tcl_source_file)}}}\n"
+        return tcl
+
+    @staticmethod
+    def _add_ip_cores(modules, other_arguments):
+        tcl = ""
+        for module in modules:
+            for ip_core_file in module.get_ip_core_files(**other_arguments):
+                create_function_name = f"create_ip_core_{ip_core_file.name}"
+                tcl += f"proc {create_function_name} {{}} {{\n"
+
+                if ip_core_file.variables:
+                    for key, value in ip_core_file.variables.items():
+                        tcl += f'  set {key} "{value}"\n'
+
+                tcl += f"""\
+  source -notrace {{{to_tcl_path(ip_core_file.path)}}}
+}}
+{create_function_name}
+"""
+
         return tcl
 
     def _add_build_step_hooks(self, build_step_hooks, project_folder):
@@ -161,16 +199,20 @@ class VivadoTcl:
 
     def _add_project_settings(self):
         tcl = ""
+
         # Default value for when opening project in GUI.
         # Will be overwritten if using build() function.
         tcl += "set_param general.maxThreads 7\n"
+
         # Enable VHDL assert statements to be evaluated. A severity level of failure will
         # stop the synthesis and produce an error.
         tcl_block = "set_property STEPS.SYNTH_DESIGN.ARGS.ASSERT true ${run}"
         tcl += self._tcl_for_each_run("synth_*", tcl_block)
+
         # Enable binary bitstream as well
         tcl_block = "set_property STEPS.WRITE_BITSTREAM.ARGS.BIN_FILE true ${run}"
         tcl += self._tcl_for_each_run("impl_*", tcl_block)
+
         return tcl
 
     @staticmethod
@@ -190,7 +232,7 @@ class VivadoTcl:
         Generics are set according to this weird format:
         https://www.xilinx.com/support/answers/52217.html
         """
-        if generics is None:
+        if not generics:
             return ""
 
         generic_list = []
@@ -205,9 +247,9 @@ class VivadoTcl:
         return f"set_property generic {{{generics_string}}} [current_fileset]\n"
 
     @staticmethod
-    def _iterate_constraints(modules, constraints):
+    def _iterate_constraints(modules, constraints, other_arguments):
         for module in modules:
-            for constraint in module.get_scoped_constraints():
+            for constraint in module.get_scoped_constraints(**other_arguments):
                 yield constraint
 
         if constraints is not None:

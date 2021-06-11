@@ -9,11 +9,13 @@
 from collections import OrderedDict
 from pathlib import Path
 import unittest
+from unittest.mock import MagicMock
 
 import pytest
 
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
-from tsfpga.module import get_modules
+from tsfpga.ip_core_file import IpCoreFile
+from tsfpga.module import BaseModule, get_modules
 from tsfpga.system_utils import create_file
 from tsfpga.vivado.common import to_tcl_path
 from tsfpga.vivado.tcl import VivadoTcl
@@ -141,6 +143,22 @@ def test_runtime_generics():
     assert expected in tcl
 
 
+def test_module_getters_are_called_with_correct_arguments():
+    modules = [MagicMock(spec=BaseModule)]
+    VivadoTcl(name="").create(
+        project_folder=Path(),
+        modules=modules,
+        part="",
+        top="",
+        run_index=1,
+        other_arguments=dict(apa=123, hest=456),
+    )
+
+    modules[0].get_synthesis_files.assert_called_once_with(apa=123, hest=456)
+    modules[0].get_scoped_constraints.assert_called_once_with(apa=123, hest=456)
+    modules[0].get_ip_core_files.assert_called_once_with(apa=123, hest=456)
+
+
 # pylint: disable=too-many-instance-attributes
 @pytest.mark.usefixtures("fixture_tmp_path")
 class TestVivadoTcl(unittest.TestCase):
@@ -203,10 +221,51 @@ class TestVivadoTcl(unittest.TestCase):
         assert expected in tcl
 
     def test_ip_core_files(self):
+        ip_core_file_path = self.tmp_path / "my_name.tcl"
+        module = MagicMock(spec=BaseModule)
+        module.get_ip_core_files.return_value = [
+            IpCoreFile(path=ip_core_file_path, apa="hest", zebra=123)
+        ]
+
+        self.modules.append(module)
+
         tcl = self.tcl.create(
             project_folder=Path(), modules=self.modules, part="part", top="", run_index=1
         )
-        assert f"\nsource -notrace {{{self.c_tcl}}}\n" in tcl
+
+        assert (
+            f"""
+proc create_ip_core_c {{}} {{
+  source -notrace {{{self.c_tcl}}}
+}}
+create_ip_core_c
+"""
+            in tcl
+        )
+
+        assert (
+            f"""
+proc create_ip_core_my_name {{}} {{
+  set apa "hest"
+  set zebra "123"
+  source -notrace {{{to_tcl_path(ip_core_file_path)}}}
+}}
+create_ip_core_my_name
+"""
+            in tcl
+        )
+
+    def test_create_with_ip_cores_only(self):
+        tcl = self.tcl.create(
+            project_folder=Path(),
+            modules=self.modules,
+            part="part",
+            top="",
+            run_index=1,
+            ip_cores_only=True,
+        )
+        assert self.c_tcl in tcl
+        assert self.a_vhd not in tcl
 
     def test_empty_library_not_in_create_project_tcl(self):
         tcl = self.tcl.create(

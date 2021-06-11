@@ -7,9 +7,10 @@
 # --------------------------------------------------------------------------------------------------
 
 import hashlib
+import json
 
 from tsfpga.system_utils import create_file, delete, read_file
-from .project import VivadoProject
+from .project import VivadoIpCoreProject
 
 
 class VivadoIpCores:
@@ -21,7 +22,7 @@ class VivadoIpCores:
 
     project_name = "vivado_ip_project"
 
-    def __init__(self, modules, output_path, part_name, vivado_project_class=VivadoProject):
+    def __init__(self, modules, output_path, part_name, vivado_project_class=VivadoIpCoreProject):
         """
         Arguments:
             modules (list(:class:`Module <.BaseModule>`)): IP cores from  these modules will be
@@ -81,31 +82,38 @@ class VivadoIpCores:
         return False
 
     def _setup(self, modules, vivado_project_class):
-        ip_tcl_files = []
-        for module in modules:
-            ip_tcl_files += module.get_ip_core_files()
-
         self._vivado_project = vivado_project_class(
-            name=self.project_name, modules=[], part=self._part_name, tcl_sources=ip_tcl_files
+            name=self.project_name, modules=modules, part=self._part_name
         )
 
-        self._hash = self._calculate_hash(ip_tcl_files)
+        ip_core_files = []
+        for module in modules:
+            # Send the same two arguments that are sent in the VivadoProject create flow
+            ip_core_files += module.get_ip_core_files(generics=dict(), part=self._part_name)
+
+        self._hash = self._calculate_hash(ip_core_files)
 
     @staticmethod
-    def _calculate_hash(ip_files):
+    def _calculate_hash(ip_core_files):
         """
         A string with hashes of the different IP core files.
         """
         data = ""
 
-        def sort_by_file_name(path):
-            return path.name
+        def sort_by_file_name(ip_core_file):
+            return ip_core_file.path.name
 
-        for ip_file in sorted(ip_files, key=sort_by_file_name):
-            with open(ip_file, "rb") as file_handle:
+        for ip_core_file in sorted(ip_core_files, key=sort_by_file_name):
+            data += f"{ip_core_file.path}\n"
+
+            if ip_core_file.variables:
+                data += json.dumps(ip_core_file.variables, sort_keys=True)
+                data += "\n"
+
+            with open(ip_core_file.path, "rb") as file_handle:
                 ip_hash = hashlib.md5()
                 ip_hash.update(file_handle.read())
-                data += f"{ip_file}\n{ip_hash.hexdigest()}\n"
+                data += f"{ip_hash.hexdigest()}\n"
 
         return data
 

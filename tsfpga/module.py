@@ -8,9 +8,10 @@
 
 from tsfpga.constraint import Constraint
 from tsfpga.hdl_file import HdlFile
+from tsfpga.ip_core_file import IpCoreFile
+from tsfpga.module_list import ModuleList
 from tsfpga.system_utils import load_python_module
 from tsfpga.registers.parser import from_toml
-from tsfpga.module_list import ModuleList
 
 
 class BaseModule:
@@ -117,7 +118,8 @@ class BaseModule:
         if self.registers is not None:
             self.registers.create_vhdl_package(self.path)
 
-    def get_synthesis_files(self, files_include=None, files_avoid=None):
+    # pylint: disable=unused-argument
+    def get_synthesis_files(self, files_include=None, files_avoid=None, **kwargs):
         """
         Get a list of files that shall be included in a synthesis project.
 
@@ -131,6 +133,8 @@ class BaseModule:
         Arguments:
             files_include (set(`pathlib.Path`)): Optionally filter to only include these files.
             files_avoid (set(`pathlib.Path`)): Optionally filter to discard these files.
+            kwargs: Further parameters that can be sent by build flow to control what
+                files are included.
 
         Return:
             list(:class:`.HdlFile`): Files that should be included in a synthesis project.
@@ -148,7 +152,9 @@ class BaseModule:
             folders=folders, files_include=files_include, files_avoid=files_avoid
         )
 
-    def get_simulation_files(self, include_tests=True, files_include=None, files_avoid=None):
+    def get_simulation_files(
+        self, include_tests=True, files_include=None, files_avoid=None, **kwargs
+    ):
         """
         See :meth:`.get_synthesis_files` for instructions on how to use ``files_include``
         and ``files_avoid``.
@@ -165,6 +171,8 @@ class BaseModule:
                     by other modules.
             files_include (set(`pathlib.Path`)): Optionally filter to only include these files.
             files_avoid (set(`pathlib.Path`)): Optionally filter to discard these files.
+            kwargs: Further parameters that can be sent by simulation flow to control what
+                files are included.
 
         Return:
             list(:class:`.HdlFile`): Files that should be included in a simulation project.
@@ -177,7 +185,7 @@ class BaseModule:
             test_folders += [self.path / "rtl" / "tb", self.path / "test"]
 
         synthesis_files = self.get_synthesis_files(
-            files_include=files_include, files_avoid=files_avoid
+            files_include=files_include, files_avoid=files_avoid, **kwargs
         )
         test_files = self._get_hdl_file_list(
             test_folders, files_include=files_include, files_avoid=files_avoid
@@ -185,7 +193,7 @@ class BaseModule:
 
         return synthesis_files + test_files
 
-    def get_formal_files(self, files_include=None, files_avoid=None):
+    def get_formal_files(self, files_include=None, files_avoid=None, **kwargs):
         """
         Returns the files to be used for formal verification.
         By default these are the same that are used by synthesis
@@ -198,11 +206,89 @@ class BaseModule:
         Arguments:
             files_include (set(`pathlib.Path`)): Optionally filter to only include these files.
             files_avoid (set(`pathlib.Path`)): Optionally filter to discard these files.
+            kwargs: Further parameters that can be sent by formal flow to control what
+                files are included.
 
         Return:
             list(:class:`.HdlFile`): Files that should be included in a formal verification project.
         """
-        return self.get_synthesis_files(files_include=files_include, files_avoid=files_avoid)
+        return self.get_synthesis_files(
+            files_include=files_include, files_avoid=files_avoid, **kwargs
+        )
+
+    # pylint: disable=unused-argument
+    def get_ip_core_files(self, files_include=None, files_avoid=None, **kwargs):
+        """
+        Get IP cores for this module.
+
+        Note that the :class:`.ip_core_file.IpCoreFile` class accepts a ``variables`` argument that
+        can be used to parameterize IP core creation. By overloading this method in a child class
+        you can pass on ``kwargs`` arguments from the build/simulation flow to
+        :class:`.ip_core_file.IpCoreFile` creation to achieve this parameterization.
+
+        Arguments:
+            files_include (set(`pathlib.Path`)): Optionally filter to only include these files.
+            files_avoid (set(`pathlib.Path`)): Optionally filter to discard these files.
+            kwargs: Further parameters that can be sent by build/simulation flow to control what
+                IP cores are included and what their variables are.
+
+        Return:
+            list(:class:`.IpCoreFile`): The IP cores for this module.
+        """
+        folders = [
+            self.path / "ip_cores",
+        ]
+        file_endings = "tcl"
+        return [
+            IpCoreFile(ip_core_file)
+            for ip_core_file in self._get_file_list(
+                folders=folders,
+                file_endings=file_endings,
+                files_include=files_include,
+                files_avoid=files_avoid,
+            )
+        ]
+
+    # pylint: disable=unused-argument
+    def get_scoped_constraints(self, files_include=None, files_avoid=None, **kwargs):
+        """
+        Constraints that shall be applied to a certain entity within this module.
+
+        Arguments:
+            files_include (set(`pathlib.Path`)): Optionally filter to only include these files.
+            files_avoid (set(`pathlib.Path`)): Optionally filter to discard these files.
+            kwargs: Further parameters that can be sent by build/simulation flow to control what
+                constraints are included.
+
+        Return:
+            list(:class:`.Constraint`): The constraints.
+        """
+        folders = [
+            self.path / "scoped_constraints",
+            self.path / "entity_constraints",
+            self.path / "hdl" / "constraints",
+        ]
+        file_endings = ("tcl", "xdc")
+        constraint_files = self._get_file_list(
+            folders=folders,
+            file_endings=file_endings,
+            files_include=files_include,
+            files_avoid=files_avoid,
+        )
+
+        constraints = []
+        if constraint_files:
+            synthesis_files = self.get_synthesis_files()
+            for constraint_file in constraint_files:
+                # Scoped constraints often depend on clocks having been created by another
+                # constraint file before they can work. Set processing order to "late" to make
+                # this more probable.
+                constraint = Constraint(
+                    constraint_file, scoped_constraint=True, processing_order="late"
+                )
+                constraint.validate_scoped_entity(synthesis_files)
+                constraints.append(constraint)
+        return constraints
 
     def setup_vunit(self, vunit_proj, **kwargs):
         """
@@ -241,6 +327,7 @@ class BaseModule:
                 location of test files, etc.
         """
 
+    # pylint: disable=unused-argument
     def pre_build(self, project, **kwargs):
         """
         This method hook will be called before an FPGA build is run. A typical use case for this
@@ -254,51 +341,14 @@ class BaseModule:
 
         Arguments:
             project (.VivadoProject): The project that is being built.
-            kwargs: All parameters that are sent to the :meth:`.VivadoProject.build` method.
+            kwargs: All other parameters to the build flow. Includes arguments to
+                :meth:`.VivadoProject.build` method as well as other arguments set in
+                :meth:`.VivadoProject.__init__`.
 
         Return:
             bool: True if everything went well.
         """
         return True
-
-    def get_ip_core_files(self):
-        """
-        Return:
-            list(`pathlib.Path`): TCL files that set up the IP cores from this module.
-        """
-        folders = [
-            self.path / "ip_cores",
-        ]
-        file_endings = "tcl"
-        return self._get_file_list(folders, file_endings)
-
-    def get_scoped_constraints(self):
-        """
-        Return:
-            list(:class:`.Constraint`): Constraints that will be applied to a certain
-            entity within the module.
-        """
-        scoped_constraints_folders = [
-            self.path / "scoped_constraints",
-            self.path / "entity_constraints",
-            self.path / "hdl" / "constraints",
-        ]
-        constraints_file_endings = ("tcl", "xdc")
-        constraint_files = self._get_file_list(scoped_constraints_folders, constraints_file_endings)
-
-        constraints = []
-        if constraint_files:
-            synthesis_files = self.get_synthesis_files()
-            for constraint_file in constraint_files:
-                # Scoped constraints often depend on clocks having been created by another
-                # constraint file before they can work. Set processing order to "late" to make
-                # this more probable.
-                constraint = Constraint(
-                    constraint_file, scoped_constraint=True, processing_order="late"
-                )
-                constraint.validate_scoped_entity(synthesis_files)
-                constraints.append(constraint)
-        return constraints
 
     def get_build_projects(self):  # pylint: disable=no-self-use
         """

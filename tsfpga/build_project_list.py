@@ -52,7 +52,7 @@ class BuildProjectList:
         """
         Returns a string with a description list of the projects.
         """
-        result = "\n\n".join([str(project) for project in self.projects])
+        result = "\n".join([str(project) for project in self.projects])
         result += "\n"
         result += "\n"
         result += f"Listed {len(self.projects)} builds"

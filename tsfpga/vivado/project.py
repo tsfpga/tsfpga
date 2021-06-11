@@ -38,6 +38,7 @@ class VivadoProject:
         vivado_path=None,
         default_run_index=1,
         defined_at=None,
+        **other_arguments,
     ):
         """
         Class constructor. Performs a shallow copy of the mutable arguments, so that the user
@@ -65,25 +66,46 @@ class VivadoProject:
             default_run_index (int): Default run index (synth_X and impl_X) that is set in the
                 project. Can also use the argument to :meth:`build() <VivadoProject.build>` to
                 specify at build-time.
-            defined_at (`pathlib.Path`): Optional path to the file where you defined your
+            defined_at (`pathlib.Path`): Optional path to the file where you defined this
                 project. To get a useful ``build.py --list`` message. Is useful when you have many
                 projects set up.
+            other_arguments: Optional further arguments. Will not be used by tsfpga, but will
+                instead be passed on to
+
+                * :func:`BaseModule.get_synthesis_files()
+                  <tsfpga.module.BaseModule.get_synthesis_files>`
+                * :func:`BaseModule.get_ip_core_files()
+                  <tsfpga.module.BaseModule.get_ip_core_files>`
+                * :func:`BaseModule.get_scoped_constraints()
+                  <tsfpga.module.BaseModule.get_scoped_constraints>`
+                * :func:`VivadoProject.pre_create`
+                * :func:`BaseModule.pre_build() <tsfpga.module.BaseModule.pre_build>`
+                * :func:`VivadoProject.pre_build`
+                * :func:`VivadoProject.post_build`
+
+                along with further arguments supplied at build-time to :meth:`.create` and
+                :meth:`.build`.
+
+                .. note::
+                    This is a "kwargs" style argument. You can pass any number of named arguments.
         """
         self.name = name
         self.modules = modules.copy()
         self.part = part
-        self.static_generics = None if generics is None else generics.copy()
+        self.static_generics = dict() if generics is None else generics.copy()
         self.constraints = [] if constraints is None else constraints.copy()
         self.tcl_sources = [] if tcl_sources is None else tcl_sources.copy()
         self.build_step_hooks = [] if build_step_hooks is None else build_step_hooks.copy()
         self._vivado_path = vivado_path
         self.default_run_index = default_run_index
         self.defined_at = defined_at
+        self.other_arguments = None if other_arguments is None else other_arguments.copy()
 
         # Will be set by child class when applicable
         self.is_netlist_build = False
         self.analyze_synthesis_timing = True
         self.report_logic_level_distribution = False
+        self.ip_cores_only = False
 
         self.top = name + "_top" if top is None else top
 
@@ -144,7 +166,7 @@ class VivadoProject:
                 )
             )
 
-    def _create_tcl(self, project_path, ip_cache_path):
+    def _create_tcl(self, project_path, ip_cache_path, all_arguments):
         """
         Make a TCL file that creates a Vivado project
         """
@@ -165,12 +187,14 @@ class VivadoProject:
             build_step_hooks=self.build_step_hooks,
             ip_cache_path=ip_cache_path,
             disable_io_buffers=self.is_netlist_build,
+            ip_cores_only=self.ip_cores_only,
+            other_arguments=all_arguments,
         )
         create_file(create_vivado_project_tcl, tcl)
 
         return create_vivado_project_tcl
 
-    def create(self, project_path, ip_cache_path=None):
+    def create(self, project_path, ip_cache_path=None, **other_arguments):
         """
         Create a Vivado project
 
@@ -178,7 +202,21 @@ class VivadoProject:
             project_path (`pathlib.Path`): Path where the project shall be placed.
             ip_cache_path (`pathlib.Path`): Path to a folder where the Vivado IP cache can be
                 placed. If omitted, the Vivado IP cache mechanism will not be enabled.
+            other_arguments: Optional further arguments. Will not be used by tsfpga, but will
+                instead be sent to
 
+                * :func:`BaseModule.get_synthesis_files()
+                  <tsfpga.module.BaseModule.get_synthesis_files>`
+                * :func:`BaseModule.get_ip_core_files()
+                  <tsfpga.module.BaseModule.get_ip_core_files>`
+                * :func:`BaseModule.get_scoped_constraints()
+                  <tsfpga.module.BaseModule.get_scoped_constraints>`
+                * :func:`VivadoProject.pre_create`
+
+                along with further ``other_arguments`` supplied to :meth:`.__init__`.
+
+                .. note::
+                    This is a "kwargs" style argument. You can pass any number of named arguments.
         Returns:
             bool: True if everything went well.
         """
@@ -194,11 +232,23 @@ class VivadoProject:
         # an issue.
         self.modules = deepcopy(self.modules)
 
-        if not self.pre_create(project_path=project_path, ip_cache_path=ip_cache_path):
+        # Send all available arguments that are reasonable to use in pre-create and module getter
+        # functions. Prefer run-time values over the static.
+        all_arguments = copy_and_combine_dicts(self.other_arguments, other_arguments)
+        all_arguments.update(
+            generics=self.static_generics,
+            part=self.part,
+        )
+
+        if not self.pre_create(
+            project_path=project_path, ip_cache_path=ip_cache_path, **all_arguments
+        ):
             print("ERROR: Project pre-create hook returned False. Failing the build.")
             return False
 
-        create_vivado_project_tcl = self._create_tcl(project_path, ip_cache_path)
+        create_vivado_project_tcl = self._create_tcl(
+            project_path=project_path, ip_cache_path=ip_cache_path, all_arguments=all_arguments
+        )
         return run_vivado_tcl(self._vivado_path, create_vivado_project_tcl)
 
     def pre_create(self, **kwargs):  # pylint: disable=no-self-use, unused-argument
@@ -215,7 +265,8 @@ class VivadoProject:
             this mechanism.
 
         Arguments:
-            kwargs: Will have all the :meth:`.create` parameters in it.
+            kwargs: Will have all the :meth:`.create` parameters in it, as well as everything in
+                the ``other_arguments`` argument to :func:`VivadoProject.__init__`.
 
         Return:
             bool: True if everything went well.
@@ -223,7 +274,7 @@ class VivadoProject:
         return True
 
     def _build_tcl(
-        self, project_path, output_path, num_threads, run_index, build_time_generics, synth_only
+        self, project_path, output_path, num_threads, run_index, all_generics, synth_only
     ):
         """
         Make a TCL file that builds a Vivado project
@@ -233,16 +284,6 @@ class VivadoProject:
             raise ValueError(
                 f"Project file does not exist in the specified location: {project_file}"
             )
-
-        if self.static_generics is None:
-            all_generics = build_time_generics
-        elif build_time_generics is None:
-            all_generics = self.static_generics
-        else:
-            # Add the two dictionaries. This will prefer the values in the build-time generics,
-            # if the same generic key is present in both.
-            all_generics = self.static_generics
-            all_generics.update(build_time_generics)
 
         build_vivado_project_tcl = project_path / "build_vivado_project.tcl"
         tcl = self.tcl.build(
@@ -318,8 +359,14 @@ class VivadoProject:
                 Compare to the create-time generics argument in :meth:`.__init__`.
             synth_only (bool): Run synthesis and then stop.
             num_threads (int): Number of parallel threads to use during run.
-            pre_and_post_build_parameters: Additional parameters that will be
-                sent to :meth:`.pre_build` and :meth:`.post_build` functions.
+            pre_and_post_build_parameters: Optional further arguments. Will not be used by tsfpga,
+                but will instead be sent to
+
+                * :func:`BaseModule.pre_build() <tsfpga.module.BaseModule.pre_build>`
+                * :func:`VivadoProject.pre_build`
+                * :func:`VivadoProject.post_build`
+
+                along with further ``other_arguments`` supplied to :meth:`.__init__`.
 
                 .. note::
                     This is a "kwargs" style argument. You can pass any number of named arguments.
@@ -337,18 +384,20 @@ class VivadoProject:
         else:
             print(f"Building Vivado project in {project_path}, placing artifacts in {output_path}")
 
-        # Must be copied since it might be manipulated by e.g. pre-hook
-        build_time_generics = None if generics is None else generics.copy()
+        # Combine to all available generics. Prefer run-time values over static.
+        all_generics = copy_and_combine_dicts(self.static_generics, generics)
 
         # Run index is optional to specify at build-time
         run_index = self.default_run_index if run_index is None else run_index
 
-        # Send all available information to pre- and post build functions
-        pre_and_post_build_parameters.update(
+        # Send all available information to pre- and post build functions. Prefer build-time values
+        # over the static arguments.
+        all_parameters = copy_and_combine_dicts(self.other_arguments, pre_and_post_build_parameters)
+        all_parameters.update(
             project_path=project_path,
             output_path=output_path,
             run_index=run_index,
-            generics=build_time_generics,
+            generics=all_generics,
             synth_only=synth_only,
             num_threads=num_threads,
         )
@@ -364,7 +413,7 @@ class VivadoProject:
         result = BuildResult(self.name)
 
         for module in self.modules:
-            if not module.pre_build(project=self, **pre_and_post_build_parameters):
+            if not module.pre_build(project=self, **all_parameters):
                 print(
                     f"ERROR: Module {module.name} pre-build hook returned False. Failing the build."
                 )
@@ -374,7 +423,7 @@ class VivadoProject:
             # Make sure register packages are up to date
             module.create_regs_vhdl_package()
 
-        if not self.pre_build(**pre_and_post_build_parameters):
+        if not self.pre_build(**all_parameters):
             print("ERROR: Project pre-build hook returned False. Failing the build.")
             result.success = False
             return result
@@ -384,7 +433,7 @@ class VivadoProject:
             output_path=output_path,
             num_threads=num_threads,
             run_index=run_index,
-            build_time_generics=build_time_generics,
+            all_generics=all_generics,
             synth_only=synth_only,
         )
 
@@ -405,9 +454,9 @@ class VivadoProject:
             result.implementation_size = self._get_size(project_path, f"impl_{run_index}")
 
         # Send the result object, along with everything else, to the post-build function
-        pre_and_post_build_parameters.update(build_result=result)
+        all_parameters.update(build_result=result)
 
-        if not self.post_build(**pre_and_post_build_parameters):
+        if not self.post_build(**all_parameters):
             print("ERROR: Project post-build hook returned False. Failing the build.")
             result.success = False
 
@@ -446,20 +495,28 @@ class VivadoProject:
         return LogicLevelDistributionParser.get_table(report_as_string)
 
     def __str__(self):
-        result = self.name
+        result = f"{self.name}\n"
+
         if self.defined_at is not None:
-            result += f"\nDefined at: {self.defined_at.resolve()}"
-        result += f"\nType:       {self.__class__.__name__}"
-        result += f"\nTop level:  {self.top}"
-        if self.static_generics is None:
-            generics = "-"
+            result += f"Defined at: {self.defined_at.resolve()}\n"
+
+        result += f"Type:       {self.__class__.__name__}\n"
+        result += f"Top level:  {self.top}\n"
+
+        if self.static_generics:
+            generics = self._dict_to_string(self.static_generics)
         else:
-            generics = ", ".join(
-                [f"{name}={value}" for name, value in self.static_generics.items()]
-            )
-        result += f"\nGenerics:   {generics}"
+            generics = "-"
+        result += f"Generics:   {generics}\n"
+
+        if self.other_arguments:
+            result += f"Arguments:  {self._dict_to_string(self.other_arguments)}\n"
 
         return result
+
+    @staticmethod
+    def _dict_to_string(data):
+        return ", ".join([f"{name}={value}" for name, value in data.items()])
 
 
 class VivadoNetlistProject(VivadoProject):
@@ -479,7 +536,7 @@ class VivadoNetlistProject(VivadoProject):
             build_result_checkers (list(:class:`.SizeChecker`, :class:`.MaximumLogicLevel`)):
                 Checkers that will be executed after a successful build. Is used to automatically
                 check that e.g. resource utilization is not greater than expected.
-            kwargs: Other arguments accepted by :meth:`.VivadoProject.__init__`.
+            kwargs: Further arguments accepted by :meth:`.VivadoProject.__init__`.
         """
         super().__init__(**kwargs)
 
@@ -511,3 +568,43 @@ class VivadoNetlistProject(VivadoProject):
             success = success and checker_result
 
         return success
+
+
+class VivadoIpCoreProject(VivadoProject):
+    """
+    A Vivado project that is only used to generate simulation models of IP cores.
+    """
+
+    def __init__(self, **kwargs):
+        """
+        Arguments:
+            kwargs: Arguments as accepted by :meth:`.VivadoProject.__init__`.
+        """
+        super().__init__(**kwargs)
+
+        self.ip_cores_only = True
+
+    def build(self, **kwargs):  # pylint: disable=arguments-differ
+        """
+        Not implemented.
+        """
+        raise NotImplementedError("IP core project can not be built")
+
+
+def copy_and_combine_dicts(dict_first, dict_second):
+    """
+    Will prefer values in the second dict, in case the same key occurs in both.
+    Will return ``None`` if both are ``None``.
+    """
+    if dict_first is None and dict_second is None:
+        return None
+
+    if dict_first is None:
+        return dict_second.copy()
+
+    if dict_second is None:
+        return dict_first.copy()
+
+    result = dict_first.copy()
+    result.update(dict_second)
+    return result
