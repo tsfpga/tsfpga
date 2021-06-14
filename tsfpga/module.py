@@ -305,13 +305,6 @@ class BaseModule:
                 location of test files, etc.
         """
 
-    # pylint: disable=unused-argument,no-self-use
-    def setup_simulations(self, vunit_proj, **kwargs):
-        print(
-            "DEPRECATED: Calling deprecated BaseModule.setup_simulations(). "
-            "Use BaseModule.setup_vunit() instead."
-        )
-
     def setup_formal(self, formal_proj, **kwargs):
         """
         Setup this module's formal tests.
@@ -327,7 +320,7 @@ class BaseModule:
                 location of test files, etc.
         """
 
-    # pylint: disable=unused-argument
+    # pylint: disable=unused-argument, no-self-use
     def pre_build(self, project, **kwargs):
         """
         This method hook will be called before an FPGA build is run. A typical use case for this
