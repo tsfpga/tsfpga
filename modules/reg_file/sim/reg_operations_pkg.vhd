@@ -105,6 +105,50 @@ package reg_operations_pkg is
     message : in string := ""
   );
 
+  procedure wait_until_reg_equals(
+    signal net : inout network_t;
+    reg_index : in natural;
+    value : in reg_t;
+    base_address : in addr_t := (others => '0');
+    bus_handle : in bus_master_t := regs_bus_master;
+    timeout : delay_length := max_timeout;
+    message : string := ""
+  );
+
+  procedure wait_until_reg_equals(
+    signal net : inout network_t;
+    reg_index : in natural;
+    value : in integer;
+    base_address : in addr_t := (others => '0');
+    bus_handle : in bus_master_t := regs_bus_master;
+    timeout : delay_length := max_timeout;
+    message : string := ""
+  );
+
+  procedure wait_until_reg_equals_bits(
+    signal net : inout network_t;
+    reg_index : in natural;
+    bit_indexes : in natural_vec_t;
+    values : in std_logic_vector;
+    other_bits_value : in std_logic := '-';
+    base_address : in addr_t := (others => '0');
+    bus_handle : in bus_master_t := regs_bus_master;
+    timeout : delay_length := max_timeout;
+    message : string := ""
+  );
+
+  procedure wait_until_reg_equals_bit(
+    signal net : inout network_t;
+    reg_index : in natural;
+    bit_index : in natural;
+    value : in std_logic;
+    other_bits_value : in std_logic := '-';
+    base_address : in addr_t := (others => '0');
+    bus_handle : in bus_master_t := regs_bus_master;
+    timeout : delay_length := max_timeout;
+    message : string := ""
+  );
+
   procedure write_reg(
     signal net : inout network_t;
     reg_index : in natural;
@@ -165,50 +209,6 @@ package reg_operations_pkg is
     value : in std_logic;
     base_address : in addr_t := (others => '0');
     bus_handle : in bus_master_t := regs_bus_master
-  );
-
-  procedure wait_until_reg_equals(
-    signal net : inout network_t;
-    reg_index : in natural;
-    value : in reg_t;
-    base_address : in addr_t := (others => '0');
-    bus_handle : in bus_master_t := regs_bus_master;
-    timeout : delay_length := max_timeout;
-    message : string := ""
-  );
-
-  procedure wait_until_reg_equals(
-    signal net : inout network_t;
-    reg_index : in natural;
-    value : in integer;
-    base_address : in addr_t := (others => '0');
-    bus_handle : in bus_master_t := regs_bus_master;
-    timeout : delay_length := max_timeout;
-    message : string := ""
-  );
-
-  procedure wait_until_reg_equals_bits(
-    signal net : inout network_t;
-    reg_index : in natural;
-    bit_indexes : in natural_vec_t;
-    values : in std_logic_vector;
-    other_bits_value : in std_logic := '-';
-    base_address : in addr_t := (others => '0');
-    bus_handle : in bus_master_t := regs_bus_master;
-    timeout : delay_length := max_timeout;
-    message : string := ""
-  );
-
-  procedure wait_until_reg_equals_bit(
-    signal net : inout network_t;
-    reg_index : in natural;
-    bit_index : in natural;
-    value : in std_logic;
-    other_bits_value : in std_logic := '-';
-    base_address : in addr_t := (others => '0');
-    bus_handle : in bus_master_t := regs_bus_master;
-    timeout : delay_length := max_timeout;
-    message : string := ""
   );
 
   -- Internal helper function. Not meant to be used outside of this package.
@@ -351,6 +351,114 @@ package body reg_operations_pkg is
       other_bits_value=>other_bits_value,
       base_address=>base_address,
       bus_handle=>bus_handle,
+      message=>message
+    );
+  end procedure;
+
+  procedure wait_until_reg_equals(
+    signal net : inout network_t;
+    reg_index : in natural;
+    value : in reg_t;
+    base_address : in addr_t := (others => '0');
+    bus_handle : in bus_master_t := regs_bus_master;
+    timeout : delay_length := max_timeout;
+    message : string := ""
+  ) is
+    constant address : addr_t := base_address or to_unsigned(4 * reg_index, addr_t'length);
+  begin
+    -- Wait until the register has the specified 'value'. Note that '-' can be used as a wildcard
+    -- in 'value' since std_match is used to check for equality inside the VUnit function.
+
+    wait_until_read_equals(
+      net=>net,
+      bus_handle=>bus_handle,
+      addr=>std_logic_vector(address),
+      value=>value,
+      timeout=>timeout,
+      msg=>get_error_message(reg_index, base_address, message)
+    );
+  end procedure;
+
+  procedure wait_until_reg_equals(
+    signal net : inout network_t;
+    reg_index : in natural;
+    value : in integer;
+    base_address : in addr_t := (others => '0');
+    bus_handle : in bus_master_t := regs_bus_master;
+    timeout : delay_length := max_timeout;
+    message : string := ""
+  ) is
+  begin
+    wait_until_reg_equals(
+      net=>net,
+      reg_index=>reg_index,
+      value=>std_logic_vector(to_signed(value, reg_width)),
+      base_address=>base_address,
+      bus_handle=>bus_handle,
+      timeout=>timeout,
+      message=>message
+    );
+  end procedure;
+
+  procedure wait_until_reg_equals_bits(
+    signal net : inout network_t;
+    reg_index : in natural;
+    bit_indexes : in natural_vec_t;
+    values : in std_logic_vector;
+    other_bits_value : in std_logic := '-';
+    base_address : in addr_t := (others => '0');
+    bus_handle : in bus_master_t := regs_bus_master;
+    timeout : delay_length := max_timeout;
+    message : string := ""
+  ) is
+    variable reg_value : reg_t := (others => '0');
+  begin
+    -- Wait until all the bits listed in 'bit_indexes' are read as their corresponding 'values'.
+    -- Other bits' values can either be ignored (if 'other_bits_value' is left at default value) or
+    -- checked against an expected value (by specifying 'other_bits_value').
+
+    reg_value := to_reg_value(
+      bit_indexes=>bit_indexes,
+      values=>values,
+      previous_value=>(others => other_bits_value)
+    );
+
+    wait_until_reg_equals(
+      net=>net,
+      reg_index=>reg_index,
+      value=>reg_value,
+      base_address=>base_address,
+      bus_handle=>bus_handle,
+      timeout=>timeout,
+      message=>message
+    );
+  end procedure;
+
+  procedure wait_until_reg_equals_bit(
+    signal net : inout network_t;
+    reg_index : in natural;
+    bit_index : in natural;
+    value : in std_logic;
+    other_bits_value : in std_logic := '-';
+    base_address : in addr_t := (others => '0');
+    bus_handle : in bus_master_t := regs_bus_master;
+    timeout : delay_length := max_timeout;
+    message : string := ""
+  ) is
+  begin
+    -- Wait until the 'bit_index' bit is read as 'value'.
+    -- Other bits' values can either be ignored (if 'other_bits_value' is left at default value) or
+    -- checked against an expected value (by specifying 'other_bits_value').
+
+    wait_until_reg_equals_bits(
+      net=>net,
+      reg_index=>reg_index,
+      bit_indexes=>(0 => bit_index),
+      values=>(0 => value),
+      other_bits_value=>other_bits_value,
+      base_address=>base_address,
+      bus_handle=>bus_handle,
+      timeout=>timeout,
       message=>message
     );
   end procedure;
@@ -504,114 +612,6 @@ package body reg_operations_pkg is
       values=>(0 => value),
       base_address=>base_address,
       bus_handle=>bus_handle
-    );
-  end procedure;
-
-  procedure wait_until_reg_equals(
-    signal net : inout network_t;
-    reg_index : in natural;
-    value : in reg_t;
-    base_address : in addr_t := (others => '0');
-    bus_handle : in bus_master_t := regs_bus_master;
-    timeout : delay_length := max_timeout;
-    message : string := ""
-  ) is
-    constant address : addr_t := base_address or to_unsigned(4 * reg_index, addr_t'length);
-  begin
-    -- Wait until the register has the specified 'value'. Note that '-' can be used as a wildcard
-    -- in 'value' since std_match is used to check for equality inside the VUnit function.
-
-    wait_until_read_equals(
-      net=>net,
-      bus_handle=>bus_handle,
-      addr=>std_logic_vector(address),
-      value=>value,
-      timeout=>timeout,
-      msg=>get_error_message(reg_index, base_address, message)
-    );
-  end procedure;
-
-  procedure wait_until_reg_equals(
-    signal net : inout network_t;
-    reg_index : in natural;
-    value : in integer;
-    base_address : in addr_t := (others => '0');
-    bus_handle : in bus_master_t := regs_bus_master;
-    timeout : delay_length := max_timeout;
-    message : string := ""
-  ) is
-  begin
-    wait_until_reg_equals(
-      net=>net,
-      reg_index=>reg_index,
-      value=>std_logic_vector(to_signed(value, reg_width)),
-      base_address=>base_address,
-      bus_handle=>bus_handle,
-      timeout=>timeout,
-      message=>message
-    );
-  end procedure;
-
-  procedure wait_until_reg_equals_bits(
-    signal net : inout network_t;
-    reg_index : in natural;
-    bit_indexes : in natural_vec_t;
-    values : in std_logic_vector;
-    other_bits_value : in std_logic := '-';
-    base_address : in addr_t := (others => '0');
-    bus_handle : in bus_master_t := regs_bus_master;
-    timeout : delay_length := max_timeout;
-    message : string := ""
-  ) is
-    variable reg_value : reg_t := (others => '0');
-  begin
-    -- Wait until all the bits listed in 'bit_indexes' are read as their corresponding 'values'.
-    -- Other bits' values can either be ignored (if 'other_bits_value' is left at default value) or
-    -- checked against an expected value (by specifying 'other_bits_value').
-
-    reg_value := to_reg_value(
-      bit_indexes=>bit_indexes,
-      values=>values,
-      previous_value=>(others => other_bits_value)
-    );
-
-    wait_until_reg_equals(
-      net=>net,
-      reg_index=>reg_index,
-      value=>reg_value,
-      base_address=>base_address,
-      bus_handle=>bus_handle,
-      timeout=>timeout,
-      message=>message
-    );
-  end procedure;
-
-  procedure wait_until_reg_equals_bit(
-    signal net : inout network_t;
-    reg_index : in natural;
-    bit_index : in natural;
-    value : in std_logic;
-    other_bits_value : in std_logic := '-';
-    base_address : in addr_t := (others => '0');
-    bus_handle : in bus_master_t := regs_bus_master;
-    timeout : delay_length := max_timeout;
-    message : string := ""
-  ) is
-  begin
-    -- Wait until the 'bit_index' bit is read as 'value'.
-    -- Other bits' values can either be ignored (if 'other_bits_value' is left at default value) or
-    -- checked against an expected value (by specifying 'other_bits_value').
-
-    wait_until_reg_equals_bits(
-      net=>net,
-      reg_index=>reg_index,
-      bit_indexes=>(0 => bit_index),
-      values=>(0 => value),
-      other_bits_value=>other_bits_value,
-      base_address=>base_address,
-      bus_handle=>bus_handle,
-      timeout=>timeout,
-      message=>message
     );
   end procedure;
 
