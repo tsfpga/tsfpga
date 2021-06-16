@@ -45,7 +45,7 @@ def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
     parser.add_argument(
         "--netlist-builds",
         action="store_true",
-        help="list netlist build projects instead of top level build projects",
+        help="use netlist build projects instead of top level build projects",
     )
     parser.add_argument(
         "--projects-path",
