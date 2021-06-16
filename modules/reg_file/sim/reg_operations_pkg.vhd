@@ -261,7 +261,7 @@ package body reg_operations_pkg is
     variable slv_value : reg_t := (others => '0');
   begin
     read_reg(net, reg_index, slv_value, base_address, bus_handle);
-    value := to_integer(unsigned(slv_value));
+    value := to_integer(signed(slv_value));
   end procedure;
 
   procedure check_reg_equal(
@@ -544,7 +544,7 @@ package body reg_operations_pkg is
     wait_until_reg_equals(
       net=>net,
       reg_index=>reg_index,
-      value=>std_logic_vector(to_unsigned(value, reg_width)),
+      value=>std_logic_vector(to_signed(value, reg_width)),
       base_address=>base_address,
       bus_handle=>bus_handle,
       timeout=>timeout,
