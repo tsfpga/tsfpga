@@ -51,8 +51,6 @@ class VivadoTcl:
             tcl += "\n"
 
         if not ip_cores_only:
-            tcl += self._add_tcl_sources(tcl_sources)
-            tcl += "\n"
             tcl += self._add_module_source_files(modules=modules, other_arguments=other_arguments)
             tcl += "\n"
             tcl += self._add_generics(generics)
@@ -66,6 +64,8 @@ class VivadoTcl:
             tcl += self._add_build_step_hooks(build_step_hooks, project_folder)
             tcl += "\n"
 
+        tcl += self._add_tcl_sources(tcl_sources)
+        tcl += "\n"
         tcl += self._add_ip_cores(modules=modules, other_arguments=other_arguments)
         tcl += "\n"
         tcl += self._add_project_settings()
