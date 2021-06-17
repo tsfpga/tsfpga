@@ -252,7 +252,7 @@ void test_bit_indexes()
   assert(fpga_regs::Artyz7::dummy_regs_array_dummy_reg_array_bit_b_shift == 1);
   assert(fpga_regs::Artyz7::dummy_regs_array_dummy_reg_array_bit_b_mask == 2);
   assert(fpga_regs::Artyz7::dummy_regs_array_dummy_reg_array_bit_vector_shift == 2);
-  assert(fpga_regs::Artyz7::dummy_regs_array_dummy_reg_array_bit_vector_mask == 15 << 2);
+  assert(fpga_regs::Artyz7::dummy_regs_array_dummy_reg_array_bit_vector_mask == 31 << 2);
 }
 
 """

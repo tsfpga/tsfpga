@@ -132,12 +132,14 @@ begin
       check_equal(artyz7_plain_dummy_reg_plain_bit_b, 1);
       check_equal(artyz7_plain_dummy_reg_plain_bit_vector'low, 2);
       check_equal(artyz7_plain_dummy_reg_plain_bit_vector'high, 5);
+      check_equal(artyz7_plain_dummy_reg_plain_bit_vector_width, 4);
 
       -- Fields in the register array register
       check_equal(artyz7_dummy_regs_array_dummy_reg_array_bit_a, 0);
       check_equal(artyz7_dummy_regs_array_dummy_reg_array_bit_b, 1);
       check_equal(artyz7_dummy_regs_array_dummy_reg_array_bit_vector'low, 2);
-      check_equal(artyz7_dummy_regs_array_dummy_reg_array_bit_vector'high, 5);
+      check_equal(artyz7_dummy_regs_array_dummy_reg_array_bit_vector'high, 6);
+      check_equal(artyz7_dummy_regs_array_dummy_reg_array_bit_vector_width, 5);
 
     elsif run("test_generated_register_default_values") then
       -- Test reading the default values set in the regs TOML
@@ -161,9 +163,9 @@ begin
           base_address => reg_slaves(0).addr
         );
 
-        check_equal(reg_value(artyz7_plain_dummy_reg_plain_bit_a), '1');
-        check_equal(reg_value(artyz7_plain_dummy_reg_plain_bit_b), '0');
-        check_equal(unsigned(reg_value(artyz7_plain_dummy_reg_plain_bit_vector)), 12);
+        check_equal(reg_value(artyz7_dummy_regs_array_dummy_reg_array_bit_a), '1');
+        check_equal(reg_value(artyz7_dummy_regs_array_dummy_reg_array_bit_b), '0');
+        check_equal(unsigned(reg_value(artyz7_dummy_regs_array_dummy_reg_array_bit_vector)), 12);
       end loop;
 
     end if;

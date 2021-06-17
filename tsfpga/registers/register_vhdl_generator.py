@@ -154,10 +154,10 @@ class RegisterVhdlGenerator(RegisterCodeGenerator):
                 if field.width == 1:
                     vhdl += f"  constant {name} : natural := {field.base_index};\n"
                 else:
-                    vhdl += (
-                        f"  subtype {name} is natural range "
-                        f"{field.width + field.base_index - 1} downto {field.base_index};\n"
-                    )
+                    vhdl += f"""\
+  subtype {name} is natural range {field.width + field.base_index - 1} downto {field.base_index};
+  constant {name}_width : positive := {field.width};
+"""
 
             if register.fields:
                 vhdl += "\n"

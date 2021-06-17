@@ -113,8 +113,8 @@ class TestRegisterHtmlGenerator(unittest.TestCase):
         )
         self._check_field(
             name="array_bit_vector",
-            index="5:2",
-            default_value="0b1100",
+            index="6:2",
+            default_value="0b01100",
             description="Array register bit vector",
             html=html,
         )

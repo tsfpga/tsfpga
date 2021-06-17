@@ -47,8 +47,8 @@ default_value = "0"
 [register_array.dummy_regs.register.array_dummy_reg.bit_vector.array_bit_vector]
 
 description = "Array register bit vector"
-width = 4
-default_value = "1100"
+width = 5
+default_value = "01100"
 
 
 # ------------------------------------------------------------------------------
