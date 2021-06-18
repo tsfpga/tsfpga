@@ -26,6 +26,11 @@ package bfm_pkg is
 
   impure function get_new_queues(count : positive) return queue_vec_t;
 
+  type memory_vec_t is array (integer range <>) of memory_t;
+  impure function get_new_memories(count : positive) return memory_vec_t;
+
+  type axi_slave_vec_t is array (integer range <>) of axi_slave_t;
+
   type axi_stream_master_vec_t is array (integer range <>) of axi_stream_master_t;
   impure function get_new_axi_stream_masters(
     count : positive;
@@ -51,6 +56,15 @@ package body bfm_pkg is
   begin
     for queue_idx in result'range loop
       result(queue_idx) := new_queue;
+    end loop;
+    return result;
+  end function;
+
+  impure function get_new_memories(count : positive) return memory_vec_t is
+    variable result : memory_vec_t(0 to count - 1) := (others => null_memory);
+  begin
+    for memory_idx in result'range loop
+      result(memory_idx) := new_memory;
     end loop;
     return result;
   end function;

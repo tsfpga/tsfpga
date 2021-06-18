@@ -19,6 +19,7 @@ library osvvm;
 use osvvm.RandomPkg.all;
 
 library bfm;
+use bfm.bfm_pkg.all;
 
 library common;
 use common.addr_pkg.all;
@@ -61,15 +62,8 @@ architecture tb of tb_axi_lite_mux is
 
   constant axi_master : bus_master_t := new_bus(data_length => data_width, address_length => axi_lite_m2s.read.ar.addr'length);
 
-  type memory_vec_t is array (integer range <>) of memory_t;
-  constant memory : memory_vec_t (slaves_rng) := (
-    0 => new_memory,
-    1 => new_memory,
-    2 => new_memory,
-    3 => new_memory
-  );
+  constant memory : memory_vec_t(slaves_rng) := get_new_memories(num_slaves);
 
-  type axi_slave_vec_t is array (integer range <>) of axi_slave_t;
   constant axi_read_slave, axi_write_slave : axi_slave_vec_t(slaves_rng) := (
     0 => new_axi_slave(address_fifo_depth => 1, memory => memory(0)),
     1 => new_axi_slave(address_fifo_depth => 1, memory => memory(1)),
