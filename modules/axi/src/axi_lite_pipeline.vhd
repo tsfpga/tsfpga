@@ -5,8 +5,9 @@
 -- https://tsfpga.com
 -- https://gitlab.com/tsfpga/tsfpga
 -- -------------------------------------------------------------------------------------------------
--- Pipelining of an AXI-Lite bus. Uses skid buffers so that full throughput is
--- sustained.
+-- Pipelining of an AXI-Lite bus. Full throughput and improved timing characteristics are achieved
+-- through the use of skid buffers. However to generics to handshake_pipeline can be modified to
+-- get a simpler handshake_pipeline implementation that results in lower resource utilizatoin.
 -- -------------------------------------------------------------------------------------------------
 
 library ieee;
@@ -22,7 +23,12 @@ use work.axi_pkg.all;
 entity axi_lite_pipeline is
   generic (
     data_width : positive;
-    addr_width : positive
+    addr_width : positive;
+    -- Settings to the handshake_pipeline blocks. These default settings (the same as
+    -- handshake_pipeline's defaults) give full throughput and the lowest logic depth.
+    -- They can be changed from default in order to decrease logic utilization.
+    full_throughput : boolean := true;
+    allow_poor_input_ready_timing : boolean := false
   );
   port (
     clk : in std_logic;
@@ -49,7 +55,9 @@ begin
 
     aw_handshake_pipeline_inst : entity common.handshake_pipeline
       generic map (
-        data_width => axi_lite_m2s_a_sz(addr_width)
+        data_width => axi_lite_m2s_a_sz(addr_width),
+        full_throughput => full_throughput,
+        allow_poor_input_ready_timing => allow_poor_input_ready_timing
       )
       port map(
         clk => clk,
@@ -77,7 +85,9 @@ begin
 
     handshake_pipeline_inst : entity common.handshake_pipeline
       generic map (
-        data_width => w_width
+        data_width => w_width,
+        full_throughput => full_throughput,
+        allow_poor_input_ready_timing => allow_poor_input_ready_timing
       )
       port map(
         clk => clk,
@@ -96,7 +106,9 @@ begin
   ------------------------------------------------------------------------------
   b_handshake_pipeline_inst : entity common.handshake_pipeline
     generic map (
-      data_width => axi_lite_s2m_b_sz
+      data_width => axi_lite_s2m_b_sz,
+      full_throughput => full_throughput,
+      allow_poor_input_ready_timing => allow_poor_input_ready_timing
     )
     port map(
       clk => clk,
@@ -121,7 +133,9 @@ begin
 
     ar_handshake_pipeline_inst : entity common.handshake_pipeline
       generic map (
-        data_width => axi_lite_m2s_a_sz(addr_width)
+        data_width => axi_lite_m2s_a_sz(addr_width),
+        full_throughput => full_throughput,
+        allow_poor_input_ready_timing => allow_poor_input_ready_timing
       )
       port map(
         clk => clk,
@@ -149,7 +163,9 @@ begin
 
     handshake_pipeline_inst : entity common.handshake_pipeline
       generic map (
-        data_width => r_width
+        data_width => r_width,
+        full_throughput => full_throughput,
+        allow_poor_input_ready_timing => allow_poor_input_ready_timing
       )
       port map(
         clk => clk,
