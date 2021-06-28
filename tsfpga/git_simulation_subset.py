@@ -116,27 +116,33 @@ class GitSimulationSubset:
     def _get_preprocessed_file_locations(self, vhd_files):
         """
         Find the location of a VUnit preprocessed file, based on the path in the modules tree.
+        Not all VHDL files are included in the simulation projects (e.g. often files that depend
+        on IP cores are excluded), hence files that can not be found in any module's simulation
+        files are ignored.
         """
         result = set()
         for vhd_file in vhd_files:
             library_name = self._get_library_name_from_path(vhd_file)
-            preprocessed_file = self._vunit_preprocessed_path / library_name / vhd_file.name
-            assert preprocessed_file.exists(), preprocessed_file
 
-            result.add(preprocessed_file)
+            if library_name is not None:
+                preprocessed_file = self._vunit_preprocessed_path / library_name / vhd_file.name
+                assert preprocessed_file.exists(), preprocessed_file
+
+                result.add(preprocessed_file)
 
         return result
 
     def _get_library_name_from_path(self, vhd_file):
         """
         Returns (str): Library name for the given file path.
+            Will return None if no library can be found.
         """
         for module in self._modules:
             for module_hdl_file in module.get_simulation_files():
                 if module_hdl_file.path.name == vhd_file.name:
                     return module.library_name
 
-        assert False, f"Could not find library for file {vhd_file}"
+        print(f"Could not find library for file {vhd_file}. It will be skipped.")
         return None
 
     def _find_testbenches(self):
