@@ -237,7 +237,7 @@ def build_python_coverage_badge(output_path):
         left_text="line coverage",
         right_text=f"{line_coverage}%",
         right_color=color,
-        logo="https://upload.wikimedia.org/wikipedia/commons/0/0a/Python.svg",
+        logo=str(tsfpga.TSFPGA_DOC / "sphinx" / "Python-logo-notext.svg"),
         embed_logo=True,
         left_link="https://tsfpga.com/python_coverage_html",
         right_link="https://tsfpga.com/python_coverage_html",
