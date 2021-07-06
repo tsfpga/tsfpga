@@ -79,6 +79,7 @@ build_pypi:
   script:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git > /dev/null
+    - python3 -m pip install GitPython tomlkit > /dev/null
     - python3 setup.py sdist
   artifacts:
     paths:

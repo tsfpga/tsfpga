@@ -14,8 +14,10 @@ from setuptools import setup, find_packages
 
 REPO_ROOT = Path(__file__).parent
 sys.path.insert(0, str(REPO_ROOT))
+
 import tsfpga
 from tsfpga.about import get_slogan
+from tsfpga.git_utils import find_git_files
 from tsfpga.system_utils import read_file
 
 
@@ -68,21 +70,29 @@ def read_requirements_file(path):
 
 def get_package_data():
     """
-    Additional files that shall be included in the release, apart from the python packages
+    Additional files that shall be included in the release, apart from the python packages.
+
+    All python files are included as packages by the find_packages() call as long as they have
+    an __init__.py file in the folder. Include all other files from the repo as package data.
+    This includes non-python files as well as python files that are not part of a package (such
+    as various module_*.py, etc).
     """
-    package_data = [
-        README_RST,
-        REQUIREMENTS_TXT,
-        REQUIREMENTS_DEVELOP_TXT,
-        tsfpga.TSFPGA_PATH / "test" / "lint" / "pylintrc",
-        tsfpga.TSFPGA_PATH / "test" / "lint" / "pycodestylerc",
-    ]
-    package_data += find_package_files(tsfpga.TSFPGA_TCL)
-    package_data += find_package_files(tsfpga.TSFPGA_MODULES)
+    non_python_files = list(find_git_files(tsfpga.REPO_ROOT, file_endings_avoid=".py"))
+
+    all_python_files = find_git_files(tsfpga.REPO_ROOT, file_endings_include=".py")
+    non_package_python_files = []
+    for python_file in all_python_files:
+        if not (python_file.parent / "__init__.py").exists():
+            non_package_python_files.append(python_file)
+
+    package_data = non_python_files + non_package_python_files
 
     # Specify path relative to the tsfpga python package folder
-    tsfpga_root = Path(REPO_ROOT, "tsfpga")
-    package_data = [path_relative_to_str(file, tsfpga_root) for file in package_data]
+    tsfpga_package_root = REPO_ROOT / "tsfpga"
+    package_data = [
+        path_relative_to_str(file_path, tsfpga_package_root) for file_path in package_data
+    ]
+
     return package_data
 
 
@@ -92,17 +102,6 @@ def path_relative_to_str(path, other):
     relative path "../readme.md". Hence we have to use os.path.
     """
     return relpath(str(path), str(other))
-
-
-def find_package_files(directory):
-    """
-    Find files to include in the package, ignoring temporary files.
-    """
-    files = []
-    for file in directory.glob("**/*"):
-        if not file.suffix.endswith("pyc"):
-            files.append(file)
-    return files
 
 
 if __name__ == "__main__":
