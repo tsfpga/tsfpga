@@ -11,10 +11,11 @@ from pathlib import Path
 from shutil import copy2, make_archive
 import sys
 
+# Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
 PATH_TO_TSFPGA = Path(__file__).parent.parent.resolve()
-sys.path.append(str(PATH_TO_TSFPGA))
+sys.path.insert(0, str(PATH_TO_TSFPGA))
 PATH_TO_VUNIT = PATH_TO_TSFPGA.parent / "vunit"
-sys.path.append(str(PATH_TO_VUNIT))
+sys.path.insert(0, str(PATH_TO_VUNIT))
 
 from tsfpga.build_project_list import BuildProjectList
 from tsfpga.system_utils import create_directory, delete

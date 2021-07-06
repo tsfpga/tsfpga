@@ -17,8 +17,10 @@ from xml.etree import ElementTree
 from pybadges import badge
 from git import Repo
 
+# Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
 REPO_ROOT = Path(__file__).parent.parent
-sys.path.append(str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT))
+
 import tsfpga
 from tsfpga.about import get_short_doc, get_doc
 from tsfpga.system_utils import create_directory, create_file, delete, read_file

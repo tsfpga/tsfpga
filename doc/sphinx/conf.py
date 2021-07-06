@@ -16,10 +16,11 @@ import builtins
 from pathlib import Path
 import sys
 
+# Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
 TSFPGA_ROOT = Path(__file__).parent.parent.parent
-sys.path.append(str(TSFPGA_ROOT))
+sys.path.insert(0, str(TSFPGA_ROOT))
 PATH_TO_VUNIT = TSFPGA_ROOT.parent / "vunit"
-sys.path.append(str(PATH_TO_VUNIT.resolve()))
+sys.path.insert(0, str(PATH_TO_VUNIT.resolve()))
 
 
 # -- Project information -----------------------------------------------------

@@ -11,8 +11,9 @@ import pytest
 
 import tsfpga
 
+# Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
 PATH_TO_VUNIT = tsfpga.REPO_ROOT.parent / "vunit"
-sys.path.append(str(PATH_TO_VUNIT.resolve()))
+sys.path.insert(0, str(PATH_TO_VUNIT.resolve()))
 
 
 @pytest.fixture
