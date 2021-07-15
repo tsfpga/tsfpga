@@ -17,7 +17,6 @@ sys.path.insert(0, str(REPO_ROOT))
 
 import tsfpga
 from tsfpga.about import get_slogan
-from tsfpga.git_utils import find_git_files
 from tsfpga.system_utils import read_file
 
 
@@ -41,7 +40,8 @@ def main():
         install_requires=read_requirements_file(REQUIREMENTS_TXT),
         extras_require=dict(dev=read_requirements_file(REQUIREMENTS_DEVELOP_TXT)),
         packages=find_packages(),
-        package_data={"tsfpga": get_package_data()},
+        use_scm_version=True,
+        setup_requires=["setuptools_scm"],
         classifiers=[
             "Development Status :: 5 - Production/Stable",
             "License :: OSI Approved :: BSD License",
@@ -66,34 +66,6 @@ def read_requirements_file(path):
                 requirements.append(line_data.strip())
 
     return requirements
-
-
-def get_package_data():
-    """
-    Additional files that shall be included in the release, apart from the python packages.
-
-    All python files are included as packages by the find_packages() call as long as they have
-    an __init__.py file in the folder. Include all other files from the repo as package data.
-    This includes non-python files as well as python files that are not part of a package (such
-    as various module_*.py, etc).
-    """
-    non_python_files = list(find_git_files(tsfpga.REPO_ROOT, file_endings_avoid=".py"))
-
-    all_python_files = find_git_files(tsfpga.REPO_ROOT, file_endings_include=".py")
-    non_package_python_files = []
-    for python_file in all_python_files:
-        if not (python_file.parent / "__init__.py").exists():
-            non_package_python_files.append(python_file)
-
-    package_data = non_python_files + non_package_python_files
-
-    # Specify path relative to the tsfpga python package folder
-    tsfpga_package_root = REPO_ROOT / "tsfpga"
-    package_data = [
-        path_relative_to_str(file_path, tsfpga_package_root) for file_path in package_data
-    ]
-
-    return package_data
 
 
 def path_relative_to_str(path, other):

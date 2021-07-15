@@ -1,1 +1,3 @@
-Nothing here yet.
+Fixed
+
+* Fix issues with dependency on GitPython in setup.py
