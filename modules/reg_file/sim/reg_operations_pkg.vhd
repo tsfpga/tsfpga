@@ -605,7 +605,7 @@ package body reg_operations_pkg is
     -- Read-modify-write where the 'bit_index' bit will be set to 'value'.
     -- Note that the read portion of this call is blocking, but the write portion is non-blocking.
 
-    write_reg_bits(
+    read_modify_write_reg_bits(
       net=>net,
       reg_index=>reg_index,
       bit_indexes=>(0 => bit_index),
