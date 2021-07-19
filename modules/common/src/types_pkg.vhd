@@ -13,6 +13,10 @@ use ieee.std_logic_1164.all;
 
 package types_pkg is
 
+  type slv_vec_t is array (integer range <>) of std_logic_vector;
+  type unsigned_vec_t is array (integer range <>) of unsigned;
+  type signed_vec_t is array (integer range <>) of signed;
+
   type natural_vec_t is array (integer range <>) of natural;
   type positive_vec_t is array (integer range <>) of positive;
   type boolean_vec_t is array (integer range <>) of boolean;
