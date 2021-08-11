@@ -69,8 +69,7 @@ begin
       if rnd.RandInt(1, 100) > (100 - stall_probability_percent) then
         stall_data <= '1';
 
-        for low_cycles in 1 to rnd.FavorSmall(0, max_stall_cycles) loop
-          -- Loop collapses for rand = 0 and there is no jitter
+        for low_cycles in 1 to rnd.FavorSmall(1, max_stall_cycles) loop
           wait until rising_edge(clk);
         end loop;
       end if;
