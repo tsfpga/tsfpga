@@ -46,7 +46,13 @@ entity handshake_slave is
     -- Is also used for the random seed
     logger_prefix : string := "";
     -- Assign a non-zero value in order to use the 'data' port for protocol checking
-    data_width : natural := 0
+    data_width : natural := 0;
+    -- This can be used to essentially disable the
+    --   "rule 4: Check failed for performance - tready active N clock cycles after tvalid."
+    -- warning by setting a very high value for the limit.
+    -- This warning is considered noise in most testbenches that exercise backpressure.
+    -- Set to a lower value in order the enable the warning.
+    rule_4_performance_check_max_waits : natural := natural'high
   );
   port (
     clk : in std_logic;
@@ -100,7 +106,8 @@ begin
     generic map (
       protocol_checker => new_axi_stream_protocol_checker(
         logger => get_logger(logger_prefix & "handshake_slave"),
-        data_length => data'length
+        data_length => data'length,
+        max_waits => rule_4_performance_check_max_waits
       )
     )
     port map (
