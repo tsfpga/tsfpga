@@ -17,7 +17,7 @@ class Module(BaseModule):
         self.add_vunit_config(
             test,
             generics=dict(
-                data_width=5, master_stall_probability_percent=0, slave_stall_probability_percent=50
+                data_width=0, master_stall_probability_percent=0, slave_stall_probability_percent=50
             ),
         )
 
@@ -25,15 +25,15 @@ class Module(BaseModule):
         self.add_vunit_config(
             test,
             generics=dict(
-                data_width=5, master_stall_probability_percent=50, slave_stall_probability_percent=0
+                data_width=0, master_stall_probability_percent=50, slave_stall_probability_percent=0
             ),
         )
 
-        test = tb.get_tests("test_random")[0]
+        test = tb.get_tests("test_random_data")[0]
         self.add_vunit_config(
             test,
             generics=dict(
-                data_width=0,
+                data_width=5,
                 master_stall_probability_percent=50,
                 slave_stall_probability_percent=50,
             ),
