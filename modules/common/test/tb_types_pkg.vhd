@@ -72,6 +72,10 @@ begin
       check_equal(to_int('H'), 0);
       check_equal(to_int('1'), 1);
 
+    elsif run("test_to_real_bool") then
+      check_equal(to_real(true), 1.0);
+      check_equal(to_real(false), 0.0);
+
     elsif run("test_swap_byte_order") then
       byte_data0 := swap_byte_order(byte_data0);
       check_equal(byte_data0, byte_data0_swapped);

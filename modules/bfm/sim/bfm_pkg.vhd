@@ -8,15 +8,25 @@
 
 library ieee;
 use ieee.numeric_std.all;
+use ieee.std_logic_1164.all;
 
 library vunit_lib;
 context vunit_lib.vc_context;
 context vunit_lib.vunit_context;
 
+library osvvm;
+use osvvm.RandomPkg.RandomPType;
+
 
 package bfm_pkg is
 
-  -- Convenience method for getting vectors of BFM/VC elements.
+  procedure random_stall(
+    stall_config : in stall_config_t;
+    rnd : inout RandomPType;
+    signal clk : in std_logic
+  );
+
+  -- Some convenience method for getting vectors of BFM/VC elements.
   -- When doing e.g.
   --   constant my_masters : axi_stream_master_vec_t(0 to 1) :=
   --     (others => new_axi_stream_master(...));
@@ -50,6 +60,25 @@ package bfm_pkg is
 end package;
 
 package body bfm_pkg is
+
+  procedure random_stall(
+    stall_config : in stall_config_t;
+    rnd : inout RandomPType;
+    signal clk : in std_logic
+  ) is
+    variable num_stall_cycles : natural := 0;
+  begin
+    if rnd.Uniform(0.0, 1.0) < stall_config.stall_probability then
+      num_stall_cycles := rnd.FavorSmall(
+        stall_config.min_stall_cycles,
+        stall_config.max_stall_cycles
+      );
+
+      for stall in 1 to num_stall_cycles loop
+        wait until rising_edge(clk);
+      end loop;
+    end if;
+  end procedure;
 
   impure function get_new_queues(count : positive) return queue_vec_t is
     variable result : queue_vec_t(0 to count - 1) := (others => null_queue);

@@ -31,6 +31,9 @@ package types_pkg is
   function to_int(value : boolean) return binary_integer_t;
   function to_int(value : std_logic) return binary_integer_t;
 
+  subtype binary_real_t is real range 0.0 to 1.0;
+  function to_real(value : boolean) return binary_real_t;
+
   function swap_byte_order(data : std_logic_vector) return std_logic_vector;
   function swap_bit_order(data : std_logic_vector) return std_logic_vector;
 
@@ -97,6 +100,14 @@ package body types_pkg is
       return 1;
     end if;
     return 0;
+  end function;
+
+  function to_real(value : boolean) return binary_real_t is
+  begin
+    if value then
+      return 1.0;
+    end if;
+    return 0.0;
   end function;
 
   function swap_byte_order(data : std_logic_vector) return std_logic_vector is

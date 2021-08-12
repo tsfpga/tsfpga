@@ -24,8 +24,8 @@
 --
 -- This entity can also optionally perform protocol checking on the handshaking data interface.
 -- This will verify that the AXI-Stream standard is followed.
--- Assign the 'data_valid' port in order to check the behavior of that signal.
--- Furthermore the 'data' port and 'data_width' generic can be set in order to check data as well.
+-- Assign the valid/last/data/strobe ports and set the correct 'data_width' generic in order to
+-- use this.
 -- -------------------------------------------------------------------------------------------------
 
 library ieee;
@@ -38,13 +38,15 @@ library vunit_lib;
 context vunit_lib.vc_context;
 context vunit_lib.vunit_context;
 
+use work.bfm_pkg.all;
+
 
 entity handshake_slave is
   generic (
-    stall_probability_percent : natural;
-    max_stall_cycles : natural;
+    stall_config : in stall_config_t;
     -- Is also used for the random seed
-    logger_prefix : string := "";
+    -- Set to something unique in order to vary the random sequence.
+    logger_name_suffix : string := "";
     -- Assign a non-zero value in order to use the 'data' port for protocol checking
     data_width : natural := 0;
     -- This can be used to essentially disable the
@@ -60,11 +62,13 @@ entity handshake_slave is
     -- Can be set to '0' by testbench when it is not yet ready to receive data
     data_is_ready : in std_logic := '1';
     --
-    data_ready : out std_logic := '0';
-    -- Can optionally assign data and valid in order to perform protocol checking
-    data_valid : in std_logic := '0';
-    -- Must set 'data_width' generic in order to use this port
-    data : in std_logic_vector(data_width - 1 downto 0) := (others => '0')
+    ready : out std_logic := '0';
+    -- Only for protocol checking
+    valid : in std_logic := '0';
+    last : in std_logic := '1';
+    -- Must set 'data_width' generic in order to use these ports for protocol checking
+    data : in std_logic_vector(data_width - 1 downto 0) := (others => '0');
+    strobe : in std_logic_vector(data_width / 8 - 1 downto 0) := (others => '1')
   );
 end entity;
 
@@ -74,28 +78,20 @@ architecture a of handshake_slave is
 
 begin
 
-  data_ready <= data_is_ready and not stall_data;
+  ready <= data_is_ready and not stall_data;
 
 
   ------------------------------------------------------------------------------
   toggle_stall : process
     variable rnd : RandomPType;
   begin
-    assert stall_probability_percent >= 0 and stall_probability_percent <= 100
-      report "Invalid percentage: " & to_string(stall_probability_percent);
-
-    rnd.InitSeed(rnd'instance_name & logger_prefix);
+    rnd.InitSeed(rnd'instance_name & logger_name_suffix);
 
     loop
-      if rnd.RandInt(1, 100) > (100 - stall_probability_percent) then
-        stall_data <= '1';
-
-        for low_cycles in 1 to rnd.FavorSmall(1, max_stall_cycles) loop
-          wait until rising_edge(clk);
-        end loop;
-      end if;
-
+      stall_data <= '1';
+      random_stall(stall_config, rnd, clk);
       stall_data <= '0';
+
       wait until rising_edge(clk);
     end loop;
   end process;
@@ -105,16 +101,19 @@ begin
   axi_stream_protocol_checker_inst : entity vunit_lib.axi_stream_protocol_checker
     generic map (
       protocol_checker => new_axi_stream_protocol_checker(
-        logger => get_logger(logger_prefix & "handshake_slave"),
+        logger => get_logger("handshake_slave" & logger_name_suffix),
         data_length => data'length,
         max_waits => rule_4_performance_check_max_waits
       )
     )
     port map (
       aclk => clk,
-      tvalid => data_valid,
-      tready => data_ready,
-      tdata => data
+      tvalid => valid,
+      tready => ready,
+      tdata => data,
+      tlast => last,
+      tstrb => strobe,
+      tkeep => strobe
     );
 
 end architecture;

@@ -33,7 +33,7 @@ class Module(BaseModule):
         self.add_vunit_config(
             test,
             generics=dict(
-                data_width=5,
+                data_width=16,
                 master_stall_probability_percent=50,
                 slave_stall_probability_percent=50,
             ),
