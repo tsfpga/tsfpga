@@ -95,11 +95,7 @@ package body types_pkg is
   begin
     if value = '1' then
       return 1;
-    elsif value = '0' then
-      return 0;
     end if;
-
-    assert false report "Can not convert value " & to_string(value) severity warning;
     return 0;
   end function;
 

@@ -50,7 +50,6 @@ begin
   begin
     test_runner_setup(runner, runner_cfg);
 
-
     if run("test_get_maximum_positive") then
       positive_vec := (1, 1, 1, 1);
       check_equal(get_maximum(positive_vec), 1);
@@ -65,6 +64,13 @@ begin
     elsif run("test_to_bool_integer") then
       check_equal(to_bool(0), false);
       check_equal(to_bool(1), true);
+
+    elsif run("test_to_int_std_logic") then
+      check_equal(to_int('0'), 0);
+      check_equal(to_int('-'), 0);
+      check_equal(to_int('X'), 0);
+      check_equal(to_int('H'), 0);
+      check_equal(to_int('1'), 1);
 
     elsif run("test_swap_byte_order") then
       byte_data0 := swap_byte_order(byte_data0);
