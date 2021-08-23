@@ -36,7 +36,7 @@ def main():
     generate_release_notes()
     generate_apidoc()
     generate_sphinx_index()
-    build_sphinx()
+    build_sphinx(build_path=tsfpga.TSFPGA_DOC / "sphinx", output_path=SPHINX_HTML)
 
     badges_path = create_directory(SPHINX_HTML / "badges")
     build_information_badges(badges_path)
@@ -290,17 +290,18 @@ def build_vhdl_branch_coverage_badge(xml_root, output_path):
     create_file(output_path / "vhdl_branch_coverage.svg", badge_svg)
 
 
-def build_sphinx():
+def build_sphinx(build_path, output_path):
     cmd = [
         sys.executable,
         "-m",
         "sphinx",
         "-EanWT",
-        tsfpga.TSFPGA_DOC / "sphinx",
-        SPHINX_HTML,
+        str(build_path),
+        str(output_path),
     ]
-    check_call(cmd)
-    index_html = SPHINX_HTML / "index.html"
+    check_call(cmd, cwd=build_path)
+
+    index_html = output_path / "index.html"
     assert index_html.exists(), index_html
     print(f"Open with:\nfirefox {index_html} &")
 

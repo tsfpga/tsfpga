@@ -395,17 +395,21 @@ class RegisterList:
             list(str): Line(s) informing the user that a file is automatically generated, containing
             info about the source of the generated register information.
         """
+        # Default to the user's current working directory
+        directory = Path(".")
+
         time_info = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
         file_info = ""
         if self.source_definition_file is not None:
+            directory = self.source_definition_file.parent
             file_info = f" from file {self.source_definition_file.name}"
 
         commit_info = ""
-        if git_commands_are_available(directory=Path(".")):
-            commit_info = f" at commit {get_git_commit(directory=Path('.'))}"
-        elif svn_commands_are_available():
-            commit_info = f" at revision {get_svn_revision_information()}"
+        if git_commands_are_available(directory):
+            commit_info = f" at commit {get_git_commit(directory)}"
+        elif svn_commands_are_available(directory):
+            commit_info = f" at revision {get_svn_revision_information(directory)}"
 
         info = f"Generated {time_info}{file_info}{commit_info}."
 
