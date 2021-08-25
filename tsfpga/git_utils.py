@@ -27,7 +27,7 @@ def get_git_commit(directory):
     # pylint: disable=import-outside-toplevel
     from git import Repo
 
-    repo = Repo(directory)
+    repo = Repo(directory, search_parent_directories=True)
     git_commit = repo.head.commit.hexsha[0:sha_length]
     if repo.is_dirty():
         git_commit += " (local changes present)"
