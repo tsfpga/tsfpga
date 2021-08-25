@@ -375,7 +375,7 @@ class TestVivadoProject(unittest.TestCase):
         assert build_result.success
         # Note: In python 3.8 we can use call_args.kwargs straight away
         _, kwargs = mocked_vivado_tcl.return_value.build.call_args
-        assert kwargs["generics"] == dict()
+        assert kwargs["generics"] == {}
 
         # Only build time generics
         self.build_time_generics = dict(runtime="value")

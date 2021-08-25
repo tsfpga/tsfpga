@@ -8,14 +8,14 @@
 
 import pytest
 
-import tsfpga
+from tsfpga import DEFAULT_FILE_ENCODING, REPO_ROOT, TSFPGA_DOC
 from tsfpga.git_utils import find_git_files
 from tsfpga.system_utils import create_file
 
 
 def open_file_with_encoding(file):
     print(file)
-    with file.open(encoding="ascii") as file_handle:
+    with open(file, encoding="ascii") as file_handle:
         file_handle.read()
 
 
@@ -26,15 +26,13 @@ def test_all_checked_in_files_are_properly_encoded():
 
     Avoid one of the documentation files that uses wonky characters to illustrate a directory tree.
     """
-    for file in files_to_test(
-        exclude_directories=[tsfpga.TSFPGA_DOC / "sphinx" / "module_structure.rst"]
-    ):
+    for file in files_to_test(exclude_directories=[TSFPGA_DOC / "sphinx" / "module_structure.rst"]):
         open_file_with_encoding(file)
 
 
 def check_file_ends_with_newline(file):
     test_ok = True
-    with file.open() as file_handle:
+    with open(file, encoding=DEFAULT_FILE_ENCODING) as file_handle:
         file_data = file_handle.read()
         if len(file_data) != 0:
             if file_data[-1] != "\n":
@@ -56,7 +54,7 @@ def test_all_checked_in_files_end_with_newline():
 
 def check_file_for_tab_character(file):
     test_ok = True
-    with file.open() as file_handle:
+    with open(file, encoding=DEFAULT_FILE_ENCODING) as file_handle:
         for idx, line in enumerate(file_handle.readlines()):
             if "\t" in line:
                 test_ok = False
@@ -77,7 +75,7 @@ def test_no_checked_in_files_contain_tabs():
 
 def check_file_for_carriage_return(file):
     test_ok = True
-    with file.open(newline="") as file_handle:
+    with open(file, encoding=DEFAULT_FILE_ENCODING, newline="") as file_handle:
         if "\r" in file_handle.read():
             test_ok = False
             print(f"Windows style line breaks (\\r\\n aka CR/LF) in {file}")
@@ -98,7 +96,7 @@ def test_no_checked_in_files_contain_carriage_return():
 
 def check_file_for_trailing_whitespace(file):
     test_ok = True
-    with file.open() as file_handle:
+    with open(file, encoding=DEFAULT_FILE_ENCODING) as file_handle:
         for idx, line in enumerate(file_handle.readlines()):
             if " \n" in line:
                 test_ok = False
@@ -120,7 +118,7 @@ def test_no_checked_in_files_contain_trailing_whitespace():
 def files_to_test(exclude_directories=None):
     # Do not test binary image files
     return find_git_files(
-        directory=tsfpga.REPO_ROOT,
+        directory=REPO_ROOT,
         exclude_directories=exclude_directories,
         file_endings_avoid=("png", "svg"),
     )
@@ -131,7 +129,7 @@ def test_open_file_with_encoding_should_raise_exception_on_bad_file(tmp_path):
     Sanity check that the function we use actually triggers on bad files.
     """
     file = tmp_path / "temp_file_for_test.txt"
-    with file.open("w", encoding="utf-8") as file_handle:
+    with open(file, "w", encoding="utf-8") as file_handle:
         # Swedish word for island = non-ASCII character
         data = "\N{LATIN CAPITAL LETTER O WITH DIAERESIS}"
         file_handle.write(data)

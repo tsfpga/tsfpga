@@ -39,7 +39,7 @@ def create_configuration(
             generated "simulation" and "synthesis" files of IP cores
             (the "generate_target" TCL command). See simulate.py for an example of using this.
     """
-    toml_data = dict(libraries=dict())
+    toml_data = dict(libraries={})
 
     if modules is not None:
         for module in modules:

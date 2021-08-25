@@ -40,8 +40,8 @@ class VivadoTcl:
         # Will be passed on to module functions. Enables parameterization of e.g. IP cores.
         other_arguments=None,
     ):
-        generics = dict() if generics is None else generics
-        other_arguments = dict() if other_arguments is None else other_arguments
+        generics = {} if generics is None else generics
+        other_arguments = {} if other_arguments is None else other_arguments
 
         tcl = f"create_project {self.name} {{{to_tcl_path(project_folder)}}} -part {part}\n"
         tcl += "set_property target_language VHDL [current_project]\n"
@@ -167,7 +167,7 @@ class VivadoTcl:
 
         # There can be many hooks for the same step. Reorganize them into a dict, according
         # to the format step_name: [list of hooks]
-        hook_steps = dict()
+        hook_steps = {}
         for build_step_hook in build_step_hooks:
             if build_step_hook.hook_step in hook_steps:
                 hook_steps[build_step_hook.hook_step].append(build_step_hook)

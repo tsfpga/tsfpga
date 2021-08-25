@@ -26,7 +26,7 @@ def test_get_ip_core_files_is_called_with_the_correct_arguments(tmp_path):
     with patch("tsfpga.vivado.ip_cores.VivadoIpCoreProject.create", autospec=True):
         VivadoIpCores(modules, tmp_path, part_name="test_part")
 
-    modules[0].get_ip_core_files.assert_called_once_with(generics=dict(), part="test_part")
+    modules[0].get_ip_core_files.assert_called_once_with(generics={}, part="test_part")
 
 
 @pytest.mark.usefixtures("fixture_tmp_path")

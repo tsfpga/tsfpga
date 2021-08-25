@@ -31,7 +31,7 @@ class Module(BaseModule):
 
     @staticmethod
     def generate_common_fifo_test_generics(test_name, original_generics=None):
-        generics = original_generics if original_generics is not None else dict()
+        generics = original_generics if original_generics is not None else {}
 
         if "write_faster_than_read" in test_name:
             generics.update(read_stall_probability_percent=90)

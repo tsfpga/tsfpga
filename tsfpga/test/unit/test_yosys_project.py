@@ -43,7 +43,7 @@ class TestYosysProject(TestCase):
 
     def test_can_create_without_generics(self):
         yosys_project = YosysProject(top=self.top, formal_settings=self.formal_settings)
-        assert yosys_project.generics == dict()
+        assert yosys_project.generics == {}
 
     def test_runs_symbiyosys(self):
         yosys_project = YosysProject(

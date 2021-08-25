@@ -33,4 +33,7 @@ ALL_TSFPGA_MODULES_FOLDERS = [
     TSFPGA_EXAMPLE_MODULES_WITH_IP,
 ]
 
+# Default encoding when opening files
+DEFAULT_FILE_ENCODING = "utf-8"
+
 __version__ = "8.0.1"

@@ -92,7 +92,7 @@ class VivadoProject:
         self.name = name
         self.modules = modules.copy()
         self.part = part
-        self.static_generics = dict() if generics is None else generics.copy()
+        self.static_generics = {} if generics is None else generics.copy()
         self.constraints = [] if constraints is None else constraints.copy()
         self.tcl_sources = [] if tcl_sources is None else tcl_sources.copy()
         self.build_step_hooks = [] if build_step_hooks is None else build_step_hooks.copy()

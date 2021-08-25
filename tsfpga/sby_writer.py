@@ -6,6 +6,8 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+from tsfpga import DEFAULT_FILE_ENCODING
+
 
 class SbyWriter:
     """
@@ -50,5 +52,5 @@ class SbyWriter:
         sby += "\n".join([str(src_file) for src_file in src_files])
         sby += "\n"
 
-        with open(output_path, "w") as file_handle:
+        with open(output_path, "w", encoding=DEFAULT_FILE_ENCODING) as file_handle:
             file_handle.write(sby)

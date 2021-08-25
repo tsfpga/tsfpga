@@ -13,19 +13,21 @@ from platform import system
 from shutil import rmtree
 import subprocess
 
+from tsfpga import DEFAULT_FILE_ENCODING
+
 
 def create_file(file, contents=None):
     create_directory(file.parent, empty=False)
 
     contents = "" if contents is None else contents
-    with file.open("w") as file_handle:
+    with open(file, "w", encoding=DEFAULT_FILE_ENCODING) as file_handle:
         file_handle.write(contents)
 
     return file
 
 
 def read_file(file):
-    with file.open() as file_handle:
+    with open(file, encoding=DEFAULT_FILE_ENCODING) as file_handle:
         return file_handle.read()
 
 
@@ -44,7 +46,7 @@ def read_last_lines_of_file(file, num_lines):
     result_lines = []
     blocks_to_read = 0
 
-    with open(file) as file_handle:
+    with open(file, encoding=DEFAULT_FILE_ENCODING) as file_handle:
         while len(result_lines) < num_lines:
             # Since we do not know the line lengths, there is some guessing involved. Keep reading
             # larger and larger blocks until we have all the lines that are requested.

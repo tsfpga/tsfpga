@@ -27,7 +27,7 @@ class YosysProject:
         formal_settings=None,
     ):
         self.top = top
-        self.generics = dict() if generics is None else generics
+        self.generics = {} if generics is None else generics
         self.formal_settings = formal_settings
 
     def run_formal(self, project_path, src_files, compiled_libraries):

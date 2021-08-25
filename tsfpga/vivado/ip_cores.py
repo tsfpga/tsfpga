@@ -89,7 +89,7 @@ class VivadoIpCores:
         ip_core_files = []
         for module in modules:
             # Send the same two arguments that are sent in the VivadoProject create flow
-            ip_core_files += module.get_ip_core_files(generics=dict(), part=self._part_name)
+            ip_core_files += module.get_ip_core_files(generics={}, part=self._part_name)
 
         self._hash = self._calculate_hash(ip_core_files)
 

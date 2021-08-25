@@ -14,6 +14,7 @@ from shutil import copy2
 
 from pathlib import Path
 
+from tsfpga import DEFAULT_FILE_ENCODING
 from tsfpga.git_utils import git_commands_are_available, get_git_commit
 from tsfpga.svn_utils import svn_commands_are_available, get_svn_revision_information
 from tsfpga.system_utils import create_directory, create_file, read_file
@@ -258,7 +259,7 @@ class RegisterList:
             f"Register hash {self_hash}, generator version {__version__}."
         ]
         register_vhdl_generator = RegisterVhdlGenerator(self.name, generated_info)
-        with vhd_file.open("w") as file_handle:
+        with open(vhd_file, "w", encoding=DEFAULT_FILE_ENCODING) as file_handle:
             file_handle.write(
                 register_vhdl_generator.get_package(self.register_objects, self.constants)
             )

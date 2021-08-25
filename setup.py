@@ -59,7 +59,7 @@ def main():
 
 def read_requirements_file(path):
     requirements = []
-    with path.open() as file_handle:
+    with open(path, encoding=tsfpga.DEFAULT_FILE_ENCODING) as file_handle:
         # Requirements file contains one package name per line
         for line_data in file_handle.readlines():
             if line_data:

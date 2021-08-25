@@ -10,6 +10,7 @@ import re
 import subprocess
 from pathlib import Path
 
+from tsfpga import DEFAULT_FILE_ENCODING
 from tsfpga.system_utils import create_directory
 from .common import get_vivado_path
 from .simlib_common import VivadoSimlibCommon
@@ -81,7 +82,9 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
 
     @staticmethod
     def _iterate_compile_order(library_path):
-        with (library_path / "vhdl_analyze_order").open() as file_handle:
+        with open(
+            library_path / "vhdl_analyze_order", encoding=DEFAULT_FILE_ENCODING
+        ) as file_handle:
             for vhd_file_base in file_handle.readlines():
                 vhd_file = library_path / vhd_file_base.strip()
                 assert vhd_file.exists(), vhd_file

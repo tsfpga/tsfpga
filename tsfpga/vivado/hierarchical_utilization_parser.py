@@ -41,4 +41,4 @@ class HierarchicalUtilizationParser:
                 numbers = [int(number) for number in numbers]
                 return OrderedDict(zip(headers, numbers))
 
-        return dict()
+        return {}

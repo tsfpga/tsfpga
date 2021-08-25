@@ -160,7 +160,7 @@ class FormalTestCase:
 
         class TestConfiguration:
 
-            attributes = dict()
+            attributes = {}
 
         self.test_configuration = TestConfiguration()
 
