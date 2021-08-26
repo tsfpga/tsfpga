@@ -65,7 +65,7 @@ register documentation.
 
         return None
 
-    def get_submodule_rst(self, heading_character):
+    def get_submodule_rst(self, heading_character, exclude_files=None):
         """
         Get RST code with documentation of the different sub-modules (files) of the module.
         Contains documentation that is extracted from the file headers, as well as a
@@ -77,9 +77,11 @@ register documentation.
         Return:
             str: RST code with sub-module documentation.
         """
+        exclude_files = {} if exclude_files is None else exclude_files
+
         rst = ""
 
-        for hdl_file in self._get_vhdl_files():
+        for hdl_file in self._get_vhdl_files(exclude_files):
             vhdl_file_path = hdl_file.path
 
             vhdl_file_documentation = VhdlFileDocumentation(vhdl_file_path)
@@ -159,11 +161,11 @@ This document contains technical documentation for the ``{self._module.name}`` m
 
         create_file(output_path / f"{self._module.name}.rst", contents=self.get_rst_document())
 
-    def _get_vhdl_files(self):
+    def _get_vhdl_files(self, exclude_files):
         """
         Get VHDL files that shall be included in the documentation, in order.
         """
-        hdl_files = self._module.get_synthesis_files()
+        hdl_files = self._module.get_synthesis_files(files_avoid=exclude_files)
 
         module_regs_pkg = self._module.path / f"{self._module.name}_regs_pkg.vhd"
         vhdl_files = []

@@ -49,10 +49,7 @@ def test_documentation_header_with_overview_and_registers(module_documentation):
     module = module_documentation._module
     module._registers = MagicMock(spec=RegisterList)
 
-    data = """\
-Dummy from apa.rst.
-
-"""
+    data = "Dummy from apa.rst."
     create_file(module.path / "doc" / "apa.rst", contents=data)
 
     rst = module_documentation.get_rst_document()
@@ -64,3 +61,26 @@ Dummy from apa.rst.
 
     assert "Register interface" in rst
     assert ":download:`separate HTML page <apa_regs.html>`" in rst
+
+
+def test_submodule_documentation_with_file_exclude(module_documentation):
+    data = """\
+-- -------------------------------------------------------------------------------------------------
+-- Copyright (c) Lukas Vik. All rights reserved.
+-- -------------------------------------------------------------------------------------------------
+-- Dummy from excluded.vhd.
+-- -------------------------------------------------------------------------------------------------
+
+"""
+    # pylint: disable=protected-access
+    excluded_vhd = create_file(
+        module_documentation._module.path / "rtl" / "excluded.vhd", contents=data
+    )
+
+    rst = module_documentation.get_submodule_rst(heading_character="-")
+    assert "Dummy from excluded.vhd." in rst
+
+    rst = module_documentation.get_submodule_rst(
+        heading_character="-", exclude_files={excluded_vhd}
+    )
+    assert "Dummy from excluded.vhd." not in rst
