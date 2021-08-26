@@ -14,6 +14,19 @@ import pytest
 from tsfpga.module_list import ModuleList
 
 
+def test_module_list_indexing():
+    modules = ModuleList()
+
+    module_a = MagicMock()
+    module_b = MagicMock()
+
+    modules.append(module_a)
+    modules.append(module_b)
+
+    assert modules[0] is module_a
+    assert modules[1] is module_b
+
+
 class TestModuleList(TestCase):
     def setUp(self):
         self.modules = ModuleList()

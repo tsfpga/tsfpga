@@ -34,6 +34,9 @@ class ModuleList:
     def __iter__(self):
         return iter(self._modules)
 
+    def __getitem__(self, index):
+        return self._modules[index]
+
     def __len__(self):
         return len(self._modules)
 
