@@ -92,11 +92,14 @@ begin
   assert enable_packet_mode or (not enable_drop_packet)
     report "Must set enable_packet_mode for drop packet support" severity failure;
 
-  -- The flags will update one cycle after the write/read that puts them over/below the line.
-  -- Except for almost_empty when almost_empty_level is zero.
-  -- In that case, when a write puts it over the line there will be a two cycle latency, since
-  -- that write must propagate into the RAM before the data is valid to read.
-  -- For a read that puts it below the line there is always one cycle latency.
+  -- These flags will update one cycle after the write/read that puts them over/below the line.
+  -- Except for the fringe cases:
+  --
+  -- When almost_full_level is 'depth' and a read puts it below the line there will be a two
+  -- cycle latency. For a write that puts it above the line there is always one cycle latency.
+  --
+  -- When almost_empty_level is zero and a write puts it over the line there will be a two
+  -- cycle latency. For a read that puts it below the line there is always one cycle latency.
 
   assign_almost_full : if almost_full_level = depth generate
     almost_full <= not write_ready;
