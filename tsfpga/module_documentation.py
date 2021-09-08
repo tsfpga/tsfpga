@@ -55,6 +55,8 @@ class ModuleDocumentation:
             heading = "Register interface"
             heading_underline = heading_character * len(heading)
             return f"""\
+.. _{self._module.name}.register_interface:
+
 {heading}
 {heading_underline}
 
@@ -140,7 +142,9 @@ register documentation.
 This document contains technical documentation for the ``{self._module.name}`` module.
 
 {overview_rst}
+
 {registers_rst}
+
 {submodule_rst}
 """
 
