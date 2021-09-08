@@ -74,6 +74,8 @@ architecture a of axi_read_throttle is
 
   -- Number of data beats that have been negotiated via address transactions,
   -- but have not yet been sent by the master. Aka outstanding beats.
+  -- Note that according to the AXI standard, RVALID may never arrive before ARREADY.
+  -- Hence this counter can never go negative.
   subtype data_counter_t is integer range 0 to data_fifo_depth;
   signal num_beats_negotiated_but_not_sent : data_counter_t := 0;
 
