@@ -24,6 +24,8 @@ workflow:
 
 
 default:
+  # A running job should be canceled if made redundant by a newer pipeline run.
+  interruptible: true
   # Use docker image from ghdl project
   # Available at https://hub.docker.com/r/ghdl/vunit/
   # Configured at https://github.com/ghdl/docker/
