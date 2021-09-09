@@ -1,7 +1,7 @@
 About tsfpga
 ============
 
-|pic_website| |pic_gitlab| |pic_gitter| |pic_pip_install| |pic_license| |pic_python_line_coverage| |pic_vhdl_line_coverage| |pic_vhdl_branch_coverage|
+|pic_website| |pic_gitlab| |pic_gitter| |pic_pip_install| |pic_license| |pic_python_line_coverage|
 
 .. |pic_website| image:: https://tsfpga.com/badges/website.svg
   :alt: Website
@@ -26,14 +26,6 @@ About tsfpga
 .. |pic_python_line_coverage| image:: https://tsfpga.com/badges/python_coverage.svg
   :alt: Python line coverage
   :target: https://tsfpga.com/python_coverage_html
-
-.. |pic_vhdl_line_coverage| image:: https://tsfpga.com/badges/vhdl_line_coverage.svg
-  :alt: VHDL line coverage
-  :target: https://tsfpga.com/vhdl_coverage_html
-
-.. |pic_vhdl_branch_coverage| image:: https://tsfpga.com/badges/vhdl_branch_coverage.svg
-  :alt: VHDL branch coverage
-  :target: https://tsfpga.com/vhdl_coverage_html
 
 tsfpga is a development platform that aims to streamline all aspects of your FPGA project.
 With its python build/simulation flow, along with complementary VHDL components, it is perfect for CI/CD and test-driven development.

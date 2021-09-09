@@ -47,10 +47,6 @@ def main():
     build_python_coverage_badge(badges_path)
     copy_python_coverage_to_html_output()
 
-    if not args.no_vhdl_coverage:
-        build_vhdl_coverage_badges(badges_path)
-        copy_vhdl_coverage_to_html_output()
-
 
 def arguments():
     parser = argparse.ArgumentParser(
@@ -61,11 +57,6 @@ def arguments():
         "--skip-coverage",
         action="store_true",
         help="skip handling of all coverage reports",
-    )
-    parser.add_argument(
-        "--no-vhdl-coverage",
-        action="store_true",
-        help="skip handling of only VHDL coverage reports",
     )
     return parser.parse_args()
 
@@ -247,49 +238,6 @@ def build_python_coverage_badge(output_path):
     create_file(output_path / "python_coverage.svg", badge_svg)
 
 
-def build_vhdl_coverage_badges(output_path):
-    coverage_xml = tsfpga.TSFPGA_GENERATED / "vhdl_coverage.xml"
-    assert coverage_xml.exists(), "Run simulate.py with GHDL coverage before building documentation"
-    xml_root = ElementTree.parse(coverage_xml).getroot()
-
-    build_vhdl_line_coverage_badge(xml_root, output_path)
-    build_vhdl_branch_coverage_badge(xml_root, output_path)
-
-
-def build_vhdl_line_coverage_badge(xml_root, output_path):
-    line_coverage = int(round(float(xml_root.attrib["line-rate"]) * 100))
-    assert line_coverage > 50, f"Coverage is way low: {line_coverage}. Something is wrong."
-    color = "green" if line_coverage > 80 else "red"
-
-    badge_svg = badge(
-        left_text="line coverage",
-        right_text=f"{line_coverage}%",
-        right_color=color,
-        logo="http://vunit.github.io/_static/VUnit_logo_420x420.png",
-        embed_logo=True,
-        left_link="https://tsfpga.com/vhdl_coverage_html",
-        right_link="https://tsfpga.com/vhdl_coverage_html",
-    )
-    create_file(output_path / "vhdl_line_coverage.svg", badge_svg)
-
-
-def build_vhdl_branch_coverage_badge(xml_root, output_path):
-    branch_coverage = int(round(float(xml_root.attrib["branch-rate"]) * 100))
-    assert branch_coverage > 50, "Coverage is way low: {line_coverage}. Something is wrong."
-    color = "green" if branch_coverage > 80 else "orange"
-
-    badge_svg = badge(
-        left_text="branch coverage",
-        right_text=f"{branch_coverage}%",
-        right_color=color,
-        logo="http://vunit.github.io/_static/VUnit_logo_420x420.png",
-        embed_logo=True,
-        left_link="https://tsfpga.com/vhdl_coverage_html",
-        right_link="https://tsfpga.com/vhdl_coverage_html",
-    )
-    create_file(output_path / "vhdl_branch_coverage.svg", badge_svg)
-
-
 def build_sphinx(build_path, output_path):
     cmd = [
         sys.executable,
@@ -313,15 +261,6 @@ def copy_python_coverage_to_html_output():
     ).exists(), "Run pytest with coverage before building documentation"
 
     shutil.copytree(coverage_html, SPHINX_HTML / "python_coverage_html")
-
-
-def copy_vhdl_coverage_to_html_output():
-    coverage_html = tsfpga.TSFPGA_GENERATED / "vhdl_coverage_html"
-    assert (
-        coverage_html / "index.html"
-    ).exists(), "Run simulate.py with GHDL coverage before building documentation"
-
-    shutil.copytree(coverage_html, SPHINX_HTML / "vhdl_coverage_html")
 
 
 if __name__ == "__main__":

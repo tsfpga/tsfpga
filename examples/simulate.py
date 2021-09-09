@@ -8,7 +8,6 @@
 
 from pathlib import Path
 from shutil import which
-import subprocess
 import sys
 
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
@@ -23,7 +22,6 @@ from vunit.vivado.vivado import create_compile_order_file, add_from_compile_orde
 import tsfpga
 import tsfpga.create_vhdl_ls_config
 from tsfpga.git_simulation_subset import GitSimulationSubset
-from tsfpga.system_utils import create_directory
 from tsfpga.vivado.ip_cores import VivadoIpCores
 from tsfpga.vivado.simlib import VivadoSimlib
 
@@ -61,15 +59,7 @@ def main():
         ip_core_vivado_project_directory=ip_core_vivado_project_directory,
     )
 
-    # Utilize coverage only for GHDL by default, since even if a commercial simulator supports
-    # coverage we do not know if we have a license for it.
-    if vunit_proj.get_simulator_name() == "ghdl" and vunit_proj.simulator_supports_coverage():
-        vunit_proj.set_compile_option("enable_coverage", True)
-        vunit_proj.set_sim_option("enable_coverage", True)
-
-        vunit_proj.main(post_run=merge_ghdl_coverage)
-    else:
-        vunit_proj.main()
+    vunit_proj.main()
 
 
 def find_git_test_filters(args):
@@ -207,37 +197,6 @@ def create_vhdl_ls_configuration(
         vivado_location=vivado_location,
         ip_core_vivado_project_directory=ip_core_vivado_project_directory,
     )
-
-
-def merge_ghdl_coverage(results):
-    if not results.get_report().tests:
-        print("No test results to merge coverage on")
-        return
-
-    temp_dir = results.get_report().output_path.parent
-
-    merged_coverage_output = temp_dir / "vunit_coverage_database"
-    results.merge_coverage(merged_coverage_output)
-
-    report_html_path = temp_dir / "vhdl_coverage_html"
-    create_directory(report_html_path, empty=True)
-    gcovr_cmd = [
-        "gcovr",
-        "--xml",
-        temp_dir / "vhdl_coverage.xml",
-        "--xml-pretty",
-        "--html",
-        "--html-details",
-        report_html_path / "index.html",
-        "--html-title",
-        "tsfpga VHDL coverage",
-        "--exclude-unreachable-branches",
-        "--exclude-throw-branches",
-        merged_coverage_output,
-    ]
-    subprocess.call(gcovr_cmd)
-
-    print(f"Coverage HTML report saved in {report_html_path}")
 
 
 if __name__ == "__main__":

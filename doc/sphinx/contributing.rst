@@ -34,15 +34,12 @@ How to build documentation
 --------------------------
 
 Documentation is built using the ``tools/build_sphinx_docs.py`` script.
-The documentation pages have information about unit test code coverage.
+The documentation pages have information about python unit test code coverage.
 So before building documentation you must run pytest with coverage reports enabled like in CI:
 
 .. code-block:: shell
 
     python -m pytest -v --cov tsfpga --cov-report xml:generated/python_coverage.xml --cov-report html:generated/python_coverage_html tsfpga
-
-You must also run ``simulate.py`` with GHDL and the GCC backend, which supports coverage, before building the documentation.
-No extra flags are needed, the script will generate coverage when possible in the correct location.
 
 If want to skip handling of coverage for the documentation there is a flag available in the script, see ``build_sphinx_doc.py --help``.
 
