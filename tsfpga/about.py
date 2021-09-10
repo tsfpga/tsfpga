@@ -40,6 +40,7 @@ necessary.
 * VHDL AXI components that enable the register bus: AXI-to-AXI-Lite converter, \
 AXI-Lite interconnect, AXI-Lite mux (splitter), AXI-Lite clock domain crossing, AXI-Lite generic \
 register file.
+* Released under the very permissive BSD 3-Clause License.
 
 The maintainers place high focus on quality, with everything having good unit test coverage and a \
 thought-out structure.
