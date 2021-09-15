@@ -296,6 +296,8 @@ begin
     end if;
 
     num_atoms_stored <= num_atoms_next;
+
+    output_valid <= to_sl(num_atoms_next >= num_atoms_per_output);
   end process;
 
   padded_input_ready <= to_sl(num_atoms_stored <= stored_atom_count_max - num_atoms_per_input);
@@ -311,7 +313,6 @@ begin
     variable atom_strobe, atom_last : std_logic_vector(num_atoms_per_output - 1 downto 0) :=
       (others => '0');
   begin
-    output_valid <= to_sl(num_atoms_stored >= num_atoms_per_output);
 
     output_atoms_base := stored_atom_count_max - num_atoms_stored;
 

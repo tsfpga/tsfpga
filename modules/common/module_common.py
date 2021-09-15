@@ -8,7 +8,7 @@
 
 from tsfpga.module import BaseModule
 from tsfpga.vivado.project import VivadoNetlistProject
-from tsfpga.vivado.build_result_checker import EqualTo, Ffs, Srls, TotalLuts
+from tsfpga.vivado.build_result_checker import EqualTo, Ffs, Srls, TotalLuts, MaximumLogicLevel
 from examples.tsfpga_example_env import get_tsfpga_modules
 
 
@@ -231,7 +231,8 @@ class Module(BaseModule):
             ),
         ]
         total_luts = [21, 36, 26, 46]
-        ffs = [52, 52, 62, 65]
+        ffs = [53, 53, 63, 66]
+        maximum_logic_level = [2, 2, 3, 3]
 
         for idx, generics in enumerate(generic_configurations):
             projects.append(
@@ -246,6 +247,7 @@ class Module(BaseModule):
                     build_result_checkers=[
                         TotalLuts(EqualTo(total_luts[idx])),
                         Ffs(EqualTo(ffs[idx])),
+                        MaximumLogicLevel(EqualTo(maximum_logic_level[idx])),
                     ],
                 )
             )
