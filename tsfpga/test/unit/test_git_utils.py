@@ -19,7 +19,7 @@ from tsfpga.git_utils import (
     find_git_files,
     get_git_commit,
 )
-from tsfpga.system_utils import create_file, system_is_windows
+from tsfpga.system_utils import create_directory, create_file, system_is_windows
 
 
 THIS_FILE = Path(__file__)
@@ -123,3 +123,7 @@ class TestGitCommitWithLocalChanges(unittest.TestCase):
     def test_get_git_commit_without_local_changes(self):
         self.repo.index.commit("Trash commit", author=self.actor, committer=self.actor)
         assert not get_git_commit(directory=self.repo_path).endswith(self._local_changes_present)
+
+    def test_get_git_commit_from_child_directory(self):
+        child_directory = create_directory(self.repo_path / "child_directory")
+        assert get_git_commit(directory=child_directory).endswith(self._local_changes_present)
