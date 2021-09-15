@@ -96,17 +96,15 @@ class TestGitCommitWithLocalChanges(unittest.TestCase):
         self.repo = Repo.init(self.repo_path)
         self.actor = Actor("A name", "an@email.com")
 
-        initial_file = self.repo_path / "initial_commit_file.txt"
-        create_file(initial_file)
+        initial_file = create_file(self.repo_path / "initial_commit_file.txt")
         self.repo.index.add(str(initial_file))
         self.repo.index.commit("Initial commit", author=self.actor, committer=self.actor)
 
-        self.trash_file = self.repo_path / "local_file_for_git_test.apa"
-        create_file(self.trash_file)
-        self.repo.index.add(str(self.trash_file))
+        trash_file = create_file(self.repo_path / "local_file_for_git_test.apa")
+        self.repo.index.add(str(trash_file))
 
     def test_get_git_commit_with_local_changes(self):
-        assert get_git_commit(directory=self.repo_path).endswith(" (local changes present)")
+        assert get_git_commit(directory=self.repo_path).endswith(self._local_changes_present)
 
     def test_get_git_commit_with_env_variable_and_local_changes(self):
         if "GIT_COMMIT" in os.environ:
