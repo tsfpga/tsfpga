@@ -196,11 +196,11 @@ class TestVivadoTcl(unittest.TestCase):
         )
 
         # Order of files is not really deterministic
-        expected_1 = "\nread_vhdl -library apa -vhdl2008 {{%s} {%s}}\n" % (self.b_vhd, self.a_vhd)
-        expected_2 = "\nread_vhdl -library apa -vhdl2008 {{%s} {%s}}\n" % (self.a_vhd, self.b_vhd)
+        expected_1 = f"\nread_vhdl -library apa -vhdl2008 {{{{{self.b_vhd}}} {{{self.a_vhd}}}}}\n"
+        expected_2 = f"\nread_vhdl -library apa -vhdl2008 {{{{{self.a_vhd}}} {{{self.b_vhd}}}}}\n"
         assert expected_1 in tcl or expected_2 in tcl
 
-        expected = "\nread_verilog {%s}\n" % self.c_v
+        expected = f"\nread_verilog {{{self.c_v}}}\n"
         assert expected in tcl
 
     def test_only_synthesis_files_added_to_create_project_tcl(self):

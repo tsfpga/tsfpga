@@ -117,14 +117,13 @@ default_value="0000000000000011"
 
 
 ################################################################################
-%s
 """
 
     def setUp(self):
-        self.toml_file = create_file(self.tmp_path / "sensor_regs.toml", self.toml_data % "")
+        self.toml_file = create_file(self.tmp_path / "sensor_regs.toml", self.toml_data)
 
     def create_toml_file_with_extras(self, toml_extras):
-        data = self.toml_data % toml_extras
+        data = self.toml_data + toml_extras
         create_file(self.toml_file, data)
 
     def test_order_of_registers_and_bits(self):

@@ -166,7 +166,7 @@ th {
         if value < 0:
             return "N/A"
 
-        formatting_string = "0x{:0%iX}" % num_nibbles
+        formatting_string = f"0x{{:0{num_nibbles}X}}"
         return formatting_string.format(value)
 
     def _annotate_register_array(self, register_object):
