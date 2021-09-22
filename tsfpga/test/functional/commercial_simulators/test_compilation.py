@@ -7,43 +7,24 @@
 # --------------------------------------------------------------------------------------------------
 
 import os
-import unittest
+import sys
 
 import pytest
 
-from vunit import VUnitCLI
+import tsfpga
+from tsfpga.system_utils import run_command
 
-from examples.simulate import setup_vunit_project
 
-
-@pytest.mark.usefixtures("fixture_tmp_path")
-class TestCompilation(unittest.TestCase):
-    tmp_path = None
-
-    def setUp(self):
-        self.old_environ = os.environ
-        self.cli = VUnitCLI()
-        self.argv = ["--compile", "--clean"]
-        self.argv = ["--compile", "--clean", "--output-path", str(self.tmp_path)]
-        self.args = self.cli.parse_args(argv=self.argv)
-        self.args.vivado_skip = True
-
-    def tearDown(self):
-        # Set old environment again
-        os.environ = self.old_environ
-
-    def run_and_check_vunit_main(self):
-        vunit_proj, _, _ = setup_vunit_project(self.args)
-        with pytest.raises(SystemExit) as exit_code:
-            vunit_proj.main()
-
-        assert exit_code.type == SystemExit
-        assert exit_code.value.code == 0
-
-    def test_modelsim(self):
-        os.environ["VUNIT_SIMULATOR"] = "modelsim"
-        self.run_and_check_vunit_main()
-
-    def test_rivierapro(self):
-        os.environ["VUNIT_SIMULATOR"] = "rivierapro"
-        self.run_and_check_vunit_main()
+@pytest.mark.parametrize("vunit_simulator", ["modelsim", "rivierapro", "ghdl"])
+def test_compilation(vunit_simulator, tmp_path):
+    command = [
+        sys.executable,
+        str(tsfpga.TSFPGA_EXAMPLES / "simulate.py"),
+        "--compile",
+        "--temp-dir",
+        str(tmp_path),
+        "--vivado-skip",
+    ]
+    env = os.environ.copy()
+    env["VUNIT_SIMULATOR"] = vunit_simulator
+    run_command(cmd=command, cwd=str(tmp_path), env=env)
