@@ -104,11 +104,11 @@ def file_is_in_directory(file_path, directories):
     return False
 
 
-def run_command(cmd, cwd=None):
+def run_command(cmd, cwd=None, env=None):
     if not isinstance(cmd, list):
         raise ValueError("Must be called with a list, not a string")
 
-    subprocess.check_call(cmd, cwd=cwd)
+    subprocess.check_call(cmd, cwd=cwd, env=env)
 
 
 def load_python_module(file):
