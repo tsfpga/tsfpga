@@ -7,16 +7,22 @@
 -- -------------------------------------------------------------------------------------------------
 
 library ieee;
-use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.std_logic_1164.all;
 
 library axi;
 use axi.axi_pkg.all;
 use axi.axi_lite_pkg.all;
 
+library common;
+use common.common_pkg.all;
+
 library ddr_buffer;
+
 library fifo;
+
 library reg_file;
+
 library resync;
 
 use work.artyz7_top_pkg.all;
@@ -106,6 +112,7 @@ begin
           axi_lite_s2m => regs_s2m(slave)
         );
     end generate;
+
   end block;
 
 
@@ -389,5 +396,28 @@ begin
     end block;
 
   end block;
+
+
+  ------------------------------------------------------------------------------
+  -- Instantiate protocol checker within a simulation guard. To show that it is indeed possible to
+  -- synthesize code with this instance.
+  protocol_checker_test_gen : if in_simulation generate
+
+    ------------------------------------------------------------------------------
+    axi_stream_protocol_checker_inst : entity common.axi_stream_protocol_checker
+      generic map (
+        data_width => m_gp0_data_width
+      )
+      port map (
+        clk => clk_m_gp0,
+        --
+        ready => m_gp0_s2m.write.w.ready,
+        valid => m_gp0_m2s.write.w.valid,
+        last => m_gp0_m2s.write.w.last,
+        data => m_gp0_m2s.write.w.data(m_gp0_data_width - 1 downto 0),
+        strobe => m_gp0_m2s.write.w.strb(m_gp0_data_width / 8 - 1 downto 0)
+      );
+
+  end generate;
 
 end architecture;

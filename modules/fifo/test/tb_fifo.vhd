@@ -229,6 +229,9 @@ begin
       wait until rising_edge(clk);
       check_equal(read_valid, True);
 
+      -- Read the last word to finish test
+      run_read(4);
+
     elsif run("test_packet_mode_deep") then
       -- Show that the FIFO can be filled with lasts
 

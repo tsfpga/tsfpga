@@ -36,7 +36,8 @@ use osvvm.RandomPkg.RandomPType;
 
 library vunit_lib;
 context vunit_lib.vc_context;
-context vunit_lib.vunit_context;
+
+library common;
 
 use work.bfm_pkg.all;
 
@@ -98,22 +99,20 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axi_stream_protocol_checker_inst : entity vunit_lib.axi_stream_protocol_checker
+  axi_stream_protocol_checker_inst : entity common.axi_stream_protocol_checker
     generic map (
-      protocol_checker => new_axi_stream_protocol_checker(
-        logger => get_logger("handshake_slave" & logger_name_suffix),
-        data_length => data'length,
-        max_waits => rule_4_performance_check_max_waits
-      )
+      data_width => data'length,
+      logger_name_suffix => "_handshake_slave" & logger_name_suffix,
+      rule_4_performance_check_max_waits => rule_4_performance_check_max_waits
     )
     port map (
-      aclk => clk,
-      tvalid => valid,
-      tready => ready,
-      tdata => data,
-      tlast => last,
-      tstrb => strobe,
-      tkeep => strobe
+      clk => clk,
+      --
+      ready => ready,
+      valid => valid,
+      data => data,
+      last => last,
+      strobe => strobe
     );
 
 end architecture;

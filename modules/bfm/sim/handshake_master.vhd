@@ -28,10 +28,11 @@ use ieee.std_logic_1164.all;
 
 library vunit_lib;
 context vunit_lib.vc_context;
-context vunit_lib.vunit_context;
 
 library osvvm;
 use osvvm.RandomPkg.RandomPType;
+
+library common;
 
 use work.bfm_pkg.all;
 
@@ -42,7 +43,7 @@ entity handshake_master is
     -- Is also used for the random seed.
     -- Set to something unique in order to vary the random sequence.
     logger_name_suffix : string := "";
-    -- Assign a non-zero value in order to use the 'data' port for protocol checking
+    -- Assign a non-zero value in order to use the 'data'/'strobe' ports for protocol checking
     data_width : natural := 0;
     -- This can be used to essentially disable the
     --   "rule 4: Check failed for performance - tready active N clock cycles after tvalid."
@@ -93,22 +94,20 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axi_stream_protocol_checker_inst : entity vunit_lib.axi_stream_protocol_checker
+  axi_stream_protocol_checker_inst : entity common.axi_stream_protocol_checker
     generic map (
-      protocol_checker => new_axi_stream_protocol_checker(
-        logger => get_logger("handshake_master" & logger_name_suffix),
-        data_length => data'length,
-        max_waits => rule_4_performance_check_max_waits
-      )
+      data_width => data'length,
+      logger_name_suffix => "_handshake_master" & logger_name_suffix,
+      rule_4_performance_check_max_waits => rule_4_performance_check_max_waits
     )
     port map (
-      aclk => clk,
-      tvalid => valid,
-      tready => ready,
-      tdata => data,
-      tlast => last,
-      tstrb => strobe,
-      tkeep => strobe
+      clk => clk,
+      --
+      ready => ready,
+      valid => valid,
+      data => data,
+      last => last,
+      strobe => strobe
     );
 
 end architecture;
