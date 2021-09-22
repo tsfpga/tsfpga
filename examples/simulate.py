@@ -31,6 +31,8 @@ from examples.tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP
 def main():
     args = arguments()
 
+    modules = get_tsfpga_modules()
+
     if args.git_minimal:
         if args.test_patterns != "*":
             sys.exit(
@@ -38,7 +40,9 @@ def main():
                 f" Got {args.test_patterns}",
             )
 
-        git_test_filters = find_git_test_filters(args)
+        git_test_filters = find_git_test_filters(
+            args=args, modules=modules, repo_root=tsfpga.REPO_ROOT
+        )
         if not git_test_filters:
             print("Nothing to run. Appears to be no VHDL-related git diff.")
             return
@@ -50,7 +54,7 @@ def main():
         # Enable minimal compilation in VUnit
         args.minimal = True
 
-    vunit_proj, modules, ip_core_vivado_project_directory = setup_vunit_project(args)
+    vunit_proj, ip_core_vivado_project_directory = setup_vunit_project(args=args, modules=modules)
 
     create_vhdl_ls_configuration(
         output_path=PATH_TO_TSFPGA,
@@ -62,13 +66,13 @@ def main():
     vunit_proj.main()
 
 
-def find_git_test_filters(args):
+def find_git_test_filters(args, modules, repo_root):
     # Set up a dummy VUnit project that will be used for depency scanning. Note that sources are
     # added identically to the "real" VUnit project.
-    vunit_proj, modules, _ = setup_vunit_project(args)
+    vunit_proj, _ = setup_vunit_project(args=args, modules=modules)
 
     testbenches_to_run = GitSimulationSubset(
-        repo_root=tsfpga.REPO_ROOT,
+        repo_root=repo_root,
         reference_branch="origin/master",
         vunit_proj=vunit_proj,
         # We use VUnit preprocessing, so these arguments have to be supplied
@@ -83,22 +87,21 @@ def find_git_test_filters(args):
     return test_filters
 
 
-def setup_vunit_project(args):
+def setup_vunit_project(args, modules):
     vunit_proj = VUnit.from_args(args=args)
     vunit_proj.add_verification_components()
     vunit_proj.add_random()
     vunit_proj.enable_location_preprocessing()
     vunit_proj.enable_check_preprocessing()
 
-    all_modules = get_tsfpga_modules()
     has_commercial_simulator = vunit_proj.get_simulator_name() != "ghdl"
 
     if has_commercial_simulator and not args.vivado_skip:
         # Includes modules with IP cores. Can only be used with a commercial simulator.
-        sim_modules = all_modules
+        sim_modules = modules
     else:
         # Only modules that do not contain IP cores
-        sim_modules = [module for module in all_modules if len(module.get_ip_core_files()) == 0]
+        sim_modules = [module for module in modules if len(module.get_ip_core_files()) == 0]
 
     if args.vivado_skip:
         ip_core_vivado_project_directory = None
@@ -110,7 +113,7 @@ def setup_vunit_project(args):
         (
             ip_core_compile_order_file,
             ip_core_vivado_project_directory,
-        ) = generate_ip_core_files(all_modules, args.temp_dir, args.ip_compile)
+        ) = generate_ip_core_files(modules, args.temp_dir, args.ip_compile)
         if has_commercial_simulator:
             add_from_compile_order_file(vunit_proj, ip_core_compile_order_file)
 
@@ -123,7 +126,7 @@ def setup_vunit_project(args):
                 assert False, f"Can not handle this file: {hdl_file}"
         module.setup_vunit(vunit_proj)
 
-    return vunit_proj, all_modules, ip_core_vivado_project_directory
+    return vunit_proj, ip_core_vivado_project_directory
 
 
 def arguments():
