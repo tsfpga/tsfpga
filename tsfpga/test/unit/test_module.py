@@ -23,40 +23,40 @@ def test_file_list_filtering(tmp_path):
     create_directory(path / "folder_should_not_be_included")
     create_file(path / "should_not_be_included.apa")
 
-    synth_files = [
+    synth_files = {
         create_file(path / "syn.v"),
         create_file(path / "rtl" / "syn.v"),
         create_file(path / "src" / "syn.vhd"),
         create_file(path / "hdl" / "rtl" / "syn.vhd"),
         create_file(path / "hdl" / "package" / "syn.vhd"),
-    ]
+    }
 
-    test_files = [
+    test_files = {
         create_file(path / "test" / "test.v"),
         create_file(path / "rtl" / "tb" / "test.vhd"),
-    ]
+    }
 
-    sim_files = [create_file(path / "sim" / "sim.vhd")]
+    sim_files = {create_file(path / "sim" / "sim.vhd")}
 
     my_module = BaseModule(path, "zebra")
 
-    files = [file.path for file in my_module.get_synthesis_files()]
-    assert set(files) == set(synth_files)
+    files = {file.path for file in my_module.get_synthesis_files()}
+    assert files == synth_files
 
-    files = [file.path for file in my_module.get_simulation_files()]
-    assert set(files) == set(synth_files + test_files + sim_files)
+    files = {file.path for file in my_module.get_simulation_files()}
+    assert files == synth_files | test_files | sim_files
 
-    files = [file.path for file in my_module.get_simulation_files(include_tests=False)]
-    assert set(files) == set(synth_files + sim_files)
+    files = {file.path for file in my_module.get_simulation_files(include_tests=False)}
+    assert files == synth_files | sim_files
 
-    files = [file.path for file in my_module.get_simulation_files(files_include=synth_files)]
-    assert set(files) == set(synth_files)
+    files = {file.path for file in my_module.get_simulation_files(files_include=synth_files)}
+    assert files == synth_files
 
-    files = [file.path for file in my_module.get_simulation_files(files_avoid=synth_files)]
-    assert set(files) == set(test_files + sim_files)
+    files = {file.path for file in my_module.get_simulation_files(files_avoid=synth_files)}
+    assert files == test_files | sim_files
 
-    files = [file.path for file in my_module.get_formal_files()]
-    assert set(files) == set(synth_files)
+    files = {file.path for file in my_module.get_formal_files()}
+    assert files == synth_files | sim_files
 
 
 def test_get_synthesis_files_calls_get_simulation_files_with_correct_arguments():

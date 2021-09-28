@@ -121,6 +121,9 @@ class FormalProject:
         args = VUnitCLI().parse_args(["--no-color", no_color])
         args.output_path = self.project_path / "vunit_out"
         vunit_proj = VUnit.from_args(args=args)
+        vunit_proj.add_verification_components()
+        vunit_proj.add_random()
+        vunit_proj.add_osvvm()
 
         src_files = []
         compiled_libraries = []

@@ -160,15 +160,8 @@ class BaseModule:
         and ``files_avoid``.
 
         Arguments:
-            include_tests (bool): When ``False`` the ``test`` folder is not included.
-                The use case is when testing a primary module that depends on other
-                secondary modules.
-                In this case we may want to compile the simulation files (``sim`` folder) of the
-                secondary modules but not their test files (``test`` folder).
-
-                .. Note::
-                    The ``test`` files are considered private to the module and should never be used
-                    by other modules.
+            include_tests (bool): When ``False`` the ``test`` folder, where testbenches usually
+                reside, is not included. The ``sim`` folder is always included.
             files_include (set(`pathlib.Path`)): Optionally filter to only include these files.
             files_avoid (set(`pathlib.Path`)): Optionally filter to discard these files.
             kwargs: Further parameters that can be sent by simulation flow to control what
@@ -196,8 +189,8 @@ class BaseModule:
     def get_formal_files(self, files_include=None, files_avoid=None, **kwargs):
         """
         Returns the files to be used for formal verification.
-        By default these are the same that are used by synthesis
-        (by calling :meth:`get_synthesis_files`).
+        By default these are the simulation files, with testbenches excluded
+        (by calling :meth:`get_simulation_files`).
         Overload this method to select files manually.
 
         See :meth:`.get_synthesis_files` for instructions on how to use ``files_include``
@@ -212,8 +205,8 @@ class BaseModule:
         Return:
             list(:class:`.HdlFile`): Files that should be included in a formal verification project.
         """
-        return self.get_synthesis_files(
-            files_include=files_include, files_avoid=files_avoid, **kwargs
+        return self.get_simulation_files(
+            include_tests=False, files_include=files_include, files_avoid=files_avoid, **kwargs
         )
 
     # pylint: disable=unused-argument

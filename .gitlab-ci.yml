@@ -85,6 +85,8 @@ formal:
   image: tsfpga/formal
   script:
     - ghdl --version
+    # We need a newer version of axi_stream_pkg.vhd than is currently included in the docker image
+    - git clone --recurse-submodules --depth 1 --single-branch --branch master https://github.com/VUnit/vunit.git ../vunit
     - python3 examples/formal.py --num-threads 4
 
 
