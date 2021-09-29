@@ -151,6 +151,11 @@ begin
   assert strobe_unit_width > 0 or not enable_strobe
     report "Must set a valid strobe width when strobing is enabled." severity failure;
 
+  assert
+    (not enable_strobe)
+    or (input_width mod strobe_unit_width = 0 and output_width mod strobe_unit_width = 0)
+    report "Data width must be a multiple of strobe unit width." severity failure;
+
   assert input_width < output_width or not support_unaligned_burst_length
     report "Unaligned burst length only makes sense when upconverting." severity failure;
 
