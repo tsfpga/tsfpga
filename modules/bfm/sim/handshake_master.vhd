@@ -60,9 +60,10 @@ entity handshake_master is
     --
     ready : in std_logic;
     valid : out std_logic := '0';
-    -- Only for protocol checking
+    -- Optional to connect. Only for protocol checking
     last : in std_logic := '1';
-    -- Must set 'data_width' generic in order to use these ports for protocol checking
+    -- Optional to connect. Only for protocol checking
+    -- Must set 'data_width' generic in order to use these ports.
     data : in std_logic_vector(data_width - 1 downto 0) := (others => '0');
     strobe : in std_logic_vector(data_width / 8 - 1 downto 0) := (others => '1')
   );
