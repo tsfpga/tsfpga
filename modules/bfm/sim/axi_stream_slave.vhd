@@ -41,7 +41,18 @@ entity axi_stream_slave is
     stall_config : stall_config_t := null_stall_config;
     -- Is also used for the random seed for handshaking stall.
     -- Set to something unique in order to vary the random sequence.
-    logger_name_suffix : string := ""
+    logger_name_suffix : string := "";
+    -- For protocol checking of the 'data' port.
+    -- The VUnit axi_stream_protocol_checker does not allow any bit in tdata to be '-' (don't care)
+    -- when tvalid is asserted. Even when that bit is strobed out by tstrb/tkeep.
+    -- This often becomes a problem, since many implementations assign don't care to strobed out
+    -- byte lanes as a way of minimizing LUT consumption.
+    -- Assigning 'true' to this generic will workaround the check by assigning '0' to all bits that
+    -- have the value '-' and are in strobed out byte lanes.
+    remove_strobed_out_dont_care : boolean := false;
+    -- The 'strb' is usually a "byte strobe", but the strobe unit width can be modified for cases
+    -- when the strobe lanes are wider or narrower than bytes.
+    strobe_unit_width : positive := 8
   );
   port (
     clk : in std_logic;
@@ -51,17 +62,41 @@ entity axi_stream_slave is
     last : in std_logic;
     id : in unsigned(id_width_bits - 1 downto 0) := (others => '0');
     data : in std_logic_vector(data_width_bits - 1 downto 0);
-    strb : in std_logic_vector(data_width_bits / 8 - 1 downto 0) := (others => '1')
+    strb : in std_logic_vector(data_width_bits / strobe_unit_width - 1 downto 0) := (others => '1')
   );
 end entity;
 
 architecture a of axi_stream_slave is
 
   constant bytes_per_beat : positive := data_width_bits / 8;
+
+  signal strb_byte : std_logic_vector(data_width_bits / 8 - 1 downto 0) := (others => '0');
+
   signal burst_idx : natural := 0;
   signal data_is_ready : std_logic := '0';
 
 begin
+
+  ------------------------------------------------------------------------------
+  assign_byte_strobe : if strobe_unit_width = 8 generate
+
+    strb_byte <= strb;
+
+  else generate
+
+    assert data'length mod strb'length = 0 report "Data width must be a multiple of strobe width";
+
+    ------------------------------------------------------------------------------
+    assign : process(all)
+      constant bytes_per_strobe_unit : positive := strobe_unit_width / 8;
+    begin
+      for byte_idx in strb_byte'range loop
+        strb_byte(byte_idx) <= strb(byte_idx / bytes_per_strobe_unit);
+      end loop;
+    end process;
+
+  end generate;
+
 
   ------------------------------------------------------------------------------
   main : process
@@ -102,7 +137,7 @@ begin
       end if;
 
       check_equal(
-        strb(byte_lane_idx),
+        strb_byte(byte_lane_idx),
         '1',
         "'strb' check at burst_idx=" & to_string(burst_idx) & ",byte_idx=" & to_string(byte_idx)
       );
@@ -126,7 +161,7 @@ begin
     -- shall be strobed out.
     for byte_idx in byte_lane_idx + 1 to bytes_per_beat - 1 loop
       check_equal(
-        strb(byte_idx),
+        strb_byte(byte_idx),
         '0',
         "'strb' check at burst_idx=" & to_string(burst_idx) & ",byte_idx=" & to_string(byte_idx)
       );
@@ -149,7 +184,8 @@ begin
       stall_config => stall_config,
       logger_name_suffix => logger_name_suffix,
       data_width => data'length,
-      id_width => id'length
+      id_width => id'length,
+      remove_strobed_out_dont_care => remove_strobed_out_dont_care
     )
     port map(
       clk => clk,
@@ -161,7 +197,7 @@ begin
       last => last,
       id => id,
       data => data,
-      strobe => strb
+      strobe => strb_byte
     );
 
 end architecture;

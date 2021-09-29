@@ -8,7 +8,14 @@
 
 from tsfpga.module import BaseModule
 from tsfpga.vivado.project import VivadoNetlistProject
-from tsfpga.vivado.build_result_checker import EqualTo, Ffs, Srls, TotalLuts, MaximumLogicLevel
+from tsfpga.vivado.build_result_checker import (
+    EqualTo,
+    DspBlocks,
+    Ffs,
+    MaximumLogicLevel,
+    Srls,
+    TotalLuts,
+)
 from examples.tsfpga_example_env import get_tsfpga_modules
 
 
@@ -78,6 +85,8 @@ class Module(BaseModule):
                         )
                         self.add_vunit_config(test=test, generics=generics)
 
+        self._setup_keep_remover_tests(vunit_proj=vunit_proj)
+
     def get_build_projects(self):
         projects = []
         part = "xc7z020clg400-1"
@@ -85,6 +94,7 @@ class Module(BaseModule):
         self._get_clock_counter_build_projects(part, projects)
         self._get_period_pulser_build_projects(part, projects)
         self._get_width_conversion_build_projects(part, projects)
+        self._get_keep_remover_build_projects(part, projects)
         return projects
 
     def _get_handshake_pipeline_build_projects(self, part, projects):
@@ -248,6 +258,52 @@ class Module(BaseModule):
                         TotalLuts(EqualTo(total_luts[idx])),
                         Ffs(EqualTo(ffs[idx])),
                         MaximumLogicLevel(EqualTo(maximum_logic_level[idx])),
+                    ],
+                )
+            )
+
+    def _setup_keep_remover_tests(self, vunit_proj):
+        tb = vunit_proj.library(self.library_name).test_bench("tb_keep_remover")
+
+        test = tb.test("test_data")
+        for data_width in [8, 16, 32]:
+            for strobe_unit_width in [8, 16]:
+                if strobe_unit_width <= data_width:
+                    generics = dict(data_width=data_width, strobe_unit_width=strobe_unit_width)
+                    self.add_vunit_config(test=test, generics=generics)
+
+        test = tb.test("test_full_throughput")
+        self.add_vunit_config(
+            test=test, generics=dict(data_width=16, strobe_unit_width=8, enable_jitter=False)
+        )
+        self.add_vunit_config(
+            test=test, generics=dict(data_width=32, strobe_unit_width=16, enable_jitter=False)
+        )
+
+    def _get_keep_remover_build_projects(self, part, projects):
+        modules = [self]
+        generic_configurations = [
+            dict(data_width=32, strobe_unit_width=16),
+            dict(data_width=64, strobe_unit_width=8),
+            dict(data_width=16 * 8, strobe_unit_width=4 * 8),
+        ]
+        total_luts = [98, 407, 415]
+        ffs = [79, 175, 282]
+        maximum_logic_level = [3, 6, 5]
+
+        for idx, generics in enumerate(generic_configurations):
+            projects.append(
+                VivadoNetlistProject(
+                    name=self.test_case_name(name=f"{self.name}.keep_remover", generics=generics),
+                    modules=modules,
+                    part=part,
+                    top="keep_remover",
+                    generics=generics,
+                    build_result_checkers=[
+                        TotalLuts(EqualTo(total_luts[idx])),
+                        Ffs(EqualTo(ffs[idx])),
+                        MaximumLogicLevel(EqualTo(maximum_logic_level[idx])),
+                        DspBlocks(EqualTo(0)),
                     ],
                 )
             )

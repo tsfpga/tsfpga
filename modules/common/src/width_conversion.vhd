@@ -187,8 +187,9 @@ begin
         padded_input_valid <= input_valid;
         padded_input_strobe <= input_strobe;
 
-      else -- send_padding
+      else
 
+        -- send_padding
         input_ready <= '0';
         padded_input_valid <= '1';
         padded_input_strobe <= (others => '0');

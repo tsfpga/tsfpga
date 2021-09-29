@@ -57,7 +57,15 @@ entity handshake_slave is
     -- warning by setting a very high value for the limit.
     -- This warning is considered noise in most testbenches that exercise backpressure.
     -- Set to a lower value in order the enable the warning.
-    rule_4_performance_check_max_waits : natural := natural'high
+    rule_4_performance_check_max_waits : natural := natural'high;
+    -- For protocol checking of the 'data' port.
+    -- The VUnit axi_stream_protocol_checker does not allow any bit in tdata to be '-' (don't care)
+    -- when tvalid is asserted. Even when that bit is strobed out by tstrb/tkeep.
+    -- This often becomes a problem, since many implementations assign don't care to strobed out
+    -- byte lanes as a way of minimizing LUT consumption.
+    -- Assigning 'true' to this generic will workaround the check by assigning '0' to all bits that
+    -- have the value '-' and are in strobed out byte lanes.
+    remove_strobed_out_dont_care : boolean := false
   );
   port (
     clk : in std_logic;
@@ -82,6 +90,8 @@ end entity;
 architecture a of handshake_slave is
 
   signal stall_data : std_logic := '1';
+
+  signal data_without_dont_care : std_logic_vector(data'range) := (others => '0');
 
 begin
 
@@ -119,8 +129,27 @@ begin
       valid => valid,
       last => last,
       id => std_logic_vector(id),
-      data => data,
+      data => data_without_dont_care,
       strobe => strobe
     );
+
+
+  ------------------------------------------------------------------------------
+  assign_data_without_dont_care : process(all)
+    begin
+      data_without_dont_care <= data;
+
+      if remove_strobed_out_dont_care then
+        for byte_idx in strobe'range loop
+          if not strobe(byte_idx) then
+            for bit_idx in (byte_idx + 1) * 8 - 1 downto byte_idx * 8 loop
+              if data(bit_idx) = '-' then
+                data_without_dont_care(bit_idx) <= '0';
+              end if;
+            end loop;
+          end if;
+        end loop;
+      end if;
+    end process;
 
 end architecture;
