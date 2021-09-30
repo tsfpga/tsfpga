@@ -97,26 +97,26 @@ begin
         check_equal(
           last,
           is_last_beat,
-          "burst_idx=" & to_string(burst_idx) & ",byte_idx=" & to_string(byte_idx)
+          "'last' check at burst_idx=" & to_string(burst_idx) & ",byte_idx=" & to_string(byte_idx)
         );
       end if;
 
       check_equal(
         strb(byte_lane_idx),
         '1',
-        "burst_idx=" & to_string(burst_idx) & ",byte_idx=" & to_string(byte_idx)
+        "'strb' check at burst_idx=" & to_string(burst_idx) & ",byte_idx=" & to_string(byte_idx)
       );
       check_equal(
         unsigned(data((byte_lane_idx + 1) * 8 - 1 downto byte_lane_idx * 8)),
         get(arr=>reference_data, idx=>byte_idx),
-        "burst_idx=" & to_string(burst_idx) & ",byte_idx=" & to_string(byte_idx)
+        "'data' check at burst_idx=" & to_string(burst_idx) & ",byte_idx=" & to_string(byte_idx)
       );
 
       if id'length > 0 then
         check_equal(
           unsigned(id),
           reference_id,
-          "burst_idx=" & to_string(burst_idx) & ",byte_idx=" & to_string(byte_idx)
+          "'id' check at burst_idx=" & to_string(burst_idx) & ",byte_idx=" & to_string(byte_idx)
         );
       end if;
     end loop;
@@ -125,7 +125,11 @@ begin
     -- have been checked as '1' above. If burst is not aligned, one or more byte lanes at the top
     -- shall be strobed out.
     for byte_idx in byte_lane_idx + 1 to bytes_per_beat - 1 loop
-      check_equal(strb(byte_idx), '0', "byte_idx=" & to_string(byte_idx));
+      check_equal(
+        strb(byte_idx),
+        '0',
+        "'strb' check at burst_idx=" & to_string(burst_idx) & ",byte_idx=" & to_string(byte_idx)
+      );
     end loop;
 
     -- Deallocate after we are done with the data.
