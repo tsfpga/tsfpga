@@ -86,6 +86,7 @@ class Module(BaseModule):
                         self.add_vunit_config(test=test, generics=generics)
 
         self._setup_keep_remover_tests(vunit_proj=vunit_proj)
+        self._setup_strobe_on_last_tests(vunit_proj=vunit_proj)
 
     def get_build_projects(self):
         projects = []
@@ -95,6 +96,7 @@ class Module(BaseModule):
         self._get_period_pulser_build_projects(part, projects)
         self._get_width_conversion_build_projects(part, projects)
         self._get_keep_remover_build_projects(part, projects)
+        self._get_strobe_on_last_build_projects(part, projects)
         return projects
 
     def _get_handshake_pipeline_build_projects(self, part, projects):
@@ -304,6 +306,41 @@ class Module(BaseModule):
                         Ffs(EqualTo(ffs[idx])),
                         MaximumLogicLevel(EqualTo(maximum_logic_level[idx])),
                         DspBlocks(EqualTo(0)),
+                    ],
+                )
+            )
+
+    def _setup_strobe_on_last_tests(self, vunit_proj):
+        tb = vunit_proj.library(self.library_name).test_bench("tb_strobe_on_last")
+
+        for data_width in [8, 16, 32]:
+            for test_full_throughput in [False, True]:
+                generics = dict(data_width=data_width, test_full_throughput=test_full_throughput)
+                self.add_vunit_config(test=tb, generics=generics)
+
+    def _get_strobe_on_last_build_projects(self, part, projects):
+        modules = [self]
+        generic_configurations = [
+            dict(data_width=8),
+            dict(data_width=32),
+            dict(data_width=64),
+        ]
+        total_luts = [7, 8, 9]
+        ffs = [12, 39, 75]
+        maximum_logic_level = [3, 3, 3]
+
+        for idx, generics in enumerate(generic_configurations):
+            projects.append(
+                VivadoNetlistProject(
+                    name=self.test_case_name(name=f"{self.name}.strobe_on_last", generics=generics),
+                    modules=modules,
+                    part=part,
+                    top="strobe_on_last",
+                    generics=generics,
+                    build_result_checkers=[
+                        TotalLuts(EqualTo(total_luts[idx])),
+                        Ffs(EqualTo(ffs[idx])),
+                        MaximumLogicLevel(EqualTo(maximum_logic_level[idx])),
                     ],
                 )
             )
