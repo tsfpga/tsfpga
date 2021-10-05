@@ -350,7 +350,7 @@ begin
     end loop;
 
     if enable_strobe then
-      -- The top atome might be strobed out and not have 'last' set. Instead it is found in one of
+      -- The top atom might be strobed out and not have 'last' set. Instead it is found in one of
       -- the lower atoms.
       output_last <= or atom_last;
       output_strobe <= atom_strobe;
