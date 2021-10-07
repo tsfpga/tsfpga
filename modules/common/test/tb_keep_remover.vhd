@@ -257,7 +257,7 @@ begin
       valid => output_valid,
       last => output_last,
       data => output_data,
-      strb => output_strobe
+      strobe => output_strobe
     );
 
 

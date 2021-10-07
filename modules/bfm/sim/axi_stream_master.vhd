@@ -36,7 +36,7 @@ entity axi_stream_master is
     -- Is also used for the random seed for handshaking stall.
     -- Set to something unique in order to vary the random sequence.
     logger_name_suffix : string := "";
-    -- The 'strb' is usually a "byte strobe", but the strobe unit width can be modified for cases
+    -- The 'strobe' is usually a "byte strobe", but the strobe unit width can be modified for cases
     -- when the strobe lanes are wider than bytes.
     strobe_unit_width_bits : positive := 8
   );
@@ -47,7 +47,7 @@ entity axi_stream_master is
     valid : out std_logic := '0';
     last : out std_logic := '0';
     data : out std_logic_vector(data_width_bits - 1 downto 0) := (others => '0');
-    strb : out std_logic_vector(data_width_bits / strobe_unit_width_bits - 1 downto 0) :=
+    strobe : out std_logic_vector(data_width_bits / strobe_unit_width_bits - 1 downto 0) :=
       (others => '0')
   );
 end entity;
@@ -57,7 +57,7 @@ architecture a of axi_stream_master is
   constant bytes_per_beat : positive := data_width_bits / 8;
   constant bytes_per_strobe_unit : positive := strobe_unit_width_bits / 8;
 
-  signal strb_byte : std_logic_vector(data_width_bits / 8 - 1 downto 0) := (others => '0');
+  signal strobe_byte : std_logic_vector(data_width_bits / 8 - 1 downto 0) := (others => '0');
 
   signal data_is_valid : std_logic := '0';
 
@@ -91,7 +91,7 @@ begin
       data((byte_lane_idx + 1) * 8 - 1 downto byte_lane_idx * 8) <=
         std_logic_vector(to_unsigned(data_value, 8));
 
-      strb_byte(byte_lane_idx) <= '1';
+      strobe_byte(byte_lane_idx) <= '1';
 
       is_last_byte := byte_idx = burst_length_bytes - 1;
       if byte_lane_idx = bytes_per_beat - 1 or is_last_byte then
@@ -100,7 +100,7 @@ begin
 
         last <= '0';
         data <= (others => '0');
-        strb_byte <= (others => '0');
+        strobe_byte <= (others => '0');
       end if;
     end loop;
 
@@ -129,26 +129,26 @@ begin
       valid => valid,
       last => last,
       data => data,
-      strobe => strb_byte
+      strobe => strobe_byte
     );
 
 
   ------------------------------------------------------------------------------
   assign_byte_strobe : if strobe_unit_width_bits = 8 generate
 
-    strb <= strb_byte;
+    strobe <= strobe_byte;
 
   else generate
 
-    assert data'length mod strb'length = 0 report "Data width must be a multiple of strobe width";
+    assert data'length mod strobe'length = 0 report "Data width must be a multiple of strobe width";
     assert data'length > 8 report "Strobe unit must be one byte or wider";
     assert data'length mod 8 = 0 report "Strobe unit must be a byte multiple";
 
     ------------------------------------------------------------------------------
     assign : process(all)
     begin
-      for strobe_idx in strb'range loop
-        strb(strobe_idx) <= strb_byte(strobe_idx * bytes_per_strobe_unit);
+      for strobe_idx in strobe'range loop
+        strobe(strobe_idx) <= strobe_byte(strobe_idx * bytes_per_strobe_unit);
       end loop;
     end process;
 
