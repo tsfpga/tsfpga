@@ -248,7 +248,7 @@ begin
       stall_config => stall_config,
       logger_name_suffix => "_input",
       remove_strobed_out_dont_care => true,
-      strobe_unit_width => output_data'length / output_strobe'length
+      strobe_unit_width_bits => output_data'length / output_strobe'length
     )
     port map (
       clk => clk,

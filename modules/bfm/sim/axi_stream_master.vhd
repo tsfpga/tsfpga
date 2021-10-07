@@ -35,7 +35,10 @@ entity axi_stream_master is
     stall_config : stall_config_t := null_stall_config;
     -- Is also used for the random seed for handshaking stall.
     -- Set to something unique in order to vary the random sequence.
-    logger_name_suffix : string := ""
+    logger_name_suffix : string := "";
+    -- The 'strb' is usually a "byte strobe", but the strobe unit width can be modified for cases
+    -- when the strobe lanes are wider than bytes.
+    strobe_unit_width_bits : positive := 8
   );
   port (
     clk : in std_logic;
@@ -44,13 +47,18 @@ entity axi_stream_master is
     valid : out std_logic := '0';
     last : out std_logic := '0';
     data : out std_logic_vector(data_width_bits - 1 downto 0) := (others => '0');
-    strb : out std_logic_vector(data_width_bits / 8 - 1 downto 0) := (others => '0')
+    strb : out std_logic_vector(data_width_bits / strobe_unit_width_bits - 1 downto 0) :=
+      (others => '0')
   );
 end entity;
 
 architecture a of axi_stream_master is
 
   constant bytes_per_beat : positive := data_width_bits / 8;
+  constant bytes_per_strobe_unit : positive := strobe_unit_width_bits / 8;
+
+  signal strb_byte : std_logic_vector(data_width_bits / 8 - 1 downto 0) := (others => '0');
+
   signal data_is_valid : std_logic := '0';
 
 begin
@@ -58,6 +66,7 @@ begin
   ------------------------------------------------------------------------------
   main : process
     variable data_burst : integer_array_t := null_integer_array;
+    variable burst_length_bytes : positive := 1;
     variable data_value : natural := 0;
 
     variable byte_lane_idx : natural := 0;
@@ -68,26 +77,30 @@ begin
     end loop;
 
     data_burst := pop_ref(data_queue);
+    burst_length_bytes := length(data_burst);
+
+    assert burst_length_bytes mod bytes_per_strobe_unit = 0
+      report "Burst length must be a multiple of strobe unit";
 
     data_is_valid <= '1';
 
-    for byte_idx in 0 to length(data_burst) - 1 loop
+    for byte_idx in 0 to burst_length_bytes - 1 loop
       byte_lane_idx := byte_idx mod bytes_per_beat;
 
       data_value := get(arr=>data_burst, idx=>byte_idx);
       data((byte_lane_idx + 1) * 8 - 1 downto byte_lane_idx * 8) <=
         std_logic_vector(to_unsigned(data_value, 8));
 
-      strb(byte_lane_idx) <= '1';
+      strb_byte(byte_lane_idx) <= '1';
 
-      is_last_byte := byte_idx = length(data_burst) - 1;
+      is_last_byte := byte_idx = burst_length_bytes - 1;
       if byte_lane_idx = bytes_per_beat - 1 or is_last_byte then
         last <= to_sl(is_last_byte);
         wait until (ready and valid) = '1' and rising_edge(clk);
 
         last <= '0';
         data <= (others => '0');
-        strb <= (others => '0');
+        strb_byte <= (others => '0');
       end if;
     end loop;
 
@@ -116,7 +129,29 @@ begin
       valid => valid,
       last => last,
       data => data,
-      strobe => strb
+      strobe => strb_byte
     );
+
+
+  ------------------------------------------------------------------------------
+  assign_byte_strobe : if strobe_unit_width_bits = 8 generate
+
+    strb <= strb_byte;
+
+  else generate
+
+    assert data'length mod strb'length = 0 report "Data width must be a multiple of strobe width";
+    assert data'length > 8 report "Strobe unit must be one byte or wider";
+    assert data'length mod 8 = 0 report "Strobe unit must be a byte multiple";
+
+    ------------------------------------------------------------------------------
+    assign : process(all)
+    begin
+      for strobe_idx in strb'range loop
+        strb(strobe_idx) <= strb_byte(strobe_idx * bytes_per_strobe_unit);
+      end loop;
+    end process;
+
+  end generate;
 
 end architecture;

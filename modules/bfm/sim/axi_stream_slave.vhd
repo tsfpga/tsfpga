@@ -51,8 +51,8 @@ entity axi_stream_slave is
     -- have the value '-' and are in strobed out byte lanes.
     remove_strobed_out_dont_care : boolean := false;
     -- The 'strb' is usually a "byte strobe", but the strobe unit width can be modified for cases
-    -- when the strobe lanes are wider or narrower than bytes.
-    strobe_unit_width : positive := 8
+    -- when the strobe lanes are wider than bytes.
+    strobe_unit_width_bits : positive := 8
   );
   port (
     clk : in std_logic;
@@ -62,13 +62,15 @@ entity axi_stream_slave is
     last : in std_logic;
     id : in unsigned(id_width_bits - 1 downto 0) := (others => '0');
     data : in std_logic_vector(data_width_bits - 1 downto 0);
-    strb : in std_logic_vector(data_width_bits / strobe_unit_width - 1 downto 0) := (others => '1')
+    strb : in std_logic_vector(data_width_bits / strobe_unit_width_bits - 1 downto 0) :=
+      (others => '1')
   );
 end entity;
 
 architecture a of axi_stream_slave is
 
   constant bytes_per_beat : positive := data_width_bits / 8;
+  constant bytes_per_strobe_unit : positive := strobe_unit_width_bits / 8;
 
   signal strb_byte : std_logic_vector(data_width_bits / 8 - 1 downto 0) := (others => '0');
 
@@ -76,27 +78,6 @@ architecture a of axi_stream_slave is
   signal data_is_ready : std_logic := '0';
 
 begin
-
-  ------------------------------------------------------------------------------
-  assign_byte_strobe : if strobe_unit_width = 8 generate
-
-    strb_byte <= strb;
-
-  else generate
-
-    assert data'length mod strb'length = 0 report "Data width must be a multiple of strobe width";
-
-    ------------------------------------------------------------------------------
-    assign : process(all)
-      constant bytes_per_strobe_unit : positive := strobe_unit_width / 8;
-    begin
-      for byte_idx in strb_byte'range loop
-        strb_byte(byte_idx) <= strb(byte_idx / bytes_per_strobe_unit);
-      end loop;
-    end process;
-
-  end generate;
-
 
   ------------------------------------------------------------------------------
   main : process
@@ -114,6 +95,9 @@ begin
 
     burst_length_bytes := length(reference_data);
     burst_length_beats := (burst_length_bytes + bytes_per_beat - 1) / bytes_per_beat;
+
+    assert burst_length_bytes mod bytes_per_strobe_unit = 0
+      report "Burst length must be a multiple of strobe unit";
 
     data_is_ready <= '1';
 
@@ -176,6 +160,28 @@ begin
 
     burst_idx <= burst_idx + 1;
   end process;
+
+
+  ------------------------------------------------------------------------------
+  assign_byte_strobe : if strobe_unit_width_bits = 8 generate
+
+    strb_byte <= strb;
+
+  else generate
+
+    assert data'length mod strb'length = 0 report "Data width must be a multiple of strobe width";
+    assert data'length > 8 report "Strobe unit must be one byte or wider";
+    assert data'length mod 8 = 0 report "Strobe unit must be a byte multiple";
+
+    ------------------------------------------------------------------------------
+    assign : process(all)
+    begin
+      for byte_idx in strb_byte'range loop
+        strb_byte(byte_idx) <= strb(byte_idx / bytes_per_strobe_unit);
+      end loop;
+    end process;
+
+  end generate;
 
 
   ------------------------------------------------------------------------------
