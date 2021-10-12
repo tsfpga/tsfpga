@@ -22,7 +22,7 @@ class VivadoIpCores:
 
     project_name = "vivado_ip_project"
 
-    def __init__(self, modules, output_path, part_name, vivado_project_class=VivadoIpCoreProject):
+    def __init__(self, modules, output_path, part_name, vivado_project_class=None):
         """
         Arguments:
             modules (list(:class:`Module <.BaseModule>`)): IP cores from  these modules will be
@@ -34,6 +34,11 @@ class VivadoIpCores:
         """
         self.project_directory = output_path.resolve() / self.project_name
         self._part_name = part_name
+
+        vivado_project_class = (
+            VivadoIpCoreProject if vivado_project_class is None else vivado_project_class
+        )
+
         self._hash_file = self.project_directory / "ip_files_hash.txt"
 
         self._setup(modules, vivado_project_class)

@@ -99,17 +99,21 @@ Release history and changelog for the tsfpga project.
 
 def generate_apidoc():
     output_path = delete(tsfpga.TSFPGA_GENERATED / "sphinx" / "apidoc")
-    cmd = [
-        sys.executable,
-        "-m",
-        "sphinx.ext.apidoc",
-        "-o",
-        str(output_path),
-        "tsfpga",
-        # Exclude test files
-        "**/test/**",
-    ]
-    check_call(cmd, cwd=tsfpga.REPO_ROOT)
+
+    def run_apidoc(module_path, exclude_pattern):
+        cmd = [
+            sys.executable,
+            "-m",
+            "sphinx.ext.apidoc",
+            "-o",
+            str(output_path),
+            module_path,
+            exclude_pattern,
+        ]
+        check_call(cmd, cwd=tsfpga.REPO_ROOT)
+
+    run_apidoc(module_path="tsfpga", exclude_pattern="**/test/**")
+    run_apidoc(module_path="examples", exclude_pattern="examples/modules/**")
 
 
 def generate_sphinx_index():

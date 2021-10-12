@@ -27,3 +27,4 @@
     api_reference/tsfpga
     api_reference/tsfpga.registers
     api_reference/tsfpga.vivado
+    api_reference/examples
