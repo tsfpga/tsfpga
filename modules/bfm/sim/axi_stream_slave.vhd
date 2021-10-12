@@ -52,7 +52,12 @@ entity axi_stream_slave is
     remove_strobed_out_dont_care : boolean := false;
     -- The 'strobe' is usually a "byte strobe", but the strobe unit width can be modified for cases
     -- when the strobe lanes are wider than bytes.
-    strobe_unit_width_bits : positive := 8
+    strobe_unit_width_bits : positive := 8;
+    -- If true: Once asserted, 'ready' will not fall until valid has been asserted (i.e. a
+    -- handhshake has happended). Note that according to the AXI-Stream standard 'ready' may fall
+    -- at any time (regardless of 'valid'). However, many modules are developed with this
+    -- well-behavedness as a way of saving resources.
+    well_behaved_stall : boolean := false
   );
   port (
     clk : in std_logic;
@@ -189,6 +194,7 @@ begin
     generic map(
       stall_config => stall_config,
       logger_name_suffix => logger_name_suffix,
+      well_behaved_stall => well_behaved_stall,
       data_width => data'length,
       id_width => id'length,
       remove_strobed_out_dont_care => remove_strobed_out_dont_care

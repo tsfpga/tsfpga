@@ -52,6 +52,11 @@ entity handshake_slave is
     id_width : natural := 0;
     -- Assign a non-zero value in order to use the 'data'/'strobe' ports for protocol checking.
     data_width : natural := 0;
+    -- If true: Once asserted, 'ready' will not fall until valid has been asserted (i.e. a
+    -- handhshake has happended). Note that according to the AXI-Stream standard 'ready' may fall
+    -- at any time (regardless of 'valid'). However, many modules are developed with this
+    -- well-behavedness as a way of saving resources.
+    well_behaved_stall : boolean := false;
     -- This can be used to essentially disable the
     --   "rule 4: Check failed for performance - tready active N clock cycles after tvalid."
     -- warning by setting a very high value for the limit.
@@ -74,8 +79,10 @@ entity handshake_slave is
     data_is_ready : in std_logic := '1';
     --
     ready : out std_logic := '0';
-    -- Optional to connect. Only for protocol checking
+    -- Must be connected if 'well_behaved_stall' is true. Otherwise it is optional and
+    -- only for protocol checking.
     valid : in std_logic := '0';
+    -- Optional to connect. Only for protocol checking
     last : in std_logic := '1';
     -- Optional to connect. Only for protocol checking
     -- Must set 'id_width' generic in order to use this.
@@ -109,7 +116,7 @@ begin
       random_stall(stall_config, rnd, clk);
       stall_data <= '0';
 
-      wait until rising_edge(clk);
+      wait until (valid = '1' or not well_behaved_stall) and rising_edge(clk);
     end loop;
   end process;
 
