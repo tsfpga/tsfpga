@@ -39,6 +39,8 @@ begin
   begin
     test_runner_setup(runner, runner_cfg);
 
+    check_equal(product, 0);
+
     multiplicand <= to_unsigned(3125, multiplicand);
     multiplier <= to_unsigned(18, multiplier);
 
