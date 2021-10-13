@@ -57,7 +57,10 @@ entity axi_stream_slave is
     -- handhshake has happended). Note that according to the AXI-Stream standard 'ready' may fall
     -- at any time (regardless of 'valid'). However, many modules are developed with this
     -- well-behavedness as a way of saving resources.
-    well_behaved_stall : boolean := false
+    well_behaved_stall : boolean := false;
+    -- For busses that do not have the 'last' indicator, the check for 'last' on the last beat of
+    -- data can be disabled.
+    disable_last_check : boolean := false
   );
   port (
     clk : in std_logic;
@@ -119,12 +122,15 @@ begin
 
       if byte_lane_idx = 0 then
         wait until (ready and valid) = '1' and rising_edge(clk);
-        check_equal(
-          last,
-          is_last_beat,
-          "'last' check at burst_idx=" & to_string(num_bursts_checked)
-            & ",byte_idx=" & to_string(byte_idx)
-        );
+
+        if not disable_last_check then
+          check_equal(
+            last,
+            is_last_beat,
+            "'last' check at burst_idx=" & to_string(num_bursts_checked)
+              & ",byte_idx=" & to_string(byte_idx)
+          );
+        end if;
       end if;
 
       check_equal(
@@ -196,26 +202,38 @@ begin
 
 
   ------------------------------------------------------------------------------
-  handshake_slave_int : entity bfm.handshake_slave
-    generic map(
-      stall_config => stall_config,
-      logger_name_suffix => logger_name_suffix,
-      well_behaved_stall => well_behaved_stall,
-      data_width => data'length,
-      id_width => id'length,
-      remove_strobed_out_dont_care => remove_strobed_out_dont_care
-    )
-    port map(
-      clk => clk,
-      --
-      data_is_ready => data_is_ready,
-      --
-      ready => ready,
-      valid => valid,
-      last => last,
-      id => id,
-      data => data,
-      strobe => strobe_byte
-    );
+  handshake_slave_block : block
+    signal last_int : std_logic := '0';
+  begin
+
+    -- The VUnit protocol checker will give an error about "packet completion" unless 'last' arrives
+    -- for each burst. Hence when the master does not set 'last', we set it for each beat.
+    last_int <= '1' when disable_last_check else last;
+
+
+    ------------------------------------------------------------------------------
+    handshake_slave_int : entity bfm.handshake_slave
+      generic map(
+        stall_config => stall_config,
+        logger_name_suffix => logger_name_suffix,
+        well_behaved_stall => well_behaved_stall,
+        data_width => data'length,
+        id_width => id'length,
+        remove_strobed_out_dont_care => remove_strobed_out_dont_care
+      )
+      port map(
+        clk => clk,
+        --
+        data_is_ready => data_is_ready,
+        --
+        ready => ready,
+        valid => valid,
+        last => last_int,
+        id => id,
+        data => data,
+        strobe => strobe_byte
+      );
+
+    end block;
 
 end architecture;

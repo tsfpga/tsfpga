@@ -6,6 +6,8 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+import itertools
+
 from tsfpga.module import BaseModule
 from tsfpga.vivado.project import VivadoNetlistProject
 from tsfpga.vivado.build_result_checker import (
@@ -34,36 +36,6 @@ class Module(BaseModule):
         for period in [5, 15, 37, 300, 4032]:
             self.add_vunit_config(tb, generics=dict(period=period, shift_register_length=8))
 
-        tb = vunit_proj.library(self.library_name).test_bench("tb_width_conversion")
-
-        test = tb.get_tests("test_data")[0]
-        for input_width in [8, 16, 32]:
-            for output_width in [8, 16, 32]:
-                if input_width == output_width:
-                    continue
-
-                for enable_strobe in [True, False]:
-                    generics = dict(
-                        input_width=input_width,
-                        output_width=output_width,
-                        enable_strobe=enable_strobe,
-                    )
-
-                    if enable_strobe and input_width < output_width:
-                        generics["support_unaligned_burst_length"] = True
-
-                    self.add_vunit_config(test, generics=generics)
-
-        test = tb.get_tests("test_full_throughput")[0]
-        test.add_config(
-            name="input_16.output_8",
-            generics=dict(input_width=16, output_width=8, enable_strobe=False, data_jitter=False),
-        )
-        test.add_config(
-            name="input_8.output_16",
-            generics=dict(input_width=8, output_width=16, enable_strobe=False, data_jitter=False),
-        )
-
         for test in (
             vunit_proj.library(self.library_name).test_bench("tb_handshake_pipeline").get_tests()
         ):
@@ -85,6 +57,7 @@ class Module(BaseModule):
                         )
                         self.add_vunit_config(test=test, generics=generics)
 
+        self._setup_width_conversion_tests(vunit_proj=vunit_proj)
         self._setup_keep_remover_tests(vunit_proj=vunit_proj)
         self._setup_strobe_on_last_tests(vunit_proj=vunit_proj)
 
@@ -223,30 +196,77 @@ class Module(BaseModule):
                 )
             )
 
+    def _setup_width_conversion_tests(self, vunit_proj):
+        tb = vunit_proj.library(self.library_name).test_bench("tb_width_conversion")
+
+        test = tb.get_tests("test_data")[0]
+        for input_width, output_width, enable_strobe, enable_last in itertools.product(
+            [8, 16, 32], [8, 16, 32], [True, False], [True, False]
+        ):
+            if input_width == output_width:
+                continue
+
+            generics = dict(
+                input_width=input_width,
+                output_width=output_width,
+                enable_strobe=enable_strobe,
+                enable_last=enable_last,
+            )
+
+            if enable_strobe and enable_last:
+                for support_unaligned_burst_length in [True, False]:
+                    generics["support_unaligned_burst_length"] = support_unaligned_burst_length
+                    self.add_vunit_config(test, generics=generics)
+            else:
+                self.add_vunit_config(test, generics=generics)
+
+        test = tb.get_tests("test_full_throughput")[0]
+        test.add_config(
+            name="input_16.output_8",
+            generics=dict(
+                input_width=16,
+                output_width=8,
+                enable_strobe=False,
+                enable_last=True,
+                enable_jitter=False,
+            ),
+        )
+        test.add_config(
+            name="input_8.output_16",
+            generics=dict(
+                input_width=8,
+                output_width=16,
+                enable_strobe=False,
+                enable_last=True,
+                enable_jitter=False,
+            ),
+        )
+
     def _get_width_conversion_build_projects(self, part, projects):
         modules = [self]
-        generic_configurations = [
-            dict(input_width=32, output_width=16, enable_strobe=False),
-            dict(input_width=16, output_width=32, enable_strobe=False),
-            dict(
-                input_width=32,
-                output_width=16,
-                enable_strobe=True,
-                strobe_unit_width=8,
-            ),
-            dict(
-                input_width=16,
-                output_width=32,
-                enable_strobe=True,
-                support_unaligned_burst_length=True,
-                strobe_unit_width=8,
-            ),
-        ]
-        total_luts = [21, 36, 26, 46]
-        ffs = [53, 53, 63, 66]
-        maximum_logic_level = [2, 2, 3, 3]
 
-        for idx, generics in enumerate(generic_configurations):
+        # Downconversion in left array, upconversion on right.
+        # Progressively adding more features from left to right.
+        input_width = [32, 32, 32] + [16, 16, 16]
+        output_width = [16, 16, 16] + [32, 32, 32]
+        enable_strobe = [False, True, True] + [False, True, True]
+        enable_last = [False, True, True] + [False, True, True]
+        support_unaligned_burst_length = [False, False, True] + [False, False, True]
+
+        # Resource utilization increases when more features are added.
+        total_luts = [20, 23, 29] + [35, 40, 44]
+        ffs = [51, 59, 63] + [51, 59, 62]
+        maximum_logic_level = [2, 2, 3] + [2, 2, 2]
+
+        for idx in range(len(input_width)):  # pylint: disable=consider-using-enumerate
+            generics = dict(
+                input_width=input_width[idx],
+                output_width=output_width[idx],
+                enable_strobe=enable_strobe[idx],
+                enable_last=enable_last[idx],
+                support_unaligned_burst_length=support_unaligned_burst_length[idx],
+            )
+
             projects.append(
                 VivadoNetlistProject(
                     name=self.test_case_name(

@@ -251,7 +251,7 @@ begin
       data_width_bits => output_data'length,
       reference_data_queue => reference_data_queue,
       stall_config => stall_config,
-      logger_name_suffix => "_input",
+      logger_name_suffix => "_output",
       remove_strobed_out_dont_care => true,
       strobe_unit_width_bits => output_data'length / output_strobe'length
     )
