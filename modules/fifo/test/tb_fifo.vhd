@@ -123,7 +123,8 @@ begin
       end loop;
 
       if wait_until_done then
-        wait until is_empty(write_data_queue) and stimuli_inactive = '1' and rising_edge(clk);
+        wait until is_empty(write_data_queue) and rising_edge(clk);
+        wait until stimuli_inactive = '1' and rising_edge(clk);
       end if;
     end procedure;
 
