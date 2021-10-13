@@ -57,6 +57,7 @@ architecture tb of tb_keep_remover is
   );
 
   shared variable rnd : RandomPType;
+  signal num_output_bursts_checked : natural := 0;
 
 begin
 
@@ -66,6 +67,9 @@ begin
 
   ------------------------------------------------------------------------------
   main : process
+
+    variable num_output_bursts_expected : natural := 0;
+
     procedure run_test_burst(fixed_length_words : natural := 0) is
       variable burst_length_atoms, burst_length_bytes : positive := 1;
       variable data_in, reference_data_out : integer_array_t := null_integer_array;
@@ -92,6 +96,8 @@ begin
 
       push_ref(input_data_queue, data_in);
       push_ref(reference_data_queue, reference_data_out);
+
+      num_output_bursts_expected := num_output_bursts_expected + 1;
     end procedure;
 
     procedure wait_until_done is
@@ -99,9 +105,8 @@ begin
       wait until
         is_empty(input_data_queue)
         and is_empty(reference_data_queue)
+        and num_output_bursts_checked = num_output_bursts_expected
         and rising_edge(clk);
-      wait until (output_ready and output_valid and output_last) = '1' and rising_edge(clk);
-      wait until rising_edge(clk);
     end procedure;
 
     variable start_time, time_diff : time;
@@ -257,7 +262,9 @@ begin
       valid => output_valid,
       last => output_last,
       data => output_data,
-      strobe => output_strobe
+      strobe => output_strobe,
+      --
+      num_bursts_checked => num_output_bursts_checked
     );
 
 

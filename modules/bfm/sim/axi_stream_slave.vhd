@@ -68,7 +68,9 @@ entity axi_stream_slave is
     id : in unsigned(id_width_bits - 1 downto 0) := (others => '0');
     data : in std_logic_vector(data_width_bits - 1 downto 0);
     strobe : in std_logic_vector(data_width_bits / strobe_unit_width_bits - 1 downto 0) :=
-      (others => '1')
+      (others => '1');
+    --
+    num_bursts_checked : out natural := 0
   );
 end entity;
 
@@ -79,7 +81,6 @@ architecture a of axi_stream_slave is
 
   signal strobe_byte : std_logic_vector(data_width_bits / 8 - 1 downto 0) := (others => '0');
 
-  signal burst_idx : natural := 0;
   signal data_is_ready : std_logic := '0';
 
 begin
@@ -121,26 +122,30 @@ begin
         check_equal(
           last,
           is_last_beat,
-          "'last' check at burst_idx=" & to_string(burst_idx) & ",byte_idx=" & to_string(byte_idx)
+          "'last' check at burst_idx=" & to_string(num_bursts_checked)
+            & ",byte_idx=" & to_string(byte_idx)
         );
       end if;
 
       check_equal(
         strobe_byte(byte_lane_idx),
         '1',
-        "'strobe' check at burst_idx=" & to_string(burst_idx) & ",byte_idx=" & to_string(byte_idx)
+        "'strobe' check at burst_idx=" & to_string(num_bursts_checked)
+          & ",byte_idx=" & to_string(byte_idx)
       );
       check_equal(
         unsigned(data((byte_lane_idx + 1) * 8 - 1 downto byte_lane_idx * 8)),
         get(arr=>reference_data, idx=>byte_idx),
-        "'data' check at burst_idx=" & to_string(burst_idx) & ",byte_idx=" & to_string(byte_idx)
+        "'data' check at burst_idx="
+          & to_string(num_bursts_checked) & ",byte_idx=" & to_string(byte_idx)
       );
 
       if id'length > 0 then
         check_equal(
           unsigned(id),
           reference_id,
-          "'id' check at burst_idx=" & to_string(burst_idx) & ",byte_idx=" & to_string(byte_idx)
+          "'id' check at burst_idx="
+            & to_string(num_bursts_checked) & ",byte_idx=" & to_string(byte_idx)
         );
       end if;
     end loop;
@@ -152,7 +157,8 @@ begin
       check_equal(
         strobe_byte(byte_idx),
         '0',
-        "'strobe' check at burst_idx=" & to_string(burst_idx) & ",byte_idx=" & to_string(byte_idx)
+        "'strobe' check at burst_idx=" & to_string(num_bursts_checked)
+          & ",byte_idx=" & to_string(byte_idx)
       );
     end loop;
 
@@ -163,7 +169,7 @@ begin
     -- If queue is not empty, it will instantly be raised again (no bubble cycle).
     data_is_ready <= '0';
 
-    burst_idx <= burst_idx + 1;
+    num_bursts_checked <= num_bursts_checked + 1;
   end process;
 
 
