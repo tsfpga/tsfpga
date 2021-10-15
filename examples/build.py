@@ -28,58 +28,73 @@ def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
         "Create, synth and build an FPGA project",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+
     parser.add_argument("--no-color", action="store_true", help="disable color in printouts")
+
     parser.add_argument("--list-only", action="store_true", help="list the available projects")
+
     parser.add_argument("--open", action="store_true", help="open existing projects in the GUI")
+
     parser.add_argument(
         "--use-existing-project",
         action="store_true",
         help="build existing projects, or create first if they do not exist",
     )
+
     parser.add_argument(
         "--generate-registers-only",
         action="store_true",
         help="only generate the register artifacts (C/C++ code, HTML, ...) for inspection",
     )
+
     parser.add_argument("--create-only", action="store_true", help="only create projects")
+
     parser.add_argument("--synth-only", action="store_true", help="only synthesize projects")
+
     parser.add_argument(
         "--netlist-builds",
         action="store_true",
         help="use netlist build projects instead of top level build projects",
     )
+
     parser.add_argument(
         "--projects-path",
         type=Path,
         default=default_temp_dir / "projects",
         help="the FPGA build projects will be placed here",
     )
+
     parser.add_argument(
         "--ip-cache-path",
         type=Path,
         default=default_temp_dir / "vivado_ip_cache",
         help="location of Vivado IP cache",
     )
+
     parser.add_argument(
         "--output-path",
         type=Path,
         required=False,
         help="the output products (bit file, ...) will be placed here",
     )
+
     parser.add_argument(
-        "--num-parallel-builds", type=int, default=4, help="Number of parallel builds to launch"
+        "--num-parallel-builds", type=int, default=8, help="Number of parallel builds to launch"
     )
+
     parser.add_argument(
         "--num-threads-per-build",
         type=int,
         default=4,
         help="number of threads for each build process",
     )
+
     parser.add_argument(
         "project_filters",
         nargs="*",
         help="filter for which projects to build. Can use wildcards. Leave empty for all.",
     )
+
     args = parser.parse_args()
 
     return args
