@@ -32,31 +32,10 @@ class Module(BaseModule):
         )
 
         tb = vunit_proj.library(self.library_name).test_bench("tb_periodic_pulser")
-
         for period in [5, 15, 37, 300, 4032]:
             self.add_vunit_config(tb, generics=dict(period=period, shift_register_length=8))
 
-        for test in (
-            vunit_proj.library(self.library_name).test_bench("tb_handshake_pipeline").get_tests()
-        ):
-            if "full_throughput" in test.name:
-                for allow_poor_input_ready_timing in [False, True]:
-                    generics = dict(
-                        full_throughput=True,
-                        allow_poor_input_ready_timing=allow_poor_input_ready_timing,
-                    )
-                    self.add_vunit_config(test=test, generics=generics)
-
-            if "random_data" in test.name:
-                for full_throughput in [False, True]:
-                    for allow_poor_input_ready_timing in [False, True]:
-                        generics = dict(
-                            data_jitter=True,
-                            full_throughput=full_throughput,
-                            allow_poor_input_ready_timing=allow_poor_input_ready_timing,
-                        )
-                        self.add_vunit_config(test=test, generics=generics)
-
+        self._setup_handshake_pipeline_tests(vunit_proj=vunit_proj)
         self._setup_width_conversion_tests(vunit_proj=vunit_proj)
         self._setup_keep_remover_tests(vunit_proj=vunit_proj)
         self._setup_strobe_on_last_tests(vunit_proj=vunit_proj)
@@ -64,134 +43,64 @@ class Module(BaseModule):
     def get_build_projects(self):
         projects = []
         part = "xc7z020clg400-1"
+
         self._get_handshake_pipeline_build_projects(part, projects)
-        self._get_clock_counter_build_projects(part, projects)
-        self._get_period_pulser_build_projects(part, projects)
         self._get_width_conversion_build_projects(part, projects)
         self._get_keep_remover_build_projects(part, projects)
         self._get_strobe_on_last_build_projects(part, projects)
+        self._get_clock_counter_build_projects(part, projects)
+        self._get_period_pulser_build_projects(part, projects)
+
         return projects
 
+    def _setup_handshake_pipeline_tests(self, vunit_proj):
+        tb = vunit_proj.library(self.library_name).test_bench("tb_handshake_pipeline")
+        for test in tb.get_tests():
+            for allow_poor_input_ready_timing in [False, True]:
+                if "full_throughput" in test.name:
+                    generics = dict(
+                        full_throughput=True,
+                        allow_poor_input_ready_timing=allow_poor_input_ready_timing,
+                    )
+                    self.add_vunit_config(test=test, generics=generics)
+
+                if "random_data" in test.name:
+                    for full_throughput in [False, True]:
+                        generics = dict(
+                            data_jitter=True,
+                            full_throughput=full_throughput,
+                            allow_poor_input_ready_timing=allow_poor_input_ready_timing,
+                        )
+                        self.add_vunit_config(test=test, generics=generics)
+
     def _get_handshake_pipeline_build_projects(self, part, projects):
-        generics = dict(data_width=32)
+        full_throughput = [True, True, False, False]
+        allow_poor_input_ready_timing = [True, False, True, False]
 
-        generics.update(full_throughput=True, allow_poor_input_ready_timing=True)
-        projects.append(
-            VivadoNetlistProject(
-                name=self.test_case_name("handshake_pipeline", generics),
-                modules=[self],
-                part=part,
-                top="handshake_pipeline",
-                generics=generics,
-                build_result_checkers=[
-                    TotalLuts(EqualTo(1)),
-                    Ffs(EqualTo(34)),
-                ],
+        total_luts = [1, 41, 2, 1]
+        ffs = [38, 78, 38, 39]
+        maximum_logic_level = [2, 2, 2, 2]
+
+        for idx in range(len(total_luts)):  # pylint: disable=consider-using-enumerate
+            generics = dict(
+                data_width=32,
+                full_throughput=full_throughput[idx],
+                allow_poor_input_ready_timing=allow_poor_input_ready_timing[idx],
             )
-        )
 
-        # Full skid-aside buffer is quite large.
-        generics.update(full_throughput=True, allow_poor_input_ready_timing=False)
-        projects.append(
-            VivadoNetlistProject(
-                name=self.test_case_name("handshake_pipeline", generics),
-                modules=[self],
-                part=part,
-                top="handshake_pipeline",
-                generics=generics,
-                build_result_checkers=[
-                    TotalLuts(EqualTo(37)),
-                    Ffs(EqualTo(70)),
-                ],
-            )
-        )
-
-        generics.update(full_throughput=False, allow_poor_input_ready_timing=True)
-        projects.append(
-            VivadoNetlistProject(
-                name=self.test_case_name("handshake_pipeline", generics),
-                modules=[self],
-                part=part,
-                top="handshake_pipeline",
-                generics=generics,
-                build_result_checkers=[
-                    TotalLuts(EqualTo(2)),
-                    Ffs(EqualTo(34)),
-                ],
-            )
-        )
-
-        generics.update(full_throughput=False, allow_poor_input_ready_timing=False)
-        projects.append(
-            VivadoNetlistProject(
-                name=self.test_case_name("handshake_pipeline", generics),
-                modules=[self],
-                part=part,
-                top="handshake_pipeline",
-                generics=generics,
-                build_result_checkers=[
-                    TotalLuts(EqualTo(1)),
-                    Ffs(EqualTo(35)),
-                ],
-            )
-        )
-
-    def _get_clock_counter_build_projects(self, part, projects):
-        modules = get_tsfpga_modules(names_include=[self.name, "math", "resync"])
-
-        generics = dict(resolution_bits=24, max_relation_bits=6)
-        projects.append(
-            VivadoNetlistProject(
-                name=self.test_case_name(name=f"{self.name}.clock_counter", generics=generics),
-                modules=modules,
-                part=part,
-                top="clock_counter",
-                generics=generics,
-                build_result_checkers=[
-                    TotalLuts(EqualTo(84)),
-                    Srls(EqualTo(5)),
-                    Ffs(EqualTo(185)),
-                ],
-            )
-        )
-
-        generics = dict(resolution_bits=10, max_relation_bits=4)
-        projects.append(
-            VivadoNetlistProject(
-                name=self.test_case_name(name=f"{self.name}.clock_counter", generics=generics),
-                modules=modules,
-                part=part,
-                top="clock_counter",
-                generics=generics,
-                build_result_checkers=[
-                    TotalLuts(EqualTo(38)),
-                    Srls(EqualTo(2)),
-                    Ffs(EqualTo(86)),
-                ],
-            )
-        )
-
-    def _get_period_pulser_build_projects(self, part, projects):
-        modules = get_tsfpga_modules(names_include=[self.name, "math"])
-
-        periods = [32, 37, 300, 63 * 64, 311000000]
-        total_luts = [2, 7, 4, 5, 18]
-        srls = [1, 0, 2, 3, 4]
-        ffs = [1, 6, 2, 3, 15]
-
-        for idx, period in enumerate(periods):
-            generics = dict(period=period, shift_register_length=32)
             projects.append(
                 VivadoNetlistProject(
-                    name=self.test_case_name(f"{self.name}.periodic_pulser", generics),
-                    modules=modules,
+                    name=self.test_case_name(
+                        name=f"{self.name}.handshake_pipeline", generics=generics
+                    ),
+                    modules=[self],
                     part=part,
-                    top="periodic_pulser",
+                    top="handshake_pipeline",
                     generics=generics,
                     build_result_checkers=[
                         TotalLuts(EqualTo(total_luts[idx])),
-                        Srls(EqualTo(srls[idx])),
                         Ffs(EqualTo(ffs[idx])),
+                        MaximumLogicLevel(EqualTo(maximum_logic_level[idx])),
                     ],
                 )
             )
@@ -361,6 +270,66 @@ class Module(BaseModule):
                         TotalLuts(EqualTo(total_luts[idx])),
                         Ffs(EqualTo(ffs[idx])),
                         MaximumLogicLevel(EqualTo(maximum_logic_level[idx])),
+                    ],
+                )
+            )
+
+    def _get_clock_counter_build_projects(self, part, projects):
+        modules = get_tsfpga_modules(names_include=[self.name, "math", "resync"])
+
+        generics = dict(resolution_bits=24, max_relation_bits=6)
+        projects.append(
+            VivadoNetlistProject(
+                name=self.test_case_name(name=f"{self.name}.clock_counter", generics=generics),
+                modules=modules,
+                part=part,
+                top="clock_counter",
+                generics=generics,
+                build_result_checkers=[
+                    TotalLuts(EqualTo(84)),
+                    Srls(EqualTo(5)),
+                    Ffs(EqualTo(185)),
+                ],
+            )
+        )
+
+        generics = dict(resolution_bits=10, max_relation_bits=4)
+        projects.append(
+            VivadoNetlistProject(
+                name=self.test_case_name(name=f"{self.name}.clock_counter", generics=generics),
+                modules=modules,
+                part=part,
+                top="clock_counter",
+                generics=generics,
+                build_result_checkers=[
+                    TotalLuts(EqualTo(38)),
+                    Srls(EqualTo(2)),
+                    Ffs(EqualTo(86)),
+                ],
+            )
+        )
+
+    def _get_period_pulser_build_projects(self, part, projects):
+        modules = get_tsfpga_modules(names_include=[self.name, "math"])
+
+        periods = [32, 37, 300, 63 * 64, 311000000]
+        total_luts = [2, 7, 4, 5, 18]
+        srls = [1, 0, 2, 3, 4]
+        ffs = [1, 6, 2, 3, 15]
+
+        for idx, period in enumerate(periods):
+            generics = dict(period=period, shift_register_length=32)
+            projects.append(
+                VivadoNetlistProject(
+                    name=self.test_case_name(f"{self.name}.periodic_pulser", generics),
+                    modules=modules,
+                    part=part,
+                    top="periodic_pulser",
+                    generics=generics,
+                    build_result_checkers=[
+                        TotalLuts(EqualTo(total_luts[idx])),
+                        Srls(EqualTo(srls[idx])),
+                        Ffs(EqualTo(ffs[idx])),
                     ],
                 )
             )
