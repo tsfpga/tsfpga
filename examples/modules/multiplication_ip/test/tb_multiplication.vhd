@@ -14,13 +14,13 @@ library vunit_lib;
 context vunit_lib.vunit_context;
 
 
-entity tb_mult is
+entity tb_multiplication is
   generic (
     runner_cfg : string
   );
 end entity;
 
-architecture tb of tb_mult is
+architecture tb of tb_multiplication is
 
   signal clk : std_logic := '0';
 
@@ -53,7 +53,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  dut : entity work.mult
+  dut : entity work.multiplication
     port map (
       clk => clk,
 

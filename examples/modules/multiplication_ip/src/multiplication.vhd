@@ -13,7 +13,7 @@ use ieee.numeric_std.all;
 library xil_defaultlib;
 
 
-entity mult is
+entity multiplication is
   port (
     clk : in std_logic;
     --
@@ -24,7 +24,7 @@ entity mult is
   );
 end entity;
 
-architecture a of mult is
+architecture a of multiplication is
 
 begin
 

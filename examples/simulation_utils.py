@@ -118,20 +118,16 @@ class SimulationProject:
                 argument; any number of named arguments can be sent.
         """
         modules_no_sim = ModuleList() if modules_no_sim is None else modules_no_sim
-        all_modules = modules + modules_no_sim
 
-        if self.has_commercial_simulator and not args.vivado_skip:
-            # Includes modules with IP cores. Can only be used with a commercial simulator.
-            available_modules = all_modules
-        else:
-            # Exclude modules that contain IP cores
-            available_modules = [module for module in all_modules if not module.get_ip_core_files()]
+        include_ip_cores = self.has_commercial_simulator and not args.vivado_skip
 
-        for module in available_modules:
+        for module in modules + modules_no_sim:
             vunit_library = self.vunit_proj.add_library(module.library_name)
             simulate_this_module = module not in modules_no_sim
 
-            for hdl_file in module.get_simulation_files(include_tests=simulate_this_module):
+            for hdl_file in module.get_simulation_files(
+                include_tests=simulate_this_module, include_ip_cores=include_ip_cores
+            ):
                 if hdl_file.is_vhdl or hdl_file.is_verilog_source:
                     vunit_library.add_source_file(hdl_file.path)
                 else:
