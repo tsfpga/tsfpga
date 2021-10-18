@@ -21,7 +21,7 @@ from tsfpga.vivado.build_result_checker import (
 
 
 class Module(BaseModule):
-    def setup_vunit(self, vunit_proj, **kwargs):
+    def setup_vunit(self, vunit_proj, **kwargs):  # pylint: disable=unused-argument
         tb = vunit_proj.library(self.library_name).test_bench("tb_clock_counter")
         self.add_vunit_config(
             tb, generics=dict(reference_clock_rate_mhz=250, target_clock_rate_mhz=50)

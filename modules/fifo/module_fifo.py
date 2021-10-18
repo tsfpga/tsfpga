@@ -19,7 +19,7 @@ from tsfpga.vivado.build_result_checker import (
 
 
 class Module(BaseModule):
-    def setup_vunit(self, vunit_proj, **kwargs):
+    def setup_vunit(self, vunit_proj, **kwargs):  # pylint: disable=unused-argument
         for test in (
             vunit_proj.library(self.library_name).test_bench("tb_asynchronous_fifo").get_tests()
         ):
@@ -92,7 +92,7 @@ class Module(BaseModule):
 
                 yield generics
 
-    def setup_formal(self, formal_proj, **kwargs):
+    def setup_formal(self, formal_proj, **kwargs):  # pylint: disable=unused-argument,no-self-use
         depth = 4
         base_generics = dict(
             width=3,

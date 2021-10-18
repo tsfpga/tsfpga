@@ -12,7 +12,7 @@ from tsfpga.vivado.project import VivadoNetlistProject
 
 
 class Module(BaseModule):
-    def setup_vunit(self, vunit_proj, **kwargs):
+    def setup_vunit(self, vunit_proj, **kwargs):  # pylint: disable=unused-argument
         tb = vunit_proj.library(self.library_name).test_bench("tb_resync_slv_level")
         for output_clock_is_faster in [True, False]:
             for test_coherent in [True, False]:

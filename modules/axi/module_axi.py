@@ -11,7 +11,7 @@ from tsfpga.vivado.project import VivadoNetlistProject
 
 
 class Module(BaseModule):
-    def setup_vunit(self, vunit_proj, **kwargs):
+    def setup_vunit(self, vunit_proj, **kwargs):  # pylint: disable=unused-argument
         tb = vunit_proj.library(self.library_name).test_bench("tb_axi_pkg")
         for data_width in [32, 64]:
             for id_width in [0, 5]:
