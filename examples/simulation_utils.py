@@ -14,7 +14,7 @@ from pathlib import Path
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
 PATH_TO_TSFPGA = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(PATH_TO_TSFPGA))
-PATH_TO_VUNIT = PATH_TO_TSFPGA.parent / "vunit"
+PATH_TO_VUNIT = PATH_TO_TSFPGA.parent.parent / "vunit" / "vunit"
 sys.path.insert(0, str(PATH_TO_VUNIT))
 
 from vunit import VUnitCLI, VUnit
