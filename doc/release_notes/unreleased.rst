@@ -1,7 +1,18 @@
+Added
+
+* Add ``common.handshake_master``, ``common.handshake_slave``, ``common.axi_stream_master``
+  and ``common.axi_stream_slave`` VHDL BMFs.
+* Add ``common.keep_remover`` and ``common.strobe_on_last`` VHDL entities.
+* Add "peek read" mode to ``fifo.fifo``.
+* Add :class:`.ModuleDocumentation` class for generating Sphinx RST documentation of a module.
+
+
 Bug fixes
 
 * Fix bug where ``common.width_conversion`` would set ``output_last`` on the wrong beat
   when downconverting.
+
+* Fix bug in ``reg_file.reg_operations_pkg.read_modify_reg_bit``.
 
 
 Changes
