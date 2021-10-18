@@ -49,7 +49,7 @@ running formal verification through tsfpga can be done with this script:
 
     formal_project.run()
 
-A realistic example, used for tsfpga's own checks, is available at `examples/formal.py <https://gitlab.com/tsfpga/tsfpga/blob/master/examples/formal.py>`__ in the repo.
+A realistic example, used for tsfpga's own checks, is available at `tsfpga/examples/formal.py <https://gitlab.com/tsfpga/tsfpga/blob/master/tsfpga/examples/formal.py>`__ in the repo.
 
 Formal checks need to be explicitly defined by implementing :meth:`setup_formal() <tsfpga.module.BaseModule.setup_formal>` within each module:
 

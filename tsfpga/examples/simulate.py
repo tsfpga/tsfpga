@@ -10,19 +10,20 @@ import sys
 from pathlib import Path
 
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
-PATH_TO_TSFPGA = Path(__file__).parent.parent.resolve()
+PATH_TO_TSFPGA = Path(__file__).parent.parent.parent.resolve()
 sys.path.insert(0, str(PATH_TO_TSFPGA))
 
-from examples.simulation_utils import (
-    create_vhdl_ls_configuration,
-    get_arguments_cli,
-    SimulationProject,
-)
-from examples.tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
+from tsfpga.examples.example_env import get_tsfpga_example_modules, TSFPGA_EXAMPLES_TEMP_DIR
 
 import tsfpga
 import tsfpga.create_vhdl_ls_config
 from tsfpga.git_simulation_subset import GitSimulationSubset
+from tsfpga.module import get_tsfpga_modules
+from tsfpga.examples.simulation_utils import (
+    create_vhdl_ls_configuration,
+    get_arguments_cli,
+    SimulationProject,
+)
 
 
 def main():
@@ -34,7 +35,7 @@ def main():
     cli = get_arguments_cli(default_output_path=TSFPGA_EXAMPLES_TEMP_DIR)
     args = cli.parse_args()
 
-    modules = get_tsfpga_modules()
+    modules = get_tsfpga_modules() + get_tsfpga_example_modules()
 
     if args.vcs_minimal:
         if args.test_patterns != "*":
@@ -62,7 +63,7 @@ def main():
     )
 
     create_vhdl_ls_configuration(
-        output_path=PATH_TO_TSFPGA,
+        output_path=tsfpga.REPO_ROOT,
         temp_files_path=TSFPGA_EXAMPLES_TEMP_DIR,
         modules=modules,
         ip_core_vivado_project_directory=ip_core_vivado_project_directory,

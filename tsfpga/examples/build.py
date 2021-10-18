@@ -12,15 +12,14 @@ from shutil import copy2, make_archive
 import sys
 
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
-PATH_TO_TSFPGA = Path(__file__).parent.parent.resolve()
+PATH_TO_TSFPGA = Path(__file__).parent.parent.parent.resolve()
 sys.path.insert(0, str(PATH_TO_TSFPGA))
-PATH_TO_VUNIT = PATH_TO_TSFPGA.parent.parent / "vunit" / "vunit"
-sys.path.insert(0, str(PATH_TO_VUNIT))
+
+from tsfpga.examples.example_env import get_tsfpga_example_modules, TSFPGA_EXAMPLES_TEMP_DIR
 
 from tsfpga.build_project_list import BuildProjectList
+from tsfpga.module import get_tsfpga_modules
 from tsfpga.system_utils import create_directory, delete
-
-from examples.tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
 
 
 def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
@@ -102,7 +101,7 @@ def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
 
 def main():
     args = arguments()
-    modules = get_tsfpga_modules()
+    modules = get_tsfpga_modules() + get_tsfpga_example_modules()
     projects = BuildProjectList(
         modules=modules,
         project_filters=args.project_filters,

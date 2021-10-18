@@ -203,7 +203,7 @@ that instantiates ``axi_to_axi_lite``, ``axi_lite_mux`` and any necessary ``axi_
 Register examples
 -----------------
 
-Example register code generation from the `ddr_buffer example module <https://gitlab.com/tsfpga/tsfpga/-/tree/master/examples/modules/ddr_buffer>`__.
+Example register code generation from the `ddr_buffer example module <https://gitlab.com/tsfpga/tsfpga/-/tree/master/tsfpga/examples/modules/ddr_buffer>`__.
 
 
 .. _toml_file:
@@ -235,7 +235,7 @@ __________________________________
 The ``ddr_buffer`` example module also showcases how to manipulate registers from Python via tsfpga's module system.
 This method for manipulating registers can be very useful for information that is known in the Python realm, but is not convenient to add to the TOML file.
 
-.. literalinclude:: ../../examples/modules/ddr_buffer/module_ddr_buffer.py
+.. literalinclude:: ../../tsfpga/examples/modules/ddr_buffer/module_ddr_buffer.py
    :caption: module_ddr_buffer.py
    :language: python
    :lines: 9-

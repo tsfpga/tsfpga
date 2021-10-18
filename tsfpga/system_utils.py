@@ -96,7 +96,7 @@ def file_is_in_directory(file_path, directories):
         directories (list(`pathlib.Path`)): The directories to be controlled.
 
     Returns:
-        bool: True if there is a comon path.
+        bool: True if there is a common path.
     """
     for directory in directories:
         if commonpath([str(file_path), str(directory)]) == str(directory):

@@ -22,7 +22,7 @@ REPO_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
 import tsfpga
-from tsfpga.about import get_short_doc, get_doc
+from tsfpga.about import get_readme_rst
 from tsfpga.system_utils import create_directory, create_file, delete, read_file
 
 SPHINX_HTML = tsfpga.TSFPGA_GENERATED / "sphinx_html"
@@ -113,7 +113,6 @@ def generate_apidoc():
         check_call(cmd, cwd=tsfpga.REPO_ROOT)
 
     run_apidoc(module_path="tsfpga", exclude_pattern="**/test/**")
-    run_apidoc(module_path="examples", exclude_pattern="examples/modules/**")
 
 
 def generate_sphinx_index():
@@ -123,27 +122,8 @@ def generate_sphinx_index():
     Rst file inclusion in readme.rst does not work on gitlab unfortunately, hence this
     cumbersome handling of syncing documentation.
     """
-    rst_head = """\
-About tsfpga
-============
-
-"""
-    rst_head += read_file(tsfpga.TSFPGA_DOC / "readme" / "badges.rst")
-    rst_head += "\n"
-    rst_head += get_short_doc()
-    rst_head += "\n"
-
-    rst_index = rst_head + get_doc()
-    create_file(tsfpga.TSFPGA_GENERATED / "sphinx" / "index.rst", rst_index)
-
-    rst_readme = rst_head
-    rst_readme += "**See documentation on the website**: https://tsfpga.com\n"
-    rst_readme += "\n"
-    rst_readme += get_doc()
-    if read_file(tsfpga.REPO_ROOT / "readme.rst") != rst_readme:
-        file_path = tsfpga.TSFPGA_GENERATED / "sphinx" / "readme.rst"
-        create_file(file_path, rst_readme)
-        assert False, f"readme.rst in repo root not correct. See file {file_path}"
+    rst = get_readme_rst(include_website_link=False, verify=True)
+    create_file(tsfpga.TSFPGA_GENERATED / "sphinx" / "index.rst", rst)
 
 
 def get_release_notes_files():

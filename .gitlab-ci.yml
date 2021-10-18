@@ -44,7 +44,7 @@ pytest:
   script:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git g++ > /dev/null
-    - python3 -m pip install --requirement requirements_develop.txt > /dev/null
+    - python3 -m pip install --requirement tsfpga/requirements_develop.txt > /dev/null
     - python3 -m pylint --version
     - python3 -m pycodestyle --version
     - python3 -m pytest -v --cov tsfpga --cov-report xml:generated/python_coverage.xml --cov-report html:generated/python_coverage_html
@@ -65,7 +65,7 @@ simulate:
     - ghdl --version
     # Run minimal simulation subset for merge requests
     - if [ $CI_PIPELINE_SOURCE == "merge_request_event" ]; then export SIMULATE_FLAGS="--vcs-minimal"; fi;
-    - python3 examples/simulate.py --num-threads 4 --vivado-skip $SIMULATE_FLAGS
+    - python3 tsfpga/examples/simulate.py --num-threads 4 --vivado-skip $SIMULATE_FLAGS
 
 
 build_pypi:
@@ -74,7 +74,7 @@ build_pypi:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git > /dev/null
     - python3 -m pip install GitPython tomlkit > /dev/null
-    - python3 setup.py sdist
+    - python3 tools/build_release.py --clean-and-build
   artifacts:
     paths:
       - dist
@@ -86,8 +86,8 @@ formal:
   script:
     - ghdl --version
     # We need a newer version of axi_stream_pkg.vhd than is currently included in the docker image
-    - git clone --recurse-submodules --depth 1 --single-branch --branch master https://github.com/VUnit/vunit.git ../vunit
-    - python3 examples/formal.py --num-threads 4
+    - git clone --recurse-submodules --depth 1 --single-branch --branch master https://github.com/VUnit/vunit.git ../../vunit/vunit
+    - python3 tsfpga/examples/formal.py --num-threads 4
 
 
 build_pages:
@@ -98,7 +98,7 @@ build_pages:
   script:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git graphviz > /dev/null
-    - python3 -m pip install --requirement requirements_develop.txt > /dev/null
+    - python3 -m pip install --requirement tsfpga/requirements_develop.txt > /dev/null
     - python3 tools/build_docs.py $DOC_FLAGS
   artifacts:
     paths:

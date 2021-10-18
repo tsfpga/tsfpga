@@ -55,7 +55,7 @@ The call to :meth:`module.setup_vunit() <.BaseModule.setup_vunit>` does nothing 
 Realistic example
 -----------------
 
-If you want to dive into a more realistic example have a look at `examples/simulate.py <https://gitlab.com/tsfpga/tsfpga/blob/master/examples/simulate.py>`__ in the repo.
+If you want to dive into a more realistic example have a look at `tsfpga/examples/simulate.py <https://gitlab.com/tsfpga/tsfpga/blob/master/tsfpga/examples/simulate.py>`__ in the repo.
 Or continue reading this document for an explanation of the mechanisms.
 
 This file handles things like
@@ -218,4 +218,4 @@ This saves an immense amount of CI time, especially for commits that do not alte
 For nightly master runs the full set of tests shall still be run.
 
 See the :class:`class documentation <.GitSimulationSubset>` for more information,
-and `examples/simulate.py <https://gitlab.com/tsfpga/tsfpga/blob/master/examples/simulate.py>`__ in the repo for a usage example.
+and `tsfpga/examples/simulate.py <https://gitlab.com/tsfpga/tsfpga/blob/master/tsfpga/examples/simulate.py>`__ in the repo for a usage example.

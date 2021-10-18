@@ -6,6 +6,7 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+import tsfpga
 from tsfpga.constraint import Constraint
 from tsfpga.hdl_file import HdlFile
 from tsfpga.ip_core_file import IpCoreFile
@@ -437,3 +438,18 @@ def get_modules(
         )
 
     return modules
+
+
+def get_tsfpga_modules(names_include=None, names_avoid=None):
+    """
+    Wrapper of the regular :func:`.get_modules`. call with correct settings for tsfpga modules.
+    This will include the "real" tsfpga modules, but not the example modules.
+
+    Arguments will be passed on to :func:`.get_modules`.
+    """
+    return get_modules(
+        modules_folders=[tsfpga.TSFPGA_MODULES],
+        names_include=names_include,
+        names_avoid=names_avoid,
+        library_name_has_lib_suffix=False,
+    )

@@ -6,7 +6,7 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-from tsfpga.module import BaseModule
+from tsfpga.module import BaseModule, get_tsfpga_modules
 from tsfpga.vivado.project import VivadoNetlistProject
 from tsfpga.vivado.build_result_checker import (
     EqualTo,
@@ -17,7 +17,6 @@ from tsfpga.vivado.build_result_checker import (
     Ramb36,
     TotalLuts,
 )
-from examples.tsfpga_example_env import get_tsfpga_modules
 
 
 class Module(BaseModule):

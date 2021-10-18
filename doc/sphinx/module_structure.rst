@@ -106,7 +106,7 @@ In tsfpga, IP cores are handled using TCL files that contain the code snippet th
 This TCL snippet can be found in the Vivado TCL console when creating or modifying the IP.
 It typically looks something like this:
 
-.. literalinclude:: ../../examples/modules/multiplication_ip/ip_cores/mult_u12_u5.tcl
+.. literalinclude:: ../../tsfpga/examples/modules/multiplication_ip/ip_cores/mult_u12_u5.tcl
     :caption: Example TCL that creates an IP core
     :language: none
     :lines: 9-

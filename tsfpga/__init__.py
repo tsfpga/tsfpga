@@ -23,7 +23,7 @@ TSFPGA_MODULES = REPO_ROOT / "modules"
 TSFPGA_TCL = THIS_DIR / "vivado" / "tcl"
 TSFPGA_GENERATED = REPO_ROOT / "generated"
 
-TSFPGA_EXAMPLES = REPO_ROOT / "examples"
+TSFPGA_EXAMPLES = TSFPGA_PATH / "examples"
 TSFPGA_EXAMPLE_MODULES = TSFPGA_EXAMPLES / "modules"
 
 ALL_TSFPGA_MODULES_FOLDERS = [
@@ -34,4 +34,4 @@ ALL_TSFPGA_MODULES_FOLDERS = [
 # Default encoding when opening files
 DEFAULT_FILE_ENCODING = "utf-8"
 
-__version__ = "8.0.1"
+__version__ = "8.0.2-pre"

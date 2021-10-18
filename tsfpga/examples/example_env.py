@@ -10,34 +10,22 @@
 Common functions and definitions in the example build environment.
 """
 
+import sys
+
 import tsfpga
 from tsfpga.module import get_modules
-
 from tsfpga.registers.register_list import Register
 
+# Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
+PATH_TO_VUNIT = tsfpga.REPO_ROOT.parent.parent / "vunit" / "vunit"
+sys.path.insert(0, str(PATH_TO_VUNIT))
 
 TSFPGA_EXAMPLES_TEMP_DIR = tsfpga.TSFPGA_GENERATED
 
 
-def get_tsfpga_modules(modules_folders=None, names_include=None, names_avoid=None):
-    """
-    Wrapper of the regular get_modules call with correct settings for tsfpga modules.
-    """
-    modules_folders = (
-        tsfpga.ALL_TSFPGA_MODULES_FOLDERS if modules_folders is None else modules_folders
-    )
-    return get_modules(
-        modules_folders,
-        names_include=names_include,
-        names_avoid=names_avoid,
-        library_name_has_lib_suffix=False,
-        default_registers=get_default_registers(),
-    )
-
-
 def get_default_registers():
     """
-    tsfpga default registers
+    Default registers for tsfpga examples.
     """
     registers = [
         Register("config", 0, "r_w", "Configuration register."),
@@ -65,3 +53,20 @@ def get_default_registers():
         ),
     ]
     return registers
+
+
+def get_tsfpga_example_modules(names_include=None, names_avoid=None):
+    """
+    Wrapper of the regular :func:`.get_modules`. call with correct settings for tsfpga
+    example modules.
+    This will include the example tsfpga modules, but not the "real" modules.
+
+    Arguments will be passed on to :func:`.get_modules`.
+    """
+    return get_modules(
+        modules_folders=[tsfpga.TSFPGA_EXAMPLE_MODULES],
+        names_include=names_include,
+        names_avoid=names_avoid,
+        library_name_has_lib_suffix=False,
+        default_registers=get_default_registers(),
+    )

@@ -14,3 +14,6 @@ Breaking changes
 
 * Add ``common.width_conversion`` generic ``enable_last`` with default value ``false``
   (used to be implied value ``true``).
+
+* Move example scripts from ``examples`` to ``tsfpga/examples``. This renames the corresponding
+  python package from ``examples`` to ``tsfpga.examples``.

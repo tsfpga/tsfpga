@@ -13,15 +13,13 @@ from pathlib import Path
 import sys
 
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
-PATH_TO_TSFPGA = Path(__file__).parent.parent.resolve()
+PATH_TO_TSFPGA = Path(__file__).parent.parent.parent.resolve()
 sys.path.insert(0, str(PATH_TO_TSFPGA))
-PATH_TO_VUNIT = PATH_TO_TSFPGA.parent / "vunit"
-sys.path.insert(0, str(PATH_TO_VUNIT))
 
-from examples.tsfpga_example_env import get_tsfpga_modules, TSFPGA_EXAMPLES_TEMP_DIR
+from tsfpga.examples.example_env import TSFPGA_EXAMPLES_TEMP_DIR
 
-import tsfpga
 from tsfpga.formal_project import FormalProject
+from tsfpga.module import get_tsfpga_modules
 from tsfpga.system_utils import delete
 
 
@@ -73,7 +71,7 @@ def main():
         delete(args.project_path)
         return
 
-    modules = get_tsfpga_modules([tsfpga.TSFPGA_MODULES])
+    modules = get_tsfpga_modules()
     formal_project = FormalProject(modules=modules, project_path=args.project_path)
     for module in modules:
         module.setup_formal(formal_project)

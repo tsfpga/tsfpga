@@ -8,7 +8,7 @@
 
 import itertools
 
-from tsfpga.module import BaseModule
+from tsfpga.module import BaseModule, get_tsfpga_modules
 from tsfpga.vivado.project import VivadoNetlistProject
 from tsfpga.vivado.build_result_checker import (
     EqualTo,
@@ -18,7 +18,6 @@ from tsfpga.vivado.build_result_checker import (
     Srls,
     TotalLuts,
 )
-from examples.tsfpga_example_env import get_tsfpga_modules
 
 
 class Module(BaseModule):

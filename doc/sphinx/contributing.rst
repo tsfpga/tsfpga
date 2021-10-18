@@ -13,7 +13,7 @@ Install further dependencies with:
 
 .. code-block:: shell
 
-    python -m pip install --upgrade --requirement requirements_develop.txt
+    python -m pip install --upgrade --requirement tsfpga/requirements_develop.txt
 
 You also need VUnit installed `somewhere where python can find it <https://vunit.github.io/installing.html>`__.
 
@@ -81,7 +81,7 @@ Run the script
 
 .. code-block:: shell
 
-    python3 tools/release.py X.Y.Z
+    python3 tools/tag_release.py X.Y.Z
 
 where X.Y.Z is your new version number.
 The script will bump the tsfpga version number and copy release notes to a new file.

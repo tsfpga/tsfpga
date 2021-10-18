@@ -16,21 +16,42 @@ REPO_ROOT = Path(__file__).parent
 sys.path.insert(0, str(REPO_ROOT))
 
 import tsfpga
-from tsfpga.about import get_slogan
-from tsfpga.system_utils import read_file
+from tsfpga.about import get_readme_rst, get_slogan
 
 
-README_RST = REPO_ROOT / "readme.rst"
-REQUIREMENTS_TXT = REPO_ROOT / "requirements.txt"
-REQUIREMENTS_DEVELOP_TXT = REPO_ROOT / "requirements_develop.txt"
+REQUIREMENTS_TXT = tsfpga.TSFPGA_PATH / "requirements.txt"
+REQUIREMENTS_DEVELOP_TXT = tsfpga.TSFPGA_PATH / "requirements_develop.txt"
 
 
 def main():
+    """
+    Note that this script must be called from a clean repo (since all files in "tsfpga" and
+    "modules" will be included; so if there are stray dirty files the will be included as well).
+    Please use the "tools/build_release.py" script.
+
+    Be extremely careful when making changes to this setup script. It is hard to see what is
+    actually included and what is missing. Also the package data, and where it gets placed in the
+    release tree, is very messy.
+
+    When making changes it is recommended to try the release locally before commiting to master.
+    To test in a docker image do, e.g:
+
+    python tools/build_release.py --clean-and-build
+    docker run --interactive --tty --volume $(pwd)/dist:/dist:ro --workdir /dist \
+        python:3.8-slim-buster /bin/bash
+    python -m pip install tsfpga-8.0.2.tar.gz
+
+    The install should pass and you should be able to run python and "import tsfpga".
+    You should see all the files in "/usr/local/lib/python3.8/site-packages/tsfpga". Check that
+    e.g. pylintrc, vivado_settings.tcl, module_fifo.py, etc. are there.
+    Test to run "python -m pip uninstall tsfpga" and see that it passes. Check the output to see
+    that there are not package files installed in weird locations (such as /usr/local/lib/).
+    """
     setup(
         name="tsfpga",
         version=tsfpga.__version__,
         description=get_slogan(),
-        long_description=read_file(README_RST),
+        long_description=get_readme_rst(include_website_link=True, verify=False),
         long_description_content_type="text/x-rst",
         license="BSD 3-Clause License",
         author="Lukas Vik",
@@ -40,8 +61,7 @@ def main():
         install_requires=read_requirements_file(REQUIREMENTS_TXT),
         extras_require=dict(dev=read_requirements_file(REQUIREMENTS_DEVELOP_TXT)),
         packages=find_packages(),
-        use_scm_version=True,
-        setup_requires=["setuptools_scm"],
+        package_data={"tsfpga": get_package_data()},
         classifiers=[
             "Development Status :: 5 - Production/Stable",
             "License :: OSI Approved :: BSD License",
@@ -68,11 +88,52 @@ def read_requirements_file(path):
     return requirements
 
 
+def get_package_data():
+    """
+    Get all files that shall be include with the release, apart from the package python files
+    that are already there.
+
+    Note that this will include all matching files in the file system. Highly recommended to run
+    from a clean repo.
+    """
+    files = []
+    for folder in ["tsfpga", "modules"]:
+        files += get_package_files(REPO_ROOT / folder)
+
+    # Specify path relative to the tsfpga python package folder
+    tsfpga_package_root = REPO_ROOT / "tsfpga"
+    package_data = [path_relative_to_str(file_path, tsfpga_package_root) for file_path in files]
+
+    return package_data
+
+
+def get_package_files(folder):
+    """
+    Find non-python files and non-package python files (namely, module_*.py) to include.
+    """
+    assert folder.exists(), folder
+
+    all_files_and_folders = folder.glob("**/*")
+    non_python_files = []
+    for path in all_files_and_folders:
+        if path.is_file() and path.suffix != ".py" and path.suffix != ".pyc":
+            non_python_files.append(path)
+
+    all_python_files = folder.glob("**/*.py")
+    non_package_python_files = []
+    for python_file in all_python_files:
+        if not (python_file.parent / "__init__.py").exists():
+            non_package_python_files.append(python_file)
+
+    return non_python_files + non_package_python_files
+
+
 def path_relative_to_str(path, other):
     """
     Note Path.relative_to() does not support the use case where e.g. readme.md should get
     relative path "../readme.md". Hence we have to use os.path.
     """
+    assert path.exists(), path
     return relpath(str(path), str(other))
 
 

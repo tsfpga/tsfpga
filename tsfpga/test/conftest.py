@@ -12,7 +12,7 @@ import pytest
 import tsfpga
 
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
-PATH_TO_VUNIT = tsfpga.REPO_ROOT.parent / "vunit"
+PATH_TO_VUNIT = tsfpga.REPO_ROOT.parent.parent / "vunit" / "vunit"
 sys.path.insert(0, str(PATH_TO_VUNIT.resolve()))
 
 

@@ -30,7 +30,7 @@ Breaking changes
   Add :meth:`.RegisterList.create_html_constant_table`.
 * Deprecate ``BaseModule.setup_simulations()`` in favor of :meth:`.BaseModule.setup_vunit`.
 * Rework :class:`.BuildProjectList` class completely.
-  See the :class:`class documentation <.BuildProjectList>`, the :ref:`minimal usage example <example_build_py>` and the `build.py example in the repo <https://gitlab.com/tsfpga/tsfpga/-/blob/master/examples/build.py>`__.
+  See the :class:`class documentation <.BuildProjectList>`, the :ref:`minimal usage example <example_build_py>` and the `build.py example in the repo <https://gitlab.com/tsfpga/tsfpga/-/blob/master/tsfpga/examples/build.py>`__.
 * Change :class:`.VivadoProject` to catch non-zero exit code exception if Vivado call fails.
   If :meth:`.VivadoProject.create` or :meth:`.VivadoProject.open` fail they will return ``False``.
   If :meth:`.VivadoProject.build` fails, the returned :class:`.build_result.BuildResult` object will have ``success`` set to ``False``.

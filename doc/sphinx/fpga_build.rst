@@ -40,7 +40,7 @@ It shows to build projects being launched in parallel, and then finishing and ro
 
 .. code-block::
 
-    [/home/lukas/work/repo/tsfpga]$ python examples/build.py
+    [/home/lukas/work/repo/tsfpga]$ python tsfpga/examples/build.py
     Starting artyz7
     Output file: /home/lukas/work/repo/tsfpga/generated/projects/artyz7/output.txt
     Starting artyz7_dummy
@@ -92,7 +92,7 @@ Note that before a project is built a :ref:`register generation <registers>` is 
 
 Of course a more realistic ``build.py`` would be a little more verbose.
 It would probably feature command line arguments that control the behavior, output paths, etc.
-And example of this, which also features release artifact packaging, is available in the `repo <https://gitlab.com/tsfpga/tsfpga/-/blob/master/examples/build.py>`__.
+And example of this, which also features release artifact packaging, is available in the `repo <https://gitlab.com/tsfpga/tsfpga/-/blob/master/tsfpga/examples/build.py>`__.
 
 
 
@@ -101,14 +101,14 @@ And example of this, which also features release artifact packaging, is availabl
 Example project class creation
 ------------------------------
 
-This is an example of project creation, using the ``artyz7`` example project from the `repo <https://gitlab.com/tsfpga/tsfpga/-/tree/master/examples>`__.
+This is an example of project creation, using the ``artyz7`` example project from the `repo <https://gitlab.com/tsfpga/tsfpga/-/tree/master/tsfpga/examples>`__.
 
 Projects are created by modules using the file ``module_<module_name>.py``, see :ref:`folder structure <folder_structure_project>` for details.
 In tsfpga a top-level module that defines build projects is handled just like any other module.
 It can use register generation, set up simulations, etc.
 The only difference is that it overrides the :meth:`.BaseModule.get_build_projects` method to return a list of :class:`build project objects <.VivadoProject>`.
 
-.. literalinclude:: ../../examples/modules/artyz7/module_artyz7.py
+.. literalinclude:: ../../tsfpga/examples/modules/artyz7/module_artyz7.py
    :caption: Example project creation
    :language: python
    :lines: 9-
@@ -127,8 +127,8 @@ If we have a huge module tree but our project only uses a subset of the modules,
 We might also use primitives and IP cores in some modules that are not available for the target part.
 This filtering of modules can be achieved using the arguments to :func:`.get_modules`.
 
-In this case we use a wrapper ``get_tsfpga_modules()`` around the :func:`.get_modules` function.
-The wrapper sets the correct flags (all modules paths, :ref:`default registers <default_registers>` and ``library_name_has_lib_suffix``).
+In this case we use two wrappers, :func:`.get_tsfpga_modules` and :func:`.get_tsfpga_example_modules`, around the :func:`.get_modules` function.
+They set the correct flags (modules paths, :ref:`default registers <default_registers>` and ``library_name_has_lib_suffix``).
 It is recommended to use a function like this so the arguments don't have to be repeated in many places.
 
 

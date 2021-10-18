@@ -16,5 +16,5 @@ vhdl_ls.toml
 
 .coverage
 
-examples/modules/artyz7/artyz7_regs_pkg.vhd
-examples/modules/ddr_buffer/ddr_buffer_regs_pkg.vhd
+tsfpga/examples/modules/artyz7/artyz7_regs_pkg.vhd
+tsfpga/examples/modules/ddr_buffer/ddr_buffer_regs_pkg.vhd

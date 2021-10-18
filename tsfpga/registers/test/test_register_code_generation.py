@@ -16,7 +16,7 @@ import tsfpga
 from tsfpga.system_utils import read_file
 from tsfpga.registers.parser import from_toml
 
-from examples.tsfpga_example_env import get_default_registers
+from tsfpga.examples.example_env import get_default_registers
 
 
 # Test with the two example TOML files that we have available
