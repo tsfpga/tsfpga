@@ -27,22 +27,27 @@ UNRELEASED_EMPTY = "Nothing here yet.\n"
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Make a release commit and tag")
-    parser.add_argument("version", nargs=1, type=str, help="version number MAJOR.MINOR.PATCH")
-    version = parser.parse_args().version[0]
+    parser = argparse.ArgumentParser(description="Make release commits and tag")
+    parser.add_argument(
+        "release_version", nargs=1, type=str, help="release version number MAJOR.MINOR.PATCH"
+    )
+    release_version = parser.parse_args().release_version[0]
 
     repo = Repo(tsfpga.REPO_ROOT)
-    git_tag = verify_version_number(repo, version)
+    git_tag = verify_new_version_number(repo=repo, new_version=release_version)
 
-    init_py = tsfpga.TSFPGA_PATH / "__init__.py"
-    update_version_number(repo, version, init_py)
+    version_number_handler = VersionNumberHandler(repo=repo)
+    version_number_handler.update(new_version=release_version)
 
-    move_release_notes(repo, version)
+    move_release_notes(repo=repo, version=release_version)
 
-    commit_and_tag(repo, version, git_tag)
+    commit_and_tag_release(repo=repo, version=release_version, git_tag=git_tag)
+
+    version_number_handler.bump_to_prelease()
+    make_commit(repo=repo, commit_message="Set pre-release version number")
 
 
-def verify_version_number(repo, version):
+def verify_new_version_number(repo, new_version):
     if repo.is_dirty():
         sys.exit("Must make release from clean repo")
 
@@ -52,33 +57,71 @@ def verify_version_number(repo, version):
 
     with urlopen("https://pypi.python.org/pypi/tsfpga/json") as file_handle:
         json_data = json.load(file_handle)
-        if version in json_data["releases"]:
-            sys.exit(f"Release {version} already exists in PyPI")
+        if new_version in json_data["releases"]:
+            sys.exit(f"Release {new_version} already exists in PyPI")
 
-    git_tag = "v" + version
+    git_tag = "v" + new_version
     if git_tag in repo.tags:
         sys.exit(f"Git release tag already exists: {git_tag}")
 
     return git_tag
 
 
-def update_version_number(repo, version, file):
-    data = read_file(file)
-    version_regexp = re.compile(r"\n__version__ = \"(\S+?)\"\n")
+class VersionNumberHandler:
 
-    match = version_regexp.search(data)
-    if match is None:
-        raise RuntimeError(f"Could not find version value in {file}")
+    _file_path = tsfpga.TSFPGA_PATH / "__init__.py"
+    _version_regexp = re.compile(r"\n__version__ = \"(\S+?)\"\n")
 
-    old_version = match.group(1)
-    if parse(old_version) >= parse(version):
-        sys.exit(f"New version is not greater than old version {old_version}")
+    def __init__(self, repo):
+        self._repo = repo
 
-    updated_file = version_regexp.sub(f'\n__version__ = "{version}"\n', data)
-    create_file(file, updated_file)
+    def update(self, new_version):
+        """
+        Set the new version number supplied (string).
+        """
+        old_version = self._get_current_version()
+        self._verify_that_newer_version_number_is_greater_than_older(
+            older_version=old_version, newer_version=new_version
+        )
 
-    # Add file so that it gets included in the commit
-    repo.index.add(str(file.resolve()))
+        self._set_new_version(new_version)
+
+    def bump_to_prelease(self):
+        """
+        Bump to next version number. E.g. go from 8.0.2 to 8.0.3-dev.
+        """
+        current_version = self._get_current_version()
+        (major, minor, patch) = current_version.release
+        new_version = f"{major}.{minor}.{patch + 1}-dev"
+        self._verify_that_newer_version_number_is_greater_than_older(
+            older_version=current_version, newer_version=new_version
+        )
+
+        self._set_new_version(new_version)
+
+    @staticmethod
+    def _verify_that_newer_version_number_is_greater_than_older(older_version, newer_version):
+        if older_version >= parse(newer_version):
+            sys.exit(f"New version {newer_version} is not greater than old version {older_version}")
+
+    def _get_current_version(self):
+        data = read_file(self._file_path)
+
+        match = self._version_regexp.search(data)
+        if match is None:
+            raise RuntimeError(f"Could not find version value in {self._file_path}")
+
+        version = match.group(1)
+        return parse(version)
+
+    def _set_new_version(self, new_version):
+        data = read_file(self._file_path)
+
+        updated_data = self._version_regexp.sub(f'\n__version__ = "{new_version}"\n', data)
+        create_file(self._file_path, updated_data)
+
+        # Add file so that it gets included in upcoming commit
+        self._repo.index.add(str(self._file_path.resolve()))
 
 
 def move_release_notes(repo, version):
@@ -94,18 +137,22 @@ def move_release_notes(repo, version):
     create_file(unreleased_rst, UNRELEASED_EMPTY)
 
     # Add files so that the changes get included in the commit
-    repo.index.add([str(unreleased_rst.resolve())])
-    repo.index.add([str(version_rst.resolve())])
+    repo.index.add(str(unreleased_rst.resolve()))
+    repo.index.add(str(version_rst.resolve()))
 
 
-def commit_and_tag(repo, version, git_tag):
-    repo.index.commit(f"Release version {version}")
-    if repo.is_dirty():
-        sys.exit("Git commit failed")
+def commit_and_tag_release(repo, version, git_tag):
+    make_commit(repo=repo, commit_message=f"Release version {version}")
 
     repo.create_tag(git_tag)
     if git_tag not in repo.tags:
         sys.exit("Git tag failed")
+
+
+def make_commit(repo, commit_message):
+    repo.index.commit(commit_message)
+    if repo.is_dirty():
+        sys.exit("Git commit failed")
 
 
 if __name__ == "__main__":
