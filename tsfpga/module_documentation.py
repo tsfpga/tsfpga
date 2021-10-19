@@ -95,7 +95,7 @@ register documentation.
             symbolator_rst = "" if symbolator_rst is None else symbolator_rst
 
             entity_name = vhdl_file_path.stem
-            heading = f"Sub-module {vhdl_file_path.name}"
+            heading = f"{vhdl_file_path.name}"
             heading_underline = heading_character * len(heading)
             rst += f"""
 .. _{self._module.name}.{entity_name}:

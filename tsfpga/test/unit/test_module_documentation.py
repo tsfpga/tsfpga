@@ -38,7 +38,7 @@ def module_documentation(tmp_path):
 def test_documentation_header_with_no_overview_and_no_registers(module_documentation):
     rst = module_documentation.get_rst_document()
 
-    assert "Sub-module hest.vhd" in rst
+    assert "\nhest.vhd\n--------" in rst
     assert "Dummy from hest.vhd." in rst
 
     assert "Register interface" not in rst
@@ -54,7 +54,7 @@ def test_documentation_header_with_overview_and_registers(module_documentation):
 
     rst = module_documentation.get_rst_document()
 
-    assert "Sub-module hest.vhd" in rst
+    assert "\nhest.vhd\n--------" in rst
     assert "Dummy from hest.vhd." in rst
 
     assert "Dummy from apa.rst" in rst
