@@ -93,13 +93,13 @@ formal:
 build_pages:
   # Uses coverage artifacts from the pytest job in the previous stage
   stage: build_documentation
-  # Start as soon as pytest job is done. Even if e.g. simaulate in previous stage is not.
+  # Start as soon as pytest job is done. Even if e.g. simulate in previous stage is not.
   needs: ["pytest"]
   script:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git graphviz > /dev/null
     - python3 -m pip install --requirement tsfpga/requirements_develop.txt > /dev/null
-    - python3 tools/build_docs.py $DOC_FLAGS
+    - python3 tools/build_docs.py
   artifacts:
     paths:
       - generated/sphinx_html
