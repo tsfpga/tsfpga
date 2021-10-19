@@ -103,6 +103,10 @@ The pipeline for the tag will run an additional job ``deploy_pypi``:
 
 .. image:: files/ci_deploy_jobs.png
 
+Wait until that pipeline is finished before proceeding to merge the commits.
+The pipeline for the merge request might finish before the pipeline for the tag (which pushes to PyPI).
+So we wait for the tag pipeline to finish before merging, to be sure that the release upload worked before adding commits to master.
+
 The package is uploaded to https://pypi.org/project/tsfpga/.
 You can check there to make sure your new release is available.
 
