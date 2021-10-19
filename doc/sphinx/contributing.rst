@@ -33,7 +33,7 @@ Release note files are in the ``rst`` format, inspect older release note files t
 How to build documentation
 --------------------------
 
-Documentation is built using the ``tools/build_sphinx_docs.py`` script.
+Documentation is built using the ``tools/build_docs.py`` script.
 The documentation pages have information about python unit test code coverage.
 So before building documentation you must run pytest with coverage reports enabled like in CI:
 
@@ -41,7 +41,7 @@ So before building documentation you must run pytest with coverage reports enabl
 
     python -m pytest -v --cov tsfpga --cov-report xml:generated/python_coverage.xml --cov-report html:generated/python_coverage_html tsfpga
 
-If want to skip handling of coverage for the documentation there is a flag available in the script, see ``build_sphinx_doc.py --help``.
+If want to skip handling of coverage for the documentation there is a flag available in the script, see ``build_docs.py --help``.
 
 
 

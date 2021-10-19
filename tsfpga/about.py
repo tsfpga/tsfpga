@@ -109,6 +109,8 @@ About tsfpga
         readme_rst = get_rst(include_link=True)
         if read_file(tsfpga.REPO_ROOT / "readme.rst") != readme_rst:
             file_path = create_file(tsfpga.TSFPGA_GENERATED / "sphinx" / "readme.rst", readme_rst)
-            assert False, f"readme.rst in repo root not correct. See file {file_path}"
+            assert (
+                False
+            ), f"readme.rst in repo root not correct. Compare to reference in python: {file_path}"
 
     return get_rst(include_link=include_website_link)

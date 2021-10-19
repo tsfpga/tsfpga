@@ -71,13 +71,7 @@ def generate_registers():
 
 
 def generate_release_notes():
-    rst = """
-Release notes
-=============
-
-Release history and changelog for the tsfpga project.
-
-"""
+    rst = ""
 
     for release, previous_release_git_tag in get_release_notes_files():
         heading = f"{release.version} ({release.date})"
