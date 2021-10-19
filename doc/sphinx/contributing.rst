@@ -85,7 +85,7 @@ Run the script
 
 where X.Y.Z is your new version number.
 The script will bump the tsfpga version number and copy release notes to a new file.
-The changes will be commited and then tagged.
+The changes will be committed and then tagged.
 
 
 Push commit and tag
@@ -104,10 +104,10 @@ The pipeline for the tag will run an additional job ``deploy_pypi``:
 .. image:: files/ci_deploy_jobs.png
 
 The package is uploaded to https://pypi.org/project/tsfpga/.
-If you really want to make sure that everything has worked you can check there and see that your new release is available.
+You can check there to make sure your new release is available.
 
 
 Merge
 _____
 
-If everything went well then you can merge your release commit to master.
+If everything went well then you can merge your release commit to master via the gitlab merge request GUI.
