@@ -23,6 +23,12 @@ from tsfpga.system_utils import create_directory, delete
 
 
 def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
+    """
+    Setup of arguments for the example build flow.
+
+    Arguments:
+        default_temp_dir (`pathlib.Path`): Default value for output paths.
+    """
     parser = argparse.ArgumentParser(
         "Create, synth and build an FPGA project",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -100,6 +106,10 @@ def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
 
 
 def main():
+    """
+    Main function for building FPGA projects. If you are setting up a new build flow from scratch,
+    you probably want to copy and modify this function, and reuse the others.
+    """
     args = arguments()
     modules = get_tsfpga_modules() + get_tsfpga_example_modules()
     projects = BuildProjectList(
@@ -114,7 +124,16 @@ def main():
 
 def setup_and_run(modules, projects, args):
     """
-    Returns 0 if everything passed, otherwise non-zero.
+    Setup build projects, and execute as instructed by the arguments.
+
+    Arguments:
+        modules (:class:`.ModuleList`): When running a register generation, registers from these
+            modules will be included.
+        projects (:class:`.BuildProjectList`): These build projects will be built.
+        args: Command line argument namespace.
+
+    Return:
+        int: 0 if everything passed, otherwise non-zero. Can be used for system exit code.
     """
     if args.list_only:
         print(projects)
@@ -169,6 +188,16 @@ def setup_and_run(modules, projects, args):
 
 
 def collect_artifacts(project, output_path):
+    """
+    Example of a method to collect build artifacts. Will create a zip file with the bitstream,
+    hardware definition (.xsa) and register documentation.
+
+    Arguments:
+        project (:class:`.VivadoProject`): Project object that has been built,
+            and who's artifacts shall now be collected.
+        output_path (`pathlib.Path`): Path to the build output. Artifact zip will be placed here
+            as well.
+    """
     version = "0.0.0.0"
     release_dir = create_directory(output_path / f"{project.name}-{version}", empty=True)
     print(f"Creating release in {release_dir.resolve()}.zip")
@@ -188,6 +217,13 @@ def collect_artifacts(project, output_path):
 
 
 def generate_registers(modules, output_path):
+    """
+    Generate all register artifacts from the given modules.
+
+    Arguments:
+        modules (:class:`.ModuleList`): Registers from these modules will be included.
+        output_path (`pathlib.Path`): Register artifacts will be placed here.
+    """
     print(f"Generating registers in {output_path.resolve()}")
 
     for module in modules:

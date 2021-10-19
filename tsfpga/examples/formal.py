@@ -24,18 +24,29 @@ from tsfpga.system_utils import delete
 
 
 def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
+    """
+    Setup of arguments for the example build flow.
+
+    Arguments:
+        default_temp_dir (`pathlib.Path`): Default value for output paths.
+    """
     parser = argparse.ArgumentParser(
         "Run formal tests", formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
+
     parser.add_argument("--list-only", action="store_true", help="list the available tests")
+
     parser.add_argument("--clean-only", action="store_true", help="clears the project path")
+
     parser.add_argument(
         "--project-path",
         type=Path,
         default=default_temp_dir / "formal_project",
         help="the formal project will be placed here",
     )
+
     parser.add_argument("test_filters", nargs="*", default="*", help="Tests to run")
+
     parser.add_argument(
         "--num-threads",
         "-p",
@@ -43,16 +54,19 @@ def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
         default=8,
         help="number of threads to use when building project",
     )
+
     parser.add_argument(
         "--verbose",
         action="store_true",
         help="print all build output, even if the run is successful",
     )
+
     parser.add_argument(
         "--quiet",
         action="store_true",
         help="do not print any build output, even if the run has failed",
     )
+
     parser.add_argument(
         "--no-color",
         action="store_true",
@@ -65,6 +79,10 @@ def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
 
 
 def main():
+    """
+    Main function for running formal test. If you are setting up a new formal flow from scratch,
+    you probably want to copy and modify this function.
+    """
     args = arguments()
 
     if args.clean_only:
