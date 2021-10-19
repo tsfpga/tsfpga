@@ -43,7 +43,7 @@ pytest:
   stage: test
   script:
     - apt-get update -qq > /dev/null
-    - apt-get install -y -qq git g++ > /dev/null
+    - apt-get install --yes -qq --no-install-recommends git g++ > /dev/null
     - python3 -m pip install --requirement tsfpga/requirements_develop.txt > /dev/null
     - python3 -m pylint --version
     - python3 -m pycodestyle --version
@@ -60,7 +60,7 @@ simulate:
   stage: test
   script:
     - apt-get update -qq > /dev/null
-    - apt-get install -y -qq git > /dev/null
+    - apt-get install --yes -qq --no-install-recommends git > /dev/null
     - python3 -m pip install GitPython tomlkit > /dev/null
     - ghdl --version
     # Run minimal simulation subset for merge requests
@@ -72,7 +72,7 @@ build_pypi:
   stage: test
   script:
     - apt-get update -qq > /dev/null
-    - apt-get install -y -qq git > /dev/null
+    - apt-get install --yes -qq --no-install-recommends git > /dev/null
     - python3 -m pip install GitPython tomlkit > /dev/null
     - python3 tools/build_pypi_release.py --clean-and-build
   artifacts:
@@ -97,7 +97,7 @@ build_pages:
   needs: ["pytest"]
   script:
     - apt-get update -qq > /dev/null
-    - apt-get install -y -qq git graphviz > /dev/null
+    - apt-get install --yes -qq --no-install-recommends git graphviz > /dev/null
     - python3 -m pip install --requirement tsfpga/requirements_develop.txt > /dev/null
     - python3 tools/build_docs.py
   artifacts:
@@ -115,7 +115,7 @@ deploy_pypi:
     TWINE_PASSWORD: $PYPI_API_TOKEN
   script:
     - apt-get update -qq > /dev/null
-    - apt-get install -y -qq git > /dev/null
+    - apt-get install --yes -qq --no-install-recommends git > /dev/null
     - python3 -m pip install twine > /dev/null
     - python3 -m twine upload dist/*
 
