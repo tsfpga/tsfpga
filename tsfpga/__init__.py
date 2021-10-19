@@ -34,4 +34,4 @@ ALL_TSFPGA_MODULES_FOLDERS = [
 # Default encoding when opening files
 DEFAULT_FILE_ENCODING = "utf-8"
 
-__version__ = "9.0.0"
+__version__ = "9.0.1-dev"
