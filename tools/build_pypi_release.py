@@ -24,7 +24,8 @@ def main():
             "Must run with the --clean-and-build argument to verify that 'git clean' can be run"
         )
 
-    command = ["git", "clean", "-fdx"]
+    # Remove stray files in the two folders that are included in the release
+    command = ["git", "clean", "-fdx", "tsfpga", "modules"]
     run_command(cmd=command, cwd=REPO_ROOT)
 
     command = [sys.executable, "setup.py", "sdist"]

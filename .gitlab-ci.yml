@@ -74,7 +74,7 @@ build_pypi:
     - apt-get update -qq > /dev/null
     - apt-get install -y -qq git > /dev/null
     - python3 -m pip install GitPython tomlkit > /dev/null
-    - python3 tools/build_release.py --clean-and-build
+    - python3 tools/build_pypi_release.py --clean-and-build
   artifacts:
     paths:
       - dist

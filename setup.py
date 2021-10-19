@@ -27,7 +27,7 @@ def main():
     """
     Note that this script must be called from a clean repo (since all files in "tsfpga" and
     "modules" will be included; so if there are stray dirty files the will be included as well).
-    Please use the "tools/build_release.py" script.
+    Please use the "tools/build_pypi_release.py" script.
 
     Be extremely careful when making changes to this setup script. It is hard to see what is
     actually included and what is missing. Also the package data, and where it gets placed in the
@@ -36,7 +36,7 @@ def main():
     When making changes it is recommended to try the release locally before commiting to master.
     To test in a docker image do, e.g:
 
-    python tools/build_release.py --clean-and-build
+    python tools/build_pypi_release.py --clean-and-build
     docker run --interactive --tty --volume $(pwd)/dist:/dist:ro --workdir /dist \
         python:3.8-slim-buster /bin/bash
     python -m pip install tsfpga-8.0.2.tar.gz
