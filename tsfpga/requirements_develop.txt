@@ -1,6 +1,7 @@
 black
 flake8
 GitPython
+packaging
 pybadges
 pylint
 pytest
