@@ -8,10 +8,12 @@
 
 import importlib.util
 import os
-from os.path import commonpath
+from os.path import commonpath, relpath
 from platform import system
 from shutil import rmtree
 import subprocess
+
+from pathlib import Path
 
 from tsfpga import DEFAULT_FILE_ENCODING
 
@@ -102,6 +104,15 @@ def file_is_in_directory(file_path, directories):
         if commonpath([str(file_path), str(directory)]) == str(directory):
             return True
     return False
+
+
+def path_relative_to(path, other):
+    """
+    Note Path.relative_to() does not support the use case where e.g. readme.md should get
+    relative path "../readme.md". Hence we have to use os.path.
+    """
+    assert path.exists(), path
+    return Path(relpath(str(path), str(other)))
 
 
 def run_command(cmd, cwd=None, env=None):

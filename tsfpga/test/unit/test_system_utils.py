@@ -8,9 +8,17 @@
 
 import subprocess
 
+from pathlib import Path
+
 import pytest
 
-from tsfpga.system_utils import create_file, read_last_lines_of_file, run_command
+from tsfpga.system_utils import create_file, path_relative_to, read_last_lines_of_file, run_command
+
+
+def test_path_relative_to():
+    assert path_relative_to(Path("/etc/fstab"), Path("/etc")) == Path("fstab")
+    assert path_relative_to(Path("/etc/fstab"), Path("/")) == Path("etc/fstab")
+    assert path_relative_to(Path("/etc/fstab"), Path("/home")) == Path("../etc/fstab")
 
 
 def test_run_command_called_with_nonexisting_binary_should_raise_exception():

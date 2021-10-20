@@ -457,6 +457,12 @@ def get_hdl_modules(names_include=None, names_avoid=None):
         :class:`.ModuleList`: The module objects.
     """
     if tsfpga.HDL_MODULES_LOCATION is not None:
+        if not tsfpga.HDL_MODULES_LOCATION.exists():
+            raise FileNotFoundError(
+                f"The marked location {tsfpga.HDL_MODULES_LOCATION} does not exist. "
+                "There is something wrong with the release script."
+            )
+
         return get_modules(
             modules_folders=[tsfpga.HDL_MODULES_LOCATION],
             names_include=names_include,

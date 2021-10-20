@@ -6,7 +6,6 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-from os.path import relpath
 from pathlib import Path
 import sys
 
@@ -17,6 +16,7 @@ sys.path.insert(0, str(REPO_ROOT))
 
 import tsfpga
 from tsfpga.about import get_readme_rst, get_slogan
+from tsfpga.system_utils import path_relative_to
 
 
 REQUIREMENTS_TXT = tsfpga.TSFPGA_PATH / "requirements.txt"
@@ -96,13 +96,10 @@ def get_package_data():
     Note that this will include all matching files in the file system. Highly recommended to run
     from a clean repo.
     """
-    files = []
-    for folder in ["tsfpga"]:
-        files += get_package_files(REPO_ROOT / folder)
+    files = get_package_files(tsfpga.TSFPGA_PATH)
 
     # Specify path relative to the tsfpga python package folder
-    tsfpga_package_root = REPO_ROOT / "tsfpga"
-    package_data = [path_relative_to_str(file_path, tsfpga_package_root) for file_path in files]
+    package_data = [str(path_relative_to(file_path, tsfpga.TSFPGA_PATH)) for file_path in files]
 
     return package_data
 
@@ -126,15 +123,6 @@ def get_package_files(folder):
             non_package_python_files.append(python_file)
 
     return non_python_files + non_package_python_files
-
-
-def path_relative_to_str(path, other):
-    """
-    Note Path.relative_to() does not support the use case where e.g. readme.md should get
-    relative path "../readme.md". Hence we have to use os.path.
-    """
-    assert path.exists(), path
-    return relpath(str(path), str(other))
 
 
 if __name__ == "__main__":
