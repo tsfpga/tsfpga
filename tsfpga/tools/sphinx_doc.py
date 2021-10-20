@@ -7,11 +7,11 @@
 # --------------------------------------------------------------------------------------------------
 
 from datetime import datetime
-from packaging.version import parse
 from subprocess import check_call
 import sys
 
 from git import Repo
+from packaging.version import parse
 
 from tsfpga.system_utils import read_file
 
