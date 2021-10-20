@@ -37,7 +37,7 @@ def main():
     To test in a docker image do, e.g:
 
     python tools/build_pypi_release.py --clean-and-build
-    docker run --interactive --tty --volume $(pwd)/dist:/dist:ro --workdir /dist \
+    docker run --rm --interactive --tty --volume $(pwd)/dist:/dist:ro --workdir /dist \
         python:3.8-slim-buster /bin/bash
     python -m pip install tsfpga-8.0.2.tar.gz
 
