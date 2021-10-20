@@ -13,6 +13,7 @@ The images are available in the ``tsfpga`` organization on dockerhub:
 * https://hub.docker.com/repository/docker/tsfpga/formal
 * https://hub.docker.com/repository/docker/tsfpga/ci_py_sim
 * https://hub.docker.com/repository/docker/tsfpga/ci_py_sim_sphinx
+* https://hub.docker.com/repository/docker/tsfpga/ci_everything
 
 Unfortunately we can not use automated dockerhub builds since this project is sponsored by a commercial company.
 Details:
@@ -74,6 +75,7 @@ docker login
 docker push tsfpga/formal
 docker push tsfpga/ci_py_sim
 docker push tsfpga/ci_py_sim_sphinx
+docker push tsfpga/ci_everything
 ```
 
 Note that you need a dockerhub user ID, and that your user needs to be part of the ``tsfpga`` organization.

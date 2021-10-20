@@ -31,21 +31,17 @@ LABEL description="Further includes everything that is needed for building sphin
 
 RUN apt-get install --yes --no-install-recommends \
   # Needed by symbolator/wavedrom/dot
+  gir1.2-gtk-3.0 \
+  graphviz \
   libgirepository1.0-dev \
   libcairo2-dev \
   pkg-config \
-  python3-dev \
-  gir1.2-gtk-3.0 \
-  graphviz \
-  # Needed to package artifacts
-  zip
+  python3-dev
 
 RUN python3 -m pip --no-cache-dir install \
-  matplotlib \
   pybadges \
   pycairo \
   PyGObject \
-  scipy \
   # Older version since symbolator_sphinx does not work with newer:
   # "exception: cannot import name 'ENOENT'"
   sphinx==3.5.4 \
@@ -53,4 +49,18 @@ RUN python3 -m pip --no-cache-dir install \
   sphinx_sitemap \
   sphinxcontrib-wavedrom \
   symbolator && \
+  rm -rf ~/.cache
+
+
+FROM ci_py_sim_sphinx AS ci_everything
+
+LABEL description="Further includes everything that is needed for signal processing analysis."
+
+RUN apt-get install --yes --no-install-recommends \
+  # Needed to package artifacts
+  zip
+
+RUN python3 -m pip --no-cache-dir install \
+  matplotlib \
+  scipy && \
   rm -rf ~/.cache
