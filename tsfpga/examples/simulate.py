@@ -46,7 +46,7 @@ def main():
             )
 
         test_filters = find_git_test_filters(
-            args=args, repo_root=tsfpga.REPO_ROOT, modules=modules + modules_no_sim
+            args=args, repo_root=tsfpga.REPO_ROOT, modules=modules, modules_no_sim=modules_no_sim
         )
         if not test_filters:
             print("Nothing to run. Appears to be no VHDL-related git diff.")
