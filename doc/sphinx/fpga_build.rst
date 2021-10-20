@@ -127,9 +127,12 @@ If we have a huge module tree but our project only uses a subset of the modules,
 We might also use primitives and IP cores in some modules that are not available for the target part.
 This filtering of modules can be achieved using the arguments to :func:`.get_modules`.
 
-In this case we use two wrappers, :func:`.get_tsfpga_modules` and :func:`.get_tsfpga_example_modules`, around the :func:`.get_modules` function.
+In this case we use two wrappers, :func:`.get_hdl_modules` and :func:`.get_tsfpga_example_modules`, around the :func:`.get_modules` function.
 They set the correct flags (modules paths, :ref:`default registers <default_registers>` and ``library_name_has_lib_suffix``).
-It is recommended to use a function like this so the arguments don't have to be repeated in many places.
+It is recommended to use functions like these so the arguments don't have to be repeated in many places.
+
+Note that the ``artyz7`` example build project uses modules from the separate ``hdl_modules`` project, via the :func:`.get_hdl_modules` function.
+See :ref:`integration_hdl_modules` for details.
 
 
 

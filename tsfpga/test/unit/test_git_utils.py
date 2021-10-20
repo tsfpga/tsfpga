@@ -13,7 +13,7 @@ import unittest
 import pytest
 from git import Actor, Repo
 
-from tsfpga import REPO_ROOT, TSFPGA_MODULES
+from tsfpga import REPO_ROOT, TSFPGA_DOC
 from tsfpga.git_utils import (
     git_commands_are_available,
     find_git_files,
@@ -37,7 +37,7 @@ def test_this_file_is_listed_by_find_git_files():
 
 
 def test_this_file_is_not_listed_by_find_git_files_with_bad_argument():
-    git_files = find_git_files(directory=TSFPGA_MODULES)
+    git_files = find_git_files(directory=TSFPGA_DOC)
     assert THIS_FILE not in git_files
     git_files = find_git_files(directory=REPO_ROOT, file_endings_include="vhd")
     assert THIS_FILE not in git_files

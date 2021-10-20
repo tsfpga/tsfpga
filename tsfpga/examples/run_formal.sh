@@ -15,6 +15,7 @@ docker run \
   --tty \
   --user "$(id -u ${USER}):$(id -g ${USER})" \
   --volume $(pwd):/work/repo/tsfpga/tsfpga \
+  --volume $(pwd)/../hdl_modules:/work/repo/tsfpga/hdl_modules \
   --volume $(pwd)/../../vunit/vunit:/work/repo/vunit/vunit:ro \
   --workdir /work/repo/tsfpga/tsfpga \
   tsfpga/formal \

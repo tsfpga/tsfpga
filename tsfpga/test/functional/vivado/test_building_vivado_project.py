@@ -13,7 +13,7 @@ import pytest
 
 import tsfpga
 from tsfpga.constraint import Constraint
-from tsfpga.module import get_modules
+from tsfpga.module import get_modules, get_hdl_modules
 from tsfpga.system_utils import create_file, run_command
 from tsfpga.vivado.build_result_checker import LessThan, TotalLuts
 from tsfpga.vivado.project import VivadoNetlistProject, VivadoProject
@@ -111,7 +111,7 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         )
         constraints = [Constraint(self.constraint_file)]
 
-        self.modules = get_modules([modules_folder, tsfpga.TSFPGA_MODULES])
+        self.modules = get_hdl_modules() + get_modules([modules_folder])
         self.proj = VivadoProject(
             name="test_proj",
             modules=self.modules,

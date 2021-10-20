@@ -382,22 +382,6 @@ class BaseModule:
         return f"{self.name}:{self.path}"
 
 
-def iterate_module_folders(modules_folders):
-    for modules_folder in modules_folders:
-        for module_folder in modules_folder.glob("*"):
-            if module_folder.is_dir():
-                yield module_folder
-
-
-def get_module_object(path, name, library_name_has_lib_suffix, default_registers):
-    module_file = path / f"module_{name}.py"
-    library_name = f"{name}_lib" if library_name_has_lib_suffix else name
-
-    if module_file.exists():
-        return load_python_module(module_file).Module(path, library_name, default_registers)
-    return BaseModule(path, library_name, default_registers)
-
-
 def get_modules(
     modules_folders,
     names_include=None,
@@ -422,7 +406,7 @@ def get_modules(
     """
     modules = ModuleList()
 
-    for module_folder in iterate_module_folders(modules_folders):
+    for module_folder in _iterate_module_folders(modules_folders):
         module_name = module_folder.name
 
         if names_include is not None and module_name not in names_include:
@@ -432,7 +416,7 @@ def get_modules(
             continue
 
         modules.append(
-            get_module_object(
+            _get_module_object(
                 module_folder, module_name, library_name_has_lib_suffix, default_registers
             )
         )
@@ -440,16 +424,54 @@ def get_modules(
     return modules
 
 
-def get_tsfpga_modules(names_include=None, names_avoid=None):
+def _iterate_module_folders(modules_folders):
+    for modules_folder in modules_folders:
+        for module_folder in modules_folder.glob("*"):
+            if module_folder.is_dir():
+                yield module_folder
+
+
+def _get_module_object(path, name, library_name_has_lib_suffix, default_registers):
+    module_file = path / f"module_{name}.py"
+    library_name = f"{name}_lib" if library_name_has_lib_suffix else name
+
+    if module_file.exists():
+        return load_python_module(module_file).Module(path, library_name, default_registers)
+    return BaseModule(path, library_name, default_registers)
+
+
+def get_hdl_modules(names_include=None, names_avoid=None):
     """
-    Wrapper of the regular :func:`.get_modules`. call with correct settings for tsfpga modules.
-    This will include the "real" tsfpga modules, but not the example modules.
+    Wrapper of :func:`.get_modules` which returns the ``hdl_modules`` module objects.
+    If this is a PyPI release of tsfpga, a release of ``hdl_modules`` will be bundled and modules
+    from there will be returned.
+
+    If this is a repo checkout of tsfpga, the function will try to find the ``hdl_modules`` repo
+    if it is next to the tsfpga repo.
+
+    If neither of those alternatives work, the function will assert False.
 
     Arguments will be passed on to :func:`.get_modules`.
+
+    Return:
+        :class:`.ModuleList`: The module objects.
     """
-    return get_modules(
-        modules_folders=[tsfpga.TSFPGA_MODULES],
-        names_include=names_include,
-        names_avoid=names_avoid,
-        library_name_has_lib_suffix=False,
+    if tsfpga.HDL_MODULES_LOCATION is not None:
+        return get_modules(
+            modules_folders=[tsfpga.HDL_MODULES_LOCATION],
+            names_include=names_include,
+            names_avoid=names_avoid,
+        )
+
+    # Presumed location of the hdl_modules repo
+    hdl_modules_repo_root = (tsfpga.REPO_ROOT.parent / "hdl_modules").resolve()
+    if (hdl_modules_repo_root / "modules").exists():
+        return get_modules(
+            modules_folders=[hdl_modules_repo_root / "modules"],
+            names_include=names_include,
+            names_avoid=names_avoid,
+        )
+
+    raise FileNotFoundError(
+        f"The hdl_modules modules could not be found. Searched in {hdl_modules_repo_root}"
     )

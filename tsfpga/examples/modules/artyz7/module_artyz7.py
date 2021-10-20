@@ -9,7 +9,7 @@
 from pathlib import Path
 
 from tsfpga.constraint import Constraint
-from tsfpga.module import BaseModule, get_tsfpga_modules
+from tsfpga.module import BaseModule, get_hdl_modules
 from tsfpga.examples.example_env import get_tsfpga_example_modules
 from tsfpga.vivado.project import VivadoProject
 
@@ -21,7 +21,7 @@ class Module(BaseModule):
     def get_build_projects(self):
         projects = []
 
-        modules = get_tsfpga_modules() + get_tsfpga_example_modules()
+        modules = get_hdl_modules() + get_tsfpga_example_modules()
         part = "xc7z020clg400-1"
 
         tcl_dir = self.path / "tcl"

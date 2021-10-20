@@ -18,7 +18,7 @@ from tsfpga.examples.example_env import get_tsfpga_example_modules, TSFPGA_EXAMP
 import tsfpga
 import tsfpga.create_vhdl_ls_config
 from tsfpga.git_simulation_subset import GitSimulationSubset
-from tsfpga.module import get_tsfpga_modules
+from tsfpga.module import get_hdl_modules
 from tsfpga.examples.simulation_utils import (
     create_vhdl_ls_configuration,
     get_arguments_cli,
@@ -35,7 +35,8 @@ def main():
     cli = get_arguments_cli(default_output_path=TSFPGA_EXAMPLES_TEMP_DIR)
     args = cli.parse_args()
 
-    modules = get_tsfpga_modules() + get_tsfpga_example_modules()
+    modules = get_tsfpga_example_modules()
+    modules_no_sim = get_hdl_modules()
 
     if args.vcs_minimal:
         if args.test_patterns != "*":
@@ -44,7 +45,9 @@ def main():
                 f" Got {args.test_patterns}",
             )
 
-        test_filters = find_git_test_filters(args=args, repo_root=tsfpga.REPO_ROOT, modules=modules)
+        test_filters = find_git_test_filters(
+            args=args, repo_root=tsfpga.REPO_ROOT, modules=modules + modules_no_sim
+        )
         if not test_filters:
             print("Nothing to run. Appears to be no VHDL-related git diff.")
             return
@@ -57,15 +60,15 @@ def main():
         args.minimal = True
 
     simulation_project = SimulationProject(args=args)
-    simulation_project.add_modules(args=args, modules=modules)
+    simulation_project.add_modules(args=args, modules=modules, modules_no_sim=modules_no_sim)
     ip_core_vivado_project_directory = simulation_project.add_vivado_simlib_and_ip_cores(
-        args=args, modules=modules
+        args=args, modules=modules + modules_no_sim
     )
 
     create_vhdl_ls_configuration(
         output_path=tsfpga.REPO_ROOT,
         temp_files_path=TSFPGA_EXAMPLES_TEMP_DIR,
-        modules=modules,
+        modules=modules + modules_no_sim,
         ip_core_vivado_project_directory=ip_core_vivado_project_directory,
     )
 

@@ -19,6 +19,7 @@
     netlist_build
     module_structure
     registers
+    hdl_modules
 
 .. toctree::
     :caption: API reference

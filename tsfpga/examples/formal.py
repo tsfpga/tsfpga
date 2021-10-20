@@ -19,7 +19,7 @@ sys.path.insert(0, str(PATH_TO_TSFPGA))
 from tsfpga.examples.example_env import TSFPGA_EXAMPLES_TEMP_DIR
 
 from tsfpga.formal_project import FormalProject
-from tsfpga.module import get_tsfpga_modules
+from tsfpga.module import get_hdl_modules
 from tsfpga.system_utils import delete
 
 
@@ -89,7 +89,7 @@ def main():
         delete(args.project_path)
         return
 
-    modules = get_tsfpga_modules()
+    modules = get_hdl_modules()
     formal_project = FormalProject(modules=modules, project_path=args.project_path)
     for module in modules:
         module.setup_formal(formal_project)

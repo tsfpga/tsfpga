@@ -138,7 +138,7 @@ class GitSimulationSubset:
             Will return None if no library can be found.
         """
         for module in self._modules:
-            for module_hdl_file in module.get_simulation_files():
+            for module_hdl_file in module.get_simulation_files(include_ip_cores=True):
                 if module_hdl_file.path.name == vhd_file.name:
                     return module.library_name
 

@@ -18,7 +18,6 @@ sys.path.insert(0, str(PATH_TO_TSFPGA))
 from tsfpga.examples.example_env import get_tsfpga_example_modules, TSFPGA_EXAMPLES_TEMP_DIR
 
 from tsfpga.build_project_list import BuildProjectList
-from tsfpga.module import get_tsfpga_modules
 from tsfpga.system_utils import create_directory, delete
 
 
@@ -111,7 +110,7 @@ def main():
     you probably want to copy and modify this function, and reuse the others.
     """
     args = arguments()
-    modules = get_tsfpga_modules() + get_tsfpga_example_modules()
+    modules = get_tsfpga_example_modules()
     projects = BuildProjectList(
         modules=modules,
         project_filters=args.project_filters,

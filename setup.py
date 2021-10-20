@@ -97,7 +97,7 @@ def get_package_data():
     from a clean repo.
     """
     files = []
-    for folder in ["tsfpga", "modules"]:
+    for folder in ["tsfpga"]:
         files += get_package_files(REPO_ROOT / folder)
 
     # Specify path relative to the tsfpga python package folder
