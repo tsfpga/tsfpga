@@ -42,7 +42,6 @@ Key features
 * Handling of IP cores and simlib for your simulation project, with automatic re-compile when necessary.
 * Python-based parallel Vivado build system.
 * Register code generation from TOML: VHDL package, HTML documentation, C header, C++ class.
-* VHDL AXI components that enable the register bus: AXI-to-AXI-Lite converter, AXI-Lite interconnect, AXI-Lite mux (splitter), AXI-Lite clock domain crossing, AXI-Lite generic register file.
 * Released under the very permissive BSD 3-Clause License.
 
 The maintainers place high focus on quality, with everything having good unit test coverage and a thought-out structure.
