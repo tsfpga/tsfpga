@@ -1,11 +1,27 @@
-Docker image for formal checks
-==============================
+Docker images for CI and formal
+===============================
 
-There is a docker image available that is used for gitlab CI
-The image is available in the ``tsfpga`` organization: https://hub.docker.com/repository/docker/tsfpga/formal
+There is a docker image available in ``formal/`` that is used for formal verification in gitlab CI.
+There is also a set of images defined in ``ci/`` that are used for other CI (pytest, simulate, build sphinx).
+That Dockerfile has one stage that includes everything needed for pytest and GHDL/VUnit simulation.
+On top of that is another stage that adds everything needed to build sphinx documentation.
 
-Dockerhub can't retreive data from gitlab repositories and so cannot build the image automatically.
-Instead it needs to be built locally upon updates, and then pushed to dockerhub.
+Note that the images are used for CI of sister projects as well (``hdl_modules``).
+
+The images are available in the ``tsfpga`` organization on dockerhub:
+
+* https://hub.docker.com/repository/docker/tsfpga/formal
+* https://hub.docker.com/repository/docker/tsfpga/ci_py_sim
+* https://hub.docker.com/repository/docker/tsfpga/ci_py_sim_sphinx
+
+Unfortunately we can not use automated dockerhub builds since this project is sponsored by a commercial company.
+Details:
+
+* https://docs.docker.com/docker-hub/builds/
+* https://www.docker.com/community/open-source/application
+
+Instead we need to build the images locally upon updates, and then push to dockerhub.
+
 
 Install docker
 --------------
@@ -25,25 +41,28 @@ sudo usermod -a -G docker $USER
 exec su -l $USER
 ```
 
+
 Build
 -----
 
-Build the image by running
+Build the images by running the script
 
 ```
-docker build -t tsfpga/formal docker/formal
+./docker/docker_build.sh
 ```
 
 from the repository root.
 
+
 Run
 ---
 
-Run the image locally using e.g.:
+Run an image locally using e.g.:
 
 ```
-docker run --interactive --tty --rm --volume ~/work/repo:/repo --workdir /repo/tsfpga tsfpga/formal /bin/bash
-```
+docker run --interactive --tty --rm --volume ~/work/repo:/repo --workdir /repo/tsfpga/tsfpga tsfpga/formal /bin/bash
+````
+
 
 Push
 ----
@@ -53,6 +72,8 @@ Pushing an updated ``Dockerfile`` to dockerhub is done with:
 ```
 docker login
 docker push tsfpga/formal
+docker push tsfpga/ci_py_sim
+docker push tsfpga/ci_py_sim_sphinx
 ```
 
 Note that you need a dockerhub user ID, and that your user needs to be part of the ``tsfpga`` organization.
