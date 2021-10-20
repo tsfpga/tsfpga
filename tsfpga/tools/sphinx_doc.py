@@ -7,6 +7,7 @@
 # --------------------------------------------------------------------------------------------------
 
 from datetime import datetime
+from packaging.version import parse
 from subprocess import check_call
 import sys
 
@@ -62,7 +63,12 @@ def _get_release_notes_files(repo_root, release_notes_directory):
     for release_notes_file in release_notes_directory.glob("*.rst"):
         if not release_notes_file == unreleased_notes_file:
             release_notes.append(release_notes_file)
-    release_notes.sort(reverse=True)
+
+    # Sort by parsing the version number in the file name. Newest to oldest.
+    def sort_key(path):
+        return parse(path.stem)
+
+    release_notes.sort(key=sort_key, reverse=True)
 
     # The "Unreleased" shall be first
     release_notes.insert(0, unreleased_notes_file)
