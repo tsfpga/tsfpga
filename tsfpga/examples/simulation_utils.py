@@ -120,7 +120,9 @@ class SimulationProject:
         include_ip_cores = self.has_commercial_simulator and not args.vivado_skip
 
         for module in modules + modules_no_sim:
-            vunit_library = self.vunit_proj.add_library(module.library_name)
+            vunit_library = self.vunit_proj.add_library(
+                library_name=module.library_name, allow_duplicate=True
+            )
             simulate_this_module = module not in modules_no_sim
 
             for hdl_file in module.get_simulation_files(
