@@ -46,8 +46,7 @@ class VivadoProject:
 
         Arguments:
             name (str): Project name.
-            modules (list(:class:`Module <.BaseModule>`)): Modules that shall be included in the
-                project.
+            modules (list(BaseModule)): Modules that shall be included in the project.
             part (str): Part identification.
             top (str): Name of top level entity. If left out, the top level name will be
                 inferred from the ``name``.
@@ -57,16 +56,16 @@ class VivadoProject:
 
                 Compare to the build-time generic argument in :meth:`build`.
             constraints (list(Constraint)): Constraints that will be applied to the project.
-            tcl_sources (list(`pathlib.Path`)): A list of TCL files. Use for e.g. block design,
+            tcl_sources (list(pathlib.Path)): A list of TCL files. Use for e.g. block design,
                 pinning, settings, etc.
             build_step_hooks (list(BuildStepTclHook)): Build step hooks that will be applied to the
                 project.
-            vivado_path (`pathlib.Path`): A path to the Vivado executable. If omitted,
+            vivado_path (pathlib.Path): A path to the Vivado executable. If omitted,
                 the default location from the system PATH will be used.
             default_run_index (int): Default run index (synth_X and impl_X) that is set in the
                 project. Can also use the argument to :meth:`build() <VivadoProject.build>` to
                 specify at build-time.
-            defined_at (`pathlib.Path`): Optional path to the file where you defined this
+            defined_at (pathlib.Path): Optional path to the file where you defined this
                 project. To get a useful ``build.py --list`` message. Is useful when you have many
                 projects set up.
             other_arguments: Optional further arguments. Will not be used by tsfpga, but will
@@ -114,9 +113,9 @@ class VivadoProject:
     def project_file(self, project_path):
         """
         Arguments:
-            project_path (`pathlib.Path`): A path containing a Vivado project.
+            project_path (pathlib.Path): A path containing a Vivado project.
         Return:
-            `pathlib.Path`: The project file of this project, in the given folder
+            pathlib.Path: The project file of this project, in the given folder
         """
         return project_path / (self.name + ".xpr")
 
@@ -199,8 +198,8 @@ class VivadoProject:
         Create a Vivado project
 
         Arguments:
-            project_path (`pathlib.Path`): Path where the project shall be placed.
-            ip_cache_path (`pathlib.Path`): Path to a folder where the Vivado IP cache can be
+            project_path (pathlib.Path): Path where the project shall be placed.
+            ip_cache_path (pathlib.Path): Path to a folder where the Vivado IP cache can be
                 placed. If omitted, the Vivado IP cache mechanism will not be enabled.
             other_arguments: Optional further arguments. Will not be used by tsfpga, but will
                 instead be sent to
@@ -350,8 +349,8 @@ class VivadoProject:
         Build a Vivado project
 
         Arguments:
-            project_path (`pathlib.Path`): A path containing a Vivado project.
-            output_path (`pathlib.Path`): Results (bit file, ...) will be placed here.
+            project_path (pathlib.Path): A path containing a Vivado project.
+            output_path (pathlib.Path): Results (bit file, ...) will be placed here.
             run_index (int): Select Vivado run (synth_X and impl_X) to build with.
             generics: A dict with generics values (`dict(name: value)`). Use for run-time
                 generics, i.e. values that can change between each build of this project.
@@ -467,7 +466,7 @@ class VivadoProject:
         Open the project in Vivado GUI.
 
         Arguments:
-            project_path (`pathlib.Path`): A path containing a Vivado project.
+            project_path (pathlib.Path): A path containing a Vivado project.
 
         Returns:
             bool: True if everything went well.
@@ -533,7 +532,7 @@ class VivadoNetlistProject(VivadoProject):
                 Enabling it will add significant build time (can be as much as +40%).
                 Also, in order for clock crossing check to work, the clocks have to be created
                 using a constraint file.
-            build_result_checkers (list(:class:`.SizeChecker`, :class:`.MaximumLogicLevel`)):
+            build_result_checkers (list(SizeChecker, MaximumLogicLevel)):
                 Checkers that will be executed after a successful build. Is used to automatically
                 check that e.g. resource utilization is not greater than expected.
             kwargs: Further arguments accepted by :meth:`.VivadoProject.__init__`.

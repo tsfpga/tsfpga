@@ -63,14 +63,14 @@ def find_git_files(
     Find files that are checked in to git.
 
     Arguments:
-        directory (`pathlib.Path`): Search in this directory.
-        exclude_directories (list(`pathlib.Path`)): Files in these directories will not be included.
+        directory (pathlib.Path): Search in this directory.
+        exclude_directories (list(pathlib.Path)): Files in these directories will not be included.
         file_endings_include (str or tuple(str)). Only files with these endings will be included.
         file_endings_avoid (str or tuple(str)): String or tuple of strings. Files with these endings
             will not be included.
 
     Returns:
-        list(`pathlib.Path`): The files that are available in git.
+        list(pathlib.Path): The files that are available in git.
     """
 
     # Import fails if "git" executable is not available, hence it can not be on top level.

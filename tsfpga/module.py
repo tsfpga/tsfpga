@@ -27,7 +27,7 @@ class BaseModule:
     def __init__(self, path, library_name, default_registers=None):
         """
         Arguments:
-            path (`pathlib.Path`): Path to the module folder.
+            path (pathlib.Path): Path to the module folder.
             library_name (str): VHDL library name.
             default_registers (list(Register)): Default registers.
         """
@@ -139,7 +139,7 @@ class BaseModule:
                 files are included.
 
         Return:
-            list(:class:`.HdlFile`): Files that should be included in a synthesis project.
+            list(HdlFile): Files that should be included in a synthesis project.
         """
         self.create_regs_vhdl_package()
 
@@ -170,7 +170,7 @@ class BaseModule:
                 files are included.
 
         Return:
-            list(:class:`.HdlFile`): Files that should be included in a simulation project.
+            list(HdlFile): Files that should be included in a simulation project.
         """
         test_folders = [
             self.path / "sim",
@@ -205,7 +205,7 @@ class BaseModule:
                 files are included.
 
         Return:
-            list(:class:`.HdlFile`): Files that should be included in a formal verification project.
+            list(HdlFile): Files that should be included in a formal verification project.
         """
         return self.get_simulation_files(
             include_tests=False, files_include=files_include, files_avoid=files_avoid, **kwargs
@@ -228,7 +228,7 @@ class BaseModule:
                 IP cores are included and what their variables are.
 
         Return:
-            list(:class:`.IpCoreFile`): The IP cores for this module.
+            list(IpCoreFile): The IP cores for this module.
         """
         folders = [
             self.path / "ip_cores",
@@ -256,7 +256,7 @@ class BaseModule:
                 constraints are included.
 
         Return:
-            list(:class:`.Constraint`): The constraints.
+            list(Constraint): The constraints.
         """
         folders = [
             self.path / "scoped_constraints",
@@ -347,7 +347,7 @@ class BaseModule:
             build projects.
 
         Return:
-            list(:class:`.VivadoProject`): FPGA build projects.
+            list(VivadoProject): FPGA build projects.
         """
         return []
 
@@ -394,7 +394,7 @@ def get_modules(
     Get a list of Module objects based on the source code folders.
 
     Arguments:
-        modules_folders (list(`pathlib.Path`)): A list of paths where your modules are located.
+        modules_folders (list(pathlib.Path)): A list of paths where your modules are located.
         names_include (list(str)): If specified, only modules with these names will be included.
         names_avoid (list(str)): If specified, modules with these names will be discarded.
         library_name_has_lib_suffix (bool): If set, the library name will be

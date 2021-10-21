@@ -19,7 +19,7 @@ class Constraint:
     def __init__(self, file, used_in="all", scoped_constraint=False, processing_order="normal"):
         """
         Arguments:
-            file (`pathlib.Path`): Path to the constraint file. Typically ends in .xdc or .tcl.
+            file (pathlib.Path): Path to the constraint file. Typically ends in .xdc or .tcl.
             used_in (str): Optionally the constraint can be enabled only for "synth" or "impl".
             scoped_constraint (bool): If enabled the constraint file will be loaded with the "-ref"
                 argument in Vivado. An entity with the same name must exist.

@@ -31,10 +31,10 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
     def __init__(self, output_path, vunit_proj, simulator_interface, vivado_path):
         """
         Arguments:
-            output_path (`pathlib.Path`): The compiled simlib will be placed here.
+            output_path (pathlib.Path): The compiled simlib will be placed here.
             vunit_proj: The VUnit project that is used to run simulation.
             simulator_interface: A VUnit SimulatorInterface class.
-            vivado_path (`pathlib.Path`): Path to Vivado executable.
+            vivado_path (pathlib.Path): Path to Vivado executable.
         """
         self._vunit_proj = vunit_proj
         self._vivado_path = get_vivado_path(vivado_path)

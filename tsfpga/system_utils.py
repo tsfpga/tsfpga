@@ -39,7 +39,7 @@ def read_last_lines_of_file(file, num_lines):
     Similar to unix ``tail`` command.
 
     Arguments:
-        file (`pathlib.Path`): The file that shall be read.
+        file (pathlib.Path): The file that shall be read.
         num_lines (int): The number of lines to read.
 
     Return:
@@ -94,8 +94,8 @@ def file_is_in_directory(file_path, directories):
     Check if the file is in any of the directories.
 
     Arguments:
-        file_path (`pathlib.Path`): The file to be checked.
-        directories (list(`pathlib.Path`)): The directories to be controlled.
+        file_path (pathlib.Path): The file to be checked.
+        directories (list(pathlib.Path)): The directories to be controlled.
 
     Returns:
         bool: True if there is a common path.

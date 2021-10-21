@@ -30,12 +30,12 @@ def create_configuration(
     VUnit project).
 
     Arguments:
-        output_path (`pathlib.Path`): Output folder.
+        output_path (pathlib.Path): Output folder.
         modules: A list of Module objects.
         vunit_proj: A VUnit project.
-        vivado_location (`pathlib.Path`): Vivado binary path. Will add unisim from this Vivado
+        vivado_location (pathlib.Path): Vivado binary path. Will add unisim from this Vivado
             installation.
-        ip_core_vivado_project_directory (`pathlib.Path`): Path to a Vivado project that contains
+        ip_core_vivado_project_directory (pathlib.Path): Path to a Vivado project that contains
             generated "simulation" and "synthesis" files of IP cores
             (the "generate_target" TCL command). See simulate.py for an example of using this.
     """

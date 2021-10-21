@@ -21,7 +21,7 @@ class HdlFile:
     def __init__(self, path):
         """
         Arguments:
-            path (`pathlib.Path`): Path to a HDL source code  file.
+            path (pathlib.Path): Path to a HDL source code  file.
         """
         self.path = path
 

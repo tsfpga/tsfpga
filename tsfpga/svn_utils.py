@@ -70,14 +70,14 @@ def find_svn_files(
     an SVN server.
 
     Arguments:
-        directory (`pathlib.Path`): Search in this directory.
-        excludes (list(`pathlib.Path`)): These files and folders will not be included.
+        directory (pathlib.Path): Search in this directory.
+        excludes (list(pathlib.Path)): These files and folders will not be included.
         file_endings_include (str or tuple(str)). Only files with these endings will be included.
         file_endings_avoid (str or tuple(str)): String or tuple of strings. Files with these endings
             will not be included.
 
     Returns:
-        list(`pathlib.Path`): The files that are available in SVN.
+        list(pathlib.Path): The files that are available in SVN.
     """
     excludes = [] if excludes is None else [exclude.resolve() for exclude in excludes]
 

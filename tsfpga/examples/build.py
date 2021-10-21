@@ -26,7 +26,7 @@ def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
     Setup of arguments for the example build flow.
 
     Arguments:
-        default_temp_dir (`pathlib.Path`): Default value for output paths.
+        default_temp_dir (pathlib.Path): Default value for output paths.
     """
     parser = argparse.ArgumentParser(
         "Create, synth and build an FPGA project",
@@ -194,7 +194,7 @@ def collect_artifacts(project, output_path):
     Arguments:
         project (:class:`.VivadoProject`): Project object that has been built,
             and who's artifacts shall now be collected.
-        output_path (`pathlib.Path`): Path to the build output. Artifact zip will be placed here
+        output_path (pathlib.Path): Path to the build output. Artifact zip will be placed here
             as well.
     """
     version = "0.0.0.0"
@@ -221,7 +221,7 @@ def generate_registers(modules, output_path):
 
     Arguments:
         modules (:class:`.ModuleList`): Registers from these modules will be included.
-        output_path (`pathlib.Path`): Register artifacts will be placed here.
+        output_path (pathlib.Path): Register artifacts will be placed here.
     """
     print(f"Generating registers in {output_path.resolve()}")
 

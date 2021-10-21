@@ -18,9 +18,9 @@ def run_vivado_tcl(vivado_path, tcl_file, no_log_file=False):
     the same directory as the TCL file that produced them.
 
     Arguments:
-        vivado_path (`pathlib.Path`): Path to Vivado executable. Can set to None
-            to use whatever version is in PATH.
-        tcl_file (`pathlib.Path`): Path to TCL file.
+        vivado_path (pathlib.Path): Path to Vivado executable. Can set to ``None``
+            to use whatever version is in ``PATH``.
+        tcl_file (pathlib.Path): Path to TCL file.
 
     Return:
         bool: True if everything went well.
@@ -51,9 +51,9 @@ def run_vivado_gui(vivado_path, project_file):
     the same directory as the project.
 
     Arguments:
-        vivado_path (`pathlib.Path`): Path to Vivado executable. Can set to None
-            to use whatever version is in PATH.
-        project_file (`pathlib.Path`): Path to a project .xpr file.
+        vivado_path (pathlib.Path): Path to Vivado executable. Can set to ``None``
+            to use whatever version is in ``PATH``.
+        project_file (pathlib.Path): Path to a project .xpr file.
 
     Return:
         bool: True if everything went well.
@@ -76,8 +76,8 @@ def get_vivado_path(vivado_path=None):
     Wrapper to get a ``pathlib.Path`` to vivado executable.
 
     Arguments:
-        vivado_path (`pathlib.Path`): Path to vivado executable. Set to None to use whatever
-            is available in PATH.
+        vivado_path (pathlib.Path): Path to vivado executable. Set to ``None`` to use whatever
+            is available in ``PATH``.
     """
     if vivado_path is not None:
         return vivado_path.resolve()

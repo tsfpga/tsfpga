@@ -24,7 +24,7 @@ class VhdlFileDocumentation:
     def __init__(self, vhd_file_path):
         """
         Arguments:
-            vhd_file_path (`pathlib.Path`): Path to the VHDL file which shall be documented.
+            vhd_file_path (pathlib.Path): Path to the VHDL file which shall be documented.
         """
         self._vhd_file_path = vhd_file_path
 

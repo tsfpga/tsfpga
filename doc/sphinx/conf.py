@@ -30,6 +30,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.coverage",
     "sphinx.ext.graphviz",
+    "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
     "sphinx_rtd_theme",
     "sphinx_sitemap",
@@ -37,7 +38,6 @@ extensions = [
 
 # Types that are used but sphinx cant find, because they are external
 nitpick_ignore = [
-    ("py:class", "abc.ABC"),
     ("py:class", "vunit.test.report.TestReport"),
     ("py:class", "vunit.test.report.TestResult"),
     ("py:class", "vunit.test.runner.TestRunner"),
@@ -55,9 +55,7 @@ nitpick_ignore = [
     ("py:meth", "RegisterList.get_register_index"),
 ]
 
-# Remove warning that built-in types cannot be referenced.
-for name in dir(builtins):
-    nitpick_ignore.append(("py:class", name))
+intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
 
 # Base URL for generated sitemap XML
 html_baseurl = "https://tsfpga.com"

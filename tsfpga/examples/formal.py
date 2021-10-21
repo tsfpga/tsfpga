@@ -28,7 +28,7 @@ def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
     Setup of arguments for the example build flow.
 
     Arguments:
-        default_temp_dir (`pathlib.Path`): Default value for output paths.
+        default_temp_dir (pathlib.Path): Default value for output paths.
     """
     parser = argparse.ArgumentParser(
         "Run formal tests", formatter_class=argparse.ArgumentDefaultsHelpFormatter

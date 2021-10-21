@@ -83,7 +83,7 @@ def find_git_test_filters(args, repo_root, modules, modules_no_sim=None, **setup
 
     Arguments:
         args: Command line argument namespace.
-        repo_root (`pathlib.Path`): Path to the repository root. Git commands will be run here.
+        repo_root (pathlib.Path): Path to the repository root. Git commands will be run here.
         modules: Will be passed on to :meth:`.SimulationProject.add_modules`.
         modules_no_sim: Will be passed on to :meth:`.SimulationProject.add_modules`.
         setup_vunit_kwargs : Will be passed on to :meth:`.SimulationProject.add_modules`.

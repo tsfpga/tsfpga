@@ -30,7 +30,7 @@ def get_arguments_cli(default_output_path):
     Get arguments for the simulation flow.
 
     Arguments:
-        default_output_path (`pathlib.Path`): Will be set as default for output path arguments
+        default_output_path (pathlib.Path): Will be set as default for output path arguments
             (both VUnit files and Vivado files).
     """
     cli = VUnitCLI()
@@ -160,7 +160,7 @@ class SimulationProject:
                 at default in most cases.
 
         Return:
-            `pathlib.Path`: Path to the Vivado IP core project's ``project`` directory.
+            pathlib.Path: Path to the Vivado IP core project's ``project`` directory.
         """
         if args.vivado_skip:
             return None
@@ -197,7 +197,7 @@ class SimulationProject:
 
         Arguments:
             vunit_proj: Vivado simlib will be added to this VUnit project.
-            output_path (`pathlib.Path`): Compiled simlib will be placed in sub-directory of
+            output_path (pathlib.Path): Compiled simlib will be placed in sub-directory of
                 this path.
             force_compile (bool): Will (re)-compile simlib even if compiled artifacts exist.
         """
@@ -217,8 +217,7 @@ class SimulationProject:
 
         Arguments:
             modules (:class:`.ModuleList`): IP cores from these modules will be included.
-            output_path (`pathlib.Path`): IP core files will be placed in sub-directory of
-                this path.
+            output_path (pathlib.Path): IP core files will be placed in sub-directory of this path.
             force_generate (bool): Will (re)-generate files even if they exist.
             part_name (str): Vivado part name.
             vivado_project_class: Class to be used for Vivado IP core project.
@@ -256,10 +255,10 @@ def create_vhdl_ls_configuration(
     appropriate place in order to always have an up-to-date vhdl_ls config.
 
     Arguments:
-        output_path (`pathlib.Path`): Config file will be placed here.
-        temp_files_path (`pathlib.Path`): Some temporary files will be placed here.
+        output_path (pathlib.Path): Config file will be placed here.
+        temp_files_path (pathlib.Path): Some temporary files will be placed here.
         modules (:class:`.ModuleList`): These modules will be added.
-        ip_core_vivado_project_directory (`pathlib.Path`): Vivado IP core files in this location
+        ip_core_vivado_project_directory (pathlib.Path): Vivado IP core files in this location
             will be added.
     """
     # Create an empty VUnit project to add files from VUnit and OSVVM library.

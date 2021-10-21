@@ -31,8 +31,7 @@ class BuildProjectList:
     ):
         """
         Arguments:
-            modules (list(:class:`.BaseModule`)): Module objects that can define build
-                projects.
+            modules (list(BaseModule)): Module objects that can define build projects.
             project_filters (list(str)): Project name filters. Can use wildcards (*).
                 Leave empty for all.
             include_netlist_not_top_builds (bool): Set True to get only netlist builds,
@@ -63,7 +62,7 @@ class BuildProjectList:
         Create build project on disk for all the projects in the list.
 
         Arguments:
-            projects_path (`pathlib.Path`): The projects will be placed here.
+            projects_path (pathlib.Path): The projects will be placed here.
             num_parallel_builds (int): The number of projects that will be created in
                 parallel.
             kwargs: Other arguments as accepted by :meth:`.VivadoProject.create`.
@@ -92,7 +91,7 @@ class BuildProjectList:
         exists.
 
         Arguments:
-            projects_path (`pathlib.Path`): The projects will be placed here.
+            projects_path (pathlib.Path): The projects will be placed here.
             num_parallel_builds (int): The number of projects that will be created in
                 parallel.
             kwargs: Other arguments as accepted by :meth:`.VivadoProject.create`.
@@ -134,18 +133,18 @@ class BuildProjectList:
         Build all the projects in the list.
 
         Arguments:
-            projects_path (`pathlib.Path`): The projects will be placed here.
+            projects_path (pathlib.Path): The projects will be placed here.
             num_parallel_builds (int): The number of projects that will be built in
                 parallel.
             num_threads_per_build (int): The number threads that will be used for each
                 parallel build process.
-            output_path (`pathlib.Path`): Where the artifacts should be placed.
+            output_path (pathlib.Path): Where the artifacts should be placed.
             collect_artifacts (`function`): Callback to collect artifacts. Takes two named
                 arguments:
 
                 |  **project** (:class:`.VivadoProject`): The project that is being built.
 
-                |  **output_path** (`pathlib.Path`): Where the artifacts should be placed.
+                |  **output_path** (pathlib.Path): Where the artifacts should be placed.
 
 
                 | Must return True.
@@ -197,7 +196,7 @@ class BuildProjectList:
         Open the projects in EDA GUI.
 
         Arguments:
-            projects_path (`pathlib.Path`): The projects are placed here.
+            projects_path (pathlib.Path): The projects are placed here.
 
         Returns:
             bool: True if everything went well.

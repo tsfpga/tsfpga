@@ -96,7 +96,7 @@ class VivadoSimlibCommon:
         Compress compiled simlib to an archive.
 
         Return:
-            `pathlib.Path`: Path to the archive.
+            pathlib.Path: Path to the archive.
         """
         make_archive(self._output_path, "zip", self._output_path)
         archive = self._output_path.parent / (self._output_path.name + ".zip")
@@ -107,7 +107,7 @@ class VivadoSimlibCommon:
         Unpack compiled simlib from an existing archive.
 
         Arguments:
-            archive (`pathlib.Path`): Path to a zip archive with previously compiled simlib.
+            archive (pathlib.Path): Path to a zip archive with previously compiled simlib.
         """
         with zipfile.ZipFile(archive, "r") as zip_handle:
             zip_handle.extractall(self._output_path)

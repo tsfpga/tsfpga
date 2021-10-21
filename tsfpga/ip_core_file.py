@@ -15,7 +15,7 @@ class IpCoreFile:
     def __init__(self, path, **variables):
         """
         Arguments:
-            path (`pathlib.Path`): Path to the TCL script that creates the IP.
+            path (pathlib.Path): Path to the TCL script that creates the IP.
                 Should typically end in .tcl.
             variables: These name/value variable pairs will be set in TCL before
                 the IP core ``.tcl`` file is sourced. This makes it possible to parameterize the IP

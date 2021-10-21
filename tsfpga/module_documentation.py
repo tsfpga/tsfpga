@@ -157,7 +157,7 @@ This document contains technical documentation for the ``{self._module.name}`` m
         that e.g. sphinx can be run directly.
 
         Arguments:
-            output_path (`pathlib.Path`): Document will be placed here.
+            output_path (pathlib.Path): Document will be placed here.
         """
         register_list = self._module.registers
         if register_list is not None:

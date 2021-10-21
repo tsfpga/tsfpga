@@ -25,9 +25,8 @@ class VivadoIpCores:
     def __init__(self, modules, output_path, part_name, vivado_project_class=None):
         """
         Arguments:
-            modules (list(:class:`Module <.BaseModule>`)): IP cores from  these modules will be
-                included.
-            output_path (`pathlib.Path`): The Vivado project will be placed here.
+            modules (list(BaseModule)): IP cores from  these modules will be included.
+            output_path (pathlib.Path): The Vivado project will be placed here.
             part_name (str): Vivado part name to be used for the project.
             vivado_project_class: The Vivado project class that will be used for the IP core
                 project. Is safe to leave at default in most cases.
@@ -46,14 +45,14 @@ class VivadoIpCores:
     @property
     def compile_order_file(self):
         """
-        `pathlib.Path`: Path to the generated compile order file.
+        pathlib.Path: Path to the generated compile order file.
         """
         return self.project_directory / "compile_order.txt"
 
     @property
     def vivado_project_file(self):
         """
-        `pathlib.Path`: Path to the Vivado project file.
+        pathlib.Path: Path to the Vivado project file.
         """
         return self._vivado_project.project_file(self.project_directory)
 

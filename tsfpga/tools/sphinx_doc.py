@@ -22,8 +22,8 @@ def generate_release_notes(repo_root, release_notes_directory, project_name):
     Will match each file to a git tag.
 
     Arguments:
-        repo_root (`pathlib.Path`): Git commands will be executed here.
-        release_notes_directory (`pathlib.Path`): Location of release notes files.
+        repo_root (pathlib.Path): Git commands will be executed here.
+        release_notes_directory (pathlib.Path): Location of release notes files.
         project_name (str): Name of project will be used for the gitlab link.
 
     Return:
@@ -121,8 +121,8 @@ def build_sphinx(build_path, output_path):
     Execute sphinx on command line to build HTML documentation.
 
     Arguments:
-        build_path (`pathlib.Path`): The location that contains ``conf.py`` and ``index.rst``.
-        output_path (`pathlib.Path`): Where to place the generated HTML.
+        build_path (pathlib.Path): The location that contains ``conf.py`` and ``index.rst``.
+        output_path (pathlib.Path): Where to place the generated HTML.
     """
     cmd = [
         sys.executable,
