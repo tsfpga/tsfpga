@@ -17,6 +17,8 @@ import sys
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
 TSFPGA_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(TSFPGA_ROOT))
+PATH_TO_HDL_REGISTERS = TSFPGA_ROOT.parent.resolve() / "hdl_registers"
+sys.path.insert(0, str(PATH_TO_HDL_REGISTERS))
 PATH_TO_VUNIT = TSFPGA_ROOT.parent.parent / "vunit" / "vunit"
 sys.path.insert(0, str(PATH_TO_VUNIT.resolve()))
 
@@ -39,6 +41,18 @@ nitpick_ignore = [
     ("py:class", "vunit.test.report.TestReport"),
     ("py:class", "vunit.test.report.TestResult"),
     ("py:class", "vunit.test.runner.TestRunner"),
+    ("py:class", "Register"),
+    ("py:class", "RegisterList"),
+    ("py:meth", "Register.get_field"),
+    ("py:meth", "RegisterArray.get_register"),
+    ("py:meth", "RegisterList.create_html_register_table"),
+    ("py:meth", "RegisterList.create_html_constant_table"),
+    ("py:meth", "RegisterList.create_python_class"),
+    ("py:meth", "RegisterList.create_vhdl_package"),
+    ("py:meth", "RegisterList.get_constant"),
+    ("py:meth", "RegisterList.get_register"),
+    ("py:meth", "RegisterList.get_register_array"),
+    ("py:meth", "RegisterList.get_register_index"),
 ]
 
 # Remove warning that built-in types cannot be referenced.

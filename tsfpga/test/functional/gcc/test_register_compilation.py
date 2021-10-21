@@ -11,9 +11,10 @@ import unittest
 
 import pytest
 
+from hdl_registers.parser import from_toml
+
 import tsfpga
 from tsfpga.system_utils import create_file, run_command
-from tsfpga.registers.parser import from_toml
 
 
 @pytest.mark.usefixtures("fixture_tmp_path")

@@ -13,12 +13,17 @@ Common functions and definitions in the example build environment.
 import sys
 
 import tsfpga
-from tsfpga.module import get_modules
-from tsfpga.registers.register_list import Register
 
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
-PATH_TO_VUNIT = tsfpga.REPO_ROOT.parent.parent / "vunit" / "vunit"
+PATH_TO_HDL_REGISTERS = tsfpga.REPO_ROOT.parent.resolve() / "hdl_registers"
+sys.path.insert(0, str(PATH_TO_HDL_REGISTERS))
+PATH_TO_VUNIT = tsfpga.REPO_ROOT.parent.parent.resolve() / "vunit" / "vunit"
 sys.path.insert(0, str(PATH_TO_VUNIT))
+
+# pylint: disable=wrong-import-order
+from hdl_registers.register_list import Register
+
+from tsfpga.module import get_modules
 
 TSFPGA_EXAMPLES_TEMP_DIR = tsfpga.TSFPGA_GENERATED
 

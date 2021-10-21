@@ -16,7 +16,7 @@ from xml.etree import ElementTree
 from pybadges import badge
 
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
-REPO_ROOT = Path(__file__).parent.parent
+REPO_ROOT = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(REPO_ROOT))
 
 import tsfpga
@@ -85,19 +85,16 @@ def generate_registers():
 def generate_apidoc():
     output_path = delete(GENERATED_SPHINX / "apidoc")
 
-    def run_apidoc(module_path, exclude_pattern):
-        cmd = [
-            sys.executable,
-            "-m",
-            "sphinx.ext.apidoc",
-            "-o",
-            str(output_path),
-            module_path,
-            exclude_pattern,
-        ]
-        check_call(cmd, cwd=tsfpga.REPO_ROOT)
-
-    run_apidoc(module_path="tsfpga", exclude_pattern="**/test/**")
+    cmd = [
+        sys.executable,
+        "-m",
+        "sphinx.ext.apidoc",
+        "-o",
+        str(output_path),
+        "tsfpga",
+        "**/test/**",
+    ]
+    check_call(cmd, cwd=tsfpga.REPO_ROOT)
 
 
 def generate_sphinx_index():

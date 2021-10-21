@@ -6,13 +6,14 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+from hdl_registers.parser import from_toml
+
 import tsfpga
 from tsfpga.constraint import Constraint
 from tsfpga.hdl_file import HdlFile
 from tsfpga.ip_core_file import IpCoreFile
 from tsfpga.module_list import ModuleList
 from tsfpga.system_utils import load_python_module
-from tsfpga.registers.parser import from_toml
 
 
 class BaseModule:

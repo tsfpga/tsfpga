@@ -14,9 +14,10 @@ docker run \
   --interactive \
   --tty \
   --user "$(id -u ${USER}):$(id -g ${USER})" \
-  --volume $(pwd):/work/repo/tsfpga/tsfpga \
-  --volume $(pwd)/../hdl_modules:/work/repo/tsfpga/hdl_modules \
+  --volume $(pwd)/../hdl_modules:/work/repo/tsfpga/hdl_modules:ro \
+  --volume $(pwd)/../hdl_registers:/work/repo/tsfpga/hdl_registers:ro \
   --volume $(pwd)/../../vunit/vunit:/work/repo/vunit/vunit:ro \
+  --volume $(pwd):/work/repo/tsfpga/tsfpga \
   --workdir /work/repo/tsfpga/tsfpga \
   tsfpga/formal \
   python3 tsfpga/examples/formal.py $@

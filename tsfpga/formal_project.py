@@ -15,8 +15,8 @@ from vunit.test.runner import TestRunner
 from vunit.test.report import TestReport
 from vunit.color_printer import COLOR_PRINTER, NO_COLOR_PRINTER
 
-from tsfpga.yosys_project import YosysProject
 from tsfpga.module import BaseModule
+from tsfpga.yosys_project import YosysProject
 
 
 class FormalConfig:

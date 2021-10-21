@@ -9,10 +9,11 @@
 from unittest.mock import MagicMock
 import pytest
 
+from hdl_registers.register_list import RegisterList
+
 from tsfpga.module import BaseModule
 from tsfpga.module_documentation import ModuleDocumentation
 from tsfpga.system_utils import create_file
-from tsfpga.registers.register_list import RegisterList
 
 # pylint: disable=redefined-outer-name
 
