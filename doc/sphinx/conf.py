@@ -10,7 +10,6 @@
 Configuration file for the Sphinx documentation builder.
 """
 
-import builtins
 from pathlib import Path
 import sys
 
