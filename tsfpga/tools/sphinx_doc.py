@@ -5,6 +5,8 @@
 # https://tsfpga.com
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
+# A set of methods for building sphinx docs. Should be reusable between projects.
+# --------------------------------------------------------------------------------------------------
 
 from datetime import datetime
 from subprocess import check_call
