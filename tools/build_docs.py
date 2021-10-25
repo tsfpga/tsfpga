@@ -143,7 +143,7 @@ def build_python_coverage_badge(output_path):
     xml_root = ElementTree.parse(coverage_xml).getroot()
     line_coverage = int(round(float(xml_root.attrib["line-rate"]) * 100))
     assert line_coverage > 50, f"Coverage is way low: {line_coverage}. Something is wrong."
-    color = "green" if line_coverage > 80 else "red"
+    color = "red" if line_coverage < 80 else "green"
 
     badge_svg = badge(
         left_text="line coverage",
