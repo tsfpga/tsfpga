@@ -28,7 +28,7 @@ TSFPGA_EXAMPLE_MODULES = TSFPGA_EXAMPLES / "modules"
 # Default encoding when opening files
 DEFAULT_FILE_ENCODING = "utf-8"
 
-__version__ = "11.0.0"
+__version__ = "11.0.1-dev"
 
 # Releases to PyPI are bundled with a release version of the hdl_modules
 # project (https://hdl-modules.com). These three definitions will be filled in that case.
