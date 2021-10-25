@@ -1,3 +1,4 @@
+GitPython
+hdl_registers
 tomlkit
 vunit_hdl
-GitPython
