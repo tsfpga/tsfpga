@@ -1,1 +1,7 @@
-Nothing here yet.
+Breaking changes
+
+* Split out the ``tsfpga/registers/`` folder into the standalone ``hdl_registers`` project
+  (https://hdl-registers.com, https://gitlab.com/tsfpga/hdl_registers).
+  This moves all python modules from the ``tsfpga.registers`` package to a new package called ``hdl_registers``.
+  The PyPI package `tsfpga <https://pypi.org/project/tsfpga/>`__ has a dependency on `hdl_registers <https://pypi.org/project/hdl_registers>`__, so if you install tsfpga via pip the change is transparent.
+  If you use tsfpga from a repo checkout, you will also need to check out the `hdl_registers repo <https://gitlab.com/tsfpga/hdl_registers>`__.
