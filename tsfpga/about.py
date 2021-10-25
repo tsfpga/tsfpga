@@ -39,7 +39,8 @@ IP cores, etc. are handled close to the source code.
 * Handling of IP cores and simlib for your simulation project, with automatic re-compile when \
 necessary.
 * Python-based parallel Vivado build system.
-* Register code generation from TOML: VHDL package, HTML documentation, C header, C++ class.
+* Tightly integrated with `hdl_registers <https://hdl-registers.com>`__.
+  Register code generation will be performed before each simulation and each build.
 * Released under the very permissive BSD 3-Clause License.
 
 The maintainers place high focus on quality, with everything having good unit test coverage and a \
