@@ -3,17 +3,17 @@
 Register code generation
 ========================
 
-There is a register code generation eco-system available in tsfpga which generates code from textual configuration files.
-To start using it simply create a file ``regs_<name>.toml`` in the root of a module (see :ref:`module structure <folder_structure>`).
+The tsfpga module and source code handling is tightly integrated with the
+`hdl_registers <https://hdl-registers.com>`__ register code generator.
+To use it simply create a file ``regs_<name>.toml`` in the root of a module (see :ref:`module structure <folder_structure>`).
+It is fast enough that before each build and each simulation run, the modules will re-generate their VHDL register package so that it is always up-to-date.
+Creating documentation and headers, which are typically distributed as part of FPGA release artifacts, is simple and easy to integrate in a build script.
 
 From the TOML definition the register generator can create a VHDL package with all registers and their fields.
 This VHDL package can then be used with the generic AXI-Lite register file in tsfpga.
 Apart from that a C header and a C++ class can be generated, as well as a HTML page with human-readable documentation.
 See :ref:`register_examples` for a real-world example of register definitions and the code that it generates.
 
-The register generator is well-integrated in the tsfpga module work flow.
-It is fast enough that before each build and each simulation run, the modules will re-generate their VHDL register package so that it is always up-to-date.
-Creating documentation and headers, which are typically distributed as part of FPGA release artifacts, is simple and easy to integrate in a build script.
 
 There is also a set of VHDL AXI components that enable the register bus: AXI-to-AXI-Lite converter, AXI/AXI-Lite interconnect, AXI-Lite mux (splitter), AXI-Lite clock domain crossing, AXI-Lite generic register file.
 These are found in the repo within the `axi module <https://gitlab.com/tsfpga/tsfpga/-/tree/master/modules/axi>`__.
