@@ -8,12 +8,71 @@
 
 from pathlib import Path
 from unittest import TestCase
-from unittest.mock import ANY, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 
 from tsfpga.module import BaseModule, get_modules
 from tsfpga.system_utils import create_file, create_directory
+
+
+def test_add_vunit_config_name():
+    module = BaseModule(path=Path(), library_name="")
+
+    test = MagicMock()
+    pre_config = MagicMock()
+    post_check = MagicMock()
+
+    module.add_vunit_config(test=test, pre_config=pre_config, post_check=post_check)
+    test.add_config.assert_called_once_with(
+        name="", generics=None, pre_config=pre_config, post_check=post_check
+    )
+    test.reset_mock()
+
+    module.add_vunit_config(test=test, name="apa")
+    test.add_config.assert_called_once_with(
+        name="apa", generics=None, pre_config=None, post_check=None
+    )
+    test.reset_mock()
+
+    module.add_vunit_config(test=test, generics=dict(apa="hest", foo="bar"))
+    test.add_config.assert_called_once_with(
+        name="apa_hest.foo_bar",
+        generics=dict(apa="hest", foo="bar"),
+        pre_config=None,
+        post_check=None,
+    )
+    test.reset_mock()
+
+    module.add_vunit_config(test=test, name="zebra", generics=dict(apa="hest", foo="bar"))
+    test.add_config.assert_called_once_with(
+        name="zebra.apa_hest.foo_bar",
+        generics=dict(apa="hest", foo="bar"),
+        pre_config=None,
+        post_check=None,
+    )
+
+
+def test_add_vunit_config_random_seed():
+    module = BaseModule(path=Path(), library_name="")
+    test = MagicMock()
+
+    module.add_vunit_config(test=test)
+    assert "generics" not in test.add_config.call_args
+
+    module.add_vunit_config(test=test, generics={"apa": "whatever"})
+    assert "seed" not in test.add_config.call_args.kwargs["generics"]
+
+    module.add_vunit_config(test=test, set_random_seed=True)
+    assert isinstance(test.add_config.call_args.kwargs["generics"]["seed"], int)
+    assert test.add_config.call_args.kwargs["generics"]["seed"] >= 0
+
+    module.add_vunit_config(test=test, generics={"seed": 711})
+    assert test.add_config.call_args.kwargs["generics"]["seed"] == 711
+
+    # If a value is already set it will be overwritten
+    module.add_vunit_config(test=test, generics={"seed": -5}, set_random_seed=True)
+    assert test.add_config.call_args.kwargs["generics"]["seed"] != -5
 
 
 def test_file_list_filtering(tmp_path):

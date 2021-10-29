@@ -6,6 +6,8 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+import random
+
 from hdl_registers.parser import from_toml
 
 import tsfpga
@@ -356,7 +358,12 @@ class BaseModule:
         """
         Construct a string suitable for naming test cases.
 
-        Example result: MyName.GenericA_ValueA.GenericB_ValueB
+        Arguments:
+            name (str): Optional base name.
+            generics (dict): Dictionary of values that will be included in the name.
+
+        Returns:
+            str: For example ``MyBaseName.GenericA_ValueA.GenericB_ValueB``.
         """
         if name:
             test_case_name = name
@@ -365,6 +372,7 @@ class BaseModule:
 
         if generics:
             generics_string = ".".join([f"{key}_{value}" for key, value in generics.items()])
+
             if test_case_name:
                 test_case_name = f"{name}.{generics_string}"
             else:
@@ -372,10 +380,40 @@ class BaseModule:
 
         return test_case_name
 
-    def add_vunit_config(self, test, name=None, generics=None, pre_config=None, post_check=None):
+    def add_vunit_config(
+        self,
+        test,
+        name=None,
+        generics=None,
+        set_random_seed=False,
+        pre_config=None,
+        post_check=None,
+    ):  # pylint: disable=too-many-arguments
         """
-        Add config for VUnit test case. Wrapper that sets a suitable name.
+        Add config for VUnit test case. Wrapper that sets a suitable name and can set a random
+        seed generic.
+
+        Arguments:
+            test: VUnit test object. Can be testbench or test case.
+            name (str): Optional designated name for this config. Will be used to form the name of
+                the config together with the ``generics`` value.
+            generics (dict): Generic values that will be applied to the testbench entity. The values
+                will also be used to form the name of the config.
+            set_random_seed (bool): When set to ``True``, a random natural (non-negative integer)
+                value will be set for the generic named ``seed``. This generic must exist in the
+                testbench entity, and should have VHDL type ``natural``.
+            pre_config: Function to be run before the test. See VUnit documentation for details.
+            post_check: Function to be run after the test. See VUnit documentation for details.
         """
+        if set_random_seed:
+            # Use the maximum range for a natural in VHDL-2008
+            seed = random.randint(0, 2 ** 31 - 1)
+
+            if generics is None:
+                generics = {}
+
+            generics["seed"] = seed
+
         name = self.test_case_name(name, generics)
         test.add_config(name=name, generics=generics, pre_config=pre_config, post_check=post_check)
 
