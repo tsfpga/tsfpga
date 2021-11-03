@@ -32,9 +32,6 @@ SPHINX_DOC = tsfpga.TSFPGA_DOC / "sphinx"
 def main():
     args = arguments()
 
-    delete(GENERATED_SPHINX)
-    delete(GENERATED_SPHINX_HTML)
-
     generate_registers()
 
     rst = generate_release_notes(
@@ -89,9 +86,13 @@ def generate_apidoc():
         sys.executable,
         "-m",
         "sphinx.ext.apidoc",
-        "-o",
+        # Place module documentation before submodule documentation
+        "--module-first",
+        "--output-dir",
         str(output_path),
+        # module path
         "tsfpga",
+        # exclude pattern
         "**/test/**",
     ]
     check_call(cmd, cwd=tsfpga.REPO_ROOT)
@@ -158,12 +159,15 @@ def build_python_coverage_badge(output_path):
 
 
 def copy_python_coverage_to_html_output():
+    html_output_path = GENERATED_SPHINX_HTML / "python_coverage_html"
+    delete(html_output_path)
+
     coverage_html = tsfpga.TSFPGA_GENERATED / "python_coverage_html"
     assert (
         coverage_html / "index.html"
     ).exists(), "Run pytest with coverage before building documentation"
 
-    shutil.copytree(coverage_html, GENERATED_SPHINX_HTML / "python_coverage_html")
+    shutil.copytree(coverage_html, html_output_path)
 
 
 if __name__ == "__main__":

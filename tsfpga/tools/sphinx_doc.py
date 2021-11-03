@@ -130,7 +130,12 @@ def build_sphinx(build_path, output_path):
         sys.executable,
         "-m",
         "sphinx",
-        "-EanWT",
+        # Enable nitpicky mode
+        "-n",
+        # Turn errors into warnings
+        "-W",
+        # Show full traceback upon error
+        "-T",
         str(build_path),
         str(output_path),
     ]
