@@ -205,7 +205,13 @@ class SimulationProject:
         if force_compile or vivado_simlib.compile_is_needed:
             vivado_simlib.compile()
             vivado_simlib.to_archive()
+
         vivado_simlib.add_to_vunit_project()
+
+        # Code in the "vital2000" package gives GHDL errors such as "result subtype of a pure
+        # function cannot have access subelements". Hence, relaxed rules need to be enabled when
+        # using unisim.
+        self.vunit_proj.set_sim_option("ghdl.elab_flags", ["-frelaxed-rules"])
 
     @staticmethod
     def _generate_ip_core_files(
