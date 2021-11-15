@@ -40,21 +40,13 @@ nitpick_ignore = [
     ("py:class", "vunit.test.report.TestReport"),
     ("py:class", "vunit.test.report.TestResult"),
     ("py:class", "vunit.test.runner.TestRunner"),
-    ("py:class", "Register"),
-    ("py:class", "RegisterList"),
-    ("py:meth", "Register.get_field"),
-    ("py:meth", "RegisterArray.get_register"),
-    ("py:meth", "RegisterList.create_html_register_table"),
-    ("py:meth", "RegisterList.create_html_constant_table"),
-    ("py:meth", "RegisterList.create_python_class"),
-    ("py:meth", "RegisterList.create_vhdl_package"),
-    ("py:meth", "RegisterList.get_constant"),
-    ("py:meth", "RegisterList.get_register"),
-    ("py:meth", "RegisterList.get_register_array"),
-    ("py:meth", "RegisterList.get_register_index"),
 ]
 
-intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "hdl_modules": ("https://hdl-modules.com", None),
+    "hdl_registers": ("https://hdl-registers.com", None),
+}
 
 # Base URL for generated sitemap XML
 html_baseurl = "https://tsfpga.com"

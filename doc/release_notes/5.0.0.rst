@@ -26,8 +26,8 @@ Breaking changes
   This change is done to make it easier to refer to other registers/constants/signals who very often have underscores in their name.
 * Rename ``axi.axi_interconnect`` to ``axi.axi_simple_crossbar`` and ``axi.axil_interconnect`` to ``axi.axil_simple_crossbar``.
   This naming is factual (it is a crossbar, not an interconnect) and more descriptive.
-* Rename ``RegisterList.create_html_table()`` to :meth:`.RegisterList.create_html_register_table`.
-  Add :meth:`.RegisterList.create_html_constant_table`.
+* Rename ``RegisterList.create_html_table()`` to :meth:`hdl_registers.register_list.RegisterList.create_html_register_table`.
+  Add :meth:`hdl_registers.register_list.RegisterList.create_html_constant_table`.
 * Deprecate ``BaseModule.setup_simulations()`` in favor of :meth:`.BaseModule.setup_vunit`.
 * Rework :class:`.BuildProjectList` class completely.
   See the :class:`class documentation <.BuildProjectList>`, the :ref:`minimal usage example <example_build_py>` and the `build.py example in the repo <https://gitlab.com/tsfpga/tsfpga/-/blob/master/tsfpga/examples/build.py>`__.

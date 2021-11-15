@@ -16,8 +16,8 @@ Breaking changes
 * Change meaning of ``almost_empty`` FIFO signal to be "'1' if there are almost_empty_level or fewer words available to read".
   Used to be "fewer than almost_empty_level".
 * Change register json definition file name from ``<name>_regs.json`` to ``regs_<name>.json``.
-* ``default_registers`` passed to :class:`.BaseModule` shall now be a list of :class:`.Register`,
-  instead of a dict.
+* ``default_registers`` passed to :class:`.BaseModule` shall now be a list of
+  :class:`hdl_registers.register.Register`, instead of a dict.
 * Remove generated register constant ``<name>_regs_zero``. Instead add ``<name>_regs_init`` with default values.
 * FPGA build projects shall now be set up with :meth:`.BaseModule.get_build_projects` using ``module_<name>.py`` rather than with ``project_<name>.py``. See :ref:`documentation <example_project_class>`.
 * Rename ``FpgaProjectList`` to :class:`.BuildProjectList` to get a consistent naming.
@@ -26,4 +26,4 @@ Breaking changes
 
 Internal changes
 
-* Refactor register handling to use only one class :class:`.RegisterList`.
+* Refactor register handling to use only one class :class:`hdl_registers.register_list.RegisterList`.

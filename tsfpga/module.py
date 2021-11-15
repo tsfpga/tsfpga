@@ -31,7 +31,7 @@ class BaseModule:
         Arguments:
             path (pathlib.Path): Path to the module folder.
             library_name (str): VHDL library name.
-            default_registers (list(Register)): Default registers.
+            default_registers (list(hdl_registers.register.Register)): Default registers.
         """
         self.path = path.resolve()
         self.name = path.name
@@ -87,8 +87,8 @@ class BaseModule:
     @property
     def registers(self):
         """
-        :class:`.RegisterList`: Get the registers for this module. Can be ``None`` if no TOML file
-            exists and no hook creates registers.
+        hdl_registers.register_list.RegisterList: Get the registers for this module. Can be
+            ``None`` if no TOML file exists and no hook creates registers.
         """
         if self._registers is not None:
             # Only create object once
@@ -437,10 +437,10 @@ def get_modules(
         names_avoid (list(str)): If specified, modules with these names will be discarded.
         library_name_has_lib_suffix (bool): If set, the library name will be
             ``<module name>_lib``, otherwise it is just ``<module name>``.
-        default_registers (list(Register)): Default registers.
+        default_registers (list(hdl_registers.register.Register)): Default registers.
 
     Return:
-        :class:`.ModuleList`: List of module objects (:class:`BaseModule` or child classes thereof)
+        ModuleList: List of module objects (:class:`BaseModule` or child classes thereof)
         created from the specified folders.
     """
     modules = ModuleList()

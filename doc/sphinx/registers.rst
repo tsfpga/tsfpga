@@ -128,7 +128,7 @@ Default registers
 
 A lot of projects use a few default registers in standard locations that shall be present in all modules.
 In order to achieve this, without having to duplicate names and descriptions in many places, there is a ``default_registers`` flag to the :func:`.get_modules` function.
-Passing a list of :class:`.Register` objects will insert them in the register list of all modules that use registers.
+Passing a list of :class:`hdl_registers.register.Register` objects will insert them in the register list of all modules that use registers.
 
 
 Bus layout
@@ -253,7 +253,8 @@ ____________
 The VHDL package file is designed to be used with the generic AXI-Lite register file `available in tsfpga <https://gitlab.com/tsfpga/tsfpga/-/tree/master/modules/reg_file>`__.
 
 Since generation of VHDL packages is usually run in real time (e.g. before running a simulation) the speed of the tool is important.
-In order the save time, :meth:`.RegisterList.create_vhdl_package` maintains a hash of the register definitions, and will only generate the VHDL when necessary.
+In order the save time, :meth:`hdl_registers.register_list.RegisterList.create_vhdl_package` maintains a hash of the register definitions,
+and will only generate the VHDL when necessary.
 
 .. literalinclude:: ../../generated/registers/vhdl/ddr_buffer_regs_pkg.vhd
    :caption: ddr_buffer_regs_pkg.vhd
