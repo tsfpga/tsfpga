@@ -36,7 +36,10 @@ def main():
     args = cli.parse_args()
 
     modules = get_tsfpga_example_modules()
-    modules_no_sim = get_hdl_modules()
+
+    # Avoid the module that depends on Xilinx unisim library
+    module_names_avoid = ["hard_fifo"] if args.vivado_skip else []
+    modules_no_sim = get_hdl_modules(names_avoid=module_names_avoid)
 
     if args.vcs_minimal:
         if args.test_patterns != "*":

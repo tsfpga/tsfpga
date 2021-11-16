@@ -89,8 +89,10 @@ def main():
         delete(args.project_path)
         return
 
-    modules = get_hdl_modules()
+    # Avoid the module that depends on Xilinx unisim library
+    modules = get_hdl_modules(names_avoid=["hard_fifo"])
     formal_project = FormalProject(modules=modules, project_path=args.project_path)
+
     for module in modules:
         module.setup_formal(formal_project)
 
