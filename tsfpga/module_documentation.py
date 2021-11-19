@@ -6,7 +6,7 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-from tsfpga.system_utils import create_file, read_file
+from tsfpga.system_utils import create_file, file_is_in_directory, read_file
 from tsfpga.vhdl_file_documentation import VhdlFileDocumentation
 
 
@@ -67,7 +67,13 @@ register documentation.
 
         return None
 
-    def get_submodule_rst(self, heading_character, heading_character_2, exclude_files=None):
+    def get_submodule_rst(
+        self,
+        heading_character,
+        heading_character_2,
+        exclude_files=None,
+        exclude_module_folders=None,
+    ):
         """
         Get RST code with documentation of the different sub-modules (files) of the module.
         Contains documentation that is extracted from the file headers, as well as a
@@ -75,17 +81,27 @@ register documentation.
 
         Arguments:
             heading_character (str): Character to use for heading underline.
+            heading_character_2 (str): Character to use for next level of heading underline.
+            exclude_files (set(pathlib.Path)): Files that shall be excluded from the documentation.
+            exclude_module_folders (list(str)): Folder names within the module root that shall be
+                excluded from documentation. For example, if you chosen module structure places
+                only netlist build wrappers in the "rtl/" folder within modules, and you do not
+                want them included in the documentation, then pass the argument ["rtl"].
 
         Return:
             str: RST code with sub-module documentation.
         """
         exclude_files = {} if exclude_files is None else exclude_files
+        exclude_module_folders = [] if exclude_module_folders is None else exclude_module_folders
+        exclude_module_paths = [self._module.path / name for name in exclude_module_folders]
 
         all_builds = self._module.get_build_projects()
 
         rst = ""
 
-        for hdl_file in self._get_vhdl_files(exclude_files):
+        for hdl_file in self._get_vhdl_files(
+            exclude_files=exclude_files, exclude_folders=exclude_module_paths
+        ):
             vhdl_file_path = hdl_file.path
             netlist_build_base_name = f"{self._module.library_name}.{vhdl_file_path.stem}"
 
@@ -107,10 +123,14 @@ register documentation.
 
         return rst
 
-    def get_rst_document(self):
+    def get_rst_document(self, exclude_module_folders=None):
         """
         Get a complete RST document with the content of :meth:`.get_overview_rst`,
         :meth:`.get_register_rst`, and :meth:`.get_submodule_rst`, as well as a top level heading.
+
+        Arguments:
+            exclude_module_folders (list(str)): Folder names within the module root that shall be
+                excluded from documentation.
 
         Returns:
             str: An RST document.
@@ -129,7 +149,9 @@ register documentation.
         registers_rst = "" if registers_rst is None else registers_rst
 
         submodule_rst = self.get_submodule_rst(
-            heading_character=heading_character_2, heading_character_2=heading_character_3
+            heading_character=heading_character_2,
+            heading_character_2=heading_character_3,
+            exclude_module_folders=exclude_module_folders,
         )
 
         rst = f"""\
@@ -150,7 +172,7 @@ This document contains technical documentation for the ``{self._module.name}`` m
 
         return rst
 
-    def create_rst_document(self, output_path):
+    def create_rst_document(self, output_path, exclude_module_folders=None):
         """
         Create an ``.rst`` file in ``output_path`` with the content from :meth:`.get_rst_document`.
         If the module has registers, the HTML page will also be generated in ``output_path``, so
@@ -158,24 +180,37 @@ This document contains technical documentation for the ``{self._module.name}`` m
 
         Arguments:
             output_path (pathlib.Path): Document will be placed here.
+            exclude_module_folders (list(str)): Folder names within the module root that shall be
+                excluded from documentation.
         """
         register_list = self._module.registers
         if register_list is not None:
             register_list.create_html_page(output_path)
 
-        create_file(output_path / f"{self._module.name}.rst", contents=self.get_rst_document())
+        rst = self.get_rst_document(exclude_module_folders=exclude_module_folders)
+        create_file(output_path / f"{self._module.name}.rst", contents=rst)
 
-    def _get_vhdl_files(self, exclude_files):
+    def _get_vhdl_files(self, exclude_files, exclude_folders):
         """
         Get VHDL files that shall be included in the documentation, in order.
         """
         hdl_files = self._module.get_synthesis_files(files_avoid=exclude_files)
 
         module_regs_pkg = self._module.path / f"{self._module.name}_regs_pkg.vhd"
-        vhdl_files = []
-        for hdl_file in hdl_files:
-            if hdl_file.is_vhdl and hdl_file.path != module_regs_pkg:
-                vhdl_files.append(hdl_file)
+
+        def file_should_be_included(hdl_file):
+            if file_is_in_directory(hdl_file.path, exclude_folders):
+                return False
+
+            if not hdl_file.is_vhdl:
+                return False
+
+            if hdl_file.path == module_regs_pkg:
+                return False
+
+            return True
+
+        vhdl_files = [hdl_file for hdl_file in hdl_files if file_should_be_included(hdl_file)]
 
         # Sort by file name
         def sort_key(vhdl_file):

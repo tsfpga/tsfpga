@@ -85,3 +85,27 @@ def test_submodule_documentation_with_file_exclude(module_documentation):
         heading_character="-", heading_character_2="_", exclude_files={excluded_vhd}
     )
     assert "Dummy from excluded.vhd." not in rst
+
+
+def test_submodule_documentation_with_folder_exclude(module_documentation):
+    data = """\
+-- -------------------------------------------------------------------------------------------------
+-- Copyright (c) Lukas Vik. All rights reserved.
+-- -------------------------------------------------------------------------------------------------
+-- Dummy from excluded.vhd.
+-- -------------------------------------------------------------------------------------------------
+
+"""
+    # pylint: disable=protected-access
+    create_file(module_documentation._module.path / "rtl" / "excluded.vhd", contents=data)
+
+    rst = module_documentation.get_submodule_rst(heading_character="-", heading_character_2="_")
+    assert "Dummy from excluded.vhd." in rst
+
+    exclude_module_folders = ["rtl"]
+    rst = module_documentation.get_submodule_rst(
+        heading_character="-",
+        heading_character_2="_",
+        exclude_module_folders=exclude_module_folders,
+    )
+    assert "Dummy from excluded.vhd." not in rst
