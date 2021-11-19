@@ -1,8 +1,7 @@
-Docker images for CI and formal
-===============================
+Docker images for CI
+====================
 
-There is a docker image available in ``formal/`` that is used for formal verification in gitlab CI.
-There is also a set of images defined in ``ci/`` that are used for other CI (pytest, simulate, build sphinx).
+There is a set of images defined in ``ci/`` that are used for CI (pytest, simulate, build sphinx).
 That Dockerfile has one stage that includes everything needed for pytest and GHDL/VUnit simulation.
 On top of that is another stage that adds everything needed to build sphinx documentation.
 
@@ -10,7 +9,6 @@ Note that the images are used for CI of sister projects as well (``hdl_modules``
 
 The images are available in the ``tsfpga`` organization on dockerhub:
 
-* https://hub.docker.com/repository/docker/tsfpga/formal
 * https://hub.docker.com/repository/docker/tsfpga/ci_py_sim
 * https://hub.docker.com/repository/docker/tsfpga/ci_py_sim_sphinx
 * https://hub.docker.com/repository/docker/tsfpga/ci_everything
@@ -61,7 +59,7 @@ Run
 Run an image locally using e.g.:
 
 ```
-docker run --interactive --tty --rm --volume ~/work/repo:/repo --workdir /repo/tsfpga/tsfpga tsfpga/formal /bin/bash
+docker run --interactive --tty --rm --volume ~/work/repo:/repo --workdir /repo/tsfpga/tsfpga tsfpga/ci_everything /bin/bash
 ````
 
 
@@ -72,7 +70,6 @@ Pushing an updated ``Dockerfile`` to dockerhub is done with:
 
 ```
 docker login
-docker push tsfpga/formal
 docker push tsfpga/ci_py_sim
 docker push tsfpga/ci_py_sim_sphinx
 docker push tsfpga/ci_everything

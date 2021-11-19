@@ -114,21 +114,11 @@ def test_file_list_filtering(tmp_path):
     files = {file.path for file in my_module.get_simulation_files(files_avoid=synth_files)}
     assert files == test_files | sim_files
 
-    files = {file.path for file in my_module.get_formal_files()}
-    assert files == synth_files | sim_files
-
 
 def test_get_synthesis_files_calls_get_simulation_files_with_correct_arguments():
     module = BaseModule(path=Path(), library_name="")
     with patch("tsfpga.module.BaseModule.get_synthesis_files") as get_synthesis_files:
         module.get_simulation_files(files_include=True, files_avoid=False, apa=123)
-        get_synthesis_files.assert_called_once_with(files_include=True, files_avoid=False, apa=123)
-
-
-def test_get_formal_files_calls_get_simulation_files_with_correct_arguments():
-    module = BaseModule(path=Path(), library_name="")
-    with patch("tsfpga.module.BaseModule.get_synthesis_files") as get_synthesis_files:
-        module.get_formal_files(files_include=True, files_avoid=False, apa=123)
         get_synthesis_files.assert_called_once_with(files_include=True, files_avoid=False, apa=123)
 
 

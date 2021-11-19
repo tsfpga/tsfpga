@@ -190,29 +190,6 @@ class BaseModule:
 
         return synthesis_files + test_files
 
-    def get_formal_files(self, files_include=None, files_avoid=None, **kwargs):
-        """
-        Returns the files to be used for formal verification.
-        By default these are the simulation files, with testbenches excluded
-        (by calling :meth:`get_simulation_files`).
-        Overload this method to select files manually.
-
-        See :meth:`.get_synthesis_files` for instructions on how to use ``files_include``
-        and ``files_avoid``.
-
-        Arguments:
-            files_include (set(`pathlib.Path`)): Optionally filter to only include these files.
-            files_avoid (set(`pathlib.Path`)): Optionally filter to discard these files.
-            kwargs: Further parameters that can be sent by formal flow to control what
-                files are included.
-
-        Return:
-            list(HdlFile): Files that should be included in a formal verification project.
-        """
-        return self.get_simulation_files(
-            include_tests=False, files_include=files_include, files_avoid=files_avoid, **kwargs
-        )
-
     # pylint: disable=unused-argument
     def get_ip_core_files(self, files_include=None, files_avoid=None, **kwargs):
         """
@@ -298,21 +275,6 @@ class BaseModule:
         Arguments:
             vunit_proj: The VUnit project that is used to run simulation.
             kwargs: Use this to pass an arbitrary list of arguments from your ``simulate.py``
-                to the module where you set up your tests. This could be, e.g., data dimensions,
-                location of test files, etc.
-        """
-
-    def setup_formal(self, formal_proj, **kwargs):
-        """
-        Setup this module's formal tests.
-
-        .. Note::
-            This default method does nothing. Should be overridden by modules that
-            utilize formal verification.
-
-        Arguments:
-            formal_proj: The formal project that is being used.
-            kwargs: Use this to pass an arbitrary list of arguments from your ``formal.py``
                 to the module where you set up your tests. This could be, e.g., data dimensions,
                 location of test files, etc.
         """

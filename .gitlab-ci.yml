@@ -71,17 +71,6 @@ build_pypi:
       - dist
 
 
-formal:
-  stage: test
-  image: tsfpga/formal
-  script:
-    - git clone --depth 1 --single-branch --branch master https://gitlab.com/tsfpga/hdl_modules.git ../hdl_modules
-    - git clone --depth 1 --single-branch --branch master https://gitlab.com/tsfpga/hdl_registers.git ../hdl_registers
-    # We need a newer version of axi_stream_pkg.vhd than is currently included in the docker image
-    - git clone --recurse-submodules --depth 1 --single-branch --branch master https://github.com/VUnit/vunit.git ../../vunit/vunit
-    - python3 tsfpga/examples/formal.py --num-threads 4
-
-
 build_pages:
   # Uses coverage artifacts from the pytest job in the previous stage
   stage: build_documentation
