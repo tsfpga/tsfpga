@@ -78,10 +78,10 @@ def test_submodule_documentation_with_file_exclude(module_documentation):
         module_documentation._module.path / "rtl" / "excluded.vhd", contents=data
     )
 
-    rst = module_documentation.get_submodule_rst(heading_character="-")
+    rst = module_documentation.get_submodule_rst(heading_character="-", heading_character_2="_")
     assert "Dummy from excluded.vhd." in rst
 
     rst = module_documentation.get_submodule_rst(
-        heading_character="-", exclude_files={excluded_vhd}
+        heading_character="-", heading_character_2="_", exclude_files={excluded_vhd}
     )
     assert "Dummy from excluded.vhd." not in rst

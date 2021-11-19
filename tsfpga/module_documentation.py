@@ -67,7 +67,7 @@ register documentation.
 
         return None
 
-    def get_submodule_rst(self, heading_character, exclude_files=None):
+    def get_submodule_rst(self, heading_character, heading_character_2, exclude_files=None):
         """
         Get RST code with documentation of the different sub-modules (files) of the module.
         Contains documentation that is extracted from the file headers, as well as a
@@ -81,32 +81,29 @@ register documentation.
         """
         exclude_files = {} if exclude_files is None else exclude_files
 
+        all_builds = self._module.get_build_projects()
+
         rst = ""
 
         for hdl_file in self._get_vhdl_files(exclude_files):
             vhdl_file_path = hdl_file.path
+            netlist_build_base_name = f"{self._module.library_name}.{vhdl_file_path.stem}"
 
-            vhdl_file_documentation = VhdlFileDocumentation(vhdl_file_path)
+            netlist_builds = []
+            # Include all netlist builds whose project name matches this file
+            for project in all_builds:
+                if project.is_netlist_build and (
+                    project.name == netlist_build_base_name
+                    or project.name.startswith(f"{netlist_build_base_name}.")
+                ):
+                    netlist_builds.append(project)
 
-            file_rst = vhdl_file_documentation.get_header_rst()
-            file_rst = "" if file_rst is None else file_rst
-
-            symbolator_rst = self._get_symbolator_rst(vhdl_file_documentation)
-            symbolator_rst = "" if symbolator_rst is None else symbolator_rst
-
-            entity_name = vhdl_file_path.stem
-            heading = f"{vhdl_file_path.name}"
-            heading_underline = heading_character * len(heading)
-            rst += f"""
-.. _{self._module.name}.{entity_name}:
-
-{heading}
-{heading_underline}
-
-{symbolator_rst}
-
-{file_rst}
-"""
+            rst += self._get_vhdl_file_rst(
+                vhdl_file_path=vhdl_file_path,
+                heading_character=heading_character,
+                heading_character_2=heading_character_2,
+                netlist_builds=netlist_builds,
+            )
 
         return rst
 
@@ -120,6 +117,7 @@ register documentation.
         """
         heading_character_1 = "="
         heading_character_2 = "-"
+        heading_character_3 = "_"
 
         heading = f"Module {self._module.name}"
         heading_underline = heading_character_1 * len(heading)
@@ -130,7 +128,9 @@ register documentation.
         registers_rst = self.get_register_rst(heading_character=heading_character_2)
         registers_rst = "" if registers_rst is None else registers_rst
 
-        submodule_rst = self.get_submodule_rst(heading_character=heading_character_2)
+        submodule_rst = self.get_submodule_rst(
+            heading_character=heading_character_2, heading_character_2=heading_character_3
+        )
 
         rst = f"""\
 
@@ -185,6 +185,45 @@ This document contains technical documentation for the ``{self._module.name}`` m
 
         return vhdl_files
 
+    def _get_vhdl_file_rst(
+        self, vhdl_file_path, heading_character, heading_character_2, netlist_builds
+    ):
+        """
+        Get reStructuredText documentation for a VHDL file.
+        """
+        vhdl_file_documentation = VhdlFileDocumentation(vhdl_file_path)
+
+        file_rst = vhdl_file_documentation.get_header_rst()
+        file_rst = "" if file_rst is None else file_rst
+
+        symbolator_rst = self._get_symbolator_rst(vhdl_file_documentation)
+        symbolator_rst = "" if symbolator_rst is None else symbolator_rst
+
+        resource_utilization_rst = self._get_resource_utilization_rst(
+            vhdl_file_path=vhdl_file_path,
+            heading_character=heading_character_2,
+            netlist_builds=netlist_builds,
+        )
+
+        entity_name = vhdl_file_path.stem
+        heading = f"{vhdl_file_path.name}"
+        heading_underline = heading_character * len(heading)
+
+        rst = f"""
+.. _{self._module.name}.{entity_name}:
+
+{heading}
+{heading_underline}
+
+{symbolator_rst}
+
+{file_rst}
+
+{resource_utilization_rst}
+"""
+
+        return rst
+
     @staticmethod
     def _get_symbolator_rst(vhdl_file_documentation):
         """
@@ -197,5 +236,92 @@ This document contains technical documentation for the ``{self._module.name}`` m
         indent = "  "
         rst = ".. symbolator::\n\n"
         rst += indent + component.replace("\n", f"\n{indent}")
+
+        return rst
+
+    def _get_resource_utilization_rst(
+        self,
+        vhdl_file_path,
+        heading_character,
+        netlist_builds,
+    ):  # pylint: disable=too-many-locals,too-many-branches
+        # First, loop over all netlist builds for this module and assemble information
+        generics = []
+        checkers = []
+        for netlist_build in netlist_builds:
+            if netlist_build.build_result_checkers:
+                generics.append(netlist_build.static_generics)
+
+                # Create a dictionary for each build, that maps "Checker name": "value"
+                checker_dict = {}
+                for checker in netlist_build.build_result_checkers:
+                    # Casting the limit to string yields e.g. "< 4", "4" or "> 4"
+                    checker_dict[checker.name] = str(checker.limit)
+
+                checkers.append(checker_dict)
+
+        # Make RST of the information
+        rst = ""
+        if generics:
+            heading = "Resource utilization"
+            heading_underline = heading_character * len(heading)
+            rst = f"""
+{heading}
+{heading_underline}
+
+This entity has :ref:`netlist builds <tsfpga:netlist_build>` set up with
+:ref:`automatic size checkers <tsfpga:build_result_checkers>` in ``module_{self._module.name}.py``.
+The following table lists the resource utilization for the entity, depending on
+generic configuration.
+
+.. list-table:: Resource utilization for {vhdl_file_path.name} netlist builds.
+  :header-rows: 1
+
+"""
+
+            # Make a list of the unique checker names. Use list rather than set to preserve order.
+            checker_names = []
+            for build_checkers in checkers:
+                for checker_name in build_checkers:
+                    if checker_name not in checker_names:
+                        checker_names.append(checker_name)
+
+            # Fill in the header row
+            rst += "  * - Generics\n"
+            for checker_name in checker_names:
+                rst += f"    - {checker_name}\n"
+
+            # Make one row for each netlist build
+            for build_idx, generic_dict in enumerate(generics):
+                generic_strings = [f"{name} = {value}" for name, value in generic_dict.items()]
+                generics_rst = "\n\n      ".join(generic_strings)
+
+                rst += f"""\
+  * - {generics_rst}"""
+
+                # If the "top" of the project is different than this file name, we assume that it
+                # is a wrapper. Add a note to the table about this. This occurs e.g. in the reg_file
+                # and fifo modules.
+                if netlist_builds[build_idx].top != vhdl_file_path.stem:
+                    if generic_strings:
+                        # If there is already something in the generic column, this note shall be
+                        # placed on a new line.
+                        leader = "\n\n      "
+                    else:
+                        # Otherwise, i.e. if the netlist build has no generics set,
+                        # the note shall be placed as the first thing. This is the case with
+                        # two builds in the reg_file module.
+                        leader = ""
+
+                    rst += f"""\
+{leader}(Using wrapper
+
+      {netlist_builds[build_idx].top}.vhd)"""
+
+                rst += "\n"
+
+                for checker_name in checker_names:
+                    checker_value = checkers[build_idx][checker_name]
+                    rst += f"    - {checker_value}\n"
 
         return rst

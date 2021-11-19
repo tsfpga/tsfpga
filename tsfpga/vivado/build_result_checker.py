@@ -73,15 +73,13 @@ class BuildResultChecker:
         """
         raise NotImplementedError("Implement in child class")
 
-    def _check_value(self, resource_name, value):
+    def _check_value(self, name, value):
         if self.limit.check(value):
-            message = f"Result size check passed for {resource_name}: {value} ({self.limit})"
+            message = f"Result size check passed for {name}: {value} ({self.limit})"
             print(message)
             return True
 
-        message = (
-            f"Result size check failed for {resource_name}. " f"Got {value}, expected {self.limit}."
-        )
+        message = f"Result size check failed for {name}. " f"Got {value}, expected {self.limit}."
         print(message)
         return False
 
@@ -92,6 +90,8 @@ class MaximumLogicLevel(BuildResultChecker):
     Check the maximum logic level of a build result against a limit.
     """
 
+    name = "Maximum logic level"
+
     def check(self, build_result):
         return self._check_value("maximum logic level", build_result.maximum_logic_level)
 
@@ -101,59 +101,57 @@ class SizeChecker(BuildResultChecker):
     """
     Check a build result size value against a limit.
 
-    Overload and set the correct ``resource_name``, according to the names
+    Overload and set the correct ``name``, according to the names
     in the vendor utilization report.
 
     Note that since this is to be used by netlist builds it checks the synthesized size, not
     the implemented one, even if available.
     """
 
-    resource_name = ""
+    name = ""
 
     def check(self, build_result):
-        return self._check_value(
-            self.resource_name, build_result.synthesis_size[self.resource_name]
-        )
+        return self._check_value(self.name, build_result.synthesis_size[self.name])
 
 
 class TotalLuts(SizeChecker):
 
-    resource_name = "Total LUTs"
+    name = "Total LUTs"
 
 
 class LogicLuts(SizeChecker):
 
-    resource_name = "Logic LUTs"
+    name = "Logic LUTs"
 
 
 class LutRams(SizeChecker):
 
-    resource_name = "LUTRAMs"
+    name = "LUTRAMs"
 
 
 class Srls(SizeChecker):
 
-    resource_name = "SRLs"
+    name = "SRLs"
 
 
 class Ffs(SizeChecker):
 
-    resource_name = "FFs"
+    name = "FFs"
 
 
 class Ramb36(SizeChecker):
 
-    resource_name = "RAMB36"
+    name = "RAMB36"
 
 
 class Ramb18(SizeChecker):
 
-    resource_name = "RAMB18"
+    name = "RAMB18"
 
 
 class Uram(SizeChecker):
 
-    resource_name = "URAM"
+    name = "URAM"
 
 
 class DspBlocks(SizeChecker):
@@ -163,7 +161,7 @@ class DspBlocks(SizeChecker):
     After that it is called "DSP Blocks". This class checks for both.
     """
 
-    resource_name = "DSP Blocks"
+    name = "DSP Blocks"
 
     def check(self, build_result):
         """
@@ -173,6 +171,4 @@ class DspBlocks(SizeChecker):
         if legacy_name in build_result.synthesis_size:
             return self._check_value(legacy_name, build_result.synthesis_size[legacy_name])
 
-        return self._check_value(
-            self.resource_name, build_result.synthesis_size[self.resource_name]
-        )
+        return self._check_value(self.name, build_result.synthesis_size[self.name])
