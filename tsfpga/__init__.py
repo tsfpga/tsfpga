@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 THIS_DIR = Path(__file__).parent
-REPO_ROOT = (THIS_DIR / "..").resolve()
+REPO_ROOT = THIS_DIR.parent.resolve()
 
 TSFPGA_PATH = REPO_ROOT / "tsfpga"
 TSFPGA_DOC = REPO_ROOT / "doc"
