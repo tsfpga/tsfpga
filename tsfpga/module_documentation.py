@@ -194,7 +194,9 @@ This document contains technical documentation for the ``{self._module.name}`` m
         """
         Get VHDL files that shall be included in the documentation, in order.
         """
-        hdl_files = self._module.get_synthesis_files(files_avoid=exclude_files)
+        hdl_files = self._module.get_simulation_files(
+            files_avoid=exclude_files, include_tests=False
+        )
 
         module_regs_pkg = self._module.path / f"{self._module.name}_regs_pkg.vhd"
 

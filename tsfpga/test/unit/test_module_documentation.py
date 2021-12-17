@@ -102,10 +102,43 @@ def test_submodule_documentation_with_folder_exclude(module_documentation):
     rst = module_documentation.get_submodule_rst(heading_character="-", heading_character_2="_")
     assert "Dummy from excluded.vhd." in rst
 
-    exclude_module_folders = ["rtl"]
     rst = module_documentation.get_submodule_rst(
         heading_character="-",
         heading_character_2="_",
-        exclude_module_folders=exclude_module_folders,
+        exclude_module_folders=["rtl"],
     )
     assert "Dummy from excluded.vhd." not in rst
+
+
+def test_include_sim_but_not_test_folder(module_documentation):
+    data = """\
+-- -------------------------------------------------------------------------------------------------
+-- Copyright (c) Lukas Vik. All rights reserved.
+-- -------------------------------------------------------------------------------------------------
+-- Dummy from bfm.vhd.
+-- -------------------------------------------------------------------------------------------------
+
+"""
+    # pylint: disable=protected-access
+    create_file(module_documentation._module.path / "sim" / "bfm.vhd", contents=data)
+
+    data = """\
+-- -------------------------------------------------------------------------------------------------
+-- Copyright (c) Lukas Vik. All rights reserved.
+-- -------------------------------------------------------------------------------------------------
+-- Dummy from tb.vhd.
+-- -------------------------------------------------------------------------------------------------
+
+"""
+    # pylint: disable=protected-access
+    create_file(module_documentation._module.path / "test" / "tb.vhd", contents=data)
+
+    rst = module_documentation.get_submodule_rst(heading_character="-", heading_character_2="_")
+    assert "Dummy from bfm.vhd." in rst
+    assert "Dummy from tb.vhd." not in rst
+
+    rst = module_documentation.get_submodule_rst(
+        heading_character="-", heading_character_2="_", exclude_module_folders=["sim"]
+    )
+    assert "Dummy from bfm.vhd." not in rst
+    assert "Dummy from tb.vhd." not in rst
