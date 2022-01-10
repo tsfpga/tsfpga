@@ -6,7 +6,10 @@ Simulation flow
 This page shows how to run simulations using tsfpga and VUnit.
 
 As far as simulations go tsfpga can be seen as a layer on top of VUnit.
-tsfpga helps manage the inputs to the simulation project: source files, test benches, :ref:`test configurations <local_configuration>`, :ref:`register code generation <registers>`, :ref:`IP cores <vivado_ip_cores>`, :ref:`simlib <vivado_simlib>`, ...
+tsfpga helps manage the inputs to the simulation project: source files, test benches,
+:ref:`test configurations <local_configuration>`,
+:ref:`register code generation <integration_hdl_registers>`,
+:ref:`IP cores <vivado_ip_cores>`, :ref:`simlib <vivado_simlib>`, ...
 All features of VUnit are available as they are, and all simulators are supported (ghdl as well as commercial).
 
 
@@ -45,7 +48,7 @@ Source files, packages and testbenches are collected from a few standard locatio
 
 The :meth:`module.get_simulation_files() <.BaseModule.get_simulation_files>` call returns a list of files (:class:`.HdlFile` objects) that are to be included in the simulation project.
 This includes source files and packages as well as test files.
-If you use :ref:`register code generation <registers>`, the call will generate a new VHDL package so that you are always simulating with an up-to-date register definition.
+If you use :ref:`register code generation <integration_hdl_registers>`, the call will generate a new VHDL package so that you are always simulating with an up-to-date register definition.
 
 Actually even this example is not truly minimal.
 The call to :meth:`module.setup_vunit() <.BaseModule.setup_vunit>` does nothing in default setup, but is used to set up :ref:`local configuration of test cases <local_configuration>` later.

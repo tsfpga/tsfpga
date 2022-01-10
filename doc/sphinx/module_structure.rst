@@ -92,7 +92,7 @@ Extra folders like these can be used freely and will not have any significance t
 regs_foo.toml
 -------------
 
-Register definitions used in the tsfpga :ref:`register generator <registers>` are taken from a file called ``regs_<module_name>.toml``.
+The file ``regs_<module_name>.toml``, if it exists, will be parsed with the :ref:`hdl_registers register generator <integration_hdl_registers>`.
 It contains the registers that the module uses and the fields within those registers.
 
 

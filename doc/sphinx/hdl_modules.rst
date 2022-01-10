@@ -1,7 +1,7 @@
 .. _integration_hdl_modules:
 
-Integration with ``hdl_modules``
-================================
+Integration with hdl_modules
+============================
 
 The ``tsfpga`` project can with great benefit be used with its sister project ``hdl_modules`` (
 https://hdl-modules.com, https://gitlab.com/tsfpga/hdl_modules).
@@ -16,8 +16,8 @@ This module list can then be added to the list of modules when setting up a simu
 Example usage in tsfpga
 -----------------------
 
-The example modules in tsfpga depend on the hdl_modules, hence ``simulate.py``, ``build.py``
-and ``formal.py`` can not be run without adding these modules to the project.
+The example modules in tsfpga depend on the hdl_modules, hence ``simulate.py`` and ``build.py``
+can not be run without adding these modules to the project.
 
 The `tsfpga/examples/simulate.py <https://gitlab.com/tsfpga/tsfpga/blob/master/tsfpga/examples/simulate.py>`__
 script showcases an example of a simulation project where hdl_modules are added as modules that shall be compiled but who's tests shall not be run.

@@ -88,7 +88,8 @@ It shows to build projects being launched in parallel, and then finishing and ro
 
 
 
-Note that before a project is built a :ref:`register generation <registers>` is run, so that the project is built using up-to-date register definitions.
+Note that before a project is built a :ref:`register generation <integration_hdl_registers>` is run,
+so that the project is built using up-to-date register definitions.
 
 Of course a more realistic ``build.py`` would be a little more verbose.
 It would probably feature command line arguments that control the behavior, output paths, etc.

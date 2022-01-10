@@ -28,8 +28,6 @@ Breaking changes
   - Move ``default_value`` property from ``register`` to be a property on each register
     field (bits, bit vectors).
 
-  See :ref:`register_toml_format`.
-
 * Rename generated register C header bit definitions to have ``_SHIFT`` and ``_MASK`` suffix.
   This is to be consistent with the naming for bit vector fields.
 

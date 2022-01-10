@@ -17,8 +17,8 @@
     fpga_build
     netlist_build
     module_structure
-    registers
     hdl_modules
+    hdl_registers
 
 .. toctree::
     :caption: API reference
