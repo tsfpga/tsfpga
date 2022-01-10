@@ -27,7 +27,7 @@ About tsfpga
   :alt: Python line coverage
   :target: https://tsfpga.com/python_coverage_html
 
-tsfpga is a development platform that aims to streamline all aspects of your FPGA project.
+tsfpga is a development platform that aims to streamline the code structure and user experience in your FPGA project.
 With its python build/simulation flow it is perfect for CI/CD and test-driven development.
 Focus has been placed on flexibility and modularization, achieving scalability even in very large multi-vendor code bases.
 

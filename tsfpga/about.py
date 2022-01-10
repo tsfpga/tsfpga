@@ -12,7 +12,8 @@ from tsfpga.system_utils import create_file, read_file
 
 def get_slogan():
     return (
-        "tsfpga is a development platform that aims to streamline all aspects of your FPGA project."
+        "tsfpga is a development platform that aims to streamline the code structure and user "
+        "experience in your FPGA project."
     )
 
 
