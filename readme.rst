@@ -28,7 +28,7 @@ About tsfpga
   :target: https://tsfpga.com/python_coverage_html
 
 tsfpga is a development platform that aims to streamline all aspects of your FPGA project.
-With its python build/simulation flow, along with complementary VHDL components, it is perfect for CI/CD and test-driven development.
+With its python build/simulation flow it is perfect for CI/CD and test-driven development.
 Focus has been placed on flexibility and modularization, achieving scalability even in very large multi-vendor code bases.
 
 **See documentation on the website**: https://tsfpga.com

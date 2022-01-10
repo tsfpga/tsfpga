@@ -18,8 +18,7 @@ def get_slogan():
 
 def get_short_doc():
     return f"""{get_slogan()}
-With its python build/simulation flow, along with complementary VHDL components, it is perfect \
-for CI/CD and test-driven development.
+With its python build/simulation flow it is perfect for CI/CD and test-driven development.
 Focus has been placed on flexibility and modularization, achieving scalability even in very \
 large multi-vendor code bases.
 """
