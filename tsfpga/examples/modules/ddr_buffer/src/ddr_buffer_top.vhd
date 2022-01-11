@@ -51,14 +51,16 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axi_read_m2s.ar.addr(regs_down(0)'range) <= unsigned(regs_down(ddr_buffer_addrs_read_addr(current_addr_index)));
+  axi_read_m2s.ar.addr(regs_down(0)'range) <=
+    unsigned(regs_down(ddr_buffer_addrs_read_addr(current_addr_index)));
   axi_read_m2s.ar.len <= to_len(ddr_buffer_constant_burst_length_beats);
   axi_read_m2s.ar.size <= to_size(ddr_buffer_constant_axi_data_width);
   axi_read_m2s.ar.burst <= axi_a_burst_incr;
 
 
   ------------------------------------------------------------------------------
-  axi_write_m2s.aw.addr(regs_down(0)'range) <= unsigned(regs_down(ddr_buffer_addrs_write_addr(current_addr_index)));
+  axi_write_m2s.aw.addr(regs_down(0)'range) <=
+    unsigned(regs_down(ddr_buffer_addrs_write_addr(current_addr_index)));
   axi_write_m2s.aw.len <= to_len(ddr_buffer_constant_burst_length_beats);
   axi_write_m2s.aw.size <= to_size(ddr_buffer_constant_axi_data_width);
   axi_write_m2s.aw.burst <= axi_a_burst_incr;

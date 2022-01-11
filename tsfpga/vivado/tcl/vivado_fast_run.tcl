@@ -28,4 +28,5 @@ set_property STRATEGY Flow_RuntimeOptimized [get_runs impl_2]
 
 # This option shortens router runtime at the expense of repeatability. With -ultrathreads,
 # the router runs faster but there is a variation in routing between identical runs.
-set_property -name {STEPS.PHYS_OPT_DESIGN.ARGS.MORE OPTIONS} -value -ultrathreads -objects [get_runs impl_2]
+set_property -name {STEPS.PHYS_OPT_DESIGN.ARGS.MORE OPTIONS} -value -ultrathreads \
+  -objects [get_runs impl_2]

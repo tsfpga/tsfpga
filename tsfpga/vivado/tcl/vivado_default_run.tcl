@@ -9,7 +9,7 @@
 #
 # The names of the properties can be found by changing a setting in the GUI an see what TCL
 # command is printed to the console.
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 puts "Setting up default run"
 
@@ -22,8 +22,9 @@ puts "Setting up default run"
 
 set_property STEPS.SYNTH_DESIGN.ARGS.DIRECTIVE Default [get_runs synth_1]
 
-# Allows the synthesis tool to flatten the hierarchy, perform synthesis, and then rebuild the hierarchy
-# based on the original RTL. This value allows the QoR benefit of cross-boundry optimizations with a
+# Allows the synthesis tool to flatten the hierarchy, perform synthesis, and then rebuild the
+# hierarchy based on the original RTL.
+# This value allows the QoR benefit of cross-boundry optimizations with a
 # final hierarchy that is similar to the RTL for ease of analysis.
 set_property STEPS.SYNTH_DESIGN.ARGS.FLATTEN_HIERARCHY Rebuilt [get_runs synth_1]
 

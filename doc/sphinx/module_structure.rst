@@ -4,13 +4,15 @@ Module structure
 ================
 
 Source code management in tsfpga is centered around modules.
-This page describes how modules must be structured in the file system in order to use all available functions.
+This page describes how modules must be structured in the file system in order to use all
+available functions.
 
 Some functions in tsfpga require that modules use a certain folder structure.
 For example, if we want to set up :ref:`local test configurations <local_configuration>` we
 must use a file called exactly ``module_<name>.py`` in the root of the module.
 Additionally the :meth:`get_modules() <tsfpga.module.get_modules>` function in tsfpga, which creates
-:class:`module objects <tsfpga.module.BaseModule>` from a source tree, will look for source files only in certain sub-directories.
+:class:`module objects <tsfpga.module.BaseModule>` from a source tree, will look for source files
+only in certain sub-directories.
 
 Below is a recommended folder structure.
 The different files and folders are explained further down.
@@ -54,8 +56,11 @@ Source code and packages are recommended to be placed in the ``src`` folder.
 There is no distinction made between entity source files and packages in tsfpga.
 The corresponding test benches are recommended to use the ``test`` folder.
 
-We don't have to use these exact folders; :class:`BaseModule <tsfpga.module.BaseModule>` will look for files in many folders, to accommodate for different projects using different structures.
-For example, at the moment :meth:`BaseModule.get_synthesis_files() <tsfpga.module.BaseModule.get_synthesis_files>` will look for source files in
+We don't have to use these exact folders; :class:`BaseModule <tsfpga.module.BaseModule>` will look
+for files in many folders, to accommodate for different projects using different structures.
+For example, at the moment
+:meth:`BaseModule.get_synthesis_files() <tsfpga.module.BaseModule.get_synthesis_files>` will look
+for source files in
 
 * ``src``
 * ``rtl``
@@ -63,7 +68,8 @@ For example, at the moment :meth:`BaseModule.get_synthesis_files() <tsfpga.modul
 * ``hdl/package``
 
 .. note::
-    If your project uses a different folder structure, and is locked into using it, tsfpga can be updated to accommodate that as well.
+    If your project uses a different folder structure, and is locked into using it, tsfpga can be
+    updated to accommodate that as well.
     This goes for most of the folders within the module, described below.
     Feel free to create and `issue <https://gitlab.com/tsfpga/tsfpga/issues>`__ or a merge request.
 
@@ -74,17 +80,22 @@ For example, at the moment :meth:`BaseModule.get_synthesis_files() <tsfpga.modul
 module_foo.py
 -------------
 
-If we want to, e.g., set up :ref:`FPGA build projects <example_project_class>` or do :ref:`local test configurations <local_configuration>` we can use a file called ``module_<name>.py``.
-The Python file shall contain a class definition called ``Module`` that inherits from :class:`.BaseModule`.
+If we want to, e.g., set up :ref:`FPGA build projects <example_project_class>` or do
+:ref:`local test configurations <local_configuration>` we can use a file
+called ``module_<name>.py``.
+The Python file shall contain a class definition called ``Module`` that inherits
+from :class:`.BaseModule`.
 Methods from :class:`.BaseModule` can then be overridden to achieve the desired behavior.
 
 
 Extra files
 +++++++++++
 
-An FPGA build project might need a lot extra files, such as TCL scripts for pinning, block design, etc.
+An FPGA build project might need a lot extra files, such as TCL scripts for pinning,
+block design, etc.
 Or maybe some simulations need data files stored on disk.
-It is perfectly valid to create other folders within the module, e.g. ``tcl`` or ``test/data``, and place files there.
+It is perfectly valid to create other folders within the module, e.g. ``tcl`` or ``test/data``,
+and place files there.
 Extra folders like these can be used freely and will not have any significance to tsfpga.
 
 
@@ -92,7 +103,8 @@ Extra folders like these can be used freely and will not have any significance t
 regs_foo.toml
 -------------
 
-The file ``regs_<module_name>.toml``, if it exists, will be parsed with the :ref:`hdl_registers register generator <integration_hdl_registers>`.
+The file ``regs_<module_name>.toml``, if it exists, will be parsed with the
+:ref:`hdl_registers register generator <integration_hdl_registers>`.
 It contains the registers that the module uses and the fields within those registers.
 
 
@@ -102,7 +114,8 @@ It contains the registers that the module uses and the fields within those regis
 IP cores
 --------
 
-In tsfpga, IP cores are handled using TCL files that contain the code snippet that generates the core.
+In tsfpga, IP cores are handled using TCL files that contain the code snippet that generates
+the core.
 This TCL snippet can be found in the Vivado TCL console when creating or modifying the IP.
 It typically looks something like this:
 
@@ -112,17 +125,22 @@ It typically looks something like this:
     :lines: 9-
 
 These TCL files shall be place in the ``ip_cores`` folder within the module.
-The IP cores will be included in all build projects that include the module, and in the simulation project.
+The IP cores will be included in all build projects that include the module, and in the
+simulation project.
 
-Using small TCL snippets like this is preferred to using the ``.xci`` file generated by Vivado, especially when it comes to version control.
-The ``.xci`` file is very large and contains much extraneous information, that tends to be updated depending on what computer and Vivado version you're using.
+Using small TCL snippets like this is preferred to using the ``.xci`` file generated by Vivado,
+especially when it comes to version control.
+The ``.xci`` file is very large and contains much extraneous information, that tends to be updated
+depending on what computer and Vivado version you're using.
 The ``.tcl`` file on the other hand contains only the few settings that are needed.
 
 Another advantage of using TCL is that it is a full-fledged scripting language.
 We can use variables, loops and if/else branches to parameterize our IP core creation.
-In the TCL snippet above for example, the IP core name or some of the property values could be replaced by variables.
+In the TCL snippet above for example, the IP core name or some of the property values could be
+replaced by variables.
 
-To find the settings of an existing IP, the following TCL code can be executed with an existing design open:
+To find the settings of an existing IP, the following TCL code can be executed with an existing
+design open:
 
 .. code-block:: none
     :caption: Finding the non-default settings of all IP cores.
@@ -150,8 +168,11 @@ Scoped constraints
 ------------------
 
 Scoped constraints are constraint files that are applied in Vivado relative to a certain entity.
-This is handled in :meth:`build projects <tsfpga.vivado.project.VivadoProject>` using the :meth:`Constraint <tsfpga.constraint.Constraint>` class.
-Constraint files in the ``scoped_constraints`` directory will be automatically added to :ref:`build projects <build>` as scoped constraints.
+This is handled in :meth:`build projects <tsfpga.vivado.project.VivadoProject>` using the
+:meth:`Constraint <tsfpga.constraint.Constraint>` class.
+Constraint files in the ``scoped_constraints`` directory will be automatically added to
+:ref:`build projects <build>` as scoped constraints.
 
 The name of a scoped constraint file must be the same as the entity name and source file name.
-In the example tree above there is a scoped constraint file ``sample_data.tcl`` that will be applied to ``sample_data.vhd``, which presumably contains an entity called ``sample_data``.
+In the example tree above there is a scoped constraint file ``sample_data.tcl`` that will be applied
+to ``sample_data.vhd``, which presumably contains an entity called ``sample_data``.

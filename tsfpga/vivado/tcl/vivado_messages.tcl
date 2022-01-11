@@ -11,7 +11,7 @@
 # the logs. This is achieved by lowering their severity to INFO.
 #
 # For some inspiration see https://github.com/slaclab/ruckus/blob/master/vivado_messages.tcl
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 puts "Applying vivado messages"
 
@@ -32,7 +32,8 @@ set_msg_config -new_severity INFO -id {Synth 8-3331}
 set_msg_config -new_severity INFO -id {Synth 8-3917}
 
 # Message: Ignoring unsynthesizable construct: dynamic assertion
-# Motivation: Expected behavior. Dynamic assertions are used for simulation. Vivado will ignore them.
+# Motivation: Expected behavior. Dynamic assertions are used for simulation.
+#             Vivado will ignore them.
 set_msg_config -new_severity INFO -id {Synth 8-312}
 
 # Message: Use of 'set_false_path' with '-hold' is not supported by synthesis.

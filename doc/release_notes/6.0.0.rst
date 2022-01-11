@@ -19,8 +19,10 @@ Breaking changes
   ``axi.axi_write_throttle``. This introduces three new generics that must be set.
 * Change ``bfm.axi_slave`` and ``bfm.axil_slave`` interfaces to require two ``axi_slave_t``
   generics: ``axi_read_slave`` and ``axi_write_slave``.
-* Break ``axi.axi_simple_crossbar`` into ``axi.axi_simple_read_crossbar`` and ``axi.axi_simple_write_crossbar``.
-* Break ``axi.axil_simple_crossbar`` into ``axi.axil_simple_read_crossbar`` and ``axi.axil_simple_write_crossbar``.
+* Break ``axi.axi_simple_crossbar`` into ``axi.axi_simple_read_crossbar``
+  and ``axi.axi_simple_write_crossbar``.
+* Break ``axi.axil_simple_crossbar`` into ``axi.axil_simple_read_crossbar``
+  and ``axi.axil_simple_write_crossbar``.
 
 Changes
 

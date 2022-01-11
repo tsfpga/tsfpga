@@ -15,7 +15,8 @@ Install further dependencies with:
 
     python -m pip install --upgrade --requirement tsfpga/requirements_develop.txt
 
-You also need VUnit installed `somewhere where python can find it <https://vunit.github.io/installing.html>`__.
+You also need VUnit installed
+`somewhere where python can find it <https://vunit.github.io/installing.html>`__.
 
 
 
@@ -25,8 +26,10 @@ Maintaining changelog
 ---------------------
 
 We maintain a changelog according to the `keep a changelog <https://keepachangelog.com/>`__ format.
-The unreleased changelog in ``doc/release_notes/unreleased.rst`` shall be updated continuously, not just at release.
-Release note files are in the ``rst`` format, inspect older release note files to see the formatting details.
+The unreleased changelog in ``doc/release_notes/unreleased.rst`` shall be updated continuously,
+not just at release.
+Release note files are in the ``rst`` format, inspect older release note files to see the
+formatting details.
 
 
 
@@ -39,16 +42,21 @@ So before building documentation you must run pytest with coverage reports enabl
 
 .. code-block:: shell
 
-    python -m pytest -v --cov tsfpga --cov-report xml:generated/python_coverage.xml --cov-report html:generated/python_coverage_html tsfpga
+    python3 -m pytest -v --cov tsfpga --cov-report xml:generated/python_coverage.xml \
+      --ignore tsfpga/test/functional/vivado/ \
+      --ignore tsfpga/test/functional/commercial_simulators/ \
+      --cov-report html:generated/python_coverage_html tsfpga
 
-If want to skip handling of coverage for the documentation there is a flag available in the script, see ``build_docs.py --help``.
+If want to skip handling of coverage for the documentation there is a flag available in the script,
+see ``build_docs.py --help``.
 
 
 
 How to make a new release
 -------------------------
 
-Releases are made to the Python Packaging Index (PyPI) and can be installed with the python ``pip`` tool.
+Releases are made to the Python Packaging Index (PyPI) and can be installed with the python
+``pip`` tool.
 To make a new release follow these steps.
 
 
@@ -56,7 +64,8 @@ Test CI pipeline
 ________________
 
 Before doing anything, launch a CI run from master to see that everything works as expected.
-The CI environment is stable but due to things like, e.g., new pylint version it can unexpectedly break.
+The CI environment is stable but due to things like, e.g., new pylint version it can
+unexpectedly break.
 When the pipeline has finished and is green you can move on to the next step.
 
 
@@ -104,8 +113,10 @@ The pipeline for the tag will run an additional job ``deploy_pypi``:
 .. image:: files/ci_deploy_jobs.png
 
 Wait until that pipeline is finished before proceeding to merge the commits.
-The pipeline for the merge request might finish before the pipeline for the tag (which pushes to PyPI).
-So we wait for the tag pipeline to finish before merging, to be sure that the release upload worked before adding commits to master.
+The pipeline for the merge request might finish before the pipeline for the tag
+(which pushes to PyPI).
+So we wait for the tag pipeline to finish before merging, to be sure that the release upload worked
+before adding commits to master.
 
 The package is uploaded to https://pypi.org/project/tsfpga/.
 You can check there to make sure your new release is available.
@@ -114,4 +125,5 @@ You can check there to make sure your new release is available.
 Merge
 _____
 
-If everything went well then you can merge your release commit to master via the gitlab merge request GUI.
+If everything went well then you can merge your release commit to master via the gitlab merge
+request GUI.

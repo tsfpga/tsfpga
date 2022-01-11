@@ -8,7 +8,7 @@
 
 import pytest
 
-from tsfpga import DEFAULT_FILE_ENCODING, REPO_ROOT, TSFPGA_DOC
+from tsfpga import DEFAULT_FILE_ENCODING, REPO_ROOT, TSFPGA_DOC, TSFPGA_EXAMPLE_MODULES, TSFPGA_TCL
 from tsfpga.git_utils import find_git_files
 from tsfpga.system_utils import create_file
 
@@ -115,6 +115,49 @@ def test_no_checked_in_files_contain_trailing_whitespace():
     assert test_ok
 
 
+def check_file_for_line_length(file_path, max_length=100):
+    max_length_with_newline = max_length + 1
+    test_ok = True
+
+    with open(file_path, encoding=DEFAULT_FILE_ENCODING) as file_handle:
+        lines = file_handle.readlines()
+        for line_number, line in enumerate(lines):
+            line_length = len(line)
+            if line_length > max_length_with_newline:
+                print(
+                    f"Line {file_path}:{line_number + 1} is too long "
+                    f"({line_length - 1} > {max_length_with_newline - 1})"
+                )
+                test_ok = False
+
+    return test_ok
+
+
+def test_no_checked_in_file_have_too_long_lines():
+    test_ok = True
+    excludes = [
+        # YAML format seems hard to break lines in
+        REPO_ROOT / ".gitlab-ci.yml",
+        # We list the license text exactly as the original, with no line breaks
+        REPO_ROOT / "license.rst",
+        # Impossible RST syntax to break
+        TSFPGA_DOC / "release_notes" / "5.0.0.rst",
+        TSFPGA_DOC / "sphinx" / "hdl_modules.rst",
+        TSFPGA_DOC / "sphinx" / "hdl_registers.rst",
+        TSFPGA_DOC / "sphinx" / "simulation.rst",
+        # Impossible dockerfile syntax to break
+        REPO_ROOT / "docker" / "ci" / "Dockerfile",
+        # Impossible TCL syntax to break
+        TSFPGA_TCL / "check_timing.tcl",
+        # From Vivado, not modified by us
+        TSFPGA_EXAMPLE_MODULES / "artyz7" / "tcl" / "block_design.tcl",
+    ]
+    for file_path in files_to_test(exclude_directories=excludes):
+        test_ok &= check_file_for_line_length(file_path=file_path)
+
+    assert test_ok
+
+
 def files_to_test(exclude_directories=None):
     # Do not test binary image files
     return find_git_files(
@@ -165,3 +208,24 @@ def test_check_file_for_trailing_whitespace(tmp_path):
     data = "Apa \nhest    \nzebra"
     file = create_file(tmp_path / "temp_file_for_test.txt", data)
     assert not check_file_for_trailing_whitespace(file)
+
+
+def test_check_file_for_line_length(tmp_path):
+    """
+    Sanity check that the function we use actually triggers on bad files.
+    """
+    ok_data = """
+asdf
+apa
+hest
+"""
+    ok_file_path = create_file(tmp_path / "ok_data.txt", contents=ok_data)
+    assert check_file_for_line_length(ok_file_path)
+
+    bad_data = """
+asdf
+apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa
+hest
+"""
+    bad_file_path = create_file(tmp_path / "bad_data.txt", contents=bad_data)
+    assert not check_file_for_line_length(file_path=bad_file_path, max_length=80)

@@ -13,7 +13,8 @@ The images are available in the ``tsfpga`` organization on dockerhub:
 * https://hub.docker.com/repository/docker/tsfpga/ci_py_sim_sphinx
 * https://hub.docker.com/repository/docker/tsfpga/ci_everything
 
-Unfortunately we can not use automated dockerhub builds since this project is sponsored by a commercial company.
+Unfortunately we can not use automated dockerhub builds since this project is sponsored by a
+commercial company.
 Details:
 
 * https://docs.docker.com/docker-hub/builds/
@@ -59,7 +60,8 @@ Run
 Run an image locally using e.g.:
 
 ```
-docker run --interactive --tty --rm --volume ~/work/repo:/repo --workdir /repo/tsfpga/tsfpga tsfpga/ci_everything /bin/bash
+docker run --interactive --tty --rm --volume ~/work/repo:/repo \
+  --workdir /repo/tsfpga/tsfpga tsfpga/ci_everything /bin/bash
 ````
 
 
@@ -75,4 +77,5 @@ docker push tsfpga/ci_py_sim_sphinx
 docker push tsfpga/ci_everything
 ```
 
-Note that you need a dockerhub user ID, and that your user needs to be part of the ``tsfpga`` organization.
+Note that you need a dockerhub user ID, and that your user needs to be part of the
+``tsfpga`` organization.

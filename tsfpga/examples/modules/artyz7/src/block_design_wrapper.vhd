@@ -135,7 +135,8 @@ begin
         S_AXI_HP0_arprot => axi_a_prot_unprivileged or axi_a_prot_secure or axi_a_prot_data,
         S_AXI_HP0_awprot => axi_a_prot_unprivileged or axi_a_prot_secure or axi_a_prot_data,
         S_AXI_HP0_araddr => std_logic_vector(s_hp0_m2s.read.ar.addr(s_hp0_addr_width - 1 downto 0)),
-        S_AXI_HP0_awaddr => std_logic_vector(s_hp0_m2s.write.aw.addr(s_hp0_addr_width - 1 downto 0)),
+        S_AXI_HP0_awaddr =>
+          std_logic_vector(s_hp0_m2s.write.aw.addr(s_hp0_addr_width - 1 downto 0)),
         S_AXI_HP0_arcache => axi_a_cache_device_non_bufferable,
         S_AXI_HP0_arlen => std_logic_vector(s_hp0_m2s.read.ar.len(axi3_len_rng)),
         S_AXI_HP0_arqos => (others => '0'), -- No QoS scheme

@@ -38,10 +38,12 @@ end package;
 
 package body ddr_buffer_sim_pkg is
 
-  procedure run_ddr_buffer_test(signal net : inout network_t;
-                                memory : in memory_t;
-                                rnd : inout RandomPType;
-                                regs_base_address : in addr_t := (others => '0')) is
+  procedure run_ddr_buffer_test(
+    signal net : inout network_t;
+    memory : in memory_t;
+    rnd : inout RandomPType;
+    regs_base_address : in addr_t := (others => '0')
+  ) is
     constant burst_length_bytes : integer :=
       ddr_buffer_constant_burst_length_beats * (ddr_buffer_constant_axi_data_width / 8);
     variable memory_data : integer_array_t := null_integer_array;
@@ -51,10 +53,20 @@ package body ddr_buffer_sim_pkg is
       random_integer_array(rnd, memory_data, width=>burst_length_bytes, bits_per_word=>8);
 
       buf := write_integer_array(memory, memory_data, "read data", permissions=>read_only);
-      write_reg(net, ddr_buffer_addrs_read_addr(current_addr_index), base_address(buf), regs_base_address);
+      write_reg(
+        net,
+        ddr_buffer_addrs_read_addr(current_addr_index),
+        base_address(buf),
+        regs_base_address
+      );
 
       buf := set_expected_integer_array(memory, memory_data, "write data", permissions=>write_only);
-      write_reg(net, ddr_buffer_addrs_write_addr(current_addr_index), base_address(buf), regs_base_address);
+      write_reg(
+        net,
+        ddr_buffer_addrs_write_addr(current_addr_index),
+        base_address(buf),
+        regs_base_address
+      );
     end loop;
 
     write_command(net, ddr_buffer_command_start, regs_base_address);
