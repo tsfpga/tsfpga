@@ -91,7 +91,6 @@ register documentation.
         Return:
             str: RST code with sub-module documentation.
         """
-        exclude_files = {} if exclude_files is None else exclude_files
         exclude_module_folders = [] if exclude_module_folders is None else exclude_module_folders
         exclude_module_paths = [self._module.path / name for name in exclude_module_folders]
 

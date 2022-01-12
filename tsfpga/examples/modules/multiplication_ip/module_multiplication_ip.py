@@ -18,5 +18,6 @@ class Module(BaseModule):
             self.path / "src" / "multiplication.vhd",
             self.path / "test" / "tb_multiplication.vhd",
         }
-        files_avoid = {} if include_ip_cores else files_that_depend_on_ip_cores
+        files_avoid = None if include_ip_cores else files_that_depend_on_ip_cores
+
         return super().get_simulation_files(files_avoid=files_avoid, **kwargs)
