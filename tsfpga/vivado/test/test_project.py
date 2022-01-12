@@ -212,6 +212,7 @@ class TestVivadoProject(unittest.TestCase):
         self.num_threads = 4
         self.run_index = 3
         self.synth_only = False
+        self.from_impl = False
 
         self.mocked_run_vivado_tcl = None
 
@@ -293,6 +294,7 @@ class TestVivadoProject(unittest.TestCase):
                 run_index=self.run_index,
                 generics=self.build_time_generics,
                 synth_only=self.synth_only,
+                from_impl=self.from_impl,
                 num_threads=self.num_threads,
             )
             module.create_regs_vhdl_package.assert_called_once()
@@ -339,6 +341,7 @@ class TestVivadoProject(unittest.TestCase):
             run_index=self.run_index,
             generics=copy_and_combine_dicts(dict(static_generic=2), self.build_time_generics),
             synth_only=self.synth_only,
+            from_impl=self.from_impl,
             num_threads=self.num_threads,
             other_parameter="hest",
             apa=123,

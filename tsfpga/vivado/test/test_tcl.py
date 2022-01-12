@@ -143,6 +143,34 @@ def test_runtime_generics():
     assert expected in tcl
 
 
+def test_build_with_synth_only():
+    tcl = VivadoTcl(name="").build(
+        project_file=Path(), output_path=Path(), num_threads=0, run_index=0, synth_only=False
+    )
+    assert "synth_" in tcl
+    assert "impl_" in tcl
+
+    tcl = VivadoTcl(name="").build(
+        project_file=Path(), output_path=Path(), num_threads=0, run_index=0, synth_only=True
+    )
+    assert "synth_" in tcl
+    assert "impl_" not in tcl
+
+
+def test_build_with_from_impl():
+    tcl = VivadoTcl(name="").build(
+        project_file=Path(), output_path=Path(), num_threads=0, run_index=0, from_impl=False
+    )
+    assert "synth_" in tcl
+    assert "impl_" in tcl
+
+    tcl = VivadoTcl(name="").build(
+        project_file=Path(), output_path=Path(), num_threads=0, run_index=0, from_impl=True
+    )
+    assert "synth_" not in tcl
+    assert "impl_" in tcl
+
+
 def test_module_getters_are_called_with_correct_arguments():
     modules = [MagicMock(spec=BaseModule)]
     VivadoTcl(name="").create(

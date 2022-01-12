@@ -273,7 +273,14 @@ class VivadoProject:
         return True
 
     def _build_tcl(
-        self, project_path, output_path, num_threads, run_index, all_generics, synth_only
+        self,
+        project_path,
+        output_path,
+        num_threads,
+        run_index,
+        all_generics,
+        synth_only,
+        from_impl,
     ):
         """
         Make a TCL file that builds a Vivado project
@@ -292,6 +299,7 @@ class VivadoProject:
             run_index=run_index,
             generics=all_generics,
             synth_only=synth_only,
+            from_impl=from_impl,
             analyze_synthesis_timing=self.analyze_synthesis_timing,
         )
         create_file(build_vivado_project_tcl, tcl)
@@ -342,6 +350,7 @@ class VivadoProject:
         run_index=None,
         generics=None,
         synth_only=False,
+        from_impl=False,
         num_threads=12,
         **pre_and_post_build_parameters,
     ):
@@ -357,6 +366,7 @@ class VivadoProject:
 
                 Compare to the create-time generics argument in :meth:`.__init__`.
             synth_only (bool): Run synthesis and then stop.
+            from_impl (bool): Run the ``impl`` steps and onward on an existing synthesized design.
             num_threads (int): Number of parallel threads to use during run.
             pre_and_post_build_parameters: Optional further arguments. Will not be used by tsfpga,
                 but will instead be sent to
@@ -398,6 +408,7 @@ class VivadoProject:
             run_index=run_index,
             generics=all_generics,
             synth_only=synth_only,
+            from_impl=from_impl,
             num_threads=num_threads,
         )
 
@@ -434,6 +445,7 @@ class VivadoProject:
             run_index=run_index,
             all_generics=all_generics,
             synth_only=synth_only,
+            from_impl=from_impl,
         )
 
         if not run_vivado_tcl(self._vivado_path, build_vivado_project_tcl):

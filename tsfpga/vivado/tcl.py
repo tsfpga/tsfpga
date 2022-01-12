@@ -285,14 +285,12 @@ class VivadoTcl:
         run_index,
         generics=None,
         synth_only=False,
+        from_impl=False,
         analyze_synthesis_timing=True,
     ):
         # Max value in Vivado 2018.3+. set_param will give an error if higher number.
         num_threads_general = min(num_threads, 32)
         num_threads_synth = min(num_threads, 8)
-
-        synth_run = f"synth_{run_index}"
-        impl_run = f"impl_{run_index}"
 
         tcl = f"open_project {to_tcl_path(project_file)}\n"
         tcl += f"set_param general.maxThreads {num_threads_general}\n"
@@ -300,14 +298,23 @@ class VivadoTcl:
         tcl += "\n"
         tcl += self._add_generics(generics)
         tcl += "\n"
-        tcl += self._synthesis(synth_run, num_threads, analyze_synthesis_timing)
-        tcl += "\n"
+
+        if not from_impl:
+            synth_run = f"synth_{run_index}"
+
+            tcl += self._synthesis(synth_run, num_threads, analyze_synthesis_timing)
+            tcl += "\n"
+
         if not synth_only:
+            impl_run = f"impl_{run_index}"
+
             tcl += self._run(impl_run, num_threads, to_step="write_bitstream")
             tcl += "\n"
             tcl += self._write_hw_platform(output_path)
             tcl += "\n"
+
         tcl += "exit\n"
+
         return tcl
 
     def _synthesis(self, run, num_threads, analyze_synthesis_timing):

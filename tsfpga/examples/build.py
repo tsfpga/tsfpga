@@ -33,27 +33,33 @@ def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
-    parser.add_argument("--no-color", action="store_true", help="disable color in printouts")
+    group = parser.add_mutually_exclusive_group()
 
-    parser.add_argument("--list-only", action="store_true", help="list the available projects")
+    group.add_argument("--list-only", action="store_true", help="list the available projects")
 
-    parser.add_argument("--open", action="store_true", help="open existing projects in the GUI")
+    group.add_argument(
+        "--generate-registers-only",
+        action="store_true",
+        help="only generate the register artifacts (C/C++ code, HTML, ...) for inspection",
+    )
+
+    group.add_argument("--create-only", action="store_true", help="only create projects")
+
+    group.add_argument("--synth-only", action="store_true", help="only synthesize projects")
+
+    group.add_argument(
+        "--from-impl",
+        action="store_true",
+        help="run impl and onwards on an existing synthesized projects",
+    )
+
+    group.add_argument("--open", action="store_true", help="open existing projects in the GUI")
 
     parser.add_argument(
         "--use-existing-project",
         action="store_true",
         help="build existing projects, or create first if they do not exist",
     )
-
-    parser.add_argument(
-        "--generate-registers-only",
-        action="store_true",
-        help="only generate the register artifacts (C/C++ code, HTML, ...) for inspection",
-    )
-
-    parser.add_argument("--create-only", action="store_true", help="only create projects")
-
-    parser.add_argument("--synth-only", action="store_true", help="only synthesize projects")
 
     parser.add_argument(
         "--netlist-builds",
@@ -93,6 +99,8 @@ def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
         help="number of threads for each build process",
     )
 
+    parser.add_argument("--no-color", action="store_true", help="disable color in printouts")
+
     parser.add_argument(
         "project_filters",
         nargs="*",
@@ -100,6 +108,10 @@ def arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR):
     )
 
     args = parser.parse_args()
+
+    assert (
+        args.use_existing_project or not args.from_impl
+    ), "Must set --use-existing-project when using --from-impl"
 
     return args
 
@@ -178,6 +190,7 @@ def setup_and_run(modules, projects, args):
         num_parallel_builds=args.num_parallel_builds,
         output_path=args.output_path,
         synth_only=args.synth_only,
+        from_impl=args.from_impl,
         num_threads_per_build=args.num_threads_per_build,
     )
 
