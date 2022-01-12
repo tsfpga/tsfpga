@@ -57,16 +57,28 @@ def test_add_vunit_config_random_seed():
     module = BaseModule(path=Path(), library_name="")
     test = MagicMock()
 
+    # No seed at all
     module.add_vunit_config(test=test)
     assert "generics" not in test.add_config.call_args
 
+    module.add_vunit_config(test=test, set_random_seed=None)
+    assert "generics" not in test.add_config.call_args
+
+    # No seed, with generics set
     module.add_vunit_config(test=test, generics={"apa": "whatever"})
     assert "seed" not in test.add_config.call_args.kwargs["generics"]
 
+    # Static seed
+    module.add_vunit_config(test=test, set_random_seed=False)
+    assert isinstance(test.add_config.call_args.kwargs["generics"]["seed"], int)
+    assert test.add_config.call_args.kwargs["generics"]["seed"] == 1
+
+    # Use random seed
     module.add_vunit_config(test=test, set_random_seed=True)
     assert isinstance(test.add_config.call_args.kwargs["generics"]["seed"], int)
     assert test.add_config.call_args.kwargs["generics"]["seed"] >= 0
 
+    # Setting explicit value should still work
     module.add_vunit_config(test=test, generics={"seed": 711})
     assert test.add_config.call_args.kwargs["generics"]["seed"] == 711
 
