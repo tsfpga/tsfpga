@@ -133,7 +133,7 @@ def check_file_for_line_length(file_path, max_length=100):
     return test_ok
 
 
-def test_no_checked_in_file_have_too_long_lines():
+def test_no_checked_in_files_have_too_long_lines():
     test_ok = True
     excludes = [
         # YAML format seems hard to break lines in
