@@ -1,8 +1,6 @@
 # Use base image from the GHDL project which includes GHDL and VUnit.
-# Use the master image since we need some of the VUnit updates since latest release.
-# The release image is smaller however, so we can switch to that when VUnit makes a new release.
 # Note that the mcode image is much smaller than the gcc image.
-FROM ghdl/vunit:mcode-master AS ci_py_sim
+FROM ghdl/vunit:mcode AS ci_py_sim
 
 LABEL description="Includes everything that is needed for CI simulation/pytest of the tsfpga project(s)."
 
@@ -12,9 +10,6 @@ RUN apt-get update && \
   g++
 
 RUN python3 -m pip --no-cache-dir install --upgrade \
-  # Older version since there is an issue with symbolator setup.py using _use_2to3:
-  # https://stackoverflow.com/questions/69100275/error-while-downloading-the-requirements-using-pip-install-setup-command-use-2
-  "setuptools<58" \
   black \
   GitPython \
   flake8 \
@@ -42,13 +37,16 @@ RUN python3 -m pip --no-cache-dir install \
   pybadges \
   pycairo \
   PyGObject \
-  # Older version since symbolator_sphinx does not work with newer:
-  # "exception: cannot import name 'ENOENT'"
-  sphinx==3.5.4 \
+  sphinx \
   sphinx-rtd-theme \
   sphinx_sitemap \
   sphinxcontrib-wavedrom \
-  symbolator && \
+  # Install symbolator and hdlparse from github forks that are maintained.
+  # The official version do not work with newer setuptools or newer sphinx.
+  # The pyHDLParser repo seems to be under active development and the current master did not
+  # work, so peg to the latest revision that does work for us.
+  git+https://github.com/hdl/pyHDLParser@354dc73a231677f277709633b9bcd0110f1816d0 \
+  git+https://github.com/hdl/symbolator && \
   rm -rf ~/.cache
 
 

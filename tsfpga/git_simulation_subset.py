@@ -31,7 +31,7 @@ class GitSimulationSubset:
                 for dependency scanning.
             vunit_preprocessed_path (pathlib.Path): If location/check preprocessing is enabled
                 in your VUnit project, supply the path to vunit_out/preprocessed.
-            modules (.ModuleList): A list of modules that are included in the VUnit project. Must be
+            modules (ModuleList): A list of modules that are included in the VUnit project. Must be
                 supplied only if preprocessing is enabled.
         """
         self._repo_root = repo_root

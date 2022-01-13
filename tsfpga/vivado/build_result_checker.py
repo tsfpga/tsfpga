@@ -66,7 +66,8 @@ class BuildResultChecker:
     def check(self, build_result):
         """
         Arguments:
-            build_result (.build_result.BuildResult): Build result that shall be checked.
+            build_result (tsfpga.vivado.build_result.BuildResult): Build result that shall
+                be checked.
 
         Returns:
             bool: True if check passed, false otherwise.

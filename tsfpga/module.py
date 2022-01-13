@@ -292,7 +292,7 @@ class BaseModule:
             utilize this mechanism.
 
         Arguments:
-            project (.VivadoProject): The project that is being built.
+            project (VivadoProject): The project that is being built.
             kwargs: All other parameters to the build flow. Includes arguments to
                 :meth:`.VivadoProject.build` method as well as other arguments set in
                 :meth:`.VivadoProject.__init__`.
