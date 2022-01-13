@@ -12,35 +12,18 @@ from pathlib import Path
 
 import pytest
 
-from tsfpga.system_utils import create_file, path_relative_to, read_last_lines_of_file, run_command
+from tsfpga.system_utils import (
+    create_file,
+    path_relative_to,
+    read_last_lines_of_file,
+    run_command,
+)
 
 
 def test_path_relative_to():
     assert path_relative_to(Path("/etc/fstab"), Path("/etc")) == Path("fstab")
     assert path_relative_to(Path("/etc/fstab"), Path("/")) == Path("etc/fstab")
     assert path_relative_to(Path("/etc/fstab"), Path("/home")) == Path("../etc/fstab")
-
-
-def test_run_command_called_with_nonexisting_binary_should_raise_exception():
-    cmd = ["/apa/hest/zebra.exe", "foobar"]
-    with pytest.raises(FileNotFoundError):
-        run_command(cmd)
-
-
-def test_run_command_with_non_zero_return_code_should_raise_exception():
-    cmd = ["ls", "/apa/hest/zebra"]
-    with pytest.raises(subprocess.CalledProcessError):
-        run_command(cmd)
-
-
-def test_run_command_called_with_non_list_should_raise_exception():
-    cmd = ["ls", "-la"]
-    run_command(cmd)
-
-    cmd = "ls -la"
-    with pytest.raises(ValueError) as exception_info:
-        run_command(cmd)
-    assert str(exception_info.value).startswith("Must be called with a list")
 
 
 def test_read_last_lines_of_file_with_short_file(tmp_path):
@@ -73,3 +56,25 @@ def test_read_last_lines_of_file_with_empty_file(tmp_path):
     data = "\n"
     file = create_file(tmp_path / "data.txt", contents=data)
     assert read_last_lines_of_file(file, num_lines=10) == data
+
+
+def test_run_command_called_with_nonexisting_binary_should_raise_exception():
+    cmd = ["/apa/hest/zebra.exe", "foobar"]
+    with pytest.raises(FileNotFoundError):
+        run_command(cmd)
+
+
+def test_run_command_with_non_zero_return_code_should_raise_exception():
+    cmd = ["ls", "/apa/hest/zebra"]
+    with pytest.raises(subprocess.CalledProcessError):
+        run_command(cmd)
+
+
+def test_run_command_called_with_non_list_should_raise_exception():
+    cmd = ["ls", "-la"]
+    run_command(cmd)
+
+    cmd = "ls -la"
+    with pytest.raises(ValueError) as exception_info:
+        run_command(cmd)
+    assert str(exception_info.value).startswith("Must be called with a list")
