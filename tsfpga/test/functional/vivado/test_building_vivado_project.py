@@ -123,17 +123,47 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         self.log_file = self.project_folder / "vivado.log"
         self.runs_folder = self.project_folder / "test_proj.runs"
 
+    @property
+    def create_files(self):
+        """
+        Files that should exist when the project has been created.
+        """
+        return [self.project_folder / "test_proj.xpr"]
+
+    @property
+    def synthesis_files(self):
+        """
+        Files that should exist when the project has been synthesized.
+        """
+        return [self.runs_folder / "synth_2" / "hierarchical_utilization.rpt"]
+
+    @property
+    def build_files(self):
+        """
+        Files that should exist when the project has been fully built.
+        """
+        return [
+            self.project_folder / f"{self.proj.name}.bit",
+            self.project_folder / f"{self.proj.name}.bin",
+            self.runs_folder / "impl_2" / "hierarchical_utilization.rpt",
+        ]
+
     def _create_vivado_project(self):
         assert self.proj.create(self.project_folder)
+
+        for path in self.create_files:
+            assert path.exists(), path
 
     def test_create_project(self):
         self._create_vivado_project()
 
     def test_synth_project(self):
         self._create_vivado_project()
+
         build_result = self.proj.build(self.project_folder, synth_only=True)
         assert build_result.success
-        assert (self.runs_folder / "synth_2" / "hierarchical_utilization.rpt").exists()
+        for path in self.synthesis_files:
+            assert path.exists(), path
 
     def test_synth_should_fail_if_source_code_does_not_compile(self):
         create_file(self.top_file, "garbage\napa\nhest")
@@ -159,19 +189,34 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
 
     def test_build_project(self):
         self._create_vivado_project()
-        build_result = self.proj.build(self.project_folder, self.project_folder)
 
-        assert (self.project_folder / (self.proj.name + ".bit")).exists()
-        assert (self.project_folder / (self.proj.name + ".bin")).exists()
-        assert (self.runs_folder / "impl_2" / "hierarchical_utilization.rpt").exists()
+        build_result = self.proj.build(self.project_folder, self.project_folder)
+        assert build_result.success
+        for path in self.synthesis_files + self.build_files:
+            assert path.exists(), path
 
         # Sanity check some of the build result
-        assert build_result.success
-
         assert build_result.synthesis_size["Total LUTs"] == 0, build_result.synthesis_size
 
         assert build_result.implementation_size["FFs"] > 0, build_result.implementation_size
         assert build_result.implementation_size["FFs"] < 2000, build_result.implementation_size
+
+    def test_build_project_in_steps(self):
+        self._create_vivado_project()
+        for path in self.synthesis_files + self.build_files:
+            assert not path.exists(), path
+
+        build_result = self.proj.build(self.project_folder, self.project_folder, synth_only=True)
+        assert build_result.success
+        for path in self.synthesis_files:
+            assert path.exists(), path
+        for path in self.build_files:
+            assert not path.exists(), path
+
+        build_result = self.proj.build(self.project_folder, self.project_folder, from_impl=True)
+        assert build_result.success
+        for path in self.synthesis_files + self.build_files:
+            assert path.exists(), path
 
     def test_build_with_bad_setup_timing_should_fail(self):
         # Do a ridiculously wide multiplication, which Vivado can't optimize away
@@ -275,4 +320,5 @@ create_clock -period 4 -waveform {1.0 1.2} -name clk_out [get_ports clk_out]
             project_path=self.project_folder, output_path=self.project_folder
         )
         assert build_result.success
-        assert (self.runs_folder / "synth_2" / "hierarchical_utilization.rpt").exists()
+        for path in self.synthesis_files:
+            assert path.exists(), path
