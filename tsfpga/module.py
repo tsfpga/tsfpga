@@ -347,7 +347,7 @@ class BaseModule:
         test,
         name=None,
         generics=None,
-        set_random_seed=None,
+        set_random_seed=False,
         pre_config=None,
         post_check=None,
     ):  # pylint: disable=too-many-arguments
@@ -361,30 +361,30 @@ class BaseModule:
                 the config together with the ``generics`` value.
             generics (dict): Generic values that will be applied to the testbench entity. The values
                 will also be used to form the name of the config.
-            set_random_seed (bool): Controls setting of the ``seed`` generic:
+            set_random_seed (bool, int): Controls setting of the ``seed`` generic:
 
-                * When this argument is not assigned, or assigned ``None``, the generic will not
+                * When this argument is not assigned, or assigned ``False``, the generic will not
                   be set.
                 * When set to boolean ``True``, a random natural (non-negative integer)
                   generic value will be set.
-                * When set to boolean ``False``, the static value 1 will be set. This is useful
-                  to get a static test case name for waveform inspection.
+                * When set to an integer value, that value will be set for the generic.
+                  This is useful to get a static test case name for waveform inspection.
 
                 If the generic is to be set it must exist in the testbench entity, and should have
                 VHDL type ``natural``.
             pre_config: Function to be run before the test. See VUnit documentation for details.
             post_check: Function to be run after the test. See VUnit documentation for details.
         """
+        generics = {} if generics is None else generics
+
+        # Note that "bool" is a sub-class of "int" in python, so isinstance(set_random_seed, int)
+        # returns True if it is an integer or a bool.
         if isinstance(set_random_seed, bool):
             if set_random_seed:
                 # Use the maximum range for a natural in VHDL-2008
-                seed = random.randint(0, 2 ** 31 - 1)
-            else:
-                seed = 1
-
-            if generics is None:
-                generics = {}
-            generics["seed"] = seed
+                generics["seed"] = random.randint(0, 2 ** 31 - 1)
+        elif isinstance(set_random_seed, int):
+            generics["seed"] = set_random_seed
 
         name = self.test_case_name(name, generics)
         test.add_config(name=name, generics=generics, pre_config=pre_config, post_check=post_check)

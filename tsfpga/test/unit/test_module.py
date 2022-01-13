@@ -25,13 +25,13 @@ def test_add_vunit_config_name():
 
     module.add_vunit_config(test=test, pre_config=pre_config, post_check=post_check)
     test.add_config.assert_called_once_with(
-        name="", generics=None, pre_config=pre_config, post_check=post_check
+        name="", generics={}, pre_config=pre_config, post_check=post_check
     )
     test.reset_mock()
 
     module.add_vunit_config(test=test, name="apa")
     test.add_config.assert_called_once_with(
-        name="apa", generics=None, pre_config=None, post_check=None
+        name="apa", generics={}, pre_config=None, post_check=None
     )
     test.reset_mock()
 
@@ -61,7 +61,7 @@ def test_add_vunit_config_random_seed():
     module.add_vunit_config(test=test)
     assert "generics" not in test.add_config.call_args
 
-    module.add_vunit_config(test=test, set_random_seed=None)
+    module.add_vunit_config(test=test, set_random_seed=False)
     assert "generics" not in test.add_config.call_args
 
     # No seed, with generics set
@@ -69,9 +69,13 @@ def test_add_vunit_config_random_seed():
     assert "seed" not in test.add_config.call_args.kwargs["generics"]
 
     # Static seed
-    module.add_vunit_config(test=test, set_random_seed=False)
+    module.add_vunit_config(test=test, set_random_seed=0)
     assert isinstance(test.add_config.call_args.kwargs["generics"]["seed"], int)
-    assert test.add_config.call_args.kwargs["generics"]["seed"] == 1
+    assert test.add_config.call_args.kwargs["generics"]["seed"] == 0
+
+    module.add_vunit_config(test=test, set_random_seed=123)
+    assert isinstance(test.add_config.call_args.kwargs["generics"]["seed"], int)
+    assert test.add_config.call_args.kwargs["generics"]["seed"] == 123
 
     # Use random seed
     module.add_vunit_config(test=test, set_random_seed=True)
