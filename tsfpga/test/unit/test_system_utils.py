@@ -13,11 +13,25 @@ from pathlib import Path
 import pytest
 
 from tsfpga.system_utils import (
+    create_directory,
     create_file,
+    delete,
     path_relative_to,
     read_last_lines_of_file,
     run_command,
 )
+
+
+def test_delete_files_and_folders(tmp_path):
+    path = create_file(tmp_path / "temp.txt")
+    assert path.exists()
+    delete(path)
+    assert not path.exists()
+
+    path = create_directory(tmp_path / "temp_dir")
+    assert path.exists()
+    delete(path)
+    assert not path.exists()
 
 
 def test_path_relative_to():
