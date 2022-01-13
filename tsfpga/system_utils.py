@@ -70,12 +70,30 @@ def read_last_lines_of_file(file, num_lines):
     return result
 
 
-def delete(path):
+def delete(path, wait_until_deleted=False):
+    """
+    Delete a file or directory from the filesystem.
+
+    Arguments:
+        path (pathlib.Path): The file/directory to be deleted.
+        wait_until_deleted (bool): When set to ``True``, the function will poll the filesystem
+            after initiating the deletion, and not return until the path is in fact deleted.
+            Is needed on some filesystems/mounts in a situation where we delete a path and
+            then directly want to write to it afterwards.
+
+    Returns:
+        pathlib.Path: The path that was deleted (i.e. the original ``path`` argument).
+    """
     if path.exists():
         if path.is_dir():
             rmtree(path)
         else:
             path.unlink()
+
+    if wait_until_deleted:
+        while path.exists():
+            pass
+
     return path
 
 

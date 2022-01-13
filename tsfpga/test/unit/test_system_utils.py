@@ -23,14 +23,26 @@ from tsfpga.system_utils import (
 
 
 def test_delete_files_and_folders(tmp_path):
+    # Test deleting a file, with and without wait
     path = create_file(tmp_path / "temp.txt")
+    assert path.exists()
+    delete(path)
+    assert not path.exists()
+
+    path = create_file(tmp_path / "temp.txt")
+    assert path.exists()
+    delete(path, wait_until_deleted=True)
+    assert not path.exists()
+
+    # Test deleting a directory, with and without wait
+    path = create_directory(tmp_path / "temp_dir")
     assert path.exists()
     delete(path)
     assert not path.exists()
 
     path = create_directory(tmp_path / "temp_dir")
     assert path.exists()
-    delete(path)
+    delete(path, wait_until_deleted=True)
     assert not path.exists()
 
 
