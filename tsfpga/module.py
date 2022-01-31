@@ -382,7 +382,7 @@ class BaseModule:
         if isinstance(set_random_seed, bool):
             if set_random_seed:
                 # Use the maximum range for a natural in VHDL-2008
-                generics["seed"] = random.randint(0, 2 ** 31 - 1)
+                generics["seed"] = random.randint(0, 2**31 - 1)
         elif isinstance(set_random_seed, int):
             generics["seed"] = set_random_seed
 
