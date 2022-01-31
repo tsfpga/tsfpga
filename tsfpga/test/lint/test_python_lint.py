@@ -45,7 +45,7 @@ def test_pylint():
 
 
 def run_black(files):
-    command = [sys.executable, "-m", "black", "--check"] + files
+    command = [sys.executable, "-m", "black", "--check", "--diff"] + files
     subprocess.check_call(command, cwd=tsfpga.REPO_ROOT)
 
 
