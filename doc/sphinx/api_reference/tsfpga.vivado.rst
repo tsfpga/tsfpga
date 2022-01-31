@@ -1,1 +1,1 @@
-.. include:: ../../../generated/sphinx/apidoc/tsfpga.vivado.rst
+.. include:: ../../../generated/sphinx_rst/apidoc/tsfpga.vivado.rst

@@ -1,4 +1,4 @@
-.. include:: ../../generated/sphinx/index.rst
+.. include:: ../../generated/sphinx_rst/index.rst
 
 .. toctree::
     :caption: About

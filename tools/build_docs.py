@@ -24,7 +24,7 @@ from tsfpga.about import get_readme_rst
 from tsfpga.system_utils import create_directory, create_file, delete
 from tsfpga.tools.sphinx_doc import build_sphinx, generate_release_notes
 
-GENERATED_SPHINX = tsfpga.TSFPGA_GENERATED / "sphinx"
+GENERATED_SPHINX = tsfpga.TSFPGA_GENERATED / "sphinx_rst"
 GENERATED_SPHINX_HTML = tsfpga.TSFPGA_GENERATED / "sphinx_html"
 SPHINX_DOC = tsfpga.TSFPGA_DOC / "sphinx"
 

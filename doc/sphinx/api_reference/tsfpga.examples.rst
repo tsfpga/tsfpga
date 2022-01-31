@@ -1,1 +1,1 @@
-.. include:: ../../../generated/sphinx/apidoc/tsfpga.examples.rst
+.. include:: ../../../generated/sphinx_rst/apidoc/tsfpga.examples.rst
