@@ -47,6 +47,14 @@ class LogicLevelDistributionParser:
             int: The maximum logic level.
         """
         header_line = table.split("\n")[1]
-        right_most_heading = header_line.split("|")[-2]
-        maximum_logic_level = int(right_most_heading.strip())
-        return maximum_logic_level
+        # First and last items are empty, due to leading and trailing "|" in the table
+        headings = header_line.split("|")
+
+        if len(headings) <= 4:
+            # Nothing in table. Happens if there are no paths in the design.
+            # 4 elements in list means two headings, i.e. no integer levels.
+            # See unit test for examples of how this looks.
+            return 0
+
+        right_most_heading = headings[-2]
+        return int(right_most_heading.strip())

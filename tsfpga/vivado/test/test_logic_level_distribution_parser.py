@@ -51,3 +51,21 @@ def test_get_maximum_logic_level():
 +-----------------+-------------+-----+----+---+----+\
 """
     assert LogicLevelDistributionParser.get_maximum_logic_level(table) == 7
+
+    table = """\
++-----------------+-------------+-----+
+| End Point Clock | Requirement |  1  |
++-----------------+-------------+-----+
+| clk_fpga_0      | 2.000ns     | 491 |
++-----------------+-------------+-----+
+"""
+    assert LogicLevelDistributionParser.get_maximum_logic_level(table) == 1
+
+
+def test_get_maximum_logic_level_no_paths():
+    table = """\
++-----------------+-------------+
+| End Point Clock | Requirement |
++-----------------+-------------+\
+"""
+    assert LogicLevelDistributionParser.get_maximum_logic_level(table) == 0
