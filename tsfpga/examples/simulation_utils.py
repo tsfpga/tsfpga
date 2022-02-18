@@ -12,15 +12,13 @@ from pathlib import Path
 from shutil import which
 
 # Third party libraries
-from vunit import VUnit, VUnitCLI
-from vunit.vivado.vivado import add_from_compile_order_file, create_compile_order_file
-
-# First party libraries
 import tsfpga
 import tsfpga.create_vhdl_ls_config
 from tsfpga.module import ModuleList
 from tsfpga.vivado.ip_cores import VivadoIpCores
 from tsfpga.vivado.simlib import VivadoSimlib
+from vunit import VUnit, VUnitCLI
+from vunit.vivado.vivado import add_from_compile_order_file, create_compile_order_file
 
 
 def get_arguments_cli(default_output_path):
@@ -88,7 +86,10 @@ class SimulationProject:
             enable_preprocessing (bool): If ``True``, VUnit location/check preprocessing will
                 be enabled.
         """
-        self.vunit_proj = VUnit.from_args(args=args)
+        # Note: compile_builtins=False can be removed when VUnit 5.0 is released:
+        # https://github.com/VUnit/vunit/issues/777
+        self.vunit_proj = VUnit.from_args(args=args, compile_builtins=False)
+        self.vunit_proj.add_vhdl_builtins()
         self.vunit_proj.add_verification_components()
         self.vunit_proj.add_random()
 
@@ -294,7 +295,12 @@ def create_vhdl_ls_configuration(
     # If we were to use the "real" VUnit project that we set up above instead, all the files would
     # be in the "preprocessed" folder. Hence we use an "empty" VUnit project, and add all files
     # via modules.
-    vunit_proj = VUnit.from_argv(argv=["--output-path", str(temp_files_path / "vhdl_ls_vunit_out")])
+    # Note: compile_builtins=False can be removed when VUnit 5.0 is released:
+    # https://github.com/VUnit/vunit/issues/777
+    vunit_proj = VUnit.from_argv(
+        argv=["--output-path", str(temp_files_path / "vhdl_ls_vunit_out")], compile_builtins=False
+    )
+    vunit_proj.add_vhdl_builtins()
     vunit_proj.add_verification_components()
     vunit_proj.add_random()
     vunit_proj.add_osvvm()
