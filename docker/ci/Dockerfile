@@ -1,6 +1,14 @@
 # Use base image from the GHDL project which includes GHDL and VUnit.
 # Note that the mcode image is much smaller than the gcc image.
-FROM ghdl/vunit:mcode AS ci_py_sim
+# We are on "master" image until VUnit 5.0 is released, due to these issues:
+# https://github.com/VUnit/vunit/issues/559
+# https://github.com/VUnit/vunit/issues/777
+# https://github.com/VUnit/vunit/pull/799
+# https://github.com/VUnit/vunit/pull/802
+# When 5.0 is relased we might change back to the release image, which is probably more stable.
+# Historically the release image was smaller than the "master" image, but that does not seem to
+# be the case anymore (2023-02-27).
+FROM ghdl/vunit:mcode-master AS ci_py_sim
 
 LABEL description="Includes everything that is needed for CI simulation/pytest of the tsfpga project(s)."
 
