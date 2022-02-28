@@ -7,9 +7,16 @@ LABEL description="Includes everything that is needed for CI simulation/pytest o
 RUN apt-get update && \
   apt-get install --yes --no-install-recommends \
   git \
-  g++
+  g++ \
+  # Cleanup
+  && apt-get autoremove --yes \
+  && apt-get clean autoclean \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m pip --no-cache-dir install --upgrade \
+  # Update to latest pip before installing others
+  pip \
+  && python3 -m pip --no-cache-dir install --upgrade \
   black \
   GitPython \
   flake8 \
@@ -17,6 +24,7 @@ RUN python3 -m pip --no-cache-dir install --upgrade \
   pytest \
   pytest-cov \
   tomlkit && \
+  # Cleanup
   rm -rf ~/.cache
 
 
@@ -24,16 +32,21 @@ FROM ci_py_sim AS ci_py_sim_sphinx
 
 LABEL description="Further includes everything that is needed for building sphinx documentation of the tsfpga project(s)."
 
-RUN apt-get install --yes --no-install-recommends \
+RUN apt-get update && \
+  apt-get install --yes --no-install-recommends \
   # Needed by symbolator/wavedrom/dot
   gir1.2-gtk-3.0 \
   graphviz \
   libgirepository1.0-dev \
   libcairo2-dev \
   pkg-config \
-  python3-dev
+  python3-dev \
+  # Cleanup
+  && apt-get autoremove --yes \
+  && apt-get clean autoclean \
+  && rm -rf /var/lib/apt/lists/*
 
-RUN python3 -m pip --no-cache-dir install \
+RUN python3 -m pip --no-cache-dir install --upgrade \
   pybadges \
   pycairo \
   PyGObject \
@@ -47,6 +60,7 @@ RUN python3 -m pip --no-cache-dir install \
   # work, so peg to the latest revision that does work for us.
   git+https://github.com/hdl/pyHDLParser@354dc73a231677f277709633b9bcd0110f1816d0 \
   git+https://github.com/hdl/symbolator && \
+  # Cleanup
   rm -rf ~/.cache
 
 
@@ -54,11 +68,17 @@ FROM ci_py_sim_sphinx AS ci_everything
 
 LABEL description="Further includes everything that is needed for signal processing analysis."
 
-RUN apt-get install --yes --no-install-recommends \
+RUN apt-get update && \
+  apt-get install --yes --no-install-recommends \
   # Needed to package artifacts
-  zip
+  zip \
+  # Cleanup
+  && apt-get autoremove --yes \
+  && apt-get clean autoclean \
+  && rm -rf /var/lib/apt/lists/*
 
-RUN python3 -m pip --no-cache-dir install \
+RUN python3 -m pip --no-cache-dir install --upgrade \
   matplotlib \
   scipy && \
+  # Cleanup
   rm -rf ~/.cache
