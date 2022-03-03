@@ -35,10 +35,12 @@ package artyz7_top_pkg is
 
 
   ------------------------------------------------------------------------------
-  constant m_gp0_data_width : integer := 32;
+  constant m_gp0_id_width : integer := 12;
   constant m_gp0_addr_width : integer := 32;
+  constant m_gp0_data_width : integer := 32;
 
-  constant s_hp0_data_width : integer := 64;
+  constant s_hp0_id_width : integer := 6;
   constant s_hp0_addr_width : integer := 32;
+  constant s_hp0_data_width : integer := 64;
 
 end;

@@ -120,7 +120,8 @@ begin
     generic map (
       axi_read_slave => axi_read_slave,
       axi_write_slave => axi_write_slave,
-      data_width => axi_width
+      data_width => axi_width,
+      id_width => 0
     )
     port map (
       clk => clk,

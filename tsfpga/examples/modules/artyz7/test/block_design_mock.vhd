@@ -82,7 +82,8 @@ begin
     generic map (
       axi_read_slave => axi_read_slave,
       axi_write_slave => axi_write_slave,
-      data_width => 64
+      data_width => s_hp0_data_width,
+      id_width => s_hp0_id_width
     )
     port map (
       clk => clk_s_hp0,
