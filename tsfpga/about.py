@@ -6,9 +6,6 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-import tsfpga
-from tsfpga.system_utils import create_file, read_file
-
 
 def get_slogan():
     result = """\
@@ -49,25 +46,47 @@ The project is mature and used in many production environments.
 """
 
 
-def get_readme_rst(include_website_link, verify=True):
+def get_readme_rst(
+    include_extra_for_gitlab=False,
+    include_extra_for_website=False,
+    include_extra_for_pypi=False,
+):
     """
     Get the complete README.rst for tsfpga (to be used on website and in PyPI release).
 
-    Also possible to verify that readme.rst in the project root is identical.
-    RST file inclusion in README.rst does not work on gitlab unfortunately, hence this
-    cumbersome handling where the README is duplicated in two places.
+    The arguments control some extra text that is included. This is mainly links to the
+    other places where you can find information on the project (website, gitlab, PyPI).
 
     Arguments:
-        include_website_link (bool): Include a link to the website in README.
-        verify (bool): Verify that the readme.rst in repo root (which is shown on gitlab)
-            corresponds to the string produced by this function.
+        include_extra_for_gitlab (bool): Include the extra text that shall be included in the
+            gitlab README.
+        include_extra_for_website (bool): Include the extra text that shall be included in the
+            website main page.
+      include_extra_for_pypi (bool): Include the extra text that shall be included in the
+            PyPI release README.
     """
+    if include_extra_for_gitlab:
+        extra_rst = """\
+**See documentation on the website**: https://tsfpga.com
 
-    def get_rst(include_link):
-        extra_rst = (
-            "**See documentation on the website**: https://tsfpga.com\n" if include_link else ""
-        )
-        readme_rst = f"""\
+**See PyPI for installation details**: https://pypi.org/project/tsfpga/
+"""
+    elif include_extra_for_website:
+        extra_rst = """\
+This website contains readable documentation for the project.
+To check out the source code go to the `gitlab page <https://gitlab.com/tsfpga/tsfpga>`__.
+To install see the `PyPI page <https://pypi.org/project/tsfpga/>`__.
+"""
+    elif include_extra_for_pypi:
+        extra_rst = """\
+**See documentation on the website**: https://tsfpga.com
+
+**Check out the source code on gitlab**: https://gitlab.com/tsfpga/tsfpga
+"""
+    else:
+        extra_rst = ""
+
+    readme_rst = f"""\
 About tsfpga
 ============
 
@@ -101,14 +120,4 @@ About tsfpga
 {extra_rst}
 {get_doc()}"""
 
-        return readme_rst
-
-    if verify:
-        readme_rst = get_rst(include_link=True)
-        if read_file(tsfpga.REPO_ROOT / "readme.rst") != readme_rst:
-            file_path = create_file(tsfpga.TSFPGA_GENERATED / "sphinx" / "readme.rst", readme_rst)
-            assert (
-                False
-            ), f"readme.rst in repo root not correct. Compare to reference in python: {file_path}"
-
-    return get_rst(include_link=include_website_link)
+    return readme_rst

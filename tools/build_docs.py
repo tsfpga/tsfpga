@@ -21,7 +21,7 @@ sys.path.insert(0, str(REPO_ROOT))
 
 import tsfpga
 from tsfpga.about import get_readme_rst
-from tsfpga.system_utils import create_directory, create_file, delete
+from tsfpga.system_utils import create_directory, create_file, delete, read_file
 from tsfpga.tools.sphinx_doc import build_sphinx, generate_release_notes
 
 GENERATED_SPHINX = tsfpga.TSFPGA_GENERATED / "sphinx_rst"
@@ -100,12 +100,19 @@ def generate_apidoc():
 
 def generate_sphinx_index():
     """
-    Generate index.rst for sphinx. Also verify that readme.rst in the project is identical.
+    Generate index.rst for sphinx. Also verify that readme.rst in the project root is identical.
 
-    Rst file inclusion in readme.rst does not work on gitlab unfortunately, hence this
+    RST file inclusion in readme.rst does not work on gitlab unfortunately, hence this
     cumbersome handling of syncing documentation.
     """
-    rst = get_readme_rst(include_website_link=False, verify=True)
+    rst_to_verify = get_readme_rst(include_extra_for_gitlab=True)
+    if read_file(tsfpga.REPO_ROOT / "readme.rst") != rst_to_verify:
+        file_path = create_file(tsfpga.TSFPGA_GENERATED / "sphinx" / "readme.rst", rst_to_verify)
+        raise ValueError(
+            f"readme.rst in repo root not correct. Compare to reference in python: {file_path}"
+        )
+
+    rst = get_readme_rst(include_extra_for_website=True)
     create_file(GENERATED_SPHINX / "index.rst", rst)
 
 

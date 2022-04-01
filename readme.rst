@@ -35,6 +35,8 @@ multi-vendor code bases.
 
 **See documentation on the website**: https://tsfpga.com
 
+**See PyPI for installation details**: https://pypi.org/project/tsfpga/
+
 Key features
 ------------
 
