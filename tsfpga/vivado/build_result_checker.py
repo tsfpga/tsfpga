@@ -76,11 +76,11 @@ class BuildResultChecker:
 
     def _check_value(self, name, value):
         if self.limit.check(value):
-            message = f"Result size check passed for {name}: {value} ({self.limit})"
+            message = f"Result check passed for {name}: {value} ({self.limit})"
             print(message)
             return True
 
-        message = f"Result size check failed for {name}. " f"Got {value}, expected {self.limit}."
+        message = f"Result check failed for {name}. " f"Got {value}, expected {self.limit}."
         print(message)
         return False
 

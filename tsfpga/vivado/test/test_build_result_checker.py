@@ -24,7 +24,7 @@ def test_size_checker_less_than_pass(mock_stdout):
     build_result = MagicMock(spec=build_result_spec)
     build_result.synthesis_size = {"Total LUTs": 5}
     assert TotalLuts(LessThan(10)).check(build_result)
-    assert mock_stdout.getvalue() == "Result size check passed for Total LUTs: 5 (< 10)\n"
+    assert mock_stdout.getvalue() == "Result check passed for Total LUTs: 5 (< 10)\n"
 
 
 @patch("sys.stdout", new_callable=io.StringIO)
@@ -32,9 +32,7 @@ def test_size_checker_equal_to_fail(mock_stdout):
     build_result = MagicMock(spec=build_result_spec)
     build_result.synthesis_size = {"Total LUTs": 5}
     assert not TotalLuts(EqualTo(50)).check(build_result)
-    assert (
-        mock_stdout.getvalue() == "Result size check failed for Total LUTs. Got 5, expected 50.\n"
-    )
+    assert mock_stdout.getvalue() == "Result check failed for Total LUTs. Got 5, expected 50.\n"
 
 
 def test_size_checker_dsp_blocks_has_two_names():
@@ -56,7 +54,7 @@ def test_logic_level_checker_equal_to_pass(mock_stdout):
     build_result = MagicMock(spec=build_result_spec)
     build_result.maximum_logic_level = 5
     assert MaximumLogicLevel(EqualTo(5)).check(build_result)
-    assert mock_stdout.getvalue() == "Result size check passed for maximum logic level: 5 (5)\n"
+    assert mock_stdout.getvalue() == "Result check passed for maximum logic level: 5 (5)\n"
 
 
 @patch("sys.stdout", new_callable=io.StringIO)
@@ -66,5 +64,5 @@ def test_logic_level_checker_less_than_fail(mock_stdout):
     assert not MaximumLogicLevel(LessThan(7)).check(build_result)
     assert (
         mock_stdout.getvalue()
-        == "Result size check failed for maximum logic level. Got 11, expected < 7.\n"
+        == "Result check failed for maximum logic level. Got 11, expected < 7.\n"
     )
