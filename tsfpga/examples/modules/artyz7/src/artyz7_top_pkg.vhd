@@ -20,8 +20,8 @@ use reg_file.reg_file_pkg.all;
 package artyz7_top_pkg is
 
   ------------------------------------------------------------------------------
-  constant ddr_buffer_regs_idx : integer := 3;
   subtype dummy_reg_slaves is integer range 0 to 2;
+  constant ddr_buffer_regs_idx : integer := 3;
 
   constant regs_addr_mask : addr_t := x"0000_f000";
   constant ddr_buffer_regs_base_addr : addr_t := x"0000_3000";
