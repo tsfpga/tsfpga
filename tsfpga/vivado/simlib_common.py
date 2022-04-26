@@ -24,9 +24,19 @@ class VivadoSimlibCommon:
     See child classes for details: :class:`.VivadoSimlibGhdl`, :class:`.VivadoSimlibCommercial`.
     """
 
-    _libraries = None
+    # The version of this class. Can be bumped to force a re-compile if e.g. the TCL script changes
+    # or the output folder structure is updated.
+    _format_version_id = 2
+
+    # Set in child class to a list of strings. The libraries that shall be compiled and added to
+    # VUnit project.
+    library_names = None
+
+    # Set in child class to a pathlib.Path object. The path to the "vivado" executable.
     _vivado_path = None
-    _output_path = None
+
+    # Set in child class to a pathlib.Path object. The path where simlib shall be compiled.
+    output_path = None
 
     def compile_if_needed(self):
         """
@@ -64,7 +74,7 @@ class VivadoSimlibCommon:
         Compile simlib.
         """
         delete(self._done_token)
-        print(f"Compiling Vivado simlib in {self._output_path}")
+        print(f"Compiling Vivado simlib in {self.output_path}")
 
         self._compile()
 
@@ -92,7 +102,7 @@ class VivadoSimlibCommon:
         Follows a format ``vivado-simlib-WW.XX.YY.ZZ`` suitable for storage and versioning
         in Artifactory.
         """
-        return self._output_path.name
+        return self.output_path.name
 
     def to_archive(self):
         """
@@ -101,8 +111,8 @@ class VivadoSimlibCommon:
         Return:
             pathlib.Path: Path to the archive.
         """
-        make_archive(self._output_path, "zip", self._output_path)
-        archive = self._output_path.parent / (self._output_path.name + ".zip")
+        make_archive(self.output_path, "zip", self.output_path)
+        archive = self.output_path.parent / (self.output_path.name + ".zip")
         return archive
 
     def from_archive(self, archive):
@@ -113,13 +123,15 @@ class VivadoSimlibCommon:
             archive (pathlib.Path): Path to a zip archive with previously compiled simlib.
         """
         with zipfile.ZipFile(archive, "r") as zip_handle:
-            zip_handle.extractall(self._output_path)
+            zip_handle.extractall(self.output_path)
 
     def _get_version_tag(self):
         tag = "vivado-simlib-"
         tag += self._get_operating_system_tag()
-        tag += "." + self._get_vivado_version_tag()
-        tag += "." + self._get_simulator_tag()
+        tag += f".{self._get_vivado_version_tag()}"
+        tag += f".{self._get_simulator_tag()}"
+        tag += f".format_{self._format_version_id}"
+
         return tag
 
     def _get_operating_system_tag(self):
@@ -130,13 +142,16 @@ class VivadoSimlibCommon:
 
     def _get_vivado_version_tag(self):
         """
-        Return e.g. "vivado_2019_2".
+        Return e.g. "vivado_2021_2".
         """
         vivado_path = self._vivado_path
         if vivado_path == "vivado":
             vivado_path = which(vivado_path)
             assert vivado_path is not None, "Could not find vivado location"
+
+        # E.g. "/home/lukas/work/Xilinx/Vivado/2021.2/bin/vivado" -> "2021.2"
         vivado_version = Path(vivado_path).parent.parent.name
+
         return self._format_version("vivado_" + vivado_version)
 
     def _get_simulator_tag(self):
@@ -145,7 +160,7 @@ class VivadoSimlibCommon:
     @staticmethod
     def _format_version(version):
         """
-        Format version string to something suitable fort artifactory versioning.
+        Format version string to something suitable for artifactory versioning.
         """
         return version.replace(".", "_").replace("-", "_").lower()
 
@@ -154,4 +169,4 @@ class VivadoSimlibCommon:
         """
         Path to "done" token file.
         """
-        return self._output_path / "done.txt"
+        return self.output_path / "done.txt"

@@ -22,7 +22,7 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
     Handle Vivado simlib with GHDL.
     """
 
-    _libraries = ["unisim", "secureip", "unimacro", "unifast"]
+    library_names = ["unisim", "secureip", "unimacro", "unifast"]
 
     def __init__(self, output_path, vunit_proj, simulator_interface, vivado_path):
         """
@@ -37,7 +37,7 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
 
         self.ghdl_binary = Path(simulator_interface.find_prefix()) / "ghdl"
 
-        self._output_path = output_path / self._get_version_tag()
+        self.output_path = output_path / self._get_version_tag()
 
     def _compile(self):
         vivado_libraries_path = self._vivado_path.parent.parent / "data" / "vhdl" / "src"
@@ -52,7 +52,7 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
             "unisim_VPKG",
             "unisim_retarget_VCOMP",
         ]:
-            vhd_file = library_path / (vhd_file_base + ".vhd")
+            vhd_file = library_path / f"{vhd_file_base}.vhd"
             assert vhd_file.exists, vhd_file
             self._compile_ghdl_file(vhd_file, "unisim")
 
@@ -92,24 +92,26 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
 
     def _compile_ghdl_file(self, vhd_file, library_name):
         print(f"Compiling {vhd_file} into {library_name}")
-        workdir = self._output_path / library_name / "v08"
+
+        workdir = self.output_path / library_name
         create_directory(workdir, empty=False)
+
         cmd = [
             self.ghdl_binary,
             "-a",
             "--ieee=synopsys",
             "--std=08",
-            "--workdir=" + str(workdir.resolve()),
-            "-P" + str(self._output_path),
+            f"--workdir={str(workdir.resolve())}",
+            f"-P{str(self.output_path / 'unisim')}",
             "-fexplicit",
             "-frelaxed-rules",
             "--no-vital-checks",
             "--warn-binding",
             "--mb-comments",
-            "--work=" + library_name,
+            f"--work={library_name}",
             str(vhd_file.resolve()),
         ]
-        subprocess.check_call(cmd, cwd=self._output_path)
+        subprocess.check_call(cmd, cwd=self.output_path)
 
     def _get_simulator_tag(self):
         """
@@ -126,15 +128,15 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
         regexp_without_tag = re.compile(r"^GHDL (\S+).*")
         match = regexp_without_tag.search(output)
         if match is not None:
-            return self._format_version("ghdl_" + match.group(1))
+            return self._format_version(f"ghdl_{match.group(1)}")
 
-        raise ValueError("Could not find GHDL version string: " + output)
+        raise ValueError(f"Could not find GHDL version string: {output}")
 
     def _add_to_vunit_project(self):
         """
         Add the compiled simlib to your VUnit project.
         """
-        for library in self._libraries:
-            library_path = self._output_path / library / "v08"
+        for library_name in self.library_names:
+            library_path = self.output_path / library_name
             assert library_path.exists(), library_path
-            self._vunit_proj.add_external_library(library, library_path)
+            self._vunit_proj.add_external_library(library_name, library_path)

@@ -6,7 +6,6 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-import hashlib
 from pathlib import Path
 
 from tsfpga.system_utils import create_file
@@ -20,7 +19,7 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
     Handle Vivado simlib with a commercial simulator.
     """
 
-    _libraries = ["unisim", "secureip", "unimacro", "unifast", "xpm"]
+    library_names = ["unisim", "secureip", "unimacro", "unifast", "xpm"]
 
     _tcl = (
         "set_param general.maxthreads 4\n"
@@ -45,25 +44,17 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
         )
         self._simulator_folder = Path(simulator_interface.find_prefix())
 
-        self._output_path = output_path / self._get_version_tag()
+        self.output_path = output_path / self._get_version_tag()
 
     def _compile(self):
-        tcl_file = self._output_path / "compile_simlib.tcl"
+        tcl_file = self.output_path / "compile_simlib.tcl"
         tcl = self._tcl.format(
             simulator_name=self._simulator_name,
             simulator_folder=to_tcl_path(self._simulator_folder),
-            output_path=to_tcl_path(self._output_path),
+            output_path=to_tcl_path(self.output_path),
         )
         create_file(tcl_file, tcl)
         run_vivado_tcl(self._vivado_path, tcl_file)
-
-    def _get_version_tag(self):
-        """
-        Add a hash of the TCL script to version tag.
-        """
-        tag = super()._get_version_tag()
-        tag += "." + self._get_tcl_hash()
-        return tag
 
     def _get_simulator_tag(self):
         """
@@ -72,17 +63,11 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
         simulator_version = self._simulator_folder.parent.name
         return self._format_version(f"{self._simulator_name}_{simulator_version}")
 
-    def _get_tcl_hash(self):
-        """
-        Return a (partial) hash of the TCL script that is used to compile simlib.
-        """
-        return hashlib.md5(self._tcl.encode()).hexdigest()[0:8]
-
     def _add_to_vunit_project(self):
         """
         Add the compiled simlib to your VUnit project.
         """
-        for library in self._libraries:
-            library_path = self._output_path / library
+        for library_name in self.library_names:
+            library_path = self.output_path / library_name
             assert library_path.exists(), library_path
-            self._vunit_proj.add_external_library(library, library_path)
+            self._vunit_proj.add_external_library(library_name, library_path)
