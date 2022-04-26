@@ -6,6 +6,7 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+from cgitb import enable
 import sys
 from pathlib import Path
 
@@ -64,7 +65,8 @@ def main():
 
     simulation_project = SimulationProject(args=args)
     simulation_project.add_modules(args=args, modules=modules, modules_no_sim=modules_no_sim)
-    ip_core_vivado_project_directory = simulation_project.add_vivado_simlib_and_ip_cores(
+    simulation_project.add_vivado_simlib(args=args)
+    ip_core_vivado_project_directory = simulation_project.add_vivado_ip_cores(
         args=args, modules=modules + modules_no_sim
     )
 

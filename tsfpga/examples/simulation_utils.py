@@ -87,10 +87,8 @@ class SimulationProject:
         Create a VUnit project, configured according to the given arguments.
 
         Arguments:
-            preprocessing_disable (bool): If ``True``, VUnit location/check preprocessing will not
+            enable_preprocessing (bool): If ``True``, VUnit location/check preprocessing will
                 be enabled.
-
-        Return: The created VUnit project.
         """
         self.vunit_proj = VUnit.from_args(args=args)
         self.vunit_proj.add_verification_components()
@@ -137,7 +135,56 @@ class SimulationProject:
             if simulate_this_module:
                 module.setup_vunit(vunit_proj=self.vunit_proj, **setup_vunit_kwargs)
 
-    def add_vivado_simlib_and_ip_cores(
+    def add_vivado_simlib(self, args):
+        """
+        Add Vivado simlib to the VUnit project, unless instructed not to by ``args``.
+        Will compile simlib if necessary.
+
+        Arguments:
+            args: Command line argument namespace from ``simulate.py``.
+
+        Return:
+            :class:`.VivadoSimlibCommon`: The simlib object.
+        """
+        if args.vivado_skip:
+            return None
+
+        return self._add_simlib(
+            output_path=args.output_path_vivado, force_compile=args.simlib_compile
+        )
+
+    def _add_simlib(self, output_path, force_compile):
+        """
+        Add Vivado simlib to the VUnit project. Compile if needed.
+
+        .. note::
+
+            This method can be overloaded in a child class if you want to do something more
+            advanced, e.g. fetching compiled simlib from Artifactory.
+
+        Arguments:
+            output_path (pathlib.Path): Compiled simlib will be placed in sub-directory of
+                this path.
+            force_compile (bool): Will (re)-compile simlib even if compiled artifacts exist.
+
+        Return:
+            VivadoSimlibCommon: The simlib object.
+        """
+        vivado_simlib = VivadoSimlib.init(output_path, self.vunit_proj)
+        if force_compile or vivado_simlib.compile_is_needed:
+            vivado_simlib.compile()
+            vivado_simlib.to_archive()
+
+        vivado_simlib.add_to_vunit_project()
+
+        # Code in the "vital2000" package gives GHDL errors such as "result subtype of a pure
+        # function cannot have access subelements". Hence, relaxed rules need to be enabled when
+        # using unisim.
+        self.vunit_proj.set_sim_option("ghdl.elab_flags", ["-frelaxed-rules"])
+
+        return vivado_simlib
+
+    def add_vivado_ip_cores(
         self,
         args,
         modules,
@@ -145,13 +192,11 @@ class SimulationProject:
         vivado_ip_core_project_class=None,
     ):
         """
-        Add Vivado simlib and module IP cores to the VUnit project.
-        Will compile and add simlib unless instructed not to by ``args``.
-        When running with a commercial simulator, IP cores will be generated and added,
-        unless instructed not to by ``args``.
+        Generate IP cores from the modules, unless instructed not to by ``args``.
+        When running with a commercial simulator they will be added to the VUnit project.
 
         Arguments:
-            args: Command line argument namespace.
+            args: Command line argument namespace from ``simulate.py``.
             modules (:class:`.ModuleList`): IP cores from these modules will be included in the
                 simulation project.
             vivado_part_name (str): Part name to be used for Vivado IP core project. Might have to
@@ -165,8 +210,6 @@ class SimulationProject:
         """
         if args.vivado_skip:
             return None
-
-        self._add_simlib(output_path=args.output_path_vivado, force_compile=args.simlib_compile)
 
         # Generate IP core simulation files. Might be used for the vhdl_ls config,
         # even if they are not added to the simulation project.
@@ -186,33 +229,6 @@ class SimulationProject:
             )
 
         return ip_core_vivado_project_directory
-
-    def _add_simlib(self, output_path, force_compile):
-        """
-        Add Vivado simlib to the VUnit project. Compile if needed.
-
-        .. note::
-
-            This method can be overloaded in a child class if you want to do something more
-            advanced, e.g. fetching compiled simlib from Artifactory.
-
-        Arguments:
-            vunit_proj: Vivado simlib will be added to this VUnit project.
-            output_path (pathlib.Path): Compiled simlib will be placed in sub-directory of
-                this path.
-            force_compile (bool): Will (re)-compile simlib even if compiled artifacts exist.
-        """
-        vivado_simlib = VivadoSimlib.init(output_path, self.vunit_proj)
-        if force_compile or vivado_simlib.compile_is_needed:
-            vivado_simlib.compile()
-            vivado_simlib.to_archive()
-
-        vivado_simlib.add_to_vunit_project()
-
-        # Code in the "vital2000" package gives GHDL errors such as "result subtype of a pure
-        # function cannot have access subelements". Hence, relaxed rules need to be enabled when
-        # using unisim.
-        self.vunit_proj.set_sim_option("ghdl.elab_flags", ["-frelaxed-rules"])
 
     @staticmethod
     def _generate_ip_core_files(
