@@ -7,3 +7,7 @@ Added
 
 * Add table with netlist build resource utilization to sphinx documentation in
   :class:`.ModuleDocumentation`.
+
+* Add :func:`.create_ghdl_ls_configuration` function to generate a configuration file
+  (``hdl-prj.json``) for the ``vhdl-lsp`` language server
+  (https://github.com/ghdl/ghdl-language-server).

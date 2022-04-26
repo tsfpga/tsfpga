@@ -10,6 +10,8 @@ generated
 
 vhdl_ls.toml
 
+hdl-prj.json
+
 *.code-workspace
 
 .vscode

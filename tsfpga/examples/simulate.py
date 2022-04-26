@@ -6,7 +6,6 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-from cgitb import enable
 import sys
 from pathlib import Path
 
@@ -17,6 +16,7 @@ sys.path.insert(0, str(PATH_TO_TSFPGA))
 from tsfpga.examples.example_env import get_tsfpga_example_modules, TSFPGA_EXAMPLES_TEMP_DIR
 
 import tsfpga
+from tsfpga.create_ghdl_ls_config import create_ghdl_ls_configuration
 import tsfpga.create_vhdl_ls_config
 from tsfpga.git_simulation_subset import GitSimulationSubset
 from tsfpga.module import get_hdl_modules
@@ -65,7 +65,7 @@ def main():
 
     simulation_project = SimulationProject(args=args)
     simulation_project.add_modules(args=args, modules=modules, modules_no_sim=modules_no_sim)
-    simulation_project.add_vivado_simlib(args=args)
+    simlib = simulation_project.add_vivado_simlib(args=args)
     ip_core_vivado_project_directory = simulation_project.add_vivado_ip_cores(
         args=args, modules=modules + modules_no_sim
     )
@@ -75,6 +75,13 @@ def main():
         temp_files_path=TSFPGA_EXAMPLES_TEMP_DIR,
         modules=modules + modules_no_sim,
         ip_core_vivado_project_directory=ip_core_vivado_project_directory,
+    )
+
+    create_ghdl_ls_configuration(
+        output_path=tsfpga.REPO_ROOT,
+        modules=modules + modules_no_sim,
+        vunit_proj=simulation_project.vunit_proj,
+        simlib=simlib,
     )
 
     simulation_project.vunit_proj.main()
