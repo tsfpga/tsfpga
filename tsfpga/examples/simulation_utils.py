@@ -82,7 +82,7 @@ class SimulationProject:
     Class for setting up and handling a VUnit simulation project. Should be reusable in most cases.
     """
 
-    def __init__(self, args, preprocessing_disable=False):
+    def __init__(self, args, enable_preprocessing=False):
         """
         Create a VUnit project, configured according to the given arguments.
 
@@ -95,7 +95,8 @@ class SimulationProject:
         self.vunit_proj = VUnit.from_args(args=args)
         self.vunit_proj.add_verification_components()
         self.vunit_proj.add_random()
-        if not preprocessing_disable:
+
+        if enable_preprocessing:
             self.vunit_proj.enable_location_preprocessing()
             self.vunit_proj.enable_check_preprocessing()
 
