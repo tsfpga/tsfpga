@@ -19,6 +19,9 @@ class VivadoSimlibCommon:
     """
     Class for handling Vivado simlib used for simulation. Keeps track of when a
     (re)compile is needed.
+
+    This is a parent class that defines an interface and some common methods.
+    See child classes for details: :class:`.VivadoSimlibGhdl`, :class:`.VivadoSimlibCommercial`.
     """
 
     _libraries = None
