@@ -11,3 +11,6 @@ Added
 * Add :func:`.create_ghdl_ls_configuration` function to generate a configuration file
   (``hdl-prj.json``) for the ``ghdl-ls`` language server
   (https://github.com/ghdl/ghdl-language-server).
+
+* Add support for string and bit vector generics in :class:`.VivadoProject` using the
+  types :class:`.StringGenericValue` and :class:`.BitVectorGenericValue`.

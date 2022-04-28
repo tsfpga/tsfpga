@@ -15,6 +15,7 @@ import pytest
 from tsfpga.module import BaseModule
 from tsfpga.system_utils import create_directory, create_file
 from tsfpga.vivado.project import VivadoProject, copy_and_combine_dicts
+from tsfpga.vivado.generics import StringGenericValue
 
 # pylint: disable=unused-import
 from tsfpga.test.conftest import fixture_tmp_path  # noqa: F401
@@ -33,7 +34,11 @@ Generics:   -
     )
 
     project = VivadoProject(
-        name="my_project", modules=[], part="", top="apa", generics=dict(hest=2, zebra=3)
+        name="my_project",
+        modules=[],
+        part="",
+        top="apa",
+        generics=dict(hest=True, zebra=3, foo=StringGenericValue("/home/test.vhd")),
     )
     assert (
         str(project)
@@ -41,7 +46,7 @@ Generics:   -
 my_project
 Type:       VivadoProject
 Top level:  apa
-Generics:   hest=2, zebra=3
+Generics:   hest=True, zebra=3, foo=/home/test.vhd
 """
     )
 
@@ -67,11 +72,11 @@ def test_modules_list_should_be_copied():
 
 
 def test_static_generics_dictionary_should_be_copied():
-    generics = dict(apa=1)
+    generics = dict(apa=3)
     proj = VivadoProject(name="name", modules=[], part="part", generics=generics)
 
-    generics["apa"] = 2
-    assert proj.static_generics["apa"] == 1
+    generics["apa"] = False
+    assert proj.static_generics["apa"] == 3
 
 
 def test_constraints_list_should_be_copied():
@@ -129,19 +134,6 @@ def test_project_create_should_raise_exception_if_project_path_already_exists(tm
     with pytest.raises(ValueError) as exception_info:
         VivadoProject(name="apa", modules=[], part="").create(project_path)
     assert str(exception_info.value) == f"Folder already exists: {project_path}"
-
-
-def test_can_cast_project_to_string_without_error():
-    print(VivadoProject(name="name", modules=[], part=""))
-    print(
-        VivadoProject(
-            name="name",
-            modules=[],
-            part="",
-            generics=dict(stuff="and", things=True),
-            defined_at=Path(__file__),
-        )
-    )
 
 
 def test_copy_and_combine_dict_with_both_arguments_none():
@@ -208,7 +200,7 @@ class TestVivadoProject(unittest.TestCase):
         self.project_path = self.tmp_path / "projects" / "apa" / "project"
         self.output_path = self.tmp_path / "projects" / "apa"
         self.ip_cache_path = MagicMock()
-        self.build_time_generics = dict(name="value")
+        self.build_time_generics = dict(enable=True)
         self.num_threads = 4
         self.run_index = 3
         self.synth_only = False

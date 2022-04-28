@@ -8,6 +8,7 @@
 
 from tsfpga.system_utils import create_file
 from .common import to_tcl_path
+from .generics import get_vivado_tcl_generic_value
 
 
 class VivadoTcl:
@@ -238,11 +239,8 @@ class VivadoTcl:
 
         generic_list = []
         for name, value in generics.items():
-            if isinstance(value, bool):
-                value_tcl_formatted = "1'b1" if value else "1'b0"
-                generic_list.append(f"{name}={value_tcl_formatted}")
-            else:
-                generic_list.append(f"{name}={value}")
+            value_tcl_formatted = get_vivado_tcl_generic_value(value=value)
+            generic_list.append(f"{name}={value_tcl_formatted}")
 
         generics_string = " ".join(generic_list)
         return f"set_property generic {{{generics_string}}} [current_fileset]\n"

@@ -18,6 +18,7 @@ from tsfpga.ip_core_file import IpCoreFile
 from tsfpga.module import BaseModule, get_modules
 from tsfpga.system_utils import create_file
 from tsfpga.vivado.common import to_tcl_path
+from tsfpga.vivado.generics import BitVectorGenericValue, StringGenericValue
 from tsfpga.vivado.tcl import VivadoTcl
 from tsfpga.test import file_contains_string
 
@@ -33,13 +34,19 @@ def test_set_create_run_index():
 def test_static_generics():
     # Use OrderedDict here in test so that order will be preserved and we can test for equality.
     # In real world case a normal dict can be used.
-    generics = OrderedDict(enable=True, disable=False, integer=123, slv="4'b0101")
+    generics = OrderedDict(
+        enable=True,
+        disable=False,
+        integer=123,
+        slv=BitVectorGenericValue("0101"),
+        string=StringGenericValue("apa"),
+    )
 
     tcl = VivadoTcl(name="").create(
         project_folder=Path(), modules=[], part="", top="", run_index=1, generics=generics
     )
     expected = (
-        "\nset_property generic {enable=1'b1 disable=1'b0 integer=123 slv=4'b0101} "
+        "\nset_property generic {enable=1'b1 disable=1'b0 integer=123 slv=4'b0101 string=apa} "
         "[current_fileset]\n"
     )
     assert expected in tcl

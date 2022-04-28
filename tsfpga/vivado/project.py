@@ -55,6 +55,14 @@ class VivadoProject:
                 project. These will be set in the project when it is created.
 
                 Compare to the build-time generic argument in :meth:`build`.
+
+                The generic value shall be of type
+
+                * :class:`bool` (suitable for VHDL type ``boolean`` and ``std_logic``),
+                * :class:`int` (suitable for VHDL type ``integer``, ``natural``, etc.),
+                * :class:`.BitVectorGenericValue` (suitable for VHDL type ``std_logic_vector``,
+                  ``unsigned``, etc.), or
+                * :class:`.StringGenericValue` (suitable for VHDL type ``string``).
             constraints (list(Constraint)): Constraints that will be applied to the project.
             tcl_sources (list(pathlib.Path)): A list of TCL files. Use for e.g. block design,
                 pinning, settings, etc.
@@ -365,6 +373,8 @@ class VivadoProject:
                 generics, i.e. values that can change between each build of this project.
 
                 Compare to the create-time generics argument in :meth:`.__init__`.
+
+                The generic value types follow the same rules as for :meth:`.__init__`.
             synth_only (bool): Run synthesis and then stop.
             from_impl (bool): Run the ``impl`` steps and onward on an existing synthesized design.
             num_threads (int): Number of parallel threads to use during run.
