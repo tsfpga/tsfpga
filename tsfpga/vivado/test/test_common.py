@@ -9,7 +9,7 @@
 from unittest.mock import patch
 from pathlib import Path
 
-from tsfpga.vivado.common import run_vivado_tcl, get_vivado_version
+from tsfpga.vivado.common import get_git_sha_slv, get_vivado_version, run_vivado_tcl
 
 THIS_DIR = Path(__file__).parent
 
@@ -49,3 +49,19 @@ def test_get_vivado_version():
         get_vivado_version(vivado_path=Path("/home/lukas/work/Xilinx/Vivado/2021.2/bin/vivado"))
         == "2021.2"
     )
+
+
+def test_get_git_sha_slv():
+    with patch("tsfpga.vivado.common.get_git_sha") as get_git_sha:
+        get_git_sha.return_value = "abcdef0123456789"
+        assert get_git_sha_slv(git_directory=None) == (
+            "10101011110011011110111100000001",
+            "00100011010001010110011110001001",
+        )
+
+    with patch("tsfpga.vivado.common.get_git_sha") as get_git_sha:
+        get_git_sha.return_value = "00abcdef00123400"
+        assert get_git_sha_slv(git_directory=None) == (
+            "00000000101010111100110111101111",
+            "00000000000100100011010000000000",
+        )
