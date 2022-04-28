@@ -6,12 +6,12 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-from pathlib import Path
 import platform
-from shutil import which, make_archive
+from shutil import make_archive
 import zipfile
 
 from tsfpga.system_utils import create_file, delete
+from tsfpga.vivado.common import get_vivado_version
 
 
 class VivadoSimlibCommon:
@@ -144,15 +144,9 @@ class VivadoSimlibCommon:
         """
         Return e.g. "vivado_2021_2".
         """
-        vivado_path = self._vivado_path
-        if vivado_path == "vivado":
-            vivado_path = which(vivado_path)
-            assert vivado_path is not None, "Could not find vivado location"
+        vivado_version = get_vivado_version(self._vivado_path)
 
-        # E.g. "/home/lukas/work/Xilinx/Vivado/2021.2/bin/vivado" -> "2021.2"
-        vivado_version = Path(vivado_path).parent.parent.name
-
-        return self._format_version("vivado_" + vivado_version)
+        return self._format_version(f"vivado_{vivado_version}")
 
     def _get_simulator_tag(self):
         raise NotImplementedError()

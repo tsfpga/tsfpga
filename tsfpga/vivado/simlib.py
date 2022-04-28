@@ -26,7 +26,7 @@ class VivadoSimlib:
             output_path (pathlib.Path): The compiled simlib will be placed here.
             vunit_proj: The VUnit project that is used to run simulation.
             vivado_path (pathlib.Path): Path to Vivado executable. If left out, the default
-                from PATH will be used.
+                from system ``PATH`` will be used.
         Return:
             A :class:`.VivadoSimlibCommon` child object.
         """

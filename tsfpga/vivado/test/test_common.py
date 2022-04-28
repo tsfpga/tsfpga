@@ -9,7 +9,7 @@
 from unittest.mock import patch
 from pathlib import Path
 
-from tsfpga.vivado.common import run_vivado_tcl
+from tsfpga.vivado.common import run_vivado_tcl, get_vivado_version
 
 THIS_DIR = Path(__file__).parent
 
@@ -42,3 +42,10 @@ def test_run_vivado_tcl():
         mocked_process.NonZeroExitCode = ValueError
         mocked_process.return_value.consume_output.side_effect = ValueError("Non-zero exit code!")
         assert not run_vivado_tcl(vivado_path, tcl_file, no_log_file=True)
+
+
+def test_get_vivado_version():
+    assert (
+        get_vivado_version(vivado_path=Path("/home/lukas/work/Xilinx/Vivado/2021.2/bin/vivado"))
+        == "2021.2"
+    )

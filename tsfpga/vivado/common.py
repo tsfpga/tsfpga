@@ -73,11 +73,14 @@ def run_vivado_gui(vivado_path, project_file):
 
 def get_vivado_path(vivado_path=None):
     """
-    Wrapper to get a ``pathlib.Path`` to vivado executable.
+    Wrapper to get a path to Vivado executable.
 
     Arguments:
         vivado_path (pathlib.Path): Path to vivado executable. Set to ``None`` to use whatever
-            is available in ``PATH``.
+            is available in the system ``PATH``.
+
+    Returns:
+        pathlib.Path: The path.
     """
     if vivado_path is not None:
         return vivado_path.resolve()
@@ -87,6 +90,25 @@ def get_vivado_path(vivado_path=None):
         raise FileNotFoundError("Could not find vivado on PATH")
 
     return Path(which_vivado).resolve()
+
+
+def get_vivado_version(vivado_path=None):
+    """
+    Get the version number of the Vivado installation.
+
+    Arguments:
+        vivado_path (pathlib.Path): Path to vivado executable. Set to ``None`` to use whatever
+            is available in the system ``PATH``.
+
+    Returns:
+        str: The version, e.g. ``"2021.2"``.
+    """
+    vivado_path = get_vivado_path(vivado_path=vivado_path)
+
+    # E.g. "/home/lukas/work/Xilinx/Vivado/2021.2/bin/vivado" -> "2021.2"
+    vivado_version = vivado_path.parent.parent.name
+
+    return vivado_version
 
 
 def to_tcl_path(path):
