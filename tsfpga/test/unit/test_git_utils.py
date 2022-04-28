@@ -113,7 +113,10 @@ class TestGitCommitWithLocalChanges(unittest.TestCase):
             old_env = None
 
         os.environ["GIT_COMMIT"] = "54849b5a8152b07e0809b8f90fc24d54262cb4d6"
-        assert get_git_commit(directory=self.repo_path) == os.environ["GIT_COMMIT"][0:16]
+        assert (
+            get_git_commit(directory=self.repo_path)
+            == f"{os.environ['GIT_COMMIT'][0:16]}{self._local_changes_present}"
+        )
 
         if old_env is None:
             del os.environ["GIT_COMMIT"]

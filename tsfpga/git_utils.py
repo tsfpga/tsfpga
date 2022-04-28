@@ -14,11 +14,37 @@ from tsfpga.system_utils import file_is_in_directory
 
 def get_git_commit(directory):
     """
-    Generally, eight to ten characters are more than enough to be unique within a project.
-    The linux kernel, one of the largest projects, needs 11.
-    https://git-scm.com/book/en/v2/Git-Tools-Revision-Selection#Short-SHA-1
+    Get a string describing the current git commit.
+    E.g. ``"abcdef0123"`` or ``"12345678 (local changes present)"``.
+
+    Arguments:
+        directory (pathlib.Path): The directory where git commands will be run.
+
+    Returns:
+        str: Git commit information.
     """
+    git_commit = get_git_sha(directory=directory)
+    if git_local_changes_present(directory=directory):
+        git_commit += " (local changes present)"
+
+    return git_commit
+
+
+def get_git_sha(directory):
+    """
+    Get a short git SHA.
+
+    Arguments:
+        directory (pathlib.Path): The directory where git commands will be run.
+
+    Returns:
+        str: The SHA.
+    """
+    # Generally, eight to ten characters are more than enough to be unique within a project.
+    # The linux kernel, one of the largest projects, needs 11.
+    # https://git-scm.com/book/en/v2/Git-Tools-Revision-Selection#Short-SHA-1
     sha_length = 16
+
     if "GIT_COMMIT" in os.environ:
         return os.environ["GIT_COMMIT"][0:sha_length]
 
@@ -28,11 +54,29 @@ def get_git_commit(directory):
     from git import Repo
 
     repo = Repo(directory, search_parent_directories=True)
-    git_commit = repo.head.commit.hexsha[0:sha_length]
-    if repo.is_dirty():
-        git_commit += " (local changes present)"
+    git_sha = repo.head.commit.hexsha[0:sha_length]
 
-    return git_commit
+    return git_sha
+
+
+def git_local_changes_present(directory):
+    """
+    Check if the git repo has local changes.
+
+    Arguments:
+        directory (pathlib.Path): The directory where git commands will be run.
+
+    Returns:
+        bool: ``True`` if the repo contains changes that have been made after the last commit.
+    """
+    # Import fails if "git" executable is not available, hence it can not be on top level.
+    # This function should only be called if git is available.
+    # pylint: disable=import-outside-toplevel
+    from git import Repo
+
+    repo = Repo(directory, search_parent_directories=True)
+
+    return repo.is_dirty()
 
 
 def git_commands_are_available(directory):
