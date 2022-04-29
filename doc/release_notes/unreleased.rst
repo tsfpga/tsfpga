@@ -9,5 +9,5 @@ Added
   :class:`.ModuleDocumentation`.
 
 * Add :func:`.create_ghdl_ls_configuration` function to generate a configuration file
-  (``hdl-prj.json``) for the ``vhdl-lsp`` language server
+  (``hdl-prj.json``) for the ``ghdl-ls`` language server
   (https://github.com/ghdl/ghdl-language-server).
