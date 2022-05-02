@@ -60,6 +60,7 @@ class VivadoProject:
 
                 * :class:`bool` (suitable for VHDL type ``boolean`` and ``std_logic``),
                 * :class:`int` (suitable for VHDL type ``integer``, ``natural``, etc.),
+                * :class:`float` (suitable for VHDL type ``real``),
                 * :class:`.BitVectorGenericValue` (suitable for VHDL type ``std_logic_vector``,
                   ``unsigned``, etc.), or
                 * :class:`.StringGenericValue` (suitable for VHDL type ``string``).

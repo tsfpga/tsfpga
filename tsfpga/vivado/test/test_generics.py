@@ -15,19 +15,21 @@ from tsfpga.vivado.generics import (
 )
 
 
-def test_string_generics():
-    assert get_vivado_tcl_generic_value(StringGenericValue("apa")) == "apa"
+def test_boolean_generics():
+    assert get_vivado_tcl_generic_value(True) == "1'b1"
+    assert get_vivado_tcl_generic_value(False) == "1'b0"
 
-    with pytest.raises(ValueError) as exception_info:
-        StringGenericValue(3)
-    assert str(exception_info.value) == "Expected StringGenericValue value to be of type str: 3"
 
-    with pytest.raises(ValueError) as exception_info:
-        StringGenericValue("apa hest")
-    assert (
-        str(exception_info.value)
-        == "Expected StringGenericValue value to not contain spaces: apa hest"
-    )
+def test_integer_generics():
+    assert get_vivado_tcl_generic_value(123) == "123"
+    assert get_vivado_tcl_generic_value(0) == "0"
+    assert get_vivado_tcl_generic_value(-7) == "-7"
+
+
+def test_float_generics():
+    assert get_vivado_tcl_generic_value(3.1415) == "3.1415"
+    assert get_vivado_tcl_generic_value(0.0) == "0.0"
+    assert get_vivado_tcl_generic_value(-1.72) == "-1.72"
 
 
 def test_bit_vector_generics():
@@ -47,23 +49,27 @@ def test_bit_vector_generics():
     )
 
 
-def test_boolean_generics():
-    assert get_vivado_tcl_generic_value(True) == "1'b1"
-    assert get_vivado_tcl_generic_value(False) == "1'b0"
+def test_string_generics():
+    assert get_vivado_tcl_generic_value(StringGenericValue("apa")) == "apa"
 
+    with pytest.raises(ValueError) as exception_info:
+        StringGenericValue(3)
+    assert str(exception_info.value) == "Expected StringGenericValue value to be of type str: 3"
 
-def test_integer_generics():
-    assert get_vivado_tcl_generic_value(123) == "123"
-    assert get_vivado_tcl_generic_value(0) == "0"
-    assert get_vivado_tcl_generic_value(-7) == "-7"
+    with pytest.raises(ValueError) as exception_info:
+        StringGenericValue("apa hest")
+    assert (
+        str(exception_info.value)
+        == "Expected StringGenericValue value to not contain spaces: apa hest"
+    )
 
 
 def test_unsupported_generic_type():
     with pytest.raises(ValueError) as exception_info:
-        get_vivado_tcl_generic_value(3.1)
+        get_vivado_tcl_generic_value(dict(name="value"))
     assert (
         str(exception_info.value)
-        == "Got unsupported type for generic. Type=<class 'float'>, value=3.1."
+        == "Got unsupported type for generic. Type=<class 'dict'>, value={'name': 'value'}."
     )
 
     with pytest.raises(ValueError) as exception_info:

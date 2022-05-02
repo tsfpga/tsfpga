@@ -69,13 +69,16 @@ def get_vivado_tcl_generic_value(value):
     https://www.xilinx.com/support/answers/52217.html
 
     Arguments:
-        value (bool, int, StringGenericValue, BitVectorGenericValue): A generic value.
+        value (bool, int, float, StringGenericValue, BitVectorGenericValue): A generic value.
     """
     # Note that bool is a sub-class of int in Python, so check for bool must be first
     if isinstance(value, bool):
         return f"1'b{int(value)}"
 
     if isinstance(value, int):
+        return str(value)
+
+    if isinstance(value, float):
         return str(value)
 
     if isinstance(value, BitVectorGenericValue):
