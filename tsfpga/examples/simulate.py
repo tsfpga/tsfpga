@@ -114,9 +114,6 @@ def find_git_test_filters(args, repo_root, modules, modules_no_sim=None, **setup
         repo_root=repo_root,
         reference_branch="origin/master",
         vunit_proj=simulation_project.vunit_proj,
-        # We use VUnit preprocessing, so these arguments have to be supplied
-        vunit_preprocessed_path=args.output_path / "preprocessed",
-        modules=modules,
     ).find_subset()
 
     test_filters = []

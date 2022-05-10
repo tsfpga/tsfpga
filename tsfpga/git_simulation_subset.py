@@ -108,7 +108,7 @@ class GitSimulationSubset:
                 # later commit. Include only files that are currently existing.
                 if b_path.exists():
                     if b_path.name.endswith(".vhd"):
-                        files.add(b_path)
+                        files.add(b_path.resolve())
 
         self._print_file_list("Found git diff in the following files", files)
         return files
