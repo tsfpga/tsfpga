@@ -29,6 +29,14 @@ if {[report_pulse_width -return_string -all_violators -no_header] != ""} {
 }
 
 
+if {[regexp {Slack \(VIOLATED\)} [report_bus_skew -no_header -return_string]]} {
+  puts "ERROR: Bus skew constraints not met after implementation run. See bus_skew.rpt report."
+  report_bus_skew -file "bus_skew.rpt"
+
+  set timing_error 1
+}
+
+
 # This code is duplicated in tcl.py for synthesis.
 if {[regexp {\(unsafe\)} [report_clock_interaction -delay_type min_max -return_string]]} {
   puts "ERROR: Unhandled clock crossing after implementation run. See clock_interaction.rpt and timing_summary.rpt reports."

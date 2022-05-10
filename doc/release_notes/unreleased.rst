@@ -14,3 +14,5 @@ Added
 
 * Add support for string and bit vector generics in :class:`.VivadoProject` using the
   types :class:`.StringGenericValue` and :class:`.BitVectorGenericValue`.
+
+* Add check that fails Vivado build unless all bus skew constraints are met after implementation.

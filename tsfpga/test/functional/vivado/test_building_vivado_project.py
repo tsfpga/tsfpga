@@ -49,6 +49,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library common;
+use common.attribute_pkg.all;
+
 library resync;
 
 
@@ -77,7 +80,8 @@ end architecture;
 """
 
     def setUp(self):
-        modules_folder = self.tmp_path / "modules"
+        module_folder = self.tmp_path / "modules" / "apa"
+
         self.project_folder = self.tmp_path / "vivado"
 
         # Default top level
@@ -93,7 +97,7 @@ end architecture;
     data_out => output
   );"""
         top = self.top_template.format(code_block=resync)
-        self.top_file = create_file(modules_folder / "apa" / "test_proj_top.vhd", top)
+        self.top_file = create_file(module_folder / "test_proj_top.vhd", top)
 
         self.constraint_io = """
 set_property -dict {package_pin H16 iostandard lvcmos33} [get_ports clk_in]
@@ -101,17 +105,18 @@ set_property -dict {package_pin P14 iostandard lvcmos33} [get_ports input]
 set_property -dict {package_pin K17 iostandard lvcmos33} [get_ports clk_out]
 set_property -dict {package_pin T16 iostandard lvcmos33} [get_ports output]
 """
-        constraint_clocks = """
+        self.constraint_clocks = """
 # 250 MHz
 create_clock -period 4 -name clk_in [get_ports clk_in]
 create_clock -period 4 -name clk_out [get_ports clk_out]
 """
         self.constraint_file = create_file(
-            modules_folder / "apa" / "test_proj_pinning.tcl", self.constraint_io + constraint_clocks
+            file=module_folder / "test_proj_pinning.tcl",
+            contents=self.constraint_io + self.constraint_clocks,
         )
         constraints = [Constraint(self.constraint_file)]
 
-        self.modules = get_hdl_modules() + get_modules([modules_folder])
+        self.modules = get_hdl_modules() + get_modules(modules_folders=[module_folder.parent])
         self.proj = VivadoProject(
             name="test_proj",
             modules=self.modules,
@@ -304,6 +309,58 @@ create_clock -period 4 -waveform {1.0 1.2} -name clk_out [get_ports clk_out]
         )
 
         assert (self.runs_folder / "impl_2" / "pulse_width.rpt").exists()
+
+    def test_build_with_bad_bus_skew_should_fail(self):
+        resync_wide_word = """
+  resync_block : block
+    signal input_word, result_word : std_logic_vector(0 to 32 - 1) := (others => '0');
+
+    attribute dont_touch of result_word : signal is "true";
+  begin
+
+    input_process : process
+    begin
+      wait until rising_edge(clk_in);
+      input_word <= (others => input_p1);
+    end process;
+
+    result_process : process
+    begin
+      wait until rising_edge(clk_out);
+      result_word <= input_word;
+    end process;
+
+  end block;"""
+        top = self.top_template.format(code_block=resync_wide_word)
+        create_file(self.top_file, top)
+
+        # Overwrite the default constraint file
+        constraint_bus_skew = """
+set input_word [get_cells resync_block.input_word_reg*]
+set result_word [get_cells resync_block.result_word_reg*]
+
+# The constraints below are the same as e.g. resync_counter.tcl.
+
+# Vivado manages to solve ~1.2 ns skew, so the value below will not succeed
+set_bus_skew -from ${input_word} -to ${result_word} 0.8
+
+# Set max delay to exclude the clock crossing from regular timing analysis
+set_max_delay -datapath_only -from ${input_word} -to ${result_word} 3
+"""
+        create_file(
+            file=self.constraint_file,
+            contents=self.constraint_io + self.constraint_clocks + constraint_bus_skew,
+        )
+
+        self._create_vivado_project()
+
+        build_result = self.proj.build(self.project_folder, self.project_folder)
+        assert not build_result.success
+        assert file_contains_string(
+            self.log_file, "\nERROR: Bus skew constraints not met after implementation run."
+        )
+
+        assert (self.runs_folder / "impl_2" / "bus_skew.rpt").exists()
 
     def test_building_vivado_netlist_project(self):
         project = VivadoNetlistProject(
