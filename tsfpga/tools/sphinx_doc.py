@@ -113,7 +113,7 @@ class Release:
         """
         Get a formatted date string, gathered from git log based on tag name.
         """
-        timestamp = repo.tag(tag).commit.committed_date
+        timestamp = repo.tag(f"refs/tags/{tag}").commit.committed_date
         time = datetime.fromtimestamp(timestamp)
         return f"{time.day} {time:%B} {time.year}".lower()
 
