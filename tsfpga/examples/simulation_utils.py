@@ -269,7 +269,7 @@ class SimulationProject:
 
 
 def create_vhdl_ls_configuration(
-    output_path, temp_files_path, modules, ip_core_vivado_project_directory
+    output_path, temp_files_path, modules, ip_core_vivado_project_directory=None
 ):
     """
     Create config for vhdl_ls (https://github.com/VHDL-LS/rust_hdl).
