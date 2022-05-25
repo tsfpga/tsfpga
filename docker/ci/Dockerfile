@@ -23,9 +23,10 @@ RUN python3 -m pip --no-cache-dir install --upgrade \
   pylint \
   pytest \
   pytest-cov \
-  tomlkit && \
+  tomli \
+  tomlkit \
   # Cleanup
-  rm -rf ~/.cache
+  && rm -rf ~/.cache
 
 
 FROM ci_py_sim AS ci_py_sim_sphinx
@@ -55,13 +56,13 @@ RUN python3 -m pip --no-cache-dir install --upgrade \
   sphinx_sitemap \
   sphinxcontrib-wavedrom \
   # Install symbolator and hdlparse from github forks that are maintained.
-  # The official version do not work with newer setuptools or newer sphinx.
+  # The official versions do not work with newer setuptools or newer sphinx.
   # The pyHDLParser repo seems to be under active development and the current master did not
   # work, so peg to the latest revision that does work for us.
   git+https://github.com/hdl/pyHDLParser@354dc73a231677f277709633b9bcd0110f1816d0 \
-  git+https://github.com/hdl/symbolator && \
+  git+https://github.com/hdl/symbolator \
   # Cleanup
-  rm -rf ~/.cache
+  && rm -rf ~/.cache
 
 
 FROM ci_py_sim_sphinx AS ci_everything
@@ -79,6 +80,6 @@ RUN apt-get update && \
 
 RUN python3 -m pip --no-cache-dir install --upgrade \
   matplotlib \
-  scipy && \
+  scipy \
   # Cleanup
-  rm -rf ~/.cache
+  && rm -rf ~/.cache

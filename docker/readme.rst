@@ -48,7 +48,7 @@ Build
 Build the images by running the script
 
 ```
-./docker/docker_build.sh
+./docker/build_docker_images.sh
 ```
 
 from the repository root.
@@ -57,12 +57,7 @@ from the repository root.
 Run
 ---
 
-Run an image locally using e.g.:
-
-```
-docker run --interactive --tty --rm --volume ~/work/repo:/repo \
-  --workdir /repo/tsfpga/tsfpga tsfpga/ci_everything /bin/bash
-````
+Run an image locally using the ``docker/start_docker.sh`` script.
 
 
 Push
