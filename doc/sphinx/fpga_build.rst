@@ -123,12 +123,13 @@ a list of :class:`build project objects <.VivadoProject>`.
    :caption: Example project creation
    :language: python
    :lines: 9-
+   :linenos:
 
 There is a lot going on here, so lets go through what happens in ``get_build_projects()``.
 
 
-Get modules
-___________
+Line 16: Get modules
+____________________
 
 Firstly we need to get a list of modules that shall be included in the build project.
 Source files, IP cores, scoped constraints, etc., from all these modules will be added to
@@ -154,8 +155,9 @@ See :ref:`integration_hdl_modules` for details.
 
 
 
-TCL files
-_________
+Line 19-21: TCL files
+_____________________
+
 This module has a sub-folder ``tcl`` which contains pinning and a block design.
 The block design, which is added to the :class:`.VivadoProject` as a TCL source is simply
 represented using it's path.
@@ -163,8 +165,8 @@ The pinning on the other hand, which is used as a constraint in Vivado, must be 
 the :class:`.Constraint` class.
 
 
-Creating project objects
-________________________
+Line 23-44: Creating project objects
+____________________________________
 
 The sources gathered are then use to create project objects which are appended to the ``projects``
 list which is returned at the end.
