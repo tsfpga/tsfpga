@@ -57,6 +57,12 @@ def main():
         author="Lukas Vik",
         author_email="2767848-LukasVik@users.noreply.gitlab.com",
         url="https://tsfpga.com",
+        project_urls={
+            "Documentation": "https://tsfpga.com/",
+            "Changelog": "https://tsfpga.com/release_notes.html",
+            "Source": "https://gitlab.com/tsfpga/tsfpga",
+            "Issues": "https://gitlab.com/tsfpga/tsfpga/-/issues",
+        },
         python_requires=">=3.6",
         install_requires=read_requirements_file(REQUIREMENTS_TXT),
         extras_require=dict(dev=read_requirements_file(REQUIREMENTS_DEVELOP_TXT)),
