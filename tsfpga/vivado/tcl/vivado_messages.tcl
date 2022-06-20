@@ -63,5 +63,5 @@ set_msg_config -new_severity INFO -id {Synth 8-5858}
 #             This is a serious error in the setup of the build, and the user must be informed via
 #             a crash of the build.
 #             In most cases this comes from a typo of the actual generic name, which means that
-#             the generic will have the default value for its type, which can be very dangerous.
+#             the generic will use its default value (if set), which can be very dangerous.
 set_msg_config -new_severity ERROR -id {Synth 8-3819}
