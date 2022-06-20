@@ -1,7 +1,14 @@
 Breaking changes
 
 * Add mandatory ``heading_character_2`` argument to :meth:`.ModuleDocumentation.get_submodule_rst`.
+
 * Remove support for formal flow. It's still a bit too experimental for us to support.
+
+* Upgrade ``Synth 8-3819`` message to ``ERROR`` in ``vivado_messages.tcl``.
+
+* Fail Vivado build if any messages with severity ``ERROR`` have been reported after synthesis
+  or implementation.
+
 
 Added
 

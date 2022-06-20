@@ -140,6 +140,19 @@ class VivadoProject:
         self.tcl_sources = tsfpga_tcl_sources + self.tcl_sources
 
     def _setup_build_step_hooks(self):
+        # Check that no ERROR messages have been sent by Vivado. After synthesis as well as
+        # after implementation.
+        self.build_step_hooks.append(
+            BuildStepTclHook(
+                TSFPGA_TCL / "check_no_error_messages.tcl", "STEPS.SYNTH_DESIGN.TCL.POST"
+            )
+        )
+        self.build_step_hooks.append(
+            BuildStepTclHook(
+                TSFPGA_TCL / "check_no_error_messages.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE"
+            )
+        )
+
         # Check the implemented timing and resource utilization via TCL build hooks.
         # This is different than for synthesis, where it is embedded in the build script.
         # This is due to Vivado limitations related to post-synthesis hooks.

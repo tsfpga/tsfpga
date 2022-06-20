@@ -192,6 +192,18 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         assert not build_result.success
         assert file_contains_string(self.log_file, 'RTL assertion: "Assertion violation."')
 
+    def test_synth_with_generic_that_does_not_exist_should_fail(self):
+        self.proj.static_generics["non_existing"] = 1024
+
+        self._create_vivado_project()
+
+        build_result = self.proj.build(self.project_folder, synth_only=True)
+        assert not build_result.success
+        assert file_contains_string(self.log_file, "\nERROR: Run synth_2 failed.")
+        assert file_contains_string(
+            self.log_file, "\nERROR: Vivado has reported one or more ERROR messages. See build log."
+        )
+
     def test_build_project(self):
         self._create_vivado_project()
 
