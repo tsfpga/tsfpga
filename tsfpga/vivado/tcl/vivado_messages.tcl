@@ -10,12 +10,15 @@
 # A lot of WARNINGs from Vivado are not interesting. They should be suppressed as to not clutter
 # the logs. This is achieved by lowering their severity to INFO.
 #
-# For some inspiration see https://github.com/slaclab/ruckus/blob/master/vivado_messages.tcl
+# For some inspiration see https://github.com/slaclab/ruckus/blob/main/vivado/messages.tcl
 # --------------------------------------------------------------------------------------------------
 
 puts "Applying vivado messages"
 
 
+# --------------------------------------------------------------------------------------------------
+# Downgrade
+# --------------------------------------------------------------------------------------------------
 
 # Message:
 #  * Found unconnected internal register X and it is trimmed from A to B bits
@@ -48,3 +51,17 @@ set_msg_config -new_severity INFO -id {Designutils 20-1281}
 #          is not supported. This will most likely be implemented in registers.
 # Motivation: Appears a lot when using records.
 set_msg_config -new_severity INFO -id {Synth 8-5858}
+
+
+# --------------------------------------------------------------------------------------------------
+# Upgrade from WARNING
+# --------------------------------------------------------------------------------------------------
+
+# Message: Generic 'X' not present in instantiated entity will be ignored
+# Motivation: The user is trying to set a top-level generic but no generic by that name exists
+#             in the HDL.
+#             This is a serious error in the setup of the build, and the user must be informed via
+#             a crash of the build.
+#             In most cases this comes from a typo of the actual generic name, which means that
+#             the generic will have the default value for its type, which can be very dangerous.
+set_msg_config -new_severity ERROR -id {Synth 8-3819}
