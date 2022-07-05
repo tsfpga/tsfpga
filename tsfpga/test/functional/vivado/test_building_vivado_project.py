@@ -192,7 +192,15 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         assert not build_result.success
         assert file_contains_string(self.log_file, 'RTL assertion: "Assertion violation."')
 
-    def test_synth_with_generic_that_does_not_exist_should_fail(self):
+    def test_synth_with_error_message_should_fail(self):
+        # Elevate the "Generic 'X' not present" message to ERROR, then set a generic that
+        # does not exist. This will trigger an ERROR message, which should crash the build.
+        self.proj.tcl_sources.append(
+            create_file(
+                self.tmp_path / "elevate_vivado_message.tcl",
+                contents="set_msg_config -new_severity ERROR -id {Synth 8-3819}",
+            )
+        )
         self.proj.static_generics["non_existing"] = 1024
 
         self._create_vivado_project()

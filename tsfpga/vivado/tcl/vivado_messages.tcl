@@ -60,8 +60,11 @@ set_msg_config -new_severity INFO -id {Synth 8-5858}
 # Message: Generic 'X' not present in instantiated entity will be ignored
 # Motivation: The user is trying to set a top-level generic but no generic by that name exists
 #             in the HDL.
-#             This is a serious error in the setup of the build, and the user must be informed via
-#             a crash of the build.
 #             In most cases this comes from a typo of the actual generic name, which means that
 #             the generic will use its default value (if set), which can be very dangerous.
-set_msg_config -new_severity ERROR -id {Synth 8-3819}
+#             This is a serious error in the setup of the build, and in a perfect world the user
+#             should be informed via a crash of the build.
+#             However it seems that top level generics are also applied to out of context IP
+#             synthesis runs. For this reason we can not elevate this all the way to ERROR
+#             since that would likely crash all builds that have IP cores.
+set_msg_config -new_severity {CRITICAL WARNING} -id {Synth 8-3819}
