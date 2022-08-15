@@ -32,19 +32,43 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
         Arguments:
             output_path (pathlib.Path): The compiled simlib will be placed here.
             vunit_proj: The VUnit project that is used to run simulation.
-            simulator_interface: A VUnit SimulatorInterface class.
+            simulator_interface: A VUnit SimulatorInterface object.
             vivado_path (pathlib.Path): Path to Vivado executable.
         """
         self._vunit_proj = vunit_proj
         self._vivado_path = get_vivado_path(vivado_path)
 
-        # Vivado uses a different name for Riviera-PRO
-        self._simulator_name = (
-            "riviera" if simulator_interface.name == "rivierapro" else simulator_interface.name
-        )
         self._simulator_folder = Path(simulator_interface.find_prefix())
+        self._simulator_name = self._get_simulator_name(simulator_interface=simulator_interface)
 
         self.output_path = output_path / self._get_version_tag()
+
+    def _get_simulator_name(self, simulator_interface):
+        """
+        Used to get the "-simulator" argument to the Vivado "compile_simlib" function.
+        In some cases Vivado needs a different simulator name than what is used in VUnit.
+
+        Arguments:
+            simulator_interface: A VUnit SimulatorInterface object.
+
+        Returns:
+            str: The simulator name preferred by Vivado.
+        """
+        # Aldec Riviera-PRO is called "rivierapro" in VUnit but Vivado needs the name "riviera"
+        if simulator_interface.name == "rivierapro":
+            return "riviera"
+
+        # Siemens Questa is called "modelsim" in VUnit but Vivado needs the name "questasim".
+        # See discussion in
+        #   https://github.com/VUnit/vunit/issues/834
+        #   https://gitlab.com/tsfpga/tsfpga/-/issues/67
+        # Use the simulator installation path to decode whether we are running Questa or
+        # regular ModelSim.
+        if "questa" in str(self._simulator_folder).lower():
+            return "questasim"
+
+        # In other cases Vivado uses the same name as VUnit
+        return simulator_interface.name
 
     def _compile(self):
         tcl_file = self.output_path / "compile_simlib.tcl"
