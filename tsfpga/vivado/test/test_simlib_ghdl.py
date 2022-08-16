@@ -21,9 +21,9 @@ from tsfpga.vivado.simlib import VivadoSimlib
 
 # pylint: disable=redefined-outer-name
 @pytest.fixture
-def simlib_ghdl_test():
+def simlib_test(tmp_path):
     class SimlibGhdlTestFixture:
-        def __init__(self, tmp_path):
+        def __init__(self):
             self.output_path = tmp_path / "simlib"
 
             self.vivado_simlib = self.get_vivado_simlib()
@@ -63,44 +63,44 @@ def simlib_ghdl_test():
                 vivado_simlib.compile_if_needed()
                 mock.assert_not_called()
 
-    return SimlibGhdlTestFixture
+    return SimlibGhdlTestFixture()
 
 
-def test_should_not_recompile(simlib_ghdl_test, tmp_path):
-    test = simlib_ghdl_test(tmp_path=tmp_path)
-
-    test.assert_should_compile(test.vivado_simlib)
-    test.assert_should_not_compile(test.vivado_simlib)
+def test_should_not_recompile(simlib_test):
+    simlib_test.assert_should_compile(simlib_test.vivado_simlib)
+    simlib_test.assert_should_not_compile(simlib_test.vivado_simlib)
 
 
-def test_ghdl_version_string(simlib_ghdl_test, tmp_path):
-    test = simlib_ghdl_test(tmp_path=tmp_path)
-
+def test_ghdl_version_string(simlib_test):
     assert (
         ".ghdl_0_36_v0_36."
-        in test.get_vivado_simlib(
+        in simlib_test.get_vivado_simlib(
             ghdl_version_string="GHDL 0.36 (v0.36) [Dunoon edition]"
         ).artifact_name
     )
     assert (
         ".ghdl_0_36."
-        in test.get_vivado_simlib(ghdl_version_string="GHDL 0.36 [Dunoon edition]").artifact_name
+        in simlib_test.get_vivado_simlib(
+            ghdl_version_string="GHDL 0.36 [Dunoon edition]"
+        ).artifact_name
     )
     assert (
         ".ghdl_0_36_v0_36."
-        in test.get_vivado_simlib(ghdl_version_string="GHDL 0.36 (v0.36)").artifact_name
+        in simlib_test.get_vivado_simlib(ghdl_version_string="GHDL 0.36 (v0.36)").artifact_name
     )
-    assert ".ghdl_0_36" in test.get_vivado_simlib(ghdl_version_string="GHDL 0.36").artifact_name
+    assert (
+        ".ghdl_0_36" in simlib_test.get_vivado_simlib(ghdl_version_string="GHDL 0.36").artifact_name
+    )
 
     assert (
         ".ghdl_0_37_dev_v0_36_1605_ge4aa89cd"
-        in test.get_vivado_simlib(
+        in simlib_test.get_vivado_simlib(
             ghdl_version_string="GHDL 0.37-dev (v0.36-1605-ge4aa89cd) [Dunoon edition]"
         ).artifact_name
     )
     assert (
         ".ghdl_0_37_dev_v0_36_1605_ge4aa89cd."
-        in test.get_vivado_simlib(
+        in simlib_test.get_vivado_simlib(
             ghdl_version_string="GHDL 0.37-dev (v0.36-1605-ge4aa89cd)"
         ).artifact_name
     )
