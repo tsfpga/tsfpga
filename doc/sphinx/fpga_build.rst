@@ -31,18 +31,20 @@ like this:
         Path("path/to/my/modules"),
     ]
     modules = get_modules(my_modules_folders)
+
     build_path = Path("my_generated_build_projects")
-    projects = BuildProjectList(modules, "artyz7*")
+
+    projects = BuildProjectList(modules=modules, project_filters="*")
     projects.create_unless_exists(project_paths=build_path, num_parallel_builds=4)
     projects.build(project_path=build_path, num_parallel_builds=4, num_threads_per_build=6)
 
-Of course this is incredibly simplified and hard-coded, but it does show the interface to the
+Of course this is incredibly simplified and hard coded, but it does show the interface to the
 tsfpga classes.
 The :class:`.BuildProjectList` class will work on a list of
 :class:`build project objects <.VivadoProject>` as supplied by the modules.
 
 An example output from this script is shown below.
-It shows to build projects being launched in parallel, and then finishing and roughly the same time.
+It shows the build projects being launched in parallel, and then finishing at roughly the same time.
 
 .. code-block::
 
