@@ -54,7 +54,7 @@ simulate:
   stage: test
   image: tsfpga/ci_py_sim
   script:
-    - git clone --depth 1 --single-branch --branch master https://gitlab.com/tsfpga/hdl_modules.git ../hdl_modules
+    - git clone --depth 1 --single-branch --branch main https://gitlab.com/tsfpga/hdl_modules.git ../hdl_modules
     - git clone --depth 1 --single-branch --branch master https://gitlab.com/tsfpga/hdl_registers.git ../hdl_registers
     # Run minimal simulation subset for merge requests
     - if [ $CI_PIPELINE_SOURCE == "merge_request_event" ]; then export SIMULATE_FLAGS="--vcs-minimal"; fi;
@@ -78,7 +78,7 @@ build_pages:
   # Start as soon as pytest job is done. Even if e.g. simulate in previous stage is not.
   needs: ["pytest"]
   script:
-    - git clone --depth 1 --single-branch --branch master https://gitlab.com/tsfpga/hdl_modules.git ../hdl_modules
+    - git clone --depth 1 --single-branch --branch main https://gitlab.com/tsfpga/hdl_modules.git ../hdl_modules
     - git clone --depth 1 --single-branch --branch master https://gitlab.com/tsfpga/hdl_registers.git ../hdl_registers
     - python3 tools/build_docs.py
   artifacts:
