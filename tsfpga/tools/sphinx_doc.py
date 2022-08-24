@@ -101,7 +101,7 @@ class Release:
         version = release_notes_file.stem
         if version == "unreleased":
             self.version = "Unreleased"
-            self.git_tag = "master"
+            self.git_tag = "main"
             self.date = "YYYY-MM-DD"
         else:
             self.version = version

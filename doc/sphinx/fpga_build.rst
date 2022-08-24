@@ -102,7 +102,7 @@ so that the project is built using up-to-date register definitions.
 Of course a more realistic ``build.py`` would be a little more verbose.
 It would probably feature command line arguments that control the behavior, output paths, etc.
 And example of this, which also features release artifact packaging, is available in the
-`repo <https://gitlab.com/tsfpga/tsfpga/-/blob/master/tsfpga/examples/build.py>`__.
+`repo <https://gitlab.com/tsfpga/tsfpga/-/blob/main/tsfpga/examples/build.py>`__.
 
 
 
@@ -112,7 +112,7 @@ Example project class creation
 ------------------------------
 
 This is an example of project creation, using the ``artyz7`` example project from the
-`repo <https://gitlab.com/tsfpga/tsfpga/-/tree/master/tsfpga/examples>`__.
+`repo <https://gitlab.com/tsfpga/tsfpga/-/tree/main/tsfpga/examples>`__.
 
 Projects are created by modules using the file ``module_<module_name>.py``, see
 :ref:`folder structure <folder_structure_project>` for details.

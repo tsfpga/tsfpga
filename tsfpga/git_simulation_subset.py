@@ -26,7 +26,7 @@ class GitSimulationSubset:
         Arguments:
             repo_root (pathlib.Path): Root directory where git commands will be run.
             reference_branch (str): What git branch to compare against, when finding what files have
-                changed. Typically "origin/master".
+                changed. Typically "origin/main" or "origin/master".
             vunit_proj: A vunit project with all source files and testbenches added. Will be used
                 for dependency scanning.
             vunit_preprocessed_path (pathlib.Path): If location/check preprocessing is enabled

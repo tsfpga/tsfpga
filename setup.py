@@ -33,7 +33,7 @@ def main():
     actually included and what is missing. Also the package data, and where it gets placed in the
     release tree, is very messy.
 
-    When making changes it is recommended to try the release locally before commiting to master.
+    When making changes it is recommended to try the release locally before committing to main.
     To test in a docker image do, e.g:
 
     python tools/build_pypi_release.py --clean-and-build

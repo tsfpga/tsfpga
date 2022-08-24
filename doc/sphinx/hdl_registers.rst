@@ -21,7 +21,7 @@ installed as well.
 Example usage in tsfpga
 -----------------------
 
-The `tsfpga/examples/modules/ddr_buffer <https://gitlab.com/tsfpga/tsfpga/-/tree/master/tsfpga/examples/modules/ddr_buffer>`__
+The `tsfpga/examples/modules/ddr_buffer <https://gitlab.com/tsfpga/tsfpga/-/tree/main/tsfpga/examples/modules/ddr_buffer>`__
 example module is heavily reliant on generated register information, both in the implementation
 and testbench.
 

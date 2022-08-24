@@ -68,7 +68,7 @@ Realistic example
 -----------------
 
 If you want to dive into a more realistic example have a look at
-`tsfpga/examples/simulate.py <https://gitlab.com/tsfpga/tsfpga/blob/master/tsfpga/examples/simulate.py>`__
+`tsfpga/examples/simulate.py <https://gitlab.com/tsfpga/tsfpga/blob/main/tsfpga/examples/simulate.py>`__
 in the repo.
 Or continue reading this document for an explanation of the mechanisms.
 
@@ -243,15 +243,15 @@ A testbench shall be compiled and executed if
 
 Whether or not a file has changed is determined based on git information, by comparing the local
 branch and working tree with a reference branch.
-The reference would be ``origin/master`` most of the time.
+The reference would be ``origin/main`` most of the time.
 The subset of tests returned by the class can then be used as the ``test_pattern`` argument when
 setting up your VUnit project.
 
 This tools is used in tsfpga CI to make sure that for merge requests only the minimal set of tests
 is run.
 This saves an immense amount of CI time, especially for commits that do not alter any VHDL code.
-For nightly master runs the full set of tests shall still be run.
+For nightly ``main`` runs the full set of tests shall still be run.
 
 See the :class:`class documentation <.GitSimulationSubset>` for more information, and
-`tsfpga/examples/simulate.py <https://gitlab.com/tsfpga/tsfpga/blob/master/tsfpga/examples/simulate.py>`__
+`tsfpga/examples/simulate.py <https://gitlab.com/tsfpga/tsfpga/blob/main/tsfpga/examples/simulate.py>`__
 in the repo for a usage example.

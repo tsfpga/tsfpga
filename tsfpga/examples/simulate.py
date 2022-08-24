@@ -50,7 +50,11 @@ def main():
             )
 
         test_filters = find_git_test_filters(
-            args=args, repo_root=tsfpga.REPO_ROOT, modules=modules, modules_no_sim=modules_no_sim
+            args=args,
+            repo_root=tsfpga.REPO_ROOT,
+            modules=modules,
+            modules_no_sim=modules_no_sim,
+            reference_branch="origin/main",
         )
         if not test_filters:
             print("Nothing to run. Appears to be no VHDL-related git diff.")
@@ -97,7 +101,7 @@ def find_git_test_filters(
 ):
     """
     Construct a VUnit test filter that will run all test cases that are affected by git changes.
-    The current git state is compared to origin/master, and differences are derived.
+    The current git state is compared to a reference branch, and differences are derived.
     See :class:`.GitSimulationSubset` for details.
 
     Arguments:

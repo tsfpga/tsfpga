@@ -45,7 +45,6 @@ def test_supplying_only_one_of_vunit_preprocessed_path_or_modules_should_raise_e
 
 
 def test_find_subset(tmp_path):  # pylint: disable=too-many-locals
-
     # Set up a scenario with a few files that have diffs and a few files that do not.
     # The tb without diffs will be set up so that it depends on the source file that
     # has diffs. This means that both tb's should be returned by find_subset().
@@ -60,7 +59,7 @@ def test_find_subset(tmp_path):  # pylint: disable=too-many-locals
     vunit_proj = MagicMock()
 
     git_simulation_subset = GitSimulationSubset(
-        repo_root=tmp_path, reference_branch="origin/master", vunit_proj=vunit_proj
+        repo_root=tmp_path, reference_branch="origin/main", vunit_proj=vunit_proj
     )
 
     with patch("tsfpga.git_simulation_subset.Repo", autospec=True) as mocked_repo:
@@ -123,4 +122,4 @@ def test_find_subset(tmp_path):  # pylint: disable=too-many-locals
             ("tb_file_with_no_diff", "foo"),
         ]
 
-        repo.commit.assert_called_once_with("origin/master")
+        repo.commit.assert_called_once_with("origin/main")
