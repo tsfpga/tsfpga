@@ -87,7 +87,14 @@ def main():
     simulation_project.vunit_proj.main()
 
 
-def find_git_test_filters(args, repo_root, modules, modules_no_sim=None, **setup_vunit_kwargs):
+def find_git_test_filters(
+    args,
+    repo_root,
+    modules,
+    modules_no_sim=None,
+    reference_branch="origin/master",
+    **setup_vunit_kwargs,
+):
     """
     Construct a VUnit test filter that will run all test cases that are affected by git changes.
     The current git state is compared to origin/master, and differences are derived.
@@ -96,8 +103,10 @@ def find_git_test_filters(args, repo_root, modules, modules_no_sim=None, **setup
     Arguments:
         args: Command line argument namespace.
         repo_root (pathlib.Path): Path to the repository root. Git commands will be run here.
-        modules: Will be passed on to :meth:`.SimulationProject.add_modules`.
-        modules_no_sim: Will be passed on to :meth:`.SimulationProject.add_modules`.
+        modules (ModuleList): Will be passed on to :meth:`.SimulationProject.add_modules`.
+        modules_no_sim (list(BaseModule)): Will be passed on
+            to :meth:`.SimulationProject.add_modules`.
+        reference_branch (str): The name of the reference branch that is used to collect a diff.
         setup_vunit_kwargs : Will be passed on to :meth:`.SimulationProject.add_modules`.
 
     Return:
@@ -112,7 +121,7 @@ def find_git_test_filters(args, repo_root, modules, modules_no_sim=None, **setup
 
     testbenches_to_run = GitSimulationSubset(
         repo_root=repo_root,
-        reference_branch="origin/master",
+        reference_branch=reference_branch,
         vunit_proj=simulation_project.vunit_proj,
     ).find_subset()
 
