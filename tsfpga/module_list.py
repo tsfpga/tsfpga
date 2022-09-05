@@ -6,6 +6,8 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+import copy
+
 
 class ModuleList:
     """
@@ -59,7 +61,7 @@ class ModuleList:
         Create a shallow copy of the module list. This public function is available as a
         convenience and to mimic the interface of a regular python list.
         """
-        return self.__copy__()
+        return copy.copy(self)
 
     def __str__(self):
         return str(self._modules)

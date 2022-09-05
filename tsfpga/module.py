@@ -279,8 +279,7 @@ class BaseModule:
                 location of test files, etc.
         """
 
-    # pylint: disable=unused-argument, no-self-use
-    def pre_build(self, project, **kwargs):
+    def pre_build(self, project, **kwargs):  # pylint: disable=unused-argument
         """
         This method hook will be called before an FPGA build is run. A typical use case for this
         mechanism is to set a register constant or default value based on the generics that
@@ -302,7 +301,7 @@ class BaseModule:
         """
         return True
 
-    def get_build_projects(self):  # pylint: disable=no-self-use
+    def get_build_projects(self):
         """
         Get FPGA build projects defined by this module.
 

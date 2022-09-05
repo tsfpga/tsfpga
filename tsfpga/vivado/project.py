@@ -272,7 +272,7 @@ class VivadoProject:
         )
         return run_vivado_tcl(self._vivado_path, create_vivado_project_tcl)
 
-    def pre_create(self, **kwargs):  # pylint: disable=no-self-use, unused-argument
+    def pre_create(self, **kwargs):  # pylint: disable=unused-argument
         """
         Override this function in a child class if you wish to do something useful with it.
         Will be called from :meth:`.create` right before the call to Vivado.
@@ -328,7 +328,7 @@ class VivadoProject:
 
         return build_vivado_project_tcl
 
-    def pre_build(self, **kwargs):  # pylint: disable=no-self-use, unused-argument
+    def pre_build(self, **kwargs):  # pylint: disable=unused-argument
         """
         Override this function in a child class if you wish to do something useful with it.
         Will be called from :meth:`.build` right before the call to Vivado.
@@ -342,7 +342,7 @@ class VivadoProject:
         """
         return True
 
-    def post_build(self, **kwargs):  # pylint: disable=no-self-use, unused-argument
+    def post_build(self, **kwargs):  # pylint: disable=unused-argument
         """
         Override this function in a child class if you wish to do something useful with it.
         Will be called from :meth:`.build` right after the call to Vivado.

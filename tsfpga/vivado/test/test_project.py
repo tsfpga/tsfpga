@@ -227,7 +227,7 @@ class TestVivadoProject(unittest.TestCase):
 
     def test_project_pre_create_hook_returning_false_should_fail_and_not_call_vivado_run(self):
         class CustomVivadoProject(VivadoProject):
-            def pre_create(self, **kwargs):  # pylint: disable=no-self-use, unused-argument
+            def pre_create(self, **kwargs):  # pylint: disable=unused-argument
                 return False
 
         assert not self._create(CustomVivadoProject(name="apa", modules=[], part=""))
@@ -302,7 +302,7 @@ class TestVivadoProject(unittest.TestCase):
 
     def test_project_pre_build_hook_returning_false_should_fail_and_not_call_vivado_run(self):
         class CustomVivadoProject(VivadoProject):
-            def pre_build(self, **kwargs):  # pylint: disable=no-self-use, unused-argument
+            def pre_build(self, **kwargs):  # pylint: disable=unused-argument
                 return False
 
         build_result = self._build(CustomVivadoProject(name="apa", modules=[], part=""))
@@ -311,7 +311,7 @@ class TestVivadoProject(unittest.TestCase):
 
     def test_project_post_build_hook_returning_false_should_fail(self):
         class CustomVivadoProject(VivadoProject):
-            def post_build(self, **kwargs):  # pylint: disable=no-self-use, unused-argument
+            def post_build(self, **kwargs):  # pylint: disable=unused-argument
                 return False
 
         build_result = self._build(CustomVivadoProject(name="apa", modules=[], part=""))
