@@ -116,6 +116,7 @@ class SimulationProject:
         """
         modules_no_sim = ModuleList() if modules_no_sim is None else modules_no_sim
 
+        include_unisim = not args.vivado_skip
         include_ip_cores = self.has_commercial_simulator and not args.vivado_skip
 
         for module in modules + modules_no_sim:
@@ -125,7 +126,9 @@ class SimulationProject:
             simulate_this_module = module not in modules_no_sim
 
             for hdl_file in module.get_simulation_files(
-                include_tests=simulate_this_module, include_ip_cores=include_ip_cores
+                include_tests=simulate_this_module,
+                include_unisim=include_unisim,
+                include_ip_cores=include_ip_cores,
             ):
                 if hdl_file.is_vhdl or hdl_file.is_verilog_source:
                     vunit_library.add_source_file(hdl_file.path)
