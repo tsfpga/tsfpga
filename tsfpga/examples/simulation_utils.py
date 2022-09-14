@@ -136,7 +136,12 @@ class SimulationProject:
                     assert False, f"Can not handle this file: {hdl_file}"
 
             if simulate_this_module:
-                module.setup_vunit(vunit_proj=self.vunit_proj, **setup_vunit_kwargs)
+                module.setup_vunit(
+                    vunit_proj=self.vunit_proj,
+                    include_unisim=include_unisim,
+                    include_ip_cores=include_ip_cores,
+                    **setup_vunit_kwargs,
+                )
 
     def add_vivado_simlib(self, args):
         """
