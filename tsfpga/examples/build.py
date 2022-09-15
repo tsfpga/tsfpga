@@ -133,7 +133,36 @@ def main():
     sys.exit(setup_and_run(modules, projects, args))
 
 
-def setup_and_run(modules, projects, args):
+def collect_artifacts(project, output_path):
+    """
+    Example of a method to collect build artifacts. Will create a zip file with the bitstream,
+    hardware definition (.xsa) and register documentation.
+
+    Arguments:
+        project (:class:`.VivadoProject`): Project object that has been built,
+            and who's artifacts shall now be collected.
+        output_path (pathlib.Path): Path to the build output. Artifact zip will be placed here
+            as well.
+    """
+    version = "0.0.0"
+    release_dir = create_directory(output_path / f"{project.name}-{version}", empty=True)
+    print(f"Creating release in {release_dir.resolve()}.zip")
+
+    generate_registers(project.modules, release_dir / "registers")
+    copy2(output_path / f"{project.name }.bit", release_dir)
+    copy2(output_path / f"{project.name}.bin", release_dir)
+    if (output_path / f"{project.name}.xsa").exists():
+        copy2(output_path / f"{project.name}.xsa", release_dir)
+
+    make_archive(release_dir, "zip", release_dir)
+
+    # Remove folder so that only zip remains
+    delete(release_dir)
+
+    return True
+
+
+def setup_and_run(modules, projects, args, collect_artifacts_function=collect_artifacts):
     """
     Setup build projects, and execute as instructed by the arguments.
 
@@ -142,6 +171,10 @@ def setup_and_run(modules, projects, args):
             modules will be included.
         projects (:class:`.BuildProjectList`): These build projects will be built.
         args: Command line argument namespace.
+        collect_artifacts_function: Function pointer to a function that collects build artifacts.
+            Will be run after a successful implementation build.
+            The function must return ``True`` if successful and ``False`` otherwise.
+            It will receive the ``project`` and ``output_path`` as arguments.
 
     Return:
         int: 0 if everything passed, otherwise non-zero. Can be used for system exit code.
@@ -181,7 +214,7 @@ def setup_and_run(modules, projects, args):
 
     # If doing only synthesis there are no artifacts to collect
     collect_artifacts_function = (
-        None if (args.synth_only or args.netlist_builds) else collect_artifacts
+        None if (args.synth_only or args.netlist_builds) else collect_artifacts_function
     )
 
     build_ok = projects.build(
@@ -197,35 +230,6 @@ def setup_and_run(modules, projects, args):
     if build_ok:
         return 0
     return 1
-
-
-def collect_artifacts(project, output_path):
-    """
-    Example of a method to collect build artifacts. Will create a zip file with the bitstream,
-    hardware definition (.xsa) and register documentation.
-
-    Arguments:
-        project (:class:`.VivadoProject`): Project object that has been built,
-            and who's artifacts shall now be collected.
-        output_path (pathlib.Path): Path to the build output. Artifact zip will be placed here
-            as well.
-    """
-    version = "0.0.0.0"
-    release_dir = create_directory(output_path / f"{project.name}-{version}", empty=True)
-    print(f"Creating release in {release_dir.resolve()}.zip")
-
-    generate_registers(project.modules, release_dir / "registers")
-    copy2(output_path / f"{project.name }.bit", release_dir)
-    copy2(output_path / f"{project.name}.bin", release_dir)
-    if (output_path / f"{project.name}.xsa").exists():
-        copy2(output_path / f"{project.name}.xsa", release_dir)
-
-    make_archive(release_dir, "zip", release_dir)
-
-    # Remove folder so that only zip remains
-    delete(release_dir)
-
-    return True
 
 
 def generate_registers(modules, output_path):
