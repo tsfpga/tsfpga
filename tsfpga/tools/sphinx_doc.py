@@ -126,6 +126,10 @@ def build_sphinx(build_path, output_path):
         build_path (pathlib.Path): The location that contains ``conf.py`` and ``index.rst``.
         output_path (pathlib.Path): Where to place the generated HTML.
     """
+    # Since we set the working directory when making the system call, the paths must be absolute
+    build_path = build_path.resolve()
+    output_path = output_path.resolve()
+
     cmd = [
         sys.executable,
         "-m",
