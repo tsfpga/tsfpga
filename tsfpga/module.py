@@ -22,7 +22,7 @@ class BaseModule:
     """
     Base class for handling a HDL module with RTL code, constraints, etc.
 
-    Files are gathered from a lot of different subfolders, to accommodate for projects having
+    Files are gathered from a lot of different sub-folders, to accommodate for projects having
     different catalog structure.
     """
 
@@ -70,7 +70,7 @@ class BaseModule:
 
         return files
 
-    def _get_hdl_file_list(self, folders, files_include, files_avoid):
+    def _get_hdl_file_list(self, folders, files_include=None, files_avoid=None):
         """
         Return a list of HDL file objects.
         """
@@ -122,8 +122,50 @@ class BaseModule:
         if self.registers is not None:
             self.registers.create_vhdl_package(self.path)
 
-    # pylint: disable=unused-argument
-    def get_synthesis_files(self, files_include=None, files_avoid=None, **kwargs):
+    @property
+    def synthesis_folders(self):
+        """
+        Synthesis/implementation source code files will be gathered from these folders.
+
+        Return:
+            list(pathlib.Path): Folder paths.
+        """
+        return [
+            self.path,
+            self.path / "src",
+            self.path / "rtl",
+            self.path / "hdl" / "rtl",
+            self.path / "hdl" / "package",
+        ]
+
+    @property
+    def sim_folders(self):
+        """
+        Files with simulation models (the ``sim`` folder) will be gathered from these folders.
+
+        Return:
+            list(pathlib.Path): Folder paths.
+        """
+        return [
+            self.path / "sim",
+        ]
+
+    @property
+    def test_folders(self):
+        """
+        Testbench files will be gathered from these folders.
+
+        Return:
+            list(pathlib.Path): Folder paths.
+        """
+        return [
+            self.path / "test",
+            self.path / "rtl" / "tb",
+        ]
+
+    def get_synthesis_files(
+        self, files_include=None, files_avoid=None, **kwargs
+    ):  # pylint: disable=unused-argument
         """
         Get a list of files that shall be included in a synthesis project.
 
@@ -145,15 +187,8 @@ class BaseModule:
         """
         self.create_regs_vhdl_package()
 
-        folders = [
-            self.path,
-            self.path / "src",
-            self.path / "rtl",
-            self.path / "hdl" / "rtl",
-            self.path / "hdl" / "package",
-        ]
         return self._get_hdl_file_list(
-            folders=folders, files_include=files_include, files_avoid=files_avoid
+            folders=self.synthesis_folders, files_include=files_include, files_avoid=files_avoid
         )
 
     def get_simulation_files(
@@ -164,8 +199,8 @@ class BaseModule:
         and ``files_avoid``.
 
         Arguments:
-            include_tests (bool): When ``False`` the ``test`` folder, where testbenches usually
-                reside, is not included. The ``sim`` folder is always included.
+            include_tests (bool): When ``False``, the ``test`` files are not included
+                (the ``sim`` files are always included).
             files_include (set(`pathlib.Path`)): Optionally filter to only include these files.
             files_avoid (set(`pathlib.Path`)): Optionally filter to discard these files.
             kwargs: Further parameters that can be sent by simulation flow to control what
@@ -174,21 +209,39 @@ class BaseModule:
         Return:
             list(HdlFile): Files that should be included in a simulation project.
         """
-        test_folders = [
-            self.path / "sim",
-        ]
+        test_folders = self.sim_folders.copy()
 
         if include_tests:
-            test_folders += [self.path / "rtl" / "tb", self.path / "test"]
+            test_folders += self.test_folders
+
+        test_files = self._get_hdl_file_list(
+            folders=test_folders, files_include=files_include, files_avoid=files_avoid
+        )
 
         synthesis_files = self.get_synthesis_files(
             files_include=files_include, files_avoid=files_avoid, **kwargs
         )
-        test_files = self._get_hdl_file_list(
-            test_folders, files_include=files_include, files_avoid=files_avoid
-        )
 
         return synthesis_files + test_files
+
+    def get_documentation_files(
+        self, files_include=None, files_avoid=None, **kwargs
+    ):  # pylint: disable=unused-argument
+        """
+        Get a list of files that shall be included in a documentation build.
+
+        It will return all files from the module except testbenches and any generated
+        register package.
+        Overwrite in a child class if you want to change this behavior.
+
+        Return:
+            list(HdlFile): Files that should be included in documentation.
+        """
+        return self._get_hdl_file_list(
+            folders=self.synthesis_folders + self.sim_folders,
+            files_include=files_include,
+            files_avoid=files_avoid,
+        )
 
     # pylint: disable=unused-argument
     def get_ip_core_files(self, files_include=None, files_avoid=None, **kwargs):

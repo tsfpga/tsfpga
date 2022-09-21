@@ -113,7 +113,7 @@ def test_file_list_filtering(tmp_path):
 
     sim_files = {create_file(path / "sim" / "sim.vhd")}
 
-    my_module = BaseModule(path, "zebra")
+    my_module = BaseModule(path=path, library_name="zebra")
 
     files = {file.path for file in my_module.get_synthesis_files()}
     assert files == synth_files
@@ -136,6 +136,28 @@ def test_get_synthesis_files_calls_get_simulation_files_with_correct_arguments()
     with patch("tsfpga.module.BaseModule.get_synthesis_files") as get_synthesis_files:
         module.get_simulation_files(files_include=True, files_avoid=False, apa=123)
         get_synthesis_files.assert_called_once_with(files_include=True, files_avoid=False, apa=123)
+
+
+def test_get_documentation_files(tmp_path):
+    module_name = "zebra"
+    path = tmp_path / module_name
+
+    synth_files = {
+        create_file(path / "rtl" / "syn.v"),
+        create_file(path / "src" / "syn.vhd"),
+    }
+
+    # Test files
+    create_file(path / "test" / "test.v")
+    create_file(path / "rtl" / "tb" / "test.vhd")
+
+    sim_files = {create_file(path / "sim" / "sim.vhd")}
+
+    module = BaseModule(path=path, library_name="zebra")
+
+    # Should include everything except test files
+    files = {file.path for file in module.get_documentation_files()}
+    assert files == synth_files | sim_files
 
 
 def test_scoped_constraints(tmp_path):
