@@ -4,7 +4,7 @@ Integration with hdl_registers
 ==============================
 
 The tsfpga module and source code handling is tightly integrated with its sister project
-``hdl_registers`` (https://hdl-registers.com, https://gitlab.com/tsfpga/hdl_registers),
+``hdl_registers`` (https://hdl-registers.com, https://gitlab.com/hdl_registers/hdl_registers),
 a register code generator.
 To use it simply create a file ``regs_<name>.toml`` in the root of a module
 (see :ref:`module structure <folder_structure>`).

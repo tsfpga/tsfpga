@@ -4,7 +4,7 @@ Integration with hdl_modules
 ============================
 
 The ``tsfpga`` project can with great benefit be used with its sister project ``hdl_modules`` (
-https://hdl-modules.com, https://gitlab.com/tsfpga/hdl_modules).
+https://hdl-modules.com, https://gitlab.com/hdl_modules/hdl_modules).
 The hdl_modules project is a collection of reusable, high-quality, peer-reviewed VHDL
 building blocks.
 Its modules use the suggested tsfpga :ref:`module structure <folder_structure>`, so they can be

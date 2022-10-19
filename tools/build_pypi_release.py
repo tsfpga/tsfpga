@@ -78,7 +78,9 @@ def arguments():
 
 
 def checkout_latest_hdl_modules_release(destination):
-    repo = Repo.clone_from(url="https://gitlab.com/tsfpga/hdl_modules.git", to_path=destination)
+    repo = Repo.clone_from(
+        url="https://gitlab.com/hdl_modules/hdl_modules.git", to_path=destination
+    )
 
     tag = _get_greatest_version_tag(repo)
     print(f"Using the greatest version tag: {tag}")

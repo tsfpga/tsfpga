@@ -533,7 +533,7 @@ def get_hdl_modules(names_include=None, names_avoid=None):
         )
 
     # Presumed location of the hdl_modules repo
-    hdl_modules_repo_root = (tsfpga.REPO_ROOT.parent / "hdl_modules").resolve()
+    hdl_modules_repo_root = tsfpga.REPO_ROOT.parent.parent.resolve() / "hdl_modules" / "hdl_modules"
     if (hdl_modules_repo_root / "modules").exists():
         return get_modules(
             modules_folders=[hdl_modules_repo_root / "modules"],
