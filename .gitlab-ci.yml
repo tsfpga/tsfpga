@@ -40,7 +40,6 @@ pytest:
   stage: test
   image: tsfpga/ci_py_sim
   script:
-    - mkdir ../../hdl_registers
     - git clone --depth 1 --single-branch --branch main https://gitlab.com/hdl_registers/hdl_registers.git ../../hdl_registers/hdl_registers
     - python3 -m pytest -v --cov tsfpga --cov-report xml:generated/python_coverage.xml --cov-report html:generated/python_coverage_html
       --ignore=tsfpga/test/functional/vivado --ignore=tsfpga/test/functional/commercial_simulators
@@ -55,9 +54,7 @@ simulate:
   stage: test
   image: tsfpga/ci_py_sim
   script:
-    - mkdir ../../hdl_modules
     - git clone --depth 1 --single-branch --branch main https://gitlab.com/hdl_modules/hdl_modules.git ../../hdl_modules/hdl_modules
-    - mkdir ../../hdl_registers
     - git clone --depth 1 --single-branch --branch main https://gitlab.com/hdl_registers/hdl_registers.git ../../hdl_registers/hdl_registers
     # Run minimal simulation subset for merge requests
     - if [ $CI_PIPELINE_SOURCE == "merge_request_event" ]; then export SIMULATE_FLAGS="--vcs-minimal"; fi;
@@ -81,9 +78,7 @@ build_pages:
   # Start as soon as pytest job is done. Even if e.g. simulate in previous stage is not.
   needs: ["pytest"]
   script:
-    - mkdir ../../hdl_modules
     - git clone --depth 1 --single-branch --branch main https://gitlab.com/hdl_modules/hdl_modules.git ../../hdl_modules/hdl_modules
-    - mkdir ../../hdl_registers
     - git clone --depth 1 --single-branch --branch main https://gitlab.com/hdl_registers/hdl_registers.git ../../hdl_registers/hdl_registers
     - python3 tools/build_docs.py
   artifacts:
