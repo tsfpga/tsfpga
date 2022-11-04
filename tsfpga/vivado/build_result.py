@@ -6,8 +6,10 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import json
 
+# Local folder libraries
 from .logic_level_distribution_parser import LogicLevelDistributionParser
 
 

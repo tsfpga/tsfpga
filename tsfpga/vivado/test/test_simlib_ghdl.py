@@ -11,11 +11,14 @@ Test a subset of what is tested for commercial, since most of the code is inheri
 from the common class.
 """
 
+# Standard libraries
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+# Third party libraries
 import pytest
 
+# First party libraries
 from tsfpga.vivado.simlib import VivadoSimlib
 
 

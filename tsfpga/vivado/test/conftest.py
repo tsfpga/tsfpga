@@ -6,8 +6,10 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import sys
 
+# First party libraries
 import tsfpga
 
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install

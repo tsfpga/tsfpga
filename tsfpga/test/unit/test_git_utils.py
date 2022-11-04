@@ -6,21 +6,19 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-from pathlib import Path
+# Standard libraries
 import os
 import unittest
+from pathlib import Path
 
+# Third party libraries
 import pytest
 from git import Actor, Repo
 
+# First party libraries
 from tsfpga import REPO_ROOT, TSFPGA_DOC
-from tsfpga.git_utils import (
-    git_commands_are_available,
-    find_git_files,
-    get_git_commit,
-)
+from tsfpga.git_utils import find_git_files, get_git_commit, git_commands_are_available
 from tsfpga.system_utils import create_directory, create_file, system_is_windows
-
 
 THIS_FILE = Path(__file__)
 THIS_DIR = THIS_FILE.parent

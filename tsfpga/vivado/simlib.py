@@ -6,6 +6,7 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Local folder libraries
 from .simlib_commercial import VivadoSimlibCommercial
 from .simlib_ghdl import VivadoSimlibGhdl
 

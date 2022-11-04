@@ -6,16 +6,19 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import fnmatch
 import time
 from pathlib import Path
 from threading import Lock
 
-from vunit.test.list import TestList
-from vunit.test.runner import TestRunner
-from vunit.test.report import TestReport, TestResult
+# Third party libraries
 from vunit.color_printer import COLOR_PRINTER, NO_COLOR_PRINTER
+from vunit.test.list import TestList
+from vunit.test.report import TestReport, TestResult
+from vunit.test.runner import TestRunner
 
+# First party libraries
 from tsfpga.system_utils import create_directory, read_last_lines_of_file
 
 

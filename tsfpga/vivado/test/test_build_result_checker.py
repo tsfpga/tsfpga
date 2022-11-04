@@ -6,9 +6,12 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-from unittest.mock import MagicMock, patch
+# Standard libraries
 import io
+from unittest.mock import MagicMock, patch
 
+# First party libraries
+from tsfpga.vivado.build_result import BuildResult as build_result_spec
 from tsfpga.vivado.build_result_checker import (
     DspBlocks,
     EqualTo,
@@ -16,7 +19,6 @@ from tsfpga.vivado.build_result_checker import (
     MaximumLogicLevel,
     TotalLuts,
 )
-from tsfpga.vivado.build_result import BuildResult as build_result_spec
 
 
 @patch("sys.stdout", new_callable=io.StringIO)

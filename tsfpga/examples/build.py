@@ -6,20 +6,22 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import argparse
+import sys
 from pathlib import Path
 from shutil import copy2, make_archive
-import sys
 
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
 PATH_TO_TSFPGA = Path(__file__).parent.parent.parent.resolve()
 sys.path.insert(0, str(PATH_TO_TSFPGA))
 
+# Import before others since it modifies PYTHONPATH. pylint: disable=unused-import
 import tsfpga.examples.example_pythonpath  # noqa: F401
 
-from tsfpga.examples.example_env import get_tsfpga_example_modules, TSFPGA_EXAMPLES_TEMP_DIR
-
+# First party libraries
 from tsfpga.build_project_list import BuildProjectList
+from tsfpga.examples.example_env import TSFPGA_EXAMPLES_TEMP_DIR, get_tsfpga_example_modules
 from tsfpga.system_utils import create_directory, delete
 
 

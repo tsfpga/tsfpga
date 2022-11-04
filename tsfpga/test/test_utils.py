@@ -6,6 +6,7 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# First party libraries
 from tsfpga.system_utils import read_file
 
 

@@ -6,10 +6,13 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 from pathlib import Path
 
+# Third party libraries
 import pytest
 
+# First party libraries
 from tsfpga.constraint import Constraint
 from tsfpga.hdl_file import HdlFile
 

@@ -6,13 +6,16 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import argparse
-from shutil import which
 from pathlib import Path
+from shutil import which
 
-from vunit import VUnitCLI, VUnit
-from vunit.vivado.vivado import create_compile_order_file, add_from_compile_order_file
+# Third party libraries
+from vunit import VUnit, VUnitCLI
+from vunit.vivado.vivado import add_from_compile_order_file, create_compile_order_file
 
+# First party libraries
 import tsfpga
 import tsfpga.create_vhdl_ls_config
 from tsfpga.module import ModuleList

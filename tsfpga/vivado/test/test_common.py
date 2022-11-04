@@ -6,9 +6,11 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-from unittest.mock import patch
+# Standard libraries
 from pathlib import Path
+from unittest.mock import patch
 
+# First party libraries
 from tsfpga.vivado.common import get_git_sha_slv, get_vivado_version, run_vivado_tcl
 
 THIS_DIR = Path(__file__).parent

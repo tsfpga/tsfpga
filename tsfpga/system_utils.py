@@ -6,15 +6,16 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import importlib.util
 import os
+import subprocess
 from os.path import commonpath, relpath
+from pathlib import Path
 from platform import system
 from shutil import rmtree
-import subprocess
 
-from pathlib import Path
-
+# First party libraries
 from tsfpga import DEFAULT_FILE_ENCODING
 
 

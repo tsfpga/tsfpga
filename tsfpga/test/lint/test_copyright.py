@@ -6,13 +6,16 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import re
 
+# Third party libraries
 import pytest
 
+# First party libraries
 import tsfpga
-from tsfpga.system_utils import create_file, read_file
 from tsfpga.git_utils import find_git_files
+from tsfpga.system_utils import create_file, read_file
 
 
 class CopyrightHeader:

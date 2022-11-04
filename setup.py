@@ -6,18 +6,20 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-from pathlib import Path
+# Standard libraries
 import sys
+from pathlib import Path
 
-from setuptools import setup, find_packages
+# Third party libraries
+from setuptools import find_packages, setup
 
 REPO_ROOT = Path(__file__).parent
 sys.path.insert(0, str(REPO_ROOT))
 
+# First party libraries
 import tsfpga
 from tsfpga.about import get_readme_rst, get_slogan
 from tsfpga.system_utils import path_relative_to
-
 
 REQUIREMENTS_TXT = tsfpga.TSFPGA_PATH / "requirements.txt"
 REQUIREMENTS_DEVELOP_TXT = tsfpga.TSFPGA_PATH / "requirements_develop.txt"

@@ -6,11 +6,14 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 from unittest import TestCase
 from unittest.mock import MagicMock
 
+# Third party libraries
 import pytest
 
+# First party libraries
 from tsfpga.module_list import ModuleList
 
 

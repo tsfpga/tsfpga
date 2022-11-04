@@ -8,15 +8,17 @@
 # A set of tools for versions and releases. Should be reusable between projects.
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import json
 import re
 import sys
 from urllib.request import urlopen
 
+# Third party libraries
 from packaging.version import parse
 
+# First party libraries
 from tsfpga.system_utils import create_file, read_file
-
 
 # Contents of unreleased.rst when it is empty
 UNRELEASED_EMPTY = "Nothing here yet.\n"

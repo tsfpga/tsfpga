@@ -6,10 +6,12 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import platform
-from shutil import make_archive
 import zipfile
+from shutil import make_archive
 
+# First party libraries
 from tsfpga.system_utils import create_file, delete
 from tsfpga.vivado.common import get_vivado_version
 

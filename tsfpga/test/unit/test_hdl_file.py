@@ -6,8 +6,10 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 from pathlib import Path
 
+# First party libraries
 from tsfpga.hdl_file import HdlFile
 
 

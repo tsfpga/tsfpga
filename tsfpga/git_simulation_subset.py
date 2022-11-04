@@ -6,9 +6,11 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import re
 from pathlib import Path
 
+# Third party libraries
 from git import Repo
 
 

@@ -6,8 +6,10 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Third party libraries
 import pytest
 
+# First party libraries
 from tsfpga import DEFAULT_FILE_ENCODING, REPO_ROOT, TSFPGA_DOC, TSFPGA_EXAMPLE_MODULES, TSFPGA_TCL
 from tsfpga.git_utils import find_git_files
 from tsfpga.system_utils import create_file

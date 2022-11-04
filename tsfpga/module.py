@@ -6,10 +6,13 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import random
 
+# Third party libraries
 from hdl_registers.parser import from_toml
 
+# First party libraries
 import tsfpga
 from tsfpga.constraint import Constraint
 from tsfpga.hdl_file import HdlFile

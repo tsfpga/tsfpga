@@ -6,6 +6,7 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# First party libraries
 from tsfpga.system_utils import create_file, file_is_in_directory, read_file
 from tsfpga.vhdl_file_documentation import VhdlFileDocumentation
 

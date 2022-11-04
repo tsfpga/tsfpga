@@ -6,13 +6,16 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+# Third party libraries
 import pytest
 
-from tsfpga.vivado.simlib import VivadoSimlib
+# First party libraries
 from tsfpga.test.test_utils import file_contains_string
+from tsfpga.vivado.simlib import VivadoSimlib
 
 
 # pylint: disable=redefined-outer-name

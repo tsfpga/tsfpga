@@ -6,9 +6,9 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# First party libraries
 from tsfpga.system_utils import create_file
-
-from tsfpga.vhdl_file_documentation import VhdlFileDocumentation, VHDL_COMMENT_SEPARATOR
+from tsfpga.vhdl_file_documentation import VHDL_COMMENT_SEPARATOR, VhdlFileDocumentation
 
 
 def test_documentation_header(tmp_path):

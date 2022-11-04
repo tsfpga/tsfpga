@@ -6,6 +6,7 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# First party libraries
 from tsfpga.vivado.logic_level_distribution_parser import LogicLevelDistributionParser
 
 

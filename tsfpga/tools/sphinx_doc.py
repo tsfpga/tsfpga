@@ -8,13 +8,16 @@
 # A set of methods for building sphinx docs. Should be reusable between projects.
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
+import sys
 from datetime import datetime
 from subprocess import check_call
-import sys
 
+# Third party libraries
 from git import Repo
 from packaging.version import parse
 
+# First party libraries
 from tsfpga.system_utils import read_file
 
 

@@ -6,9 +6,11 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import os
 from pathlib import Path
 
+# First party libraries
 from tsfpga.system_utils import file_is_in_directory
 
 
@@ -51,6 +53,7 @@ def get_git_sha(directory):
     # Import fails if "git" executable is not available, hence it can not be on top level.
     # This function should only be called if git is available.
     # pylint: disable=import-outside-toplevel
+    # Third party libraries
     from git import Repo
 
     repo = Repo(directory, search_parent_directories=True)
@@ -72,6 +75,7 @@ def git_local_changes_present(directory):
     # Import fails if "git" executable is not available, hence it can not be on top level.
     # This function should only be called if git is available.
     # pylint: disable=import-outside-toplevel
+    # Third party libraries
     from git import Repo
 
     repo = Repo(directory, search_parent_directories=True)
@@ -85,7 +89,8 @@ def git_commands_are_available(directory):
     """
     try:
         # pylint: disable=import-outside-toplevel
-        from git import Repo, InvalidGitRepositoryError
+        # Third party libraries
+        from git import InvalidGitRepositoryError, Repo
     except ImportError:
         return False
 
@@ -120,6 +125,7 @@ def find_git_files(
     # Import fails if "git" executable is not available, hence it can not be on top level.
     # This function should only be called if git is available.
     # pylint: disable=import-outside-toplevel
+    # Third party libraries
     from git import Repo
 
     exclude_directories = (

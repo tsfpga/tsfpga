@@ -6,7 +6,10 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# First party libraries
 from tsfpga.system_utils import create_file
+
+# Local folder libraries
 from .common import to_tcl_path
 from .generics import get_vivado_tcl_generic_value
 

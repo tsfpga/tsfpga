@@ -6,14 +6,17 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import ANY, MagicMock, patch
 
+# Third party libraries
 import pytest
 
+# First party libraries
 from tsfpga.module import BaseModule, get_modules
-from tsfpga.system_utils import create_file, create_directory
+from tsfpga.system_utils import create_directory, create_file
 
 
 def test_add_vunit_config_name():

@@ -6,14 +6,18 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import unittest
 from unittest.mock import MagicMock
+
+# Third party libraries
 import pytest
 
+# First party libraries
 from tsfpga.build_project_list import BuildProjectList
 from tsfpga.module import BaseModule
 from tsfpga.system_utils import create_directory
-from tsfpga.vivado.project import VivadoProject, BuildResult
+from tsfpga.vivado.project import BuildResult, VivadoProject
 
 
 # pylint: disable=too-many-instance-attributes

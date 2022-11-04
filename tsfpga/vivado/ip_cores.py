@@ -6,10 +6,14 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import hashlib
 import json
 
+# First party libraries
 from tsfpga.system_utils import create_file, delete, read_file
+
+# Local folder libraries
 from .project import VivadoIpCoreProject
 
 

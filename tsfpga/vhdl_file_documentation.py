@@ -6,11 +6,12 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import re
 
+# First party libraries
 from tsfpga.system_utils import read_file
 from tsfpga.test.lint.test_copyright import CopyrightHeader
-
 
 VHDL_COMMENT_SEPARATOR = "-- " + ("-" * (CopyrightHeader.separator_line_length - 3))
 

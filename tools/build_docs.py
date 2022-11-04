@@ -6,19 +6,22 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import argparse
-from pathlib import Path
 import shutil
-from subprocess import check_call
 import sys
+from pathlib import Path
+from subprocess import check_call
 from xml.etree import ElementTree
 
+# Third party libraries
 from pybadges import badge
 
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
 REPO_ROOT = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(REPO_ROOT))
 
+# First party libraries
 import tsfpga
 from tsfpga.about import get_readme_rst
 from tsfpga.system_utils import create_directory, create_file, delete, read_file

@@ -6,11 +6,14 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 from pathlib import Path
 from shutil import which
 
+# Third party libraries
 from vunit.ostools import Process
 
+# First party libraries
 from tsfpga.git_utils import get_git_sha
 from tsfpga.math_utils import to_binary_string
 

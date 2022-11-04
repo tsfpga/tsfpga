@@ -6,9 +6,13 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 from pathlib import Path
 
+# First party libraries
 from tsfpga.system_utils import create_file
+
+# Local folder libraries
 from .common import get_vivado_path, run_vivado_tcl, to_tcl_path
 from .simlib_common import VivadoSimlibCommon
 

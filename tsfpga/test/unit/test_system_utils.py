@@ -6,12 +6,14 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import subprocess
-
 from pathlib import Path
 
+# Third party libraries
 import pytest
 
+# First party libraries
 from tsfpga.system_utils import (
     create_directory,
     create_file,

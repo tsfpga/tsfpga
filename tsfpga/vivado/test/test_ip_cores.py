@@ -6,18 +6,21 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
+# Third party libraries
 import pytest
 
+# First party libraries
 from tsfpga.ip_core_file import IpCoreFile
 from tsfpga.module import BaseModule, get_modules
 from tsfpga.system_utils import create_file, delete
-from tsfpga.vivado.ip_cores import VivadoIpCores
 
 # pylint: disable=unused-import
 from tsfpga.test.conftest import fixture_tmp_path  # noqa: F401
+from tsfpga.vivado.ip_cores import VivadoIpCores
 
 
 def test_get_ip_core_files_is_called_with_the_correct_arguments(tmp_path):

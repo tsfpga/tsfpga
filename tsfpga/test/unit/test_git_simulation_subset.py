@@ -6,9 +6,13 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 from unittest.mock import MagicMock, patch
+
+# Third party libraries
 import pytest
 
+# First party libraries
 from tsfpga.git_simulation_subset import GitSimulationSubset
 from tsfpga.system_utils import create_file
 

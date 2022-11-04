@@ -6,9 +6,13 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 from pathlib import Path
+
+# Third party libraries
 import pytest
 
+# First party libraries
 from tsfpga.ip_core_file import IpCoreFile
 
 

@@ -6,8 +6,10 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 from unittest import mock
 
+# First party libraries
 from tsfpga.svn_utils import find_svn_files, svn_local_changes_are_present
 from tsfpga.system_utils import create_file
 

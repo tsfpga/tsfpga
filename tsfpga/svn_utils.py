@@ -6,9 +6,11 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import re
 import subprocess
 
+# First party libraries
 from tsfpga.system_utils import file_is_in_directory
 
 

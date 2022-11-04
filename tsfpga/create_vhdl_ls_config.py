@@ -6,9 +6,13 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 from pathlib import Path
+
+# Third party libraries
 import tomlkit
 
+# First party libraries
 from tsfpga.system_utils import create_file
 from tsfpga.vivado.ip_cores import VivadoIpCores
 

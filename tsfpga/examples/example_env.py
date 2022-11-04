@@ -10,12 +10,14 @@
 Common functions and definitions in the example build environment.
 """
 
-import tsfpga
-
+# Import before others since it modifies PYTHONPATH. pylint: disable=unused-import
 import tsfpga.examples.example_pythonpath  # noqa: F401
 
+# Third party libraries
 from hdl_registers.register_list import Register
 
+# First party libraries
+import tsfpga
 from tsfpga.module import get_modules
 
 TSFPGA_EXAMPLES_TEMP_DIR = tsfpga.TSFPGA_GENERATED

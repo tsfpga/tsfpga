@@ -6,8 +6,10 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 from pathlib import Path
 
+# First party libraries
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
 
 

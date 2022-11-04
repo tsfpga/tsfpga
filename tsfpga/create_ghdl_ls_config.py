@@ -6,9 +6,11 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import json
 from pathlib import Path
 
+# First party libraries
 from tsfpga.system_utils import create_file, path_relative_to
 
 

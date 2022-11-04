@@ -6,12 +6,16 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import re
 import subprocess
 from pathlib import Path
 
+# First party libraries
 from tsfpga import DEFAULT_FILE_ENCODING
 from tsfpga.system_utils import create_directory
+
+# Local folder libraries
 from .common import get_vivado_path
 from .simlib_common import VivadoSimlibCommon
 

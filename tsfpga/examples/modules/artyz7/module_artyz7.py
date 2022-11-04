@@ -6,14 +6,17 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 from pathlib import Path
 
-from tsfpga.constraint import Constraint
-from tsfpga.module import BaseModule, get_hdl_modules
+# Import before others since it modifies PYTHONPATH. pylint: disable=unused-import
 import tsfpga.examples.example_pythonpath  # noqa: F401
-from tsfpga.examples.example_env import get_tsfpga_example_modules
-from tsfpga.vivado.project import VivadoProject
 
+# First party libraries
+from tsfpga.constraint import Constraint
+from tsfpga.examples.example_env import get_tsfpga_example_modules
+from tsfpga.module import BaseModule, get_hdl_modules
+from tsfpga.vivado.project import VivadoProject
 
 THIS_FILE = Path(__file__)
 

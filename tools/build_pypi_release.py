@@ -6,11 +6,13 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import argparse
-from pathlib import Path
 import shutil
 import sys
+from pathlib import Path
 
+# Third party libraries
 from git import Repo
 from packaging.version import parse
 
@@ -18,6 +20,7 @@ from packaging.version import parse
 REPO_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
+# First party libraries
 from tsfpga import TSFPGA_PATH
 from tsfpga.system_utils import create_file, delete, path_relative_to, read_file, run_command
 

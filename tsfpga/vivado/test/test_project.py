@@ -6,19 +6,22 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import unittest
-from unittest.mock import MagicMock, patch
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
+# Third party libraries
 import pytest
 
+# First party libraries
 from tsfpga.module import BaseModule
 from tsfpga.system_utils import create_directory, create_file
-from tsfpga.vivado.project import VivadoProject, copy_and_combine_dicts
-from tsfpga.vivado.generics import StringGenericValue
 
 # pylint: disable=unused-import
 from tsfpga.test.conftest import fixture_tmp_path  # noqa: F401
+from tsfpga.vivado.generics import StringGenericValue
+from tsfpga.vivado.project import VivadoProject, copy_and_combine_dicts
 
 
 def test_casting_to_string():

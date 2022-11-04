@@ -6,8 +6,10 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Third party libraries
 import pytest
 
+# First party libraries
 from tsfpga.vivado.generics import (
     BitVectorGenericValue,
     StringGenericValue,

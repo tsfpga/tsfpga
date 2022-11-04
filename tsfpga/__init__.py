@@ -11,8 +11,8 @@ A set of reusable functions for working with HDL projects.
 """
 
 
+# Standard libraries
 from pathlib import Path
-
 
 THIS_DIR = Path(__file__).parent
 REPO_ROOT = THIS_DIR.parent.resolve()

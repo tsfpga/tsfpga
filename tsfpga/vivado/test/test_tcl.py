@@ -6,24 +6,27 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
+import unittest
 from collections import OrderedDict
 from pathlib import Path
-import unittest
 from unittest.mock import MagicMock
 
+# Third party libraries
 import pytest
 
+# First party libraries
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
 from tsfpga.ip_core_file import IpCoreFile
 from tsfpga.module import BaseModule, get_modules
 from tsfpga.system_utils import create_file
-from tsfpga.vivado.common import to_tcl_path
-from tsfpga.vivado.generics import BitVectorGenericValue, StringGenericValue
-from tsfpga.vivado.tcl import VivadoTcl
 from tsfpga.test import file_contains_string
 
 # pylint: disable=unused-import
 from tsfpga.test.conftest import fixture_tmp_path  # noqa: F401
+from tsfpga.vivado.common import to_tcl_path
+from tsfpga.vivado.generics import BitVectorGenericValue, StringGenericValue
+from tsfpga.vivado.tcl import VivadoTcl
 
 
 def test_set_create_run_index():

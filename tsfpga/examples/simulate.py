@@ -6,6 +6,7 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
 import sys
 from pathlib import Path
 
@@ -13,20 +14,21 @@ from pathlib import Path
 PATH_TO_TSFPGA = Path(__file__).parent.parent.parent.resolve()
 sys.path.insert(0, str(PATH_TO_TSFPGA))
 
+# Import before others since it modifies PYTHONPATH. pylint: disable=unused-import
 import tsfpga.examples.example_pythonpath  # noqa: F401
 
-from tsfpga.examples.example_env import get_tsfpga_example_modules, TSFPGA_EXAMPLES_TEMP_DIR
-
+# First party libraries
 import tsfpga
-from tsfpga.create_ghdl_ls_config import create_ghdl_ls_configuration
 import tsfpga.create_vhdl_ls_config
-from tsfpga.git_simulation_subset import GitSimulationSubset
-from tsfpga.module import get_hdl_modules
+from tsfpga.create_ghdl_ls_config import create_ghdl_ls_configuration
+from tsfpga.examples.example_env import TSFPGA_EXAMPLES_TEMP_DIR, get_tsfpga_example_modules
 from tsfpga.examples.simulation_utils import (
+    SimulationProject,
     create_vhdl_ls_configuration,
     get_arguments_cli,
-    SimulationProject,
 )
+from tsfpga.git_simulation_subset import GitSimulationSubset
+from tsfpga.module import get_hdl_modules
 
 
 def main():

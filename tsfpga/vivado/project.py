@@ -6,14 +6,18 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-from copy import deepcopy
+# Standard libraries
 import shutil
+from copy import deepcopy
 
+# First party libraries
 from tsfpga import TSFPGA_TCL
-from tsfpga.system_utils import create_file, read_file
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
+from tsfpga.system_utils import create_file, read_file
+
+# Local folder libraries
 from .build_result import BuildResult
-from .common import run_vivado_tcl, run_vivado_gui
+from .common import run_vivado_gui, run_vivado_tcl
 from .hierarchical_utilization_parser import HierarchicalUtilizationParser
 from .logic_level_distribution_parser import LogicLevelDistributionParser
 from .tcl import VivadoTcl
