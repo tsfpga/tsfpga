@@ -8,12 +8,7 @@
 
 import argparse
 from shutil import which
-import sys
 from pathlib import Path
-
-# Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
-PATH_TO_TSFPGA = Path(__file__).parent.parent.resolve()
-sys.path.insert(0, str(PATH_TO_TSFPGA))
 
 from vunit import VUnitCLI, VUnit
 from vunit.vivado.vivado import create_compile_order_file, add_from_compile_order_file
