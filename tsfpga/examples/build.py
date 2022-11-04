@@ -15,6 +15,8 @@ import sys
 PATH_TO_TSFPGA = Path(__file__).parent.parent.parent.resolve()
 sys.path.insert(0, str(PATH_TO_TSFPGA))
 
+import tsfpga.examples.example_pythonpath  # noqa: F401
+
 from tsfpga.examples.example_env import get_tsfpga_example_modules, TSFPGA_EXAMPLES_TEMP_DIR
 
 from tsfpga.build_project_list import BuildProjectList

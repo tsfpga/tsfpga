@@ -10,6 +10,7 @@ from pathlib import Path
 
 from tsfpga.constraint import Constraint
 from tsfpga.module import BaseModule, get_hdl_modules
+import tsfpga.examples.example_pythonpath  # noqa: F401
 from tsfpga.examples.example_env import get_tsfpga_example_modules
 from tsfpga.vivado.project import VivadoProject
 

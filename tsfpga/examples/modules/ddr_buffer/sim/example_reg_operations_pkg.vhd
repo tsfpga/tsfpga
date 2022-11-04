@@ -25,7 +25,7 @@ use reg_file.reg_operations_pkg.all;
 package example_reg_operations_pkg is
 
   -- These convenience functions for the example modules rely on using the standard
-  -- register locations, definded below as well as in tsfpga_example_env.py.
+  -- register locations, defined below as well as in tsfpga.examples.example_env.py.
 
   constant config_reg : integer := 0;
   constant command_reg : integer := 1;
