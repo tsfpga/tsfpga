@@ -72,12 +72,23 @@ class VhdlFileDocumentation:
         Default values and range declarations on ports are removed since symbolator does not seem
         to handle them.
 
+        This implementation uses some regular expressions to find the generics and ports and modify
+        them.
+        The use of regular expressions makes it somewhat simple but also limited.
+        Comments in strange places, specifically the string ``port (`` in a comment will make the
+        mechanism fail.
+        Also an entity with generics but no ports will be falsely interpreted as only ports.
+
+        These known limitations do not pose any known practical problem and are hence considered
+        worth it in order to keep the implementation simple.
+        The real solution would be to fix upstream in symbolator and hdlparse.
+
         Return:
             str: VHDL ``component`` declaration. ``None`` if file is a package, and hence contains
             no ``entity``.
         """
         if self._vhd_file_path.name.endswith("_pkg.vhd"):
-            # File is a package
+            # File is a package, hence contains no entity
             return None
 
         entity_name = self._vhd_file_path.stem
@@ -85,7 +96,12 @@ class VhdlFileDocumentation:
             rf"entity\s+{entity_name}\s+is"
             # Match all the code for generics and ports.
             # Is non-greedy, so it will only match up until the "end" declaration below.
-            r"(.+?)"
+            # Generic block optionally
+            r"\s*(.+?)\s*(\)\s*;\s*)?"
+            # Port block
+            r"port\s*\(\s*(.+?)\s*"
+            #
+            r"\)\s*;\s*"
             # Shall be able to handle
             #   end entity;
             #   end entity <name>;
@@ -97,20 +113,49 @@ class VhdlFileDocumentation:
         )
 
         file_contents = read_file(self._vhd_file_path)
+
         match = entity_regexp.search(file_contents)
         if match is None:
             return None
 
-        component = f"component {entity_name} is{match.group(1)}end component;"
+        if match.group(2) and match.group(3):
+            # Entity declaration contains both generics and ports
+            generics = match.group(1)
+        else:
+            # Only one match, which we assume is ports (generics only is not supported)
+            generics = None
+
+        ports = match.group(3)
 
         # Remove default values.
         # Symbolator stops parsing if it encounters vector default values (others => ...).
-        default_value_regexp = re.compile(r"\s+:=\s+[^;\n]+", re.IGNORECASE)
-        component = default_value_regexp.sub("", component)
+        default_value_regexp = re.compile(r"\s*:=.+?(;|$)", re.IGNORECASE | re.DOTALL)
+
+        # Replace the assignment with only the ending character (";" or "")
+        def default_value_replace(match):
+            return match.group(1)
 
         # Remove any vector range declarations in port list.
         # The lines become too long so they don't fit in the image.
         vector_regexp = re.compile(r"\([^;\n]+\)", re.IGNORECASE)
-        component = vector_regexp.sub("", component)
+
+        if generics:
+            generics = default_value_regexp.sub(repl=default_value_replace, string=generics)
+            generics = vector_regexp.sub(repl="", string=generics)
+
+        ports = default_value_regexp.sub(repl=default_value_replace, string=ports)
+        ports = vector_regexp.sub(repl="", string=ports)
+
+        if generics:
+            generics_code = f"  {generics}\n  );\n"
+        else:
+            generics_code = ""
+
+        ports_code = f"  port (\n    {ports}\n  );"
+
+        component = f"""\
+component {entity_name} is
+{generics_code}{ports_code}
+end component;"""
 
         return component

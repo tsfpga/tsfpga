@@ -57,6 +57,44 @@ def run_get_symbolator_component_test(tmp_path, vhdl_code, expected):
     assert got == expected
 
 
+def test_get_symbolator_component_simple(tmp_path):
+    data = """
+entity test_entity is
+  generic (
+    num_interfaces : positive
+  );
+  port (
+    clk : in std_logic;
+    --# {{}}
+    input_ready : out std_logic := '0';
+    input_valid : in std_logic;
+    --# {{}}
+    output_ready : in std_logic_vector(0 to num_interfaces - 1);
+    output_valid : out std_logic_vector(0 to num_interfaces - 1) := (others => '0')
+  );
+end entity;
+"""
+
+    # entity->component, no ranges, and no default values.
+    expected = """\
+component test_entity is
+  generic (
+    num_interfaces : positive
+  );
+  port (
+    clk : in std_logic;
+    --# {{}}
+    input_ready : out std_logic;
+    input_valid : in std_logic;
+    --# {{}}
+    output_ready : in std_logic_vector;
+    output_valid : out std_logic_vector
+  );
+end component;"""
+
+    run_get_symbolator_component_test(tmp_path=tmp_path, vhdl_code=data, expected=expected)
+
+
 def test_get_symbolator_component_complex(tmp_path):
     data = """
 library common;
@@ -64,10 +102,15 @@ use common.addr_pkg.all;
 
 
 entity test_entity is
-  generic (
-    buffer_segment_length_bytes : positive
-  );
-  port (
+  generic(
+    buffer_segment_length_bytes : positive;
+    dummy : positive := 10;
+    -- comment
+    silly : positive_vec_t(0 to 1) :=
+      -- comment again
+      (others => 4)
+  )
+  ;port(
     clk : in std_logic;
     --# {{}}
     request_ready : in std_logic := '0';
@@ -75,13 +118,17 @@ entity test_entity is
     request_address : out addr_t(apa to hest) := (others => '0');
     request_funky : out addr_t(apa to hest) :=
       (others => '0');
-    request_slinky : out addr_t(apa to hest)
-      := (others => '0');
+    request_slinky : out addr_t(apa to hest) := (
+      -- comment
+      others => '0'
+    );
     --# {{}}
-    release_last_address : in std_logic_vector(enables'range) := '0';
+    release_last_address : in std_logic_vector(enables'range)
+      := '0';
     --# {{}}
     buffer_start_address : in addr_t(hest downto 0);
-    buffer_last_address : in addr_t := (others => '0')
+    buffer_last_address : in addr_t
+      := (others => '0')
    );
 end entity;
 
@@ -97,8 +144,11 @@ end a;
     # entity->component, no ranges, and no default values.
     expected = """\
 component test_entity is
-  generic (
-    buffer_segment_length_bytes : positive
+  generic(
+    buffer_segment_length_bytes : positive;
+    dummy : positive;
+    -- comment
+    silly : positive_vec_t
   );
   port (
     clk : in std_logic;
@@ -113,7 +163,76 @@ component test_entity is
     --# {{}}
     buffer_start_address : in addr_t;
     buffer_last_address : in addr_t
-   );
+  );
+end component;"""
+
+    run_get_symbolator_component_test(tmp_path=tmp_path, vhdl_code=data, expected=expected)
+
+
+def test_get_symbolator_component_no_generics(tmp_path):
+    data = """
+entity test_entity is
+  port (
+    dummy_signal : out std_logic_vector(my_range_constant) := '0'
+  );
+end entity;
+"""
+
+    # entity->component, no ranges, and no default values.
+    expected = """\
+component test_entity is
+  port (
+    dummy_signal : out std_logic_vector
+  );
+end component;"""
+
+    run_get_symbolator_component_test(tmp_path=tmp_path, vhdl_code=data, expected=expected)
+
+
+def test_get_symbolator_component_last_port_no_newline(tmp_path):
+    data = """
+entity test_entity is
+  generic (
+    buffer_segment_length_bytes : positive_vec_t(0 to 1));
+  port (
+    dummy_signal : out std_logic_vector(my_range_constant) := '0');end entity;
+"""
+
+    # entity->component, no ranges, and no default values.
+    expected = """\
+component test_entity is
+  generic (
+    buffer_segment_length_bytes : positive_vec_t
+  );
+  port (
+    dummy_signal : out std_logic_vector
+  );
+end component;"""
+
+    run_get_symbolator_component_test(tmp_path=tmp_path, vhdl_code=data, expected=expected)
+
+
+def test_get_symbolator_component_last_port_parenthesis_on_same_line(tmp_path):
+    data = """
+entity test_entity is
+  generic (
+    buffer_segment_length_bytes : positive_vec_t(0 to 1) := (1, 2)  )
+  ;
+  port (
+    dummy_signal : out std_logic_vector(my_range_constant) := '0'  )
+  ;
+end entity;
+"""
+
+    # entity->component, no ranges, and no default values.
+    expected = """\
+component test_entity is
+  generic (
+    buffer_segment_length_bytes : positive_vec_t
+  );
+  port (
+    dummy_signal : out std_logic_vector
+  );
 end component;"""
 
     run_get_symbolator_component_test(tmp_path=tmp_path, vhdl_code=data, expected=expected)
@@ -142,7 +261,7 @@ component test_entity is
   port (
     clk : in std_logic;
     dummy_signal : out std_logic_vector
-   );
+  );
 end component;"""
 
     run_get_symbolator_component_test(tmp_path=tmp_path, vhdl_code=data, expected=expected)
@@ -176,15 +295,11 @@ end a;
     # entity->component, no ranges, and no default values.
     expected = """\
 component test_entity is
-
   port (
     clk : in std_logic;
     dummy_signal : out std_logic_vector
-  )
-   ;
-
-
- end component;"""
+  );
+end component;"""
 
     run_get_symbolator_component_test(tmp_path=tmp_path, vhdl_code=data, expected=expected)
 
