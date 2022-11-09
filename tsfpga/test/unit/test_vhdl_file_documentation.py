@@ -50,7 +50,7 @@ def test_only_copyright_header_should_return_no_documentation_header(tmp_path):
     assert VhdlFileDocumentation(vhd_file).get_header_rst() is None
 
 
-def test_get_symbolator_component(tmp_path):
+def test_get_symbolator_component_complex(tmp_path):
     data = """
 library common;
 use common.addr_pkg.all;
@@ -81,6 +81,10 @@ end entity;
 architecture a of test_entity is
 
 begin
+
+end architecture;
+end;
+end a;
 """
 
     # entity->component, no ranges, and no default values.
@@ -109,3 +113,115 @@ end component;"""
     got = VhdlFileDocumentation(vhd_file).get_symbolator_component()
 
     assert got == expected
+
+
+def run_get_symbolator_component_test(tmp_path, end_statement):
+    data = f"""
+entity test_entity is
+  port (
+    clk : in std_logic;
+    dummy_signal : out std_logic_vector(my_range_constant) := '0'
+   );
+{end_statement};
+
+architecture a of test_entity is
+begin
+
+end architecture;
+end;
+end a;
+"""
+
+    # entity->component, no ranges, and no default values.
+    expected = """\
+component test_entity is
+  port (
+    clk : in std_logic;
+    dummy_signal : out std_logic_vector
+   );
+end component;"""
+
+    vhd_file = create_file(tmp_path / "test_entity.vhd", data)
+    got = VhdlFileDocumentation(vhd_file).get_symbolator_component()
+
+    assert got == expected
+
+
+def run_get_symbolator_component_test_with_whitespace(tmp_path, end_statement):
+    # As above but with lots of whitespace around the keywords.
+    data = f"""
+entity
+ test_entity
+  is
+
+  port (
+    clk : in std_logic;
+    dummy_signal : out std_logic_vector(my_range_constant) := '0'
+  )
+   ;
+
+
+ {end_statement}
+  ;
+
+architecture a of test_entity is
+begin
+
+end architecture;
+end;
+end a;
+"""
+
+    # entity->component, no ranges, and no default values.
+    expected = """\
+component test_entity is
+
+  port (
+    clk : in std_logic;
+    dummy_signal : out std_logic_vector
+  )
+   ;
+
+
+ end component;"""
+
+    vhd_file = create_file(tmp_path / "test_entity.vhd", data)
+    got = VhdlFileDocumentation(vhd_file).get_symbolator_component()
+
+    assert got == expected
+
+
+def test_get_symbolator_component_end_only_keyword(tmp_path):
+    end_statement = "end"
+    run_get_symbolator_component_test(tmp_path=tmp_path, end_statement=end_statement)
+
+
+def test_get_symbolator_component_no_end_entity_with_whitespace(tmp_path):
+    end_statement = "end   \n"
+    run_get_symbolator_component_test_with_whitespace(
+        tmp_path=tmp_path, end_statement=end_statement
+    )
+
+
+def test_get_symbolator_component_end_name(tmp_path):
+    end_statement = "end test_entity"
+    run_get_symbolator_component_test(tmp_path=tmp_path, end_statement=end_statement)
+
+
+def test_get_symbolator_component_end_name_with_whitespace(tmp_path):
+    end_statement = "end \n  test_entity  \n"
+    run_get_symbolator_component_test_with_whitespace(
+        tmp_path=tmp_path, end_statement=end_statement
+    )
+
+
+def test_get_symbolator_component_end_entity_name(tmp_path):
+    end_statement = "end entity test_entity"
+    run_get_symbolator_component_test(tmp_path=tmp_path, end_statement=end_statement)
+
+
+def test_get_symbolator_component_end_entity_name_with_whitespace(tmp_path):
+    end_statement = "end \n  entity  \n test_entity  \n"
+    run_get_symbolator_component_test_with_whitespace(
+        tmp_path=tmp_path, end_statement=end_statement
+    )

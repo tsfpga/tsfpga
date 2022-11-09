@@ -82,7 +82,18 @@ class VhdlFileDocumentation:
 
         entity_name = self._vhd_file_path.stem
         entity_regexp = re.compile(
-            f"entity {entity_name} is" + r"\n(.+?)end entity;", re.IGNORECASE | re.DOTALL
+            rf"entity\s+{entity_name}\s+is"
+            # Match all the code for generics and ports.
+            # Is non-greedy, so it will only match up until the "end" declaration below.
+            r"(.+?)"
+            # Shall be able to handle
+            #   end entity;
+            #   end entity <name>;
+            #   end <name>;
+            #   end;
+            # with different whitespace around.
+            rf"end(\s+entity|\s+entity\s+{entity_name}|\s+{entity_name}|)\s*;",
+            re.IGNORECASE | re.DOTALL,
         )
 
         file_contents = read_file(self._vhd_file_path)
@@ -90,7 +101,7 @@ class VhdlFileDocumentation:
         if match is None:
             return None
 
-        component = f"component {entity_name} is\n{match.group(1)}end component;"
+        component = f"component {entity_name} is{match.group(1)}end component;"
 
         # Remove default values.
         # Symbolator stops parsing if it encounters vector default values (others => ...).
