@@ -43,7 +43,7 @@ end entity;
 
 architecture tb of tb_artyz7_top is
 
-  signal clk_ext : std_logic := '0';
+  signal clk_ext : std_ulogic := '0';
 
 begin
 

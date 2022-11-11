@@ -64,13 +64,13 @@ entity test_entity is
     num_interfaces : positive
   );
   port (
-    clk : in std_logic;
+    clk : in std_ulogic;
     --# {{}}
-    input_ready : out std_logic := '0';
-    input_valid : in std_logic;
+    input_ready : out std_ulogic := '0';
+    input_valid : in std_ulogic;
     --# {{}}
-    output_ready : in std_logic_vector(0 to num_interfaces - 1);
-    output_valid : out std_logic_vector(0 to num_interfaces - 1) := (others => '0')
+    output_ready : in std_ulogic_vector(0 to num_interfaces - 1);
+    output_valid : out std_ulogic_vector(0 to num_interfaces - 1) := (others => '0')
   );
 end entity;
 """
@@ -82,13 +82,13 @@ component test_entity is
     num_interfaces : positive
   );
   port (
-    clk : in std_logic;
+    clk : in std_ulogic;
     --# {{}}
-    input_ready : out std_logic;
-    input_valid : in std_logic;
+    input_ready : out std_ulogic;
+    input_valid : in std_ulogic;
     --# {{}}
-    output_ready : in std_logic_vector;
-    output_valid : out std_logic_vector
+    output_ready : in std_ulogic_vector;
+    output_valid : out std_ulogic_vector
   );
 end component;"""
 
@@ -111,10 +111,10 @@ entity test_entity is
       (others => 4)
   )
   ;port(
-    clk : in std_logic;
+    clk : in std_ulogic;
     --# {{}}
-    request_ready : in std_logic := '0';
-    request_valid : out std_logic_vector(my_range_constant) := '0';
+    request_ready : in std_ulogic := '0';
+    request_valid : out std_ulogic_vector(my_range_constant) := '0';
     request_address : out addr_t(apa to hest) := (others => '0');
     request_funky : out addr_t(apa to hest) :=
       (others => '0');
@@ -123,7 +123,7 @@ entity test_entity is
       others => '0'
     );
     --# {{}}
-    release_last_address : in std_logic_vector(enables'range)
+    release_last_address : in std_ulogic_vector(enables'range)
       := '0';
     --# {{}}
     buffer_start_address : in addr_t(hest downto 0);
@@ -151,15 +151,15 @@ component test_entity is
     silly : positive_vec_t
   );
   port (
-    clk : in std_logic;
+    clk : in std_ulogic;
     --# {{}}
-    request_ready : in std_logic;
-    request_valid : out std_logic_vector;
+    request_ready : in std_ulogic;
+    request_valid : out std_ulogic_vector;
     request_address : out addr_t;
     request_funky : out addr_t;
     request_slinky : out addr_t;
     --# {{}}
-    release_last_address : in std_logic_vector;
+    release_last_address : in std_ulogic_vector;
     --# {{}}
     buffer_start_address : in addr_t;
     buffer_last_address : in addr_t
@@ -173,7 +173,7 @@ def test_get_symbolator_component_no_generics(tmp_path):
     data = """
 entity test_entity is
   port (
-    dummy_signal : out std_logic_vector(my_range_constant) := '0'
+    dummy_signal : out std_ulogic_vector(my_range_constant) := '0'
   );
 end entity;
 """
@@ -182,7 +182,7 @@ end entity;
     expected = """\
 component test_entity is
   port (
-    dummy_signal : out std_logic_vector
+    dummy_signal : out std_ulogic_vector
   );
 end component;"""
 
@@ -195,7 +195,7 @@ entity test_entity is
   generic (
     buffer_segment_length_bytes : positive_vec_t(0 to 1));
   port (
-    dummy_signal : out std_logic_vector(my_range_constant) := '0');end entity;
+    dummy_signal : out std_ulogic_vector(my_range_constant) := '0');end entity;
 """
 
     # entity->component, no ranges, and no default values.
@@ -205,7 +205,7 @@ component test_entity is
     buffer_segment_length_bytes : positive_vec_t
   );
   port (
-    dummy_signal : out std_logic_vector
+    dummy_signal : out std_ulogic_vector
   );
 end component;"""
 
@@ -219,7 +219,7 @@ entity test_entity is
     buffer_segment_length_bytes : positive_vec_t(0 to 1) := (1, 2)  )
   ;
   port (
-    dummy_signal : out std_logic_vector(my_range_constant) := '0'  )
+    dummy_signal : out std_ulogic_vector(my_range_constant) := '0'  )
   ;
 end entity;
 """
@@ -231,7 +231,7 @@ component test_entity is
     buffer_segment_length_bytes : positive_vec_t
   );
   port (
-    dummy_signal : out std_logic_vector
+    dummy_signal : out std_ulogic_vector
   );
 end component;"""
 
@@ -242,8 +242,8 @@ def run_get_symbolator_component_end_test(tmp_path, end_statement):
     data = f"""
 entity test_entity is
   port (
-    clk : in std_logic;
-    dummy_signal : out std_logic_vector(my_range_constant) := '0'
+    clk : in std_ulogic;
+    dummy_signal : out std_ulogic_vector(my_range_constant) := '0'
    );
 {end_statement};
 
@@ -259,8 +259,8 @@ end a;
     expected = """\
 component test_entity is
   port (
-    clk : in std_logic;
-    dummy_signal : out std_logic_vector
+    clk : in std_ulogic;
+    dummy_signal : out std_ulogic_vector
   );
 end component;"""
 
@@ -275,8 +275,8 @@ entity
   is
 
   port (
-    clk : in std_logic;
-    dummy_signal : out std_logic_vector(my_range_constant) := '0'
+    clk : in std_ulogic;
+    dummy_signal : out std_ulogic_vector(my_range_constant) := '0'
   )
    ;
 
@@ -296,8 +296,8 @@ end a;
     expected = """\
 component test_entity is
   port (
-    clk : in std_logic;
-    dummy_signal : out std_logic_vector
+    clk : in std_ulogic;
+    dummy_signal : out std_ulogic_vector
   );
 end component;"""
 

@@ -31,19 +31,19 @@ use work.artyz7_regs_pkg.all;
 
 entity artyz7_top is
   port (
-    clk_ext : in std_logic;
-    led : out std_logic_vector(0 to 3) := (others => '0');
-    dummy_output : out std_logic_vector(22 - 1 downto 0) := (others => '0')
+    clk_ext : in std_ulogic;
+    led : out std_ulogic_vector(0 to 3) := (others => '0');
+    dummy_output : out std_ulogic_vector(22 - 1 downto 0) := (others => '0')
   );
 end entity;
 
 architecture a of artyz7_top is
 
-  signal clk_m_gp0 : std_logic := '0';
+  signal clk_m_gp0 : std_ulogic := '0';
   signal m_gp0_m2s : axi_m2s_t := axi_m2s_init;
   signal m_gp0_s2m : axi_s2m_t := axi_s2m_init;
 
-  signal clk_s_hp0 : std_logic := '0';
+  signal clk_s_hp0 : std_ulogic := '0';
   signal s_hp0_m2s : axi_m2s_t := axi_m2s_init;
   signal s_hp0_s2m : axi_s2m_t := axi_s2m_init;
 
@@ -54,7 +54,7 @@ begin
 
   ------------------------------------------------------------------------------
   blink_0 : process
-    variable count : unsigned(27 - 1 downto 0) := (others => '0');
+    variable count : u_unsigned(27 - 1 downto 0) := (others => '0');
   begin
     wait until rising_edge(clk_m_gp0);
     led(0) <= count(count'high);
@@ -64,7 +64,7 @@ begin
 
   ------------------------------------------------------------------------------
   blink_1 : process
-    variable count : unsigned(27 - 1 downto 0) := (others => '0');
+    variable count : u_unsigned(27 - 1 downto 0) := (others => '0');
   begin
     wait until rising_edge(clk_s_hp0);
     led(1) <= count(count'high);
@@ -134,7 +134,7 @@ begin
 
   ------------------------------------------------------------------------------
   block_design : block
-    signal pl_clk0, pl_clk1 : std_logic := '0';
+    signal pl_clk0, pl_clk1 : std_ulogic := '0';
   begin
 
     clk_m_gp0 <= pl_clk0;
@@ -162,11 +162,11 @@ begin
   -- and the build passes timing.
   resync_test_block : block
 
-    signal misc_dummy_input, dummy_output_m1 : std_logic_vector(dummy_output'range) :=
+    signal misc_dummy_input, dummy_output_m1 : std_ulogic_vector(dummy_output'range) :=
       (others => '0');
 
     -- Dummy signal in clk_ext domain
-    signal sample_value : std_logic := '0';
+    signal sample_value : std_ulogic := '0';
   begin
 
     -- Some dummy logic that instantiates a lot of the resync blocks.
@@ -329,9 +329,9 @@ begin
       -- We do no want to use the same bits as some other resync, so for FIFO we use another
       -- dummy input word.
       alias fifo_dummy_input is regs_m2s(dummy_reg_slaves'low).write.w.data;
-      signal deep_read_data, shallow_read_data : std_logic_vector(16 - 1 downto 0) :=
+      signal deep_read_data, shallow_read_data : std_ulogic_vector(16 - 1 downto 0) :=
         (others => '0');
-      signal fifo_write_valid, fifo_read_ready : std_logic := '0';
+      signal fifo_write_valid, fifo_read_ready : std_ulogic := '0';
 
     begin
 

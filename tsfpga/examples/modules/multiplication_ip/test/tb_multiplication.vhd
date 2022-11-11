@@ -22,11 +22,11 @@ end entity;
 
 architecture tb of tb_multiplication is
 
-  signal clk : std_logic := '0';
+  signal clk : std_ulogic := '0';
 
-  signal multiplicand : unsigned(12 - 1 downto 0);
-  signal multiplier : unsigned(5 - 1 downto 0);
-  signal product : unsigned(17 - 1 downto 0);
+  signal multiplicand : u_unsigned(12 - 1 downto 0);
+  signal multiplier : u_unsigned(5 - 1 downto 0);
+  signal product : u_unsigned(17 - 1 downto 0);
 
 begin
 

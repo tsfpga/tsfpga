@@ -21,7 +21,7 @@ use work.ddr_buffer_regs_pkg.all;
 
 entity ddr_buffer_top is
   port (
-    clk : in std_logic;
+    clk : in std_ulogic;
 
     axi_read_m2s : out axi_read_m2s_t := axi_read_m2s_init;
     axi_read_s2m : in axi_read_s2m_t;
@@ -43,7 +43,7 @@ architecture a of ddr_buffer_top is
 
   signal regs_up, regs_down : ddr_buffer_regs_t := ddr_buffer_regs_init;
 
-  signal counter : unsigned(ddr_buffer_status_counter) := (others => '0');
+  signal counter : u_unsigned(ddr_buffer_status_counter) := (others => '0');
 
 begin
 

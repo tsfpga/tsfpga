@@ -22,16 +22,16 @@ use work.artyz7_top_pkg.all;
 
 entity block_design_wrapper is
   port (
-    clk_m_gp0 : in std_logic;
+    clk_m_gp0 : in std_ulogic;
     m_gp0_m2s : out axi_m2s_t := axi_m2s_init;
     m_gp0_s2m : in axi_s2m_t;
 
-    clk_s_hp0 : in std_logic;
+    clk_s_hp0 : in std_ulogic;
     s_hp0_m2s : in axi_m2s_t;
     s_hp0_s2m : out axi_s2m_t := axi_s2m_init;
 
-    pl_clk0 : out std_logic := '0';
-    pl_clk1 : out std_logic := '0'
+    pl_clk0 : out std_ulogic := '0';
+    pl_clk1 : out std_ulogic := '0'
   );
 end entity;
 

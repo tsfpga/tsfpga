@@ -60,15 +60,15 @@ library resync;
 
 entity test_proj_top is
   port (
-    clk_in : in std_logic;
-    input : in std_logic;
-    clk_out : in std_logic;
-    output : out std_logic
+    clk_in : in std_ulogic;
+    input : in std_ulogic;
+    clk_out : in std_ulogic;
+    output : out std_ulogic
   );
 end entity;
 
 architecture a of test_proj_top is
-  signal input_p1 : std_logic;
+  signal input_p1 : std_ulogic;
 begin
 
   pipe_input : process
@@ -250,7 +250,7 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         # Do a ridiculously wide multiplication, which Vivado can't optimize away
         bad_timing = """
   mult_block : block
-    signal resynced_input : std_logic;
+    signal resynced_input : std_ulogic;
   begin
     resync_level_inst : entity resync.resync_level
     generic map (
@@ -264,8 +264,8 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
     );
 
     mult : process
-      constant bit_pattern : std_logic_vector(32 -1 downto 0) := x"deadbeef";
-      variable term1, term2, term3 : unsigned(bit_pattern'range);
+      constant bit_pattern : std_ulogic_vector(32 -1 downto 0) := x"deadbeef";
+      variable term1, term2, term3 : u_unsigned(bit_pattern'range);
     begin
       wait until rising_edge(clk_out);
       term1 := unsigned(bit_pattern);
@@ -336,7 +336,7 @@ create_clock -period 4 -waveform {1.0 1.2} -name clk_out [get_ports clk_out]
     def test_build_with_bad_bus_skew_should_fail(self):
         resync_wide_word = """
   resync_block : block
-    signal input_word, result_word : std_logic_vector(0 to 32 - 1) := (others => '0');
+    signal input_word, result_word : std_ulogic_vector(0 to 32 - 1) := (others => '0');
 
     attribute dont_touch of result_word : signal is "true";
   begin
