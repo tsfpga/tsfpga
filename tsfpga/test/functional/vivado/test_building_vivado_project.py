@@ -38,7 +38,7 @@ def test_building_artyz7_project(tmp_path):
     assert (tmp_path / "artifacts" / "artyz7" / "artyz7.bit").exists()
     assert (tmp_path / "artifacts" / "artyz7" / "artyz7.bin").exists()
     assert (tmp_path / "artifacts" / "artyz7" / "artyz7.xsa").exists()
-    assert (tmp_path / "artifacts" / "artyz7" / "artyz7-0.0.0.0.zip").exists()
+    assert (tmp_path / "artifacts" / "artyz7" / "artyz7-0.0.0.zip").exists()
 
 
 # pylint: disable=too-many-instance-attributes
