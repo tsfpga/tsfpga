@@ -1,12 +1,16 @@
 Breaking changes
 
-* Add mandatory ``heading_character_2`` argument to :meth:`.ModuleDocumentation.get_submodule_rst`.
+* Remove bundling of `hdl_modules <https://hdl-modules.com>`_ with PyPI release.
+  This also removes the constants/functions ``tsfpga.HDL_MODULES_LOCATION``,
+  ``tsfpga.HDL_MODULES_TAG``, ``tsfpga.HDL_MODULES_SHA`` and
+  ``tsfpga.module.get_hdl_modules()``.
 
 * Remove support for formal flow. It's still a bit too experimental for us to support.
 
 * Fail Vivado build if any messages with severity ``ERROR`` have been reported after synthesis
   or implementation.
 
+* Add mandatory ``heading_character_2`` argument to :meth:`.ModuleDocumentation.get_submodule_rst`.
 
 Added
 

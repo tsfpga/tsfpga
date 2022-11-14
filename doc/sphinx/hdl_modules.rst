@@ -7,15 +7,9 @@ The ``tsfpga`` project can with great benefit be used with its sister project ``
 https://hdl-modules.com, https://gitlab.com/hdl_modules/hdl_modules).
 The hdl_modules project is a collection of reusable, high-quality, peer-reviewed VHDL
 building blocks.
-Its modules use the suggested tsfpga :ref:`module structure <folder_structure>`, so they can be
-loaded straight away in a tsfpga project without effort.
-
-Releases to `PyPI <https://pypi.org/project/tsfpga/>`__ of tsfpga are bundled with the latest
-release version of hdl_modules.
-There is a convenience method :func:`.get_hdl_modules` for getting a :class:`.ModuleList` of the
-modules from hdl_modules.
-This module list can then be added to the list of modules when setting up a simulation project,
-build projects, etc.
+Its modules use the suggested tsfpga :ref:`module structure <folder_structure>`, so simply running
+:func:`.get_modules` on the ``hdl_modules/modules`` directory will load them in a tsfpga project
+without effort.
 
 
 Example usage in tsfpga

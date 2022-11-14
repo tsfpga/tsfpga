@@ -70,3 +70,30 @@ def get_tsfpga_example_modules(names_include=None, names_avoid=None):
         library_name_has_lib_suffix=False,
         default_registers=get_default_registers(),
     )
+
+
+def get_hdl_modules(names_include=None, names_avoid=None):
+    """
+    Wrapper of :func:`.get_modules` which returns the ``hdl_modules`` module objects.
+
+    If ``hdl_modules`` can not be found in the default repo checkout location,
+    the function will assert False.
+
+    Arguments will be passed on to :func:`.get_modules`.
+
+    Return:
+        :class:`.ModuleList`: The module objects.
+    """
+    # Presumed location of the hdl_modules repo
+    hdl_modules_repo_root = tsfpga.REPO_ROOT.parent.parent.resolve() / "hdl_modules" / "hdl_modules"
+    if (hdl_modules_repo_root / "modules").exists():
+        return get_modules(
+            modules_folders=[hdl_modules_repo_root / "modules"],
+            names_include=names_include,
+            names_avoid=names_avoid,
+            library_name_has_lib_suffix=False,
+        )
+
+    raise FileNotFoundError(
+        f"The hdl_modules modules could not be found. Searched in {hdl_modules_repo_root}"
+    )

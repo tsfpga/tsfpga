@@ -29,12 +29,3 @@ TSFPGA_EXAMPLE_MODULES = TSFPGA_EXAMPLES / "modules"
 DEFAULT_FILE_ENCODING = "utf-8"
 
 __version__ = "11.0.1-dev"
-
-# Releases to PyPI are bundled with a release version of the hdl_modules
-# project (https://hdl-modules.com). These three definitions will be filled in that case.
-# This is a Path object pointing to the 'modules' folder where the hdl_modules can be found.
-HDL_MODULES_LOCATION = None
-# This is a string of the git tag the modules were fetched from
-HDL_MODULES_TAG = None
-# This is a string of the git sha the modules were fetched from
-HDL_MODULES_SHA = None

@@ -65,7 +65,7 @@ build_pypi:
   stage: test
   image: tsfpga/ci_py_sim
   script:
-    - python3 tools/build_pypi_release.py --clean-and-build
+    - python3 setup.py sdist
   artifacts:
     paths:
       - dist

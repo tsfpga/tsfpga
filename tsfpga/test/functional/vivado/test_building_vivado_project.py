@@ -16,7 +16,8 @@ import pytest
 # First party libraries
 import tsfpga
 from tsfpga.constraint import Constraint
-from tsfpga.module import get_hdl_modules, get_modules
+from tsfpga.examples.example_env import get_hdl_modules
+from tsfpga.module import get_modules
 from tsfpga.system_utils import create_file, run_command
 from tsfpga.test import file_contains_string
 from tsfpga.vivado.build_result_checker import LessThan, TotalLuts

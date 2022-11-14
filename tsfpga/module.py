@@ -13,7 +13,6 @@ import random
 from hdl_registers.parser import from_toml
 
 # First party libraries
-import tsfpga
 from tsfpga.constraint import Constraint
 from tsfpga.hdl_file import HdlFile
 from tsfpga.ip_core_file import IpCoreFile
@@ -504,46 +503,3 @@ def _get_module_object(path, name, library_name_has_lib_suffix, default_register
     if module_file.exists():
         return load_python_module(module_file).Module(path, library_name, default_registers)
     return BaseModule(path, library_name, default_registers)
-
-
-def get_hdl_modules(names_include=None, names_avoid=None):
-    """
-    Wrapper of :func:`.get_modules` which returns the ``hdl_modules`` module objects.
-    If this is a PyPI release of tsfpga, a release of ``hdl_modules`` will be bundled and modules
-    from there will be returned.
-
-    If this is a repo checkout of tsfpga, the function will try to find the ``hdl_modules`` repo
-    if it is next to the tsfpga repo.
-
-    If neither of those alternatives work, the function will assert False.
-
-    Arguments will be passed on to :func:`.get_modules`.
-
-    Return:
-        :class:`.ModuleList`: The module objects.
-    """
-    if tsfpga.HDL_MODULES_LOCATION is not None:
-        if not tsfpga.HDL_MODULES_LOCATION.exists():
-            raise FileNotFoundError(
-                f"The marked location {tsfpga.HDL_MODULES_LOCATION} does not exist. "
-                "There is something wrong with the release script."
-            )
-
-        return get_modules(
-            modules_folders=[tsfpga.HDL_MODULES_LOCATION],
-            names_include=names_include,
-            names_avoid=names_avoid,
-        )
-
-    # Presumed location of the hdl_modules repo
-    hdl_modules_repo_root = tsfpga.REPO_ROOT.parent.parent.resolve() / "hdl_modules" / "hdl_modules"
-    if (hdl_modules_repo_root / "modules").exists():
-        return get_modules(
-            modules_folders=[hdl_modules_repo_root / "modules"],
-            names_include=names_include,
-            names_avoid=names_avoid,
-        )
-
-    raise FileNotFoundError(
-        f"The hdl_modules modules could not be found. Searched in {hdl_modules_repo_root}"
-    )

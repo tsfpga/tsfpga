@@ -21,14 +21,17 @@ import tsfpga.examples.example_pythonpath  # noqa: F401
 import tsfpga
 import tsfpga.create_vhdl_ls_config
 from tsfpga.create_ghdl_ls_config import create_ghdl_ls_configuration
-from tsfpga.examples.example_env import TSFPGA_EXAMPLES_TEMP_DIR, get_tsfpga_example_modules
+from tsfpga.examples.example_env import (
+    TSFPGA_EXAMPLES_TEMP_DIR,
+    get_hdl_modules,
+    get_tsfpga_example_modules,
+)
 from tsfpga.examples.simulation_utils import (
     SimulationProject,
     create_vhdl_ls_configuration,
     get_arguments_cli,
 )
 from tsfpga.git_simulation_subset import GitSimulationSubset
-from tsfpga.module import get_hdl_modules
 
 
 def main():

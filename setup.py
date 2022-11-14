@@ -27,10 +27,6 @@ REQUIREMENTS_DEVELOP_TXT = tsfpga.TSFPGA_PATH / "requirements_develop.txt"
 
 def main():
     """
-    Note that this script must be called from a clean repo (since all files in "tsfpga" and
-    "modules" will be included; so if there are stray dirty files the will be included as well).
-    Please use the "tools/build_pypi_release.py" script.
-
     Be extremely careful when making changes to this setup script. It is hard to see what is
     actually included and what is missing. Also the package data, and where it gets placed in the
     release tree, is very messy.

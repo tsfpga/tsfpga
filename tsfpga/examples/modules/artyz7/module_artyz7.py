@@ -14,8 +14,8 @@ import tsfpga.examples.example_pythonpath  # noqa: F401
 
 # First party libraries
 from tsfpga.constraint import Constraint
-from tsfpga.examples.example_env import get_tsfpga_example_modules
-from tsfpga.module import BaseModule, get_hdl_modules
+from tsfpga.examples.example_env import get_hdl_modules, get_tsfpga_example_modules
+from tsfpga.module import BaseModule
 from tsfpga.vivado.project import VivadoProject
 
 THIS_FILE = Path(__file__)
