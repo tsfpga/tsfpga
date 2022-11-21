@@ -7,7 +7,10 @@ LABEL description="Includes everything that is needed for CI simulation/pytest o
 RUN apt-get update && \
   apt-get install --yes --no-install-recommends \
   git \
+  # Functional tests in hdl_registers uses GCC to compile
   g++ \
+  # So that repos/submodules can be checked out with SSH
+  openssh-client \
   # Cleanup
   && apt-get autoremove --yes \
   && apt-get clean autoclean \
