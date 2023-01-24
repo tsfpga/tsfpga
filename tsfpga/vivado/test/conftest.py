@@ -6,14 +6,5 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
-import sys
-
-# First party libraries
-import tsfpga
-
-# Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
-PATH_TO_HDL_REGISTERS = tsfpga.REPO_ROOT.parent.parent.resolve() / "hdl_registers" / "hdl_registers"
-sys.path.insert(0, str(PATH_TO_HDL_REGISTERS))
-PATH_TO_VUNIT = tsfpga.REPO_ROOT.parent.parent.resolve() / "vunit" / "vunit"
-sys.path.insert(0, str(PATH_TO_VUNIT))
+# Import before others since it modifies PYTHONPATH. pylint: disable=unused-import
+import tsfpga.examples.example_pythonpath  # noqa: F401

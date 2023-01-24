@@ -16,8 +16,8 @@ from shutil import move
 from git import Repo
 
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
-PATH_TO_REPO_ROOT = Path(__file__).parent.parent
-sys.path.insert(0, str(PATH_TO_REPO_ROOT))
+REPO_ROOT = Path(__file__).parent.parent.resolve()
+sys.path.insert(0, str(REPO_ROOT))
 
 # First party libraries
 import tsfpga

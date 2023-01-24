@@ -13,7 +13,7 @@ from pathlib import Path
 # Third party libraries
 from setuptools import find_packages, setup
 
-REPO_ROOT = Path(__file__).parent
+REPO_ROOT = Path(__file__).parent.resolve()
 sys.path.insert(0, str(REPO_ROOT))
 
 # First party libraries
