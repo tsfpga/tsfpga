@@ -141,7 +141,7 @@ def find_git_files(
             yield from list_paths(tree, path / tree.name)
 
     repo = Repo(directory, search_parent_directories=True)
-    repo_root = Path(repo.git_dir).parent.resolve()
+    repo_root = Path(repo.working_dir).resolve()
 
     for file_path in list_paths(repo.tree(), repo_root):
         if file_endings_include is not None and not file_path.name.endswith(file_endings_include):
