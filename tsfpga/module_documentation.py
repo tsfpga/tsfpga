@@ -304,8 +304,9 @@ This document contains technical documentation for the ``{self._module.name}`` m
 {heading}
 {heading_underline}
 
-This entity has :ref:`netlist builds <tsfpga:netlist_build>` set up with
-:ref:`automatic size checkers <tsfpga:build_result_checkers>` in ``module_{self._module.name}.py``.
+This entity has `netlist builds <https://tsfpga.com/netlist_build.html>`__ set up with
+`automatic size checkers <https://tsfpga.com/netlist_build.html#build-result-checkers>`__
+in ``module_{self._module.name}.py``.
 The following table lists the resource utilization for the entity, depending on
 generic configuration.
 
