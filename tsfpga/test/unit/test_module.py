@@ -267,7 +267,6 @@ class TestGetModules(TestCase):
 from tsfpga.module import BaseModule
 
 class Module(BaseModule):
-
     def id(self):
         return """
 

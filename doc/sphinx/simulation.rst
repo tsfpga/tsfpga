@@ -101,7 +101,6 @@ We would create the file ``modules/fifo/module_fifo.py``, and fill it with somet
 
 
     class Module(BaseModule):
-
         def setup_vunit(self, vunit_proj, **kwargs):
             tb = vunit_proj.library(self.library_name).test_bench("tb_fifo")
             for width in [8, 24]:
