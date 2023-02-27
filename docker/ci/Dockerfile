@@ -17,8 +17,6 @@ RUN apt-get update && \
   git \
   # Functional tests in hdl_registers uses GCC to compile
   g++ \
-  # So that repos/submodules can be checked out with SSH
-  openssh-client \
   # Cleanup
   && apt-get autoremove --yes \
   && apt-get clean autoclean \
