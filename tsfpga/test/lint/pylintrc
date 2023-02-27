@@ -62,13 +62,15 @@ confidence=
 # wrong-import-order: We use isort to control this instead.
 # ungrouped-imports: We use isort to control this instead.
 # duplicate-code: False positives...
+# use-dict-literal: Using the literal is 18% faster, but it is more code and harder to read.
 
 disable=missing-docstring,
         import-error,
         wrong-import-position,
         wrong-import-order,
         ungrouped-imports,
-        duplicate-code
+        duplicate-code,
+        use-dict-literal
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
