@@ -200,7 +200,6 @@ def test_module_getters_are_called_with_correct_arguments():
 # pylint: disable=too-many-instance-attributes
 @pytest.mark.usefixtures("fixture_tmp_path")
 class TestVivadoTcl(unittest.TestCase):
-
     tmp_path = None
 
     def setUp(self):

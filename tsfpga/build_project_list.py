@@ -481,7 +481,6 @@ class BuildReport(TestReport):
 
 
 class BuildResult(TestResult):
-
     report_length_lines = None
 
     def _print_output(self, printer, num_lines):

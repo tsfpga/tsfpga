@@ -11,7 +11,6 @@ from tsfpga.module import BaseModule
 
 
 class Module(BaseModule):
-
     # This will be much nicer when the register generator supports integer fields.
     # For now it is a bit vector field.
     version = "00000011"

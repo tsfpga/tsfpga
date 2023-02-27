@@ -19,7 +19,6 @@ from tsfpga.system_utils import create_file, read_file
 
 
 class CopyrightHeader:
-
     separator_line_length = 100
 
     def __init__(self, file, copyright_holder, copyright_text_lines=None):

@@ -84,7 +84,6 @@ def test_git_commands_are_available_with_invalid_directory_should_fail():
 
 @pytest.mark.usefixtures("fixture_tmp_path")
 class TestGitCommitWithLocalChanges(unittest.TestCase):
-
     tmp_path = None
 
     _local_changes_present = " (local changes present)"

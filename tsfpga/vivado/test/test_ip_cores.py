@@ -34,7 +34,6 @@ def test_get_ip_core_files_is_called_with_the_correct_arguments(tmp_path):
 
 @pytest.mark.usefixtures("fixture_tmp_path")
 class TestVivadoIpCores(TestCase):
-
     tmp_path = None
 
     def setUp(self):

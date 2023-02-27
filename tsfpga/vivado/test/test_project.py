@@ -196,7 +196,6 @@ def test_copy_and_combine_dict_with_both_arguments_valid_and_same_key():
 # pylint: disable=too-many-instance-attributes
 @pytest.mark.usefixtures("fixture_tmp_path")
 class TestVivadoProject(unittest.TestCase):
-
     tmp_path = None
 
     def setUp(self):
@@ -221,7 +220,6 @@ class TestVivadoProject(unittest.TestCase):
 
     def test_default_pre_create_hook_should_pass(self):
         class CustomVivadoProject(VivadoProject):
-
             pass
 
         project = CustomVivadoProject(name="apa", modules=[], part="")
@@ -296,7 +294,6 @@ class TestVivadoProject(unittest.TestCase):
 
     def test_default_pre_and_post_build_hooks_should_pass(self):
         class CustomVivadoProject(VivadoProject):
-
             pass
 
         build_result = self._build(CustomVivadoProject(name="apa", modules=[], part=""))

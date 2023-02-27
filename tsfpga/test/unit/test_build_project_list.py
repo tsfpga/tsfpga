@@ -23,7 +23,6 @@ from tsfpga.vivado.project import BuildResult, VivadoProject
 # pylint: disable=too-many-instance-attributes
 @pytest.mark.usefixtures("fixture_tmp_path")
 class TestBuildProjectList(unittest.TestCase):
-
     tmp_path = None
 
     @staticmethod

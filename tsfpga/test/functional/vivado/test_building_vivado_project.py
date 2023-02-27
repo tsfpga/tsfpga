@@ -45,7 +45,6 @@ def test_building_artyz7_project(tmp_path):
 # pylint: disable=too-many-instance-attributes
 @pytest.mark.usefixtures("fixture_tmp_path")
 class TestBasicProject(unittest.TestCase):
-
     tmp_path = None
 
     top_template = """

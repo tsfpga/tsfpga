@@ -12,13 +12,15 @@ from pathlib import Path
 from shutil import which
 
 # Third party libraries
+from vunit import VUnit, VUnitCLI
+from vunit.vivado.vivado import add_from_compile_order_file, create_compile_order_file
+
+# First party libraries
 import tsfpga
 import tsfpga.create_vhdl_ls_config
 from tsfpga.module import ModuleList
 from tsfpga.vivado.ip_cores import VivadoIpCores
 from tsfpga.vivado.simlib import VivadoSimlib
-from vunit import VUnit, VUnitCLI
-from vunit.vivado.vivado import add_from_compile_order_file, create_compile_order_file
 
 
 def get_arguments_cli(default_output_path):

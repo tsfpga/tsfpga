@@ -116,42 +116,34 @@ class SizeChecker(BuildResultChecker):
 
 
 class TotalLuts(SizeChecker):
-
     name = "Total LUTs"
 
 
 class LogicLuts(SizeChecker):
-
     name = "Logic LUTs"
 
 
 class LutRams(SizeChecker):
-
     name = "LUTRAMs"
 
 
 class Srls(SizeChecker):
-
     name = "SRLs"
 
 
 class Ffs(SizeChecker):
-
     name = "FFs"
 
 
 class Ramb36(SizeChecker):
-
     name = "RAMB36"
 
 
 class Ramb18(SizeChecker):
-
     name = "RAMB18"
 
 
 class Uram(SizeChecker):
-
     name = "URAM"
 
 

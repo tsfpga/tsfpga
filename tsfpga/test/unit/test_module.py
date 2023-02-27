@@ -226,7 +226,6 @@ def test_getting_registers_calls_registers_hook(tmp_path):
 
 @pytest.mark.usefixtures("fixture_tmp_path")
 class TestGetModules(TestCase):
-
     tmp_path = None
 
     def setUp(self):
