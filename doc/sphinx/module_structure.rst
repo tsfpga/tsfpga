@@ -161,6 +161,9 @@ design open:
       puts "\] \[get_ips ${ip}\]"
     }
 
+Alternatively, the Vivado command ``write_ip_tcl [get_ips <name>]`` can be used and the generated
+``.tcl`` file inspected.
+However the TCL format that ``write_ip_tcl`` produces does not allow variable usage.
 
 
 
