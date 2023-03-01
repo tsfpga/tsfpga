@@ -270,6 +270,12 @@ class BuildProjectList:
                         if fnmatch.filter([project.name], project_filter):
                             yield project
 
+                            # Do not continue with further filters if we have already matched this
+                            # project.
+                            # Multiple filters might match the same project, and multiple objects
+                            # of the same project will break build
+                            break
+
 
 class BuildProjectCreateWrapper:
 

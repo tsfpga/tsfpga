@@ -14,7 +14,7 @@ Breaking changes
 
 Added
 
-* Add table with netlist build resource utilization to sphinx documentation in
+* Add table with netlist build resource utilization to Sphinx documentation in
   :class:`.ModuleDocumentation`.
 
 * Add :func:`.create_ghdl_ls_configuration` function to generate a configuration file
@@ -25,3 +25,7 @@ Added
   types :class:`.StringGenericValue` and :class:`.BitVectorGenericValue`.
 
 * Add check that fails Vivado build unless all bus skew constraints are met after implementation.
+
+Bug fixes
+
+* Fix bug where multiple build projects filters that match the same project would crash the build.

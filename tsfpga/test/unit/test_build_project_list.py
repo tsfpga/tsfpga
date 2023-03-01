@@ -64,6 +64,10 @@ class TestBuildProjectList(unittest.TestCase):
         assert len(project_list.projects) == 1
         assert self.project_one in project_list.projects
 
+        project_list = BuildProjectList(self.modules, project_filters=["one", "one", "on*"])
+        assert len(project_list.projects) == 1
+        assert self.project_one in project_list.projects
+
         project_list = BuildProjectList(self.modules, include_netlist_not_top_builds=True)
         assert len(project_list.projects) == 2
         assert self.project_three in project_list.projects
