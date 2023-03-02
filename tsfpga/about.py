@@ -8,9 +8,22 @@
 
 
 def get_slogan():
+    """
+    Used on website and on gitlab.
+    """
     result = """\
 tsfpga is a development platform that aims to streamline the code structure and user experience in
 your FPGA project."""
+    return result
+
+
+def get_pypi_slogan():
+    """
+    Used on pypi.org and in Python package. Is limited by 98 characters apparently, so
+    it cant be the same as the one on the website.
+    """
+    result = """\
+tsfpga is a flexible and scalable development platform for modern FPGA projects."""
     return result
 
 

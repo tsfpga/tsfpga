@@ -19,7 +19,7 @@ sys.path.insert(0, str(REPO_ROOT))
 
 # First party libraries
 import tsfpga
-from tsfpga.about import get_readme_rst, get_slogan
+from tsfpga.about import get_pypi_slogan, get_readme_rst
 from tsfpga.system_utils import path_relative_to
 
 REQUIREMENTS_TXT = tsfpga.TSFPGA_PATH / "requirements.txt"
@@ -35,10 +35,10 @@ def main():
     When making changes it is recommended to try the release locally before committing to main.
     To test in a docker image do, e.g:
 
-    python tools/build_pypi_release.py --clean-and-build
+    python3 setup.py sdist
     docker run --rm --interactive --tty --volume $(pwd)/dist:/dist:ro --workdir /dist \
         python:3.8-slim-buster /bin/bash
-    python -m pip install tsfpga-8.0.2.tar.gz
+    python -m pip install tsfpga-*.tar.gz
 
     The install should pass and you should be able to run python and "import tsfpga".
     You should see all the files in "/usr/local/lib/python3.8/site-packages/tsfpga". Check that
@@ -49,7 +49,7 @@ def main():
     setup(
         name="tsfpga",
         version=tsfpga.__version__,
-        description=get_slogan(),
+        description=get_pypi_slogan(),
         long_description=get_readme_rst(include_extra_for_pypi=True),
         long_description_content_type="text/x-rst",
         license="BSD 3-Clause License",
