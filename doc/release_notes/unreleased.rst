@@ -1,11 +1,15 @@
 Added
 
+* Add ``set_random_seed`` argument to :meth:`.BaseModule.add_vunit_config`.
+
 * Add table with netlist build resource utilization to Sphinx documentation in
   :class:`.ModuleDocumentation`.
 
+* Add ``--from-impl`` support to :meth:`.VivadoProject.build` and example ``build.py``.
+
 * Add :func:`.create_ghdl_ls_configuration` function to generate a configuration file
-  (``hdl-prj.json``) for the ``ghdl-ls`` language server
-  (https://github.com/ghdl/ghdl-language-server).
+  (``hdl-prj.json``) for the `ghdl-ls <https://github.com/ghdl/ghdl-language-server>`__
+  language server.
 
 * Add support for string and bit vector generics in :class:`.VivadoProject` using the
   types :class:`.StringGenericValue` and :class:`.BitVectorGenericValue`.
