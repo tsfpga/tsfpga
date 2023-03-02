@@ -20,10 +20,13 @@ class BuildResult:
         project_name (`str`): The name of the build.
         success (`bool`): True if the build and all pre- and post hooks succeeded.
         synthesis_size (`dict`): A dictionary with the utilization of primitives for the
-            synthesized design. Will be ``None`` if synthesis failed or did not run.
+            synthesized design.
+            Will be ``None`` if synthesis failed or did not run.
         implementation_size (`dict`): A dictionary with the utilization of primitives for
-            the implemented design. Will be ``None`` if implementation failed or did not run.
-        maximum_logic_level (int): The maximum level in the the logic level distribution.
+            the implemented design.
+            Will be ``None`` if implementation failed or did not run.
+        logic_level_distribution (str): A table with logic level distribution as reported by Vivado.
+            Will be ``None`` for non-netlist builds.
             Will be ``None`` if synthesis failed or did not run.
     """
 
@@ -36,8 +39,7 @@ class BuildResult:
         self.success = True
         self.synthesis_size = None
         self.implementation_size = None
-        self._logic_level_distribution = None
-        self.maximum_logic_level = None
+        self.logic_level_distribution = None
 
     def size_summary(self):
         """
@@ -76,18 +78,18 @@ class BuildResult:
         return result
 
     @property
-    def logic_level_distribution(self):
+    def maximum_logic_level(self):
         """
-        str: A table with logic level distribution as reported by Vivado.
+        The maximum level in the the :attr:`.BuildResult.logic_level_distribution`.
+        Will be ``None`` for non-netlist builds.
         Will be ``None`` if synthesis failed or did not run.
-        """
-        # Getter for logic_level_distribution.
-        return self._logic_level_distribution
 
-    @logic_level_distribution.setter
-    def logic_level_distribution(self, value):
+        Returns:
+            int: The maximum logic level.
         """
-        Setter for logic_level_distribution that also sets the calculated maximum logic level.
-        """
-        self._logic_level_distribution = value
-        self.maximum_logic_level = LogicLevelDistributionParser.get_maximum_logic_level(value)
+        if self.logic_level_distribution is None:
+            return None
+
+        return LogicLevelDistributionParser.get_maximum_logic_level(
+            table=self.logic_level_distribution
+        )

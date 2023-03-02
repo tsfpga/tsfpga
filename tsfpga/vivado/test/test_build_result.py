@@ -67,3 +67,14 @@ Logic level distribution:
 """
     assert build_result.report() == expected
     assert build_result.maximum_logic_level == 3
+
+
+def test_maximum_logic_level_should_be_none_if_no_logic_level_distribution_is_set():
+    build_result = BuildResult(name="apa")
+    build_result.synthesis_size = dict(LUT=3, FFs=4)
+
+    # maximum_logic_level is calculated based on the logic_level_distribution, which is not set
+    # in this test case
+    assert build_result.logic_level_distribution is None
+    assert build_result.maximum_logic_level is None
+    assert "level" not in build_result.report()

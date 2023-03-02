@@ -21,7 +21,7 @@ from tsfpga.system_utils import create_directory, create_file
 # pylint: disable=unused-import
 from tsfpga.test.conftest import fixture_tmp_path  # noqa: F401
 from tsfpga.vivado.generics import StringGenericValue
-from tsfpga.vivado.project import VivadoProject, copy_and_combine_dicts
+from tsfpga.vivado.project import VivadoNetlistProject, VivadoProject, copy_and_combine_dicts
 
 
 def test_casting_to_string():
@@ -446,3 +446,97 @@ class TestVivadoProject(unittest.TestCase):
         assert self._build(project).success
 
         assert module.registers == "Some value"
+
+    def test_get_size_is_called_correctly(self):
+        project = VivadoProject(name="apa", modules=[], part="")
+
+        def _build_with_size(synth_only):
+            """
+            The project.build() call is very similar to _build() method in this class, but it mocks
+            the _get_size() method in a different way.
+            """
+            with patch(
+                "tsfpga.vivado.project.run_vivado_tcl", autospec=True
+            ) as self.mocked_run_vivado_tcl, patch(
+                "tsfpga.vivado.project.HierarchicalUtilizationParser.get_size", autospec=True
+            ) as mocked_get_size, patch(
+                "tsfpga.vivado.project.shutil.copy2", autospec=True
+            ) as _:
+                # Only the first return value will be used if we are in synth_only
+                mocked_get_size.side_effect = ["synth_size", "impl_size"]
+
+                build_result = project.build(
+                    project_path=self.project_path,
+                    output_path=self.output_path,
+                    run_index=self.run_index,
+                    synth_only=synth_only,
+                )
+
+                assert build_result.synthesis_size == "synth_size"
+
+                if synth_only:
+                    mocked_get_size.assert_called_once_with("synth_file")
+                    assert build_result.implementation_size is None
+                else:
+                    assert mocked_get_size.call_count == 2
+                    mocked_get_size.assert_any_call("synth_file")
+                    mocked_get_size.assert_any_call("impl_file")
+
+                    assert build_result.implementation_size == "impl_size"
+
+        create_file(self.project_path / "apa.xpr")
+
+        create_file(
+            self.project_path / "apa.runs" / "synth_3" / "hierarchical_utilization.rpt",
+            contents="synth_file",
+        )
+        create_file(
+            self.project_path / "apa.runs" / "impl_3" / "hierarchical_utilization.rpt",
+            contents="impl_file",
+        )
+
+        _build_with_size(synth_only=True)
+        _build_with_size(synth_only=False)
+
+    def test_netlist_build_should_set_logic_level_distribution(self):
+        def _build_with_logic_level_distribution(project):
+            """
+            The project.build() call is very similar to _build() method in this class, except it
+            also mocks the _get_logic_level_distribution() method.
+            """
+            with patch(
+                "tsfpga.vivado.project.run_vivado_tcl", autospec=True
+            ) as self.mocked_run_vivado_tcl, patch(
+                "tsfpga.vivado.project.VivadoProject._get_size", autospec=True
+            ) as _, patch(
+                "tsfpga.vivado.project.shutil.copy2", autospec=True
+            ) as _, patch(
+                "tsfpga.vivado.project.LogicLevelDistributionParser.get_table", autospec=True
+            ) as mocked_get_table:
+                mocked_get_table.return_value = "logic_table"
+
+                build_result = project.build(
+                    project_path=self.project_path,
+                    output_path=self.output_path,
+                    run_index=self.run_index,
+                )
+
+                if project.is_netlist_build:
+                    mocked_get_table.assert_called_once_with("logic_file")
+                    assert build_result.logic_level_distribution == "logic_table"
+                else:
+                    mocked_get_table.assert_not_called()
+                    assert build_result.logic_level_distribution is None
+                    assert build_result.maximum_logic_level is None
+
+        create_file(self.project_path / "apa.xpr")
+        create_file(
+            self.project_path / "apa.runs" / "synth_3" / "logical_level_distribution.rpt",
+            contents="logic_file",
+        )
+
+        project = VivadoNetlistProject(name="apa", modules=[], part="")
+        _build_with_logic_level_distribution(project=project)
+
+        project = VivadoProject(name="apa", modules=[], part="")
+        _build_with_logic_level_distribution(project=project)
