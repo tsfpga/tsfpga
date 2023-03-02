@@ -28,4 +28,4 @@ TSFPGA_EXAMPLE_MODULES = TSFPGA_EXAMPLES / "modules"
 # Default encoding when opening files
 DEFAULT_FILE_ENCODING = "utf-8"
 
-__version__ = "11.0.1-dev"
+__version__ = "12.0.0"
