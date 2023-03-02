@@ -310,7 +310,6 @@ class VivadoTcl:
             impl_run = f"impl_{run_index}"
 
             tcl += self._run(impl_run, num_threads, to_step="write_bitstream")
-            tcl += "\n"
             tcl += self._write_hw_platform(output_path)
             tcl += "\n"
 
@@ -378,6 +377,30 @@ if {[get_property PROGRESS [get_runs ${run}]] != "100%"} {
         return tcl
 
     def _write_hw_platform(self, output_path):
-        xsa_file = to_tcl_path(output_path / (self.name + ".xsa"))
-        tcl = f"write_hw_platform -fixed -force {{{xsa_file}}}\n"
+        """
+        TCL command to create a "hardware platform" .xsa file (aka, "hdf" or "hwdef" file).
+
+        This is mainly used for Zynq devices to generate code to set up the PS at boot.
+        There is also code generated for each MicroBlaze that is present in the design.
+        If there is neither a block design nor a MicroBlaze available, the .xsa will be empty apart
+        from some info about which part is used, etc.
+
+        The '-quiet' flag is used since there was a Vivado bug observed in this very
+        specific scenario:
+        * Vivado 2022.1
+        * UltraScale+ non-Zynq device (i.e. no block design)
+        * Design contains MicroBlaze
+        * Design contains ILA
+        In this case the 'write_hw_platform' call would fail.
+        This bug might be present in other Vivado versions and in other scenarios as well.
+        Since this is a very fringe scenario, and it is unlikely that anyone would ever need the
+        .xsa file specifically from the ILA build, we allow the command to fail quietly.
+        """
+        xsa_file = to_tcl_path(output_path / f"{self.name}.xsa")
+
+        tcl = f"""
+puts "Creating hardware platform {xsa_file}..."
+write_hw_platform -fixed -force -quiet {{{xsa_file}}}
+"""
+
         return tcl

@@ -29,3 +29,6 @@ Breaking changes
 Bug fixes
 
 * Fix bug where multiple build projects filters that match the same project would crash the build.
+
+* Fix bug where Vivado build could crash when there was an ILA in the design in a very
+  specific scenario.
