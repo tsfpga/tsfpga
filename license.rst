@@ -26,6 +26,6 @@ If you want to cite this open-source software project, the following BibTeX can 
 
   @misc{tsfpga,
     author = {Vik, Lukas},
-    title  = {tsfpga: A flexible and scalable development platform for modern FPGA projects},
+    title  = {{tsfpga: A flexible and scalable development platform for modern FPGA projects}},
     url    = {https://tsfpga.com},
   }
