@@ -7,28 +7,24 @@
 # --------------------------------------------------------------------------------------------------
 
 
-def get_slogan():
-    """
-    Used on website and on gitlab.
-    """
-    result = """\
-tsfpga is a development platform that aims to streamline the code structure and user experience in
-your FPGA project."""
-    return result
-
-
 def get_pypi_slogan():
     """
-    Used on pypi.org and in Python package. Is limited by 98 characters apparently, so
-    it cant be the same as the one on the website.
+    Short slogan used on pypi.org and in Python package.
+    Note that there seems to be an upper limit of 98 characters, so it can't be the same as the one
+    on the website.
+
+    Note that this slogan is also listed (manually duplicated) in license.rst for
+    academic citations.
+    If you change in one place you should change in both.
     """
-    result = """\
-tsfpga is a flexible and scalable development platform for modern FPGA projects."""
+    result = "A flexible and scalable development platform for modern FPGA projects."
     return result
 
 
 def get_short_doc():
-    return f"""{get_slogan()}
+    return """\
+tsfpga is a development platform that aims to streamline the code structure and user experience in
+your FPGA project.
 With its python build/simulation flow it is perfect for CI/CD and test-driven development.
 Focus has been placed on flexibility and modularization, achieving scalability even in very large
 multi-vendor code bases.
