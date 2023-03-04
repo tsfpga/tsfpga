@@ -13,6 +13,7 @@
     :caption: Technical documentation
     :hidden:
 
+    installation
     simulation
     fpga_build
     netlist_build
