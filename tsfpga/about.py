@@ -81,29 +81,38 @@ def get_readme_rst(
             PyPI release README.
     """
     if include_extra_for_gitlab:
+        readme_rst = ""
         extra_rst = """\
 **See documentation on the website**: https://tsfpga.com
 
 **See PyPI for installation details**: https://pypi.org/project/tsfpga/
 """
     elif include_extra_for_website:
+        # The website needs the initial heading, in order for the landing page to get
+        # the correct title.
+        # The others do not need this initial heading, it justs makes the gitlab/pypi page
+        # more clunky.
+        readme_rst = """\
+About tsfpga
+============
+
+"""
         extra_rst = """\
 To install the Python package, see :ref:`installation`.
 To check out the source code go to the `gitlab page <https://gitlab.com/tsfpga/tsfpga>`__.
 """
     elif include_extra_for_pypi:
+        readme_rst = ""
         extra_rst = """\
 **See documentation on the website**: https://tsfpga.com
 
 **Check out the source code on gitlab**: https://gitlab.com/tsfpga/tsfpga
 """
     else:
+        readme_rst = ""
         extra_rst = ""
 
-    readme_rst = f"""\
-About tsfpga
-============
-
+    readme_rst += f"""\
 |pic_website| |pic_gitlab| |pic_gitter| |pic_pip_install| |pic_license| |pic_python_line_coverage|
 
 .. |pic_website| image:: https://tsfpga.com/badges/website.svg

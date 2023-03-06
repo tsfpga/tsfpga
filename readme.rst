@@ -1,6 +1,3 @@
-About tsfpga
-============
-
 |pic_website| |pic_gitlab| |pic_gitter| |pic_pip_install| |pic_license| |pic_python_line_coverage|
 
 .. |pic_website| image:: https://tsfpga.com/badges/website.svg
