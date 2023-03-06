@@ -9,7 +9,7 @@ As far as simulations go tsfpga can be seen as a layer on top of VUnit.
 tsfpga helps manage the inputs to the simulation project: source files, test benches,
 :ref:`test configurations <local_configuration>`,
 :ref:`register code generation <integration_hdl_registers>`,
-:ref:`IP cores <vivado_ip_cores>`, :ref:`simlib <vivado_simlib>`, ...
+:ref:`IP cores <vivado_ip_cores>`, :ref:`simlib <vivado_simlib>`, etc.
 All features of VUnit are available as they are, and all simulators are supported
 (ghdl as well as commercial).
 

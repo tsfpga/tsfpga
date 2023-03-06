@@ -27,11 +27,11 @@ About tsfpga
   :alt: Python line coverage
   :target: https://tsfpga.com/python_coverage_html
 
-tsfpga is a development platform that aims to streamline the code structure and user experience in
-your FPGA project.
-With its python build/simulation flow it is perfect for CI/CD and test-driven development.
-Focus has been placed on flexibility and modularization, achieving scalability even in very large
-multi-vendor code bases.
+tsfpga is a flexible and scalable development platform for modern FPGA projects.
+With its Python-based build/simulation flow it is perfect for CI/CD and test-driven development.
+The API is simple and easy to use
+(a complete `simulation project <https://tsfpga.com/simulation.html>`__ is set up in less than
+15 lines).
 
 **See documentation on the website**: https://tsfpga.com
 
@@ -40,15 +40,20 @@ multi-vendor code bases.
 Key features
 ------------
 
-* Source code centric project structure: Build projects, test configurations, constraints, IP cores,
-  etc. are handled close to the source code.
+* Source code centric `project structure <https://tsfpga.com/module_structure.html>`__:
+  Build projects, test configurations, constraints, IP cores, etc. are handled close to the
+  source code.
 * Automatically adds build/simulation sources if a recognized folder structure is used.
-* Enables local VUnit configuration setup without multiple ``run.py``.
-* Handling of IP cores and simlib for your simulation project, with automatic re-compile
-  when necessary.
-* Python-based parallel Vivado build system.
+* Enables `local VUnit test configuration
+  <https://tsfpga.com/simulation.html#local-configuration-of-test-cases>`__ without
+  multiple ``run.py``.
+* Handling of `IP cores <https://tsfpga.com/simulation.html#simulating-with-vivado-ip-cores>`__
+  and `simlib <https://tsfpga.com/simulation.html#vivado-simulation-libraries>`__
+  for your simulation project, with automatic re-compile when needed.
+* Python-based `Vivado build system <https://tsfpga.com/fpga_build.html>`__ where many builds can
+  be run in parallel.
 * Tightly integrated with `hdl_registers <https://hdl-registers.com>`__.
-  Register code generation will be performed before each simulation and each build.
+  Register code generation is performed before each simulation and each build.
 * Released under the very permissive BSD 3-Clause License.
 
 The maintainers place high focus on quality, with everything having good unit test coverage and a

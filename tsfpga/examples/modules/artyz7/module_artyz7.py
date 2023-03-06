@@ -9,9 +9,6 @@
 # Standard libraries
 from pathlib import Path
 
-# Import before others since it modifies PYTHONPATH. pylint: disable=unused-import
-import tsfpga.examples.example_pythonpath  # noqa: F401
-
 # First party libraries
 from tsfpga.constraint import Constraint
 from tsfpga.examples.example_env import get_hdl_modules, get_tsfpga_example_modules
