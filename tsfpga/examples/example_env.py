@@ -74,7 +74,8 @@ def get_tsfpga_example_modules(names_include=None, names_avoid=None):
 
 def get_hdl_modules(names_include=None, names_avoid=None):
     """
-    Wrapper of :func:`.get_modules` which returns the ``hdl_modules`` module objects.
+    Wrapper of :func:`.get_modules` which returns the ``hdl_modules`` module objects
+    (https://hdl-modules.com), if available.
 
     If ``hdl_modules`` can not be found in the default repo checkout location,
     the function will assert False.

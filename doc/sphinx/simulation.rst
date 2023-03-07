@@ -68,8 +68,8 @@ Realistic example
 -----------------
 
 If you want to dive into a more realistic example have a look at
-`tsfpga/examples/simulate.py <https://gitlab.com/tsfpga/tsfpga/blob/main/tsfpga/examples/simulate.py>`__
-in the repo.
+`tsfpga/examples/simulate.py
+<https://gitlab.com/tsfpga/tsfpga/blob/main/tsfpga/examples/simulate.py>`__ in the repo.
 Or continue reading this document for an explanation of the mechanisms.
 
 This file handles things like
@@ -77,7 +77,6 @@ This file handles things like
 * Only a subset of sources available when using a non-commercial simulator
 * Compile :ref:`Vivado simlib <vivado_simlib>` and :ref:`Vivado IP cores <vivado_ip_cores>`
 * Adding ``hdl_modules`` as modules that shall be compiled, but who's tests shall not be run.
-  See :ref:`integration_hdl_modules` for more details.
 
 
 
@@ -252,5 +251,6 @@ This saves an immense amount of CI time, especially for commits that do not alte
 For nightly ``main`` runs the full set of tests shall still be run.
 
 See the :class:`class documentation <.GitSimulationSubset>` for more information, and
-`tsfpga/examples/simulate.py <https://gitlab.com/tsfpga/tsfpga/blob/main/tsfpga/examples/simulate.py>`__
+`tsfpga/examples/simulate.py
+<https://gitlab.com/tsfpga/tsfpga/blob/main/tsfpga/examples/simulate.py>`__
 in the repo for a usage example.

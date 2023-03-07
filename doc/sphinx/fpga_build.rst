@@ -151,10 +151,6 @@ and ``library_name_has_lib_suffix``).
 It is recommended to use functions like these so the arguments don't have to be repeated in
 many places.
 
-Note that the ``artyz7`` example build project uses modules from the separate ``hdl_modules``
-project, via the :func:`.get_hdl_modules` function.
-See :ref:`integration_hdl_modules` for details.
-
 
 
 Line 20-22: TCL files

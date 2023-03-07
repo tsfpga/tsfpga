@@ -142,11 +142,6 @@ def test_no_checked_in_files_have_too_long_lines():
         REPO_ROOT / ".gitlab-ci.yml",
         # We list the license text exactly as the original, with no line breaks
         REPO_ROOT / "license.txt",
-        # Impossible RST syntax to break
-        TSFPGA_DOC / "release_notes" / "5.0.0.rst",
-        TSFPGA_DOC / "sphinx" / "hdl_modules.rst",
-        TSFPGA_DOC / "sphinx" / "hdl_registers.rst",
-        TSFPGA_DOC / "sphinx" / "simulation.rst",
         # Impossible dockerfile syntax to break
         REPO_ROOT / "docker" / "ci" / "Dockerfile",
         # Impossible TCL syntax to break

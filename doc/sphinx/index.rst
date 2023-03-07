@@ -18,7 +18,6 @@
     fpga_build
     netlist_build
     module_structure
-    hdl_modules
     hdl_registers
 
 .. toctree::
