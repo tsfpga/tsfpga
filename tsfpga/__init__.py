@@ -10,7 +10,7 @@
 from pathlib import Path
 
 # Local folder libraries
-from .about import get_pypi_slogan
+from .about import get_short_slogan
 
 THIS_DIR = Path(__file__).parent
 REPO_ROOT = THIS_DIR.parent.resolve()
@@ -27,4 +27,4 @@ TSFPGA_EXAMPLE_MODULES = TSFPGA_EXAMPLES / "modules"
 DEFAULT_FILE_ENCODING = "utf-8"
 
 __version__ = "12.0.3-dev"
-__doc__ = get_pypi_slogan()  # pylint: disable=redefined-builtin
+__doc__ = get_short_slogan()  # pylint: disable=redefined-builtin

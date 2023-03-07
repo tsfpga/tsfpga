@@ -19,7 +19,7 @@ sys.path.insert(0, str(REPO_ROOT))
 
 # First party libraries
 import tsfpga
-from tsfpga.about import get_pypi_slogan, get_readme_rst
+from tsfpga.about import get_readme_rst, get_short_slogan
 from tsfpga.system_utils import path_relative_to
 
 REQUIREMENTS_TXT = tsfpga.TSFPGA_PATH / "requirements.txt"
@@ -49,7 +49,7 @@ def main():
     setup(
         name="tsfpga",
         version=tsfpga.__version__,
-        description=get_pypi_slogan(),
+        description=get_short_slogan(),
         long_description=get_readme_rst(include_extra_for_pypi=True),
         long_description_content_type="text/x-rst",
         license="BSD 3-Clause License",

@@ -7,58 +7,17 @@
 # --------------------------------------------------------------------------------------------------
 
 
-def get_pypi_slogan():
+def get_short_slogan():
     """
-    Short slogan used on pypi.org and in Python package.
-    Note that there seems to be an upper limit of 98 characters, so it can't be the same as the one
-    on the website.
+    Short slogan used e.g. on pypi.org.
+    Note that there seems to be an upper limit of 98 characters when rendering the slogan
+    on pypi.org.
 
-    Note that this slogan is also listed (manually duplicated) in license.rst for
-    academic citations.
-    If you change in one place you should change in both.
+    Note that this slogan should be the same as the one used in the readme and on the website below.
+    The difference is capitalization and whether the project name is included.
     """
-    result = "A flexible and scalable development platform for modern FPGA projects."
+    result = "A flexible and scalable development platform for modern FPGA projects"
     return result
-
-
-def get_short_doc():
-    return """\
-tsfpga is a flexible and scalable development platform for modern FPGA projects.
-With its Python-based build/simulation flow it is perfect for CI/CD and test-driven development.
-The API is simple and easy to use
-(a complete `simulation project <https://tsfpga.com/simulation.html>`__ is set up in less than
-15 lines).
-"""
-
-
-def get_doc():
-    """
-    Prepend get_short_doc() to this to get the complete doc.
-    """
-    return """\
-Key features
-------------
-
-* Source code centric `project structure <https://tsfpga.com/module_structure.html>`__:
-  Build projects, test configurations, constraints, IP cores, etc. are handled close to the
-  source code.
-* Automatically adds build/simulation sources if a recognized folder structure is used.
-* Enables `local VUnit test configuration
-  <https://tsfpga.com/simulation.html#local-configuration-of-test-cases>`__ without
-  multiple ``run.py``.
-* Handling of `IP cores <https://tsfpga.com/simulation.html#simulating-with-vivado-ip-cores>`__
-  and `simlib <https://tsfpga.com/simulation.html#vivado-simulation-libraries>`__
-  for your simulation project, with automatic re-compile when needed.
-* Python-based `Vivado build system <https://tsfpga.com/fpga_build.html>`__ where many builds can
-  be run in parallel.
-* Tightly integrated with `hdl_registers <https://hdl-registers.com>`__.
-  Register code generation is performed before each simulation and each build.
-* Released under the very permissive BSD 3-Clause License.
-
-The maintainers place high focus on quality, with everything having good unit test coverage and a
-thought-out structure.
-The project is mature and used in many production environments.
-"""
 
 
 def get_readme_rst(
@@ -139,8 +98,35 @@ To check out the source code go to the `gitlab page <https://gitlab.com/tsfpga/t
   :alt: Python line coverage
   :target: https://tsfpga.com/python_coverage_html
 
-{get_short_doc()}
+tsfpga is a flexible and scalable development platform for modern FPGA projects.
+With its Python-based build/simulation flow it is perfect for CI/CD and test-driven development.
+The API is simple and easy to use
+(a complete `simulation project <https://tsfpga.com/simulation.html>`__ is set up in less than
+15 lines).
+
 {extra_rst}
-{get_doc()}"""
+Key features
+------------
+
+* Source code centric `project structure <https://tsfpga.com/module_structure.html>`__:
+  Build projects, test configurations, constraints, IP cores, etc. are handled close to the
+  source code.
+* Automatically adds build/simulation sources if a recognized folder structure is used.
+* Enables `local VUnit test configuration
+  <https://tsfpga.com/simulation.html#local-configuration-of-test-cases>`__ without
+  multiple ``run.py``.
+* Handling of `IP cores <https://tsfpga.com/simulation.html#simulating-with-vivado-ip-cores>`__
+  and `simlib <https://tsfpga.com/simulation.html#vivado-simulation-libraries>`__
+  for your simulation project, with automatic re-compile when needed.
+* Python-based `Vivado build system <https://tsfpga.com/fpga_build.html>`__ where many builds can
+  be run in parallel.
+* Tightly integrated with `hdl_registers <https://hdl-registers.com>`__.
+  Register code generation is performed before each simulation and each build.
+* Released under the very permissive BSD 3-Clause License.
+
+The maintainers place high focus on quality, with everything having good unit test coverage and a
+thought-out structure.
+The project is mature and used in many production environments.
+"""
 
     return readme_rst

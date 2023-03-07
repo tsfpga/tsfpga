@@ -23,7 +23,7 @@ sys.path.insert(0, str(REPO_ROOT))
 
 # First party libraries
 import tsfpga
-from tsfpga.about import get_readme_rst
+from tsfpga.about import get_readme_rst, get_short_slogan
 from tsfpga.system_utils import create_directory, create_file, delete, read_file
 from tsfpga.tools.sphinx_doc import build_sphinx, generate_release_notes
 
@@ -45,6 +45,8 @@ def main():
     create_file(GENERATED_SPHINX / "release_notes.rst", rst)
 
     generate_apidoc()
+
+    generate_bibtex()
 
     generate_sphinx_index()
 
@@ -99,6 +101,30 @@ def generate_apidoc():
         "**/test/**",
     ]
     check_call(cmd, cwd=tsfpga.REPO_ROOT)
+
+
+def generate_bibtex():
+    """
+    Generate a BibTeX snippet for citing this project.
+
+    Since BibTeX also uses curly braces, f-string formatting is hard here.
+    Hence the string is split up.
+    """
+    rst_before = """\
+.. code-block:: tex
+
+  @misc{tsfpga,
+    author = {Vik, Lukas},
+    title  = {{tsfpga: """
+
+    rst_after = """}},
+    url    = {https://tsfpga.com},
+  }
+"""
+
+    rst = f"{rst_before}{get_short_slogan()}{rst_after}"
+
+    create_file(GENERATED_SPHINX / "bibtex.rst", rst)
 
 
 def generate_sphinx_index():
