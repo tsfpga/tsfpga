@@ -13,8 +13,8 @@ The images are available in the ``tsfpga`` organization on dockerhub:
 * https://hub.docker.com/repository/docker/tsfpga/ci_py_sim_sphinx
 * https://hub.docker.com/repository/docker/tsfpga/ci_everything
 
-Unfortunately we can not use automated dockerhub builds since this project is sponsored by a
-commercial company.
+Unfortunately we can not use automated dockerhub builds since they only seem to support
+github repositories.
 Details:
 
 * https://docs.docker.com/docker-hub/builds/
