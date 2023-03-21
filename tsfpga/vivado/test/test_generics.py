@@ -39,15 +39,16 @@ def test_bit_vector_generics():
 
     with pytest.raises(ValueError) as exception_info:
         BitVectorGenericValue(1010)
-    assert (
-        str(exception_info.value) == "Expected BitVectorGenericValue value to be of type str: 1010"
+    assert str(exception_info.value) == (
+        "Expected BitVectorGenericValue value to be of type str."
+        ' Got type="<class \'int\'>", value="1010".'
     )
 
     with pytest.raises(ValueError) as exception_info:
         BitVectorGenericValue("102A")
     assert (
         str(exception_info.value)
-        == 'Expected BitVectorGenericValue value to contain only "1" or "0": 102A'
+        == 'Expected BitVectorGenericValue value to contain only "1" or "0". Got "102A".'
     )
 
 
@@ -56,13 +57,16 @@ def test_string_generics():
 
     with pytest.raises(ValueError) as exception_info:
         StringGenericValue(3)
-    assert str(exception_info.value) == "Expected StringGenericValue value to be of type str: 3"
+    assert str(exception_info.value) == (
+        "Expected StringGenericValue value to be of type str."
+        ' Got type="<class \'int\'>", value="3".'
+    )
 
     with pytest.raises(ValueError) as exception_info:
         StringGenericValue("apa hest")
     assert (
         str(exception_info.value)
-        == "Expected StringGenericValue value to not contain spaces: apa hest"
+        == 'Expected StringGenericValue value to not contain spaces. Got "apa hest".'
     )
 
 
@@ -71,19 +75,19 @@ def test_unsupported_generic_type():
         get_vivado_tcl_generic_value(dict(name="value"))
     assert (
         str(exception_info.value)
-        == "Got unsupported type for generic. Type=<class 'dict'>, value={'name': 'value'}."
+        == "Unsupported type for generic. Got type=\"<class 'dict'>\", value=\"{'name': 'value'}\"."
     )
 
     with pytest.raises(ValueError) as exception_info:
         get_vivado_tcl_generic_value("/home/test.vhd")
-    assert (
-        str(exception_info.value)
-        == "Got unsupported type for generic. Type=<class 'str'>, value=/home/test.vhd."
+    assert str(exception_info.value) == (
+        'Unsupported type for generic. Got type="<class \'str\'>", value="/home/test.vhd".'
+        " Please use either of the explicit types StringGenericValue or BitVectorGenericValue."
     )
 
     with pytest.raises(ValueError) as exception_info:
         get_vivado_tcl_generic_value("01101")
-    assert (
-        str(exception_info.value)
-        == "Got unsupported type for generic. Type=<class 'str'>, value=01101."
+    assert str(exception_info.value) == (
+        'Unsupported type for generic. Got type="<class \'str\'>", value="01101".'
+        " Please use either of the explicit types StringGenericValue or BitVectorGenericValue."
     )

@@ -18,11 +18,14 @@ class StringGenericValue:
             value (str): A string of variable length with any content.
         """
         if not isinstance(value, str):
-            raise ValueError(f"Expected {self.__class__.__name__} value to be of type str: {value}")
+            raise ValueError(
+                f"Expected {self.__class__.__name__} value to be of type str."
+                f' Got type="{type(value)}", value="{value}".'
+            )
 
         if " " in value:
             raise ValueError(
-                f"Expected {self.__class__.__name__} value to not contain spaces: {value}"
+                f'Expected {self.__class__.__name__} value to not contain spaces. Got "{value}".'
             )
 
         self.value = value
@@ -42,12 +45,16 @@ class BitVectorGenericValue:
             value (str): A string of variable length containing only "1" or "0".
         """
         if not isinstance(value, str):
-            raise ValueError(f"Expected {self.__class__.__name__} value to be of type str: {value}")
+            raise ValueError(
+                f"Expected {self.__class__.__name__} value to be of type str."
+                f' Got type="{type(value)}", value="{value}".'
+            )
 
         for bit_value in value:
             if bit_value not in ["1", "0"]:
                 raise ValueError(
-                    f'Expected {self.__class__.__name__} value to contain only "1" or "0": {value}'
+                    f'Expected {self.__class__.__name__} value to contain only "1" or "0".'
+                    f' Got "{value}".'
                 )
 
         self.value = value
@@ -87,4 +94,13 @@ def get_vivado_tcl_generic_value(value):
     if isinstance(value, StringGenericValue):
         return value.value
 
-    raise ValueError(f"Got unsupported type for generic. Type={type(value)}, value={value}.")
+    message = f'Unsupported type for generic. Got type="{type(value)}", value="{value}".'
+
+    # When the type is a string, we can be a little more helpful and indicate what types shall
+    # be used instead.
+    if isinstance(value, str):
+        message += (
+            " Please use either of the explicit types StringGenericValue or BitVectorGenericValue."
+        )
+
+    raise ValueError(message)
