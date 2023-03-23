@@ -34,8 +34,8 @@ def create_configuration(
     VUnit project).
 
     Arguments:
-        output_path (pathlib.Path): Output folder.
-        modules: A list of Module objects.
+        output_path (pathlib.Path): vhdl_ls.toml file will be placed in this folder.
+        modules (ModuleList): A list of Module objects.
         vunit_proj: A VUnit project.
         vivado_location (pathlib.Path): Vivado binary path. Will add unisim from this Vivado
             installation.
