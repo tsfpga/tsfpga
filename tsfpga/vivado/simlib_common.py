@@ -15,6 +15,9 @@ from shutil import make_archive
 from tsfpga.system_utils import create_file, delete
 from tsfpga.vivado.common import get_vivado_version
 
+# Local folder libraries
+from .common import get_vivado_path
+
 
 class VivadoSimlibCommon:
 
@@ -28,17 +31,20 @@ class VivadoSimlibCommon:
 
     # The version of this class. Can be bumped to force a re-compile if e.g. the TCL script changes
     # or the output folder structure is updated.
-    _format_version_id = 2
+    _format_version_id = 3
 
     # Set in child class to a list of strings. The libraries that shall be compiled and added to
     # VUnit project.
     library_names = None
 
-    # Set in child class to a pathlib.Path object. The path to the "vivado" executable.
-    _vivado_path = None
+    def __init__(self, vivado_path, output_path):
+        """
+        Call from child class. Please do not instantiate this class directly.
+        """
+        self._vivado_path = get_vivado_path(vivado_path)
+        self._libraries_path = (self._vivado_path.parent.parent / "data" / "vhdl" / "src").resolve()
 
-    # Set in child class to a pathlib.Path object. The path where simlib shall be compiled.
-    output_path = None
+        self.output_path = output_path.resolve() / self._get_version_tag()
 
     def compile_if_needed(self):
         """
@@ -75,9 +81,10 @@ class VivadoSimlibCommon:
         """
         Compile simlib.
         """
+        # Probably does not exists, but try to delete just in case.
         delete(self._done_token)
-        print(f"Compiling Vivado simlib in {self.output_path}")
 
+        print(f"Compiling Vivado simlib from {self._libraries_path} into {self.output_path}...")
         self._compile()
 
         create_file(self._done_token, "Done!")

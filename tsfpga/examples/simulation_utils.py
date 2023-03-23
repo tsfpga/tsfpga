@@ -177,7 +177,7 @@ class SimulationProject:
         Return:
             VivadoSimlibCommon: The simlib object.
         """
-        vivado_simlib = VivadoSimlib.init(output_path, self.vunit_proj)
+        vivado_simlib = VivadoSimlib.init(output_path=output_path, vunit_proj=self.vunit_proj)
         if force_compile or vivado_simlib.compile_is_needed:
             vivado_simlib.compile()
             vivado_simlib.to_archive()

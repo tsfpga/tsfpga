@@ -13,7 +13,7 @@ from pathlib import Path
 from tsfpga.system_utils import create_file
 
 # Local folder libraries
-from .common import get_vivado_path, run_vivado_tcl, to_tcl_path
+from .common import run_vivado_tcl, to_tcl_path
 from .simlib_common import VivadoSimlibCommon
 
 
@@ -39,13 +39,12 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
             simulator_interface: A VUnit SimulatorInterface object.
             vivado_path (pathlib.Path): Path to Vivado executable.
         """
-        self._vunit_proj = vunit_proj
-        self._vivado_path = get_vivado_path(vivado_path)
-
         self._simulator_folder = Path(simulator_interface.find_prefix())
         self._simulator_name = self._get_simulator_name(simulator_interface=simulator_interface)
 
-        self.output_path = output_path / self._get_version_tag()
+        super().__init__(vivado_path=vivado_path, output_path=output_path)
+
+        self._vunit_proj = vunit_proj
 
     def _get_simulator_name(self, simulator_interface):
         """
