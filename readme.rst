@@ -37,9 +37,10 @@ The API is simple and easy to use
 Key features
 ------------
 
-* Source code centric `project structure <https://tsfpga.com/module_structure.html>`__:
+* Source code centric `project structure <https://tsfpga.com/module_structure.html>`__
+  for scalability.
   Build projects, test configurations, constraints, IP cores, etc. are handled close to the
-  source code.
+  source code, not in a central monolithic script.
 * Automatically adds build/simulation sources if a recognized folder structure is used.
 * Enables `local VUnit test configuration
   <https://tsfpga.com/simulation.html#local-configuration-of-test-cases>`__ without

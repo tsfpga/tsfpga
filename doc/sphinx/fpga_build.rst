@@ -3,9 +3,10 @@
 FPGA build flow
 ===============
 
-In tsfpga the build projects are set up by the modules.
-Any module can :ref:`set up  a build project <example_project_class>` as long as they follow
-the :ref:`folder structure <folder_structure_project>`.
+Tsfpga enables a build flow where many builds can be executed in parallel from the same script call.
+Any module can :ref:`set up build projects <example_project_class>` using its ``module_*.py``.
+All project configuration is located in the module, not in any central script.
+
 The build project is represented using a :class:`Python class <.VivadoProject>` that abstracts all
 settings and operations.
 

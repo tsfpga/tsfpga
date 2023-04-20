@@ -4,17 +4,17 @@ Netlist builds
 ==============
 
 Feedback on timing and resource utilization is critical in the design of an HDL component.
-To this puropse, tsfpga has a concept called netlist builds for running synthesis on individual
+To this purpose, tsfpga has a concept called netlist builds for running synthesis on individual
 components or your full project.
 The build result can be checked towards expected resource utilization figures by attaching
-atuomated :ref:`build_result_checkers`.
+automated :ref:`build_result_checkers`.
 
 With netlist builds and size checkers you can quickly and automatically check the utilization.
 This is a great tool when area optimizing a design, or e.g. trying to make arithmetic map to
 DSP blocks.
 These builds can form a regression suite to make sure that the design does not deteriorate and grow.
 Since the builds are typically very small, it is reasonable to parameterize many builds via generics
-and synthesize them in parallel.
+and synthesize them in parallel using a :ref:`tsfpga build script <build>`.
 
 
 
@@ -23,7 +23,7 @@ and synthesize them in parallel.
 Build result checkers
 ---------------------
 
-Build result checkers are executed after the succesful synthesis.
+Build result checkers are executed after the successful synthesis.
 They will fail the build and printout what went wrong if the conditions are not fulfilled.
 They are attached to a build in this fashion:
 
@@ -47,7 +47,7 @@ See the repo for other examples.
 
 There are checkers available for all the Xilinx primitives, e.g. ``Total LUTs``, ``RAMB18``,
 ``RAMB36``, etc. as shown in the example.
-It is also possibe to put a condition on the maximum logic level of the design, also shown above.
+It is also possible to put a condition on the maximum logic level of the design, also shown above.
 
 See the :mod:`API documentation <.build_result_checker>` for more.
 
@@ -74,10 +74,11 @@ This is probably a limitation in Vivado project handling, since unused sources a
 project creation.
 
 Synthesis in Vivado is multi-threaded based on an RTL partitioning.
-For smaller netlist builds it is highly unlikely that a significant porition of the build will be
+For smaller netlist builds it is highly unlikely that a significant portion of the build will be
 using multiple threads.
 Instead, it is probably more beneficial to execute more builds in parallel than to enable
 multiple threads.
+This is easily achieved by using the tsfpga :ref:`FPGA project build flow <build>`.
 
 
 
