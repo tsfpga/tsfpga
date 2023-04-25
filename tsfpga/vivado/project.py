@@ -9,10 +9,12 @@
 # Standard libraries
 import shutil
 from copy import deepcopy
+from pathlib import PurePath
 
 # First party libraries
 from tsfpga import TSFPGA_TCL
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
+from tsfpga.constraint import Constraint
 from tsfpga.system_utils import create_file, read_file
 
 # Local folder libraries
@@ -43,7 +45,7 @@ class VivadoProject:
         default_run_index=1,
         defined_at=None,
         **other_arguments,
-    ):
+    ):  # pylint: disable=too-many-locals
         """
         Class constructor. Performs a shallow copy of the mutable arguments, so that the user
         can e.g. append items to their list after creating an object.
@@ -122,6 +124,18 @@ class VivadoProject:
         self.top = name + "_top" if top is None else top
 
         self.tcl = VivadoTcl(name=self.name)
+
+        for constraint in self.constraints:
+            if not isinstance(constraint, Constraint):
+                raise TypeError(f'Got bad type for "constraints" element: {constraint}')
+
+        for tcl_source in self.tcl_sources:
+            if not isinstance(tcl_source, PurePath):
+                raise TypeError(f'Got bad type for "tcl_sources" element: {tcl_source}')
+
+        for build_step_hook in self.build_step_hooks:
+            if not isinstance(build_step_hook, BuildStepTclHook):
+                raise TypeError(f'Got bad type for "build_step_hooks" element: {build_step_hook}')
 
     def project_file(self, project_path):
         """

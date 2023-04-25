@@ -15,6 +15,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 # First party libraries
+from tsfpga.build_step_tcl_hook import BuildStepTclHook
+from tsfpga.constraint import Constraint
 from tsfpga.module import BaseModule
 from tsfpga.system_utils import create_directory, create_file
 
@@ -83,11 +85,46 @@ def test_static_generics_dictionary_should_be_copied():
 
 
 def test_constraints_list_should_be_copied():
-    constraints = [1]
+    constraints = [Constraint(file="1")]
     proj = VivadoProject(name="name", modules=[], part="part", constraints=constraints)
 
-    constraints.append(2)
+    constraints.append(Constraint(file="2"))
     assert len(proj.constraints) == 1
+
+
+def test_bad_constraint_type_should_raise_error():
+    # Correct type should not give error
+    VivadoProject(name="name", modules=[], part="part", constraints=[Constraint(file=None)])
+
+    # Bad type should raise exception
+    with pytest.raises(TypeError) as exception_info:
+        VivadoProject(name="name", modules=[], part="part", constraints=["file.vhd"])
+    assert str(exception_info.value) == 'Got bad type for "constraints" element: file.vhd'
+
+
+def test_bad_tcl_sources_type_should_raise_error():
+    # Correct type should not give error
+    VivadoProject(name="name", modules=[], part="part", tcl_sources=[Path()])
+
+    # Bad type should raise exception
+    with pytest.raises(TypeError) as exception_info:
+        VivadoProject(name="name", modules=[], part="part", tcl_sources=["file.tcl"])
+    assert str(exception_info.value) == 'Got bad type for "tcl_sources" element: file.tcl'
+
+
+def test_bad_build_step_hooks_type_should_raise_error():
+    # Correct type should not give error
+    VivadoProject(
+        name="name",
+        modules=[],
+        part="part",
+        build_step_hooks=[BuildStepTclHook(tcl_file="", hook_step="")],
+    )
+
+    # Bad type should raise exception
+    with pytest.raises(TypeError) as exception_info:
+        VivadoProject(name="name", modules=[], part="part", build_step_hooks=["file.tcl"])
+    assert str(exception_info.value) == 'Got bad type for "build_step_hooks" element: file.tcl'
 
 
 def test_create_should_raise_exception_if_project_path_already_exists(tmp_path):
