@@ -147,6 +147,8 @@ There are different implementations depending on the simulator currently in use.
 The implementation for commercial simulators will compile simlib by calling Vivado with a TCL script
 containing a ``compile_simlib ...`` call.
 For GHDL the implementation contains hard coded ghdl compile calls of the needed files.
+The compilation with GHDL is very fast (5 seconds), but for commercial simulators it is very
+slow (10 minutes).
 
 All implementations are interface compatible with the :class:`.VivadoSimlibCommon` class.
 They will only do a recompile when necessary (new Vivado or simulator version, etc.).
@@ -168,7 +170,7 @@ Adding simlib to a simulation project using this class is achieved by simply doi
 Versioning of simlib artifacts
 ______________________________
 
-Compiling simlib takes quite a while.
+Compiling simlib takes quite a while for the commercial simulators.
 It might not be convenient to recompile on each workstation and in each CI run.
 Instead storing compiled simlib in, e.g., Artifactory or on a network drive is a good idea.
 
@@ -178,7 +180,7 @@ with what version tag.
 If compile is needed, i.e. compiled simlib does not exist, they could instead be fetched from a
 server somewhere.
 The :meth:`from_archive <.VivadoSimlibCommon.from_archive>` and
-:meth:`to_archive <.VivadoSimlibCommon.to_archive>` are useful for this.
+:meth:`to_archive <.VivadoSimlibCommon.to_archive>` methods are useful for this.
 
 
 .. _vivado_ip_cores:
