@@ -60,6 +60,15 @@ class BuildProjectList:
         result += f"Listed {len(self.projects)} builds"
         return result
 
+    def get_short_str(self):
+        """
+        Returns a short string with a description list of the projects.
+        """
+        result = "\n".join([project.name for project in self.projects])
+        result += "\n"
+        result += f"Listed {len(self.projects)} builds"
+        return result
+
     def create(self, projects_path, num_parallel_builds, **kwargs):
         """
         Create build project on disk for all the projects in the list.
