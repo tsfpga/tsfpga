@@ -24,7 +24,7 @@ set_property STEPS.SYNTH_DESIGN.ARGS.DIRECTIVE Default [get_runs synth_1]
 
 # Allows the synthesis tool to flatten the hierarchy, perform synthesis, and then rebuild the
 # hierarchy based on the original RTL.
-# This value allows the QoR benefit of cross-boundry optimizations with a
+# This value allows the QoR benefit of cross-boundary optimizations with a
 # final hierarchy that is similar to the RTL for ease of analysis.
 set_property STEPS.SYNTH_DESIGN.ARGS.FLATTEN_HIERARCHY Rebuilt [get_runs synth_1]
 
