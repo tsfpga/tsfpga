@@ -53,6 +53,10 @@ class BuildProjectList:
     def __str__(self):
         """
         Returns a string with a description list of the projects.
+
+        Will print some information about each project (name, generics, part, ...) so can become
+        long if there are many projects present.
+        An alternative in that case would be :meth:`.get_short_str`.
         """
         result = "\n".join([str(project) for project in self.projects])
         result += "\n"
@@ -60,9 +64,11 @@ class BuildProjectList:
         result += f"Listed {len(self.projects)} builds"
         return result
 
-    def get_short_str(self):
+    def get_short_str(self) -> str:
         """
         Returns a short string with a description list of the projects.
+
+        This is an alternative function that is more compact than ``__str__``.
         """
         result = "\n".join([project.name for project in self.projects])
         result += "\n"
