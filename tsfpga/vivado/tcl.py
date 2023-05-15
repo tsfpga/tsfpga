@@ -329,6 +329,17 @@ class VivadoTcl:
 open_run ${run}
 set run_directory [get_property DIRECTORY [get_runs ${run}]]
 
+# Generate report on simultaneous switching noise (SSN) for the design.
+# It seems safe to do this after synthesis; inspecting the reports in a test build after both
+# synthesis and implementation shows that the results are identical.
+# Will generate a "Designutils 20-923" message if noise margins are not met.
+# If the user would like this to fail the build, this message severity shall be raised to ERROR.
+# At the moment we do not know how stable this mechanism is, so we do not fail the build
+# per default.
+# The call is very fast (< 1s) so it is fine to run always, even though not everyone will use it.
+set output_file [file join ${run_directory} "report_ssn.html"]
+report_ssn -phase -format html -file ${output_file}
+
 # This call is duplicated in report_utilization.tcl for implementation.
 set output_file [file join ${run_directory} "hierarchical_utilization.rpt"]
 report_utilization -hierarchical -hierarchical_depth 4 -file ${output_file}

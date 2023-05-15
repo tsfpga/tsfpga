@@ -139,16 +139,23 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
         return [self.project_folder / "test_proj.xpr"]
 
     @property
-    def synthesis_files(self):
+    def netlist_synthesis_files(self):
         """
-        Files that should exist when the project has been synthesized.
+        Files that should exist when a netlist project has been synthesized.
         """
         return [self.runs_folder / "synth_2" / "hierarchical_utilization.rpt"]
 
     @property
+    def synthesis_files(self):
+        """
+        Files that should exist when a project has been synthesized.
+        """
+        return self.netlist_synthesis_files + [self.runs_folder / "synth_2" / "report_ssn.html"]
+
+    @property
     def build_files(self):
         """
-        Files that should exist when the project has been fully built.
+        Files that should exist when a project has been fully built.
         """
         return [
             self.project_folder / f"{self.proj.name}.bit",
@@ -400,5 +407,5 @@ set_max_delay -datapath_only -from ${input_word} -to ${result_word} 3
             project_path=self.project_folder, output_path=self.project_folder
         )
         assert build_result.success
-        for path in self.synthesis_files:
+        for path in self.netlist_synthesis_files:
             assert path.exists(), path
