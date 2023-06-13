@@ -441,6 +441,11 @@ class BaseModule:
             generics["seed"] = set_random_seed
 
         name = self.test_case_name(name, generics)
+        # VUnit does not allow an empty name, which can happen if both 'name' and 'generics' to
+        # this method are None, but the user sets for example a 'pre_config'.
+        # Avoid this error mode by setting a default name when it happens.
+        name = "test" if name == "" else name
+
         test.add_config(name=name, generics=generics, pre_config=pre_config, post_check=post_check)
 
     def __str__(self):

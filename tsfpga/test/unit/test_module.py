@@ -28,7 +28,7 @@ def test_add_vunit_config_name():
 
     module.add_vunit_config(test=test, pre_config=pre_config, post_check=post_check)
     test.add_config.assert_called_once_with(
-        name="", generics={}, pre_config=pre_config, post_check=post_check
+        name="test", generics={}, pre_config=pre_config, post_check=post_check
     )
     test.reset_mock()
 
