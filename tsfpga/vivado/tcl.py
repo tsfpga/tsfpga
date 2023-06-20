@@ -337,8 +337,12 @@ set run_directory [get_property DIRECTORY [get_runs ${run}]]
 # At the moment we do not know how stable this mechanism is, so we do not fail the build
 # per default.
 # The call is very fast (< 1s) so it is fine to run always, even though not everyone will use it.
-set output_file [file join ${run_directory} "report_ssn.html"]
-report_ssn -phase -format html -file ${output_file}
+set current_part [get_property PART [current_project]]
+set part_supports_ssn [get_parts ${current_part} -filter {ssn_report == 1}]
+if {${part_supports_ssn} != ""} {
+    set output_file [file join ${run_directory} "report_ssn.html"]
+    report_ssn -phase -format html -file ${output_file}
+}
 
 # This call is duplicated in report_utilization.tcl for implementation.
 set output_file [file join ${run_directory} "hierarchical_utilization.rpt"]
