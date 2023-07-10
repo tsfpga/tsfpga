@@ -53,7 +53,7 @@ def test_bit_vector_generics():
 
 
 def test_string_generics():
-    assert get_vivado_tcl_generic_value(StringGenericValue("apa")) == "apa"
+    assert get_vivado_tcl_generic_value(StringGenericValue("apa")) == '"apa"'
 
     with pytest.raises(ValueError) as exception_info:
         StringGenericValue(3)

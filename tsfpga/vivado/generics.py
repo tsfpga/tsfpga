@@ -92,7 +92,7 @@ def get_vivado_tcl_generic_value(value):
         return f"{value.length}'b{value.value}"
 
     if isinstance(value, StringGenericValue):
-        return value.value
+        return f'"{value.value}"'
 
     message = f'Unsupported type for generic. Got type="{type(value)}", value="{value}".'
 

@@ -49,7 +49,7 @@ def test_static_generics():
         project_folder=Path(), modules=[], part="", top="", run_index=1, generics=generics
     )
     expected = (
-        "\nset_property generic {enable=1'b1 disable=1'b0 integer=123 slv=4'b0101 string=apa} "
+        "\nset_property generic {enable=1'b1 disable=1'b0 integer=123 slv=4'b0101 string=\"apa\"} "
         "[current_fileset]\n"
     )
     assert expected in tcl
