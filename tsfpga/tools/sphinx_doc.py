@@ -45,7 +45,7 @@ def generate_release_notes(repo_root, release_notes_directory, project_name):
         rst += "\n"
         if previous_release_git_tag is not None:
             diff_url = (
-                f"https://gitlab.com/tsfpga/{project_name}/-/compare/"
+                f"https://gitlab.com/{project_name}/{project_name}/-/compare/"
                 f"{previous_release_git_tag}...{release.git_tag}"
             )
             rst += f"`Changes since previous release <{diff_url}>`__\n"

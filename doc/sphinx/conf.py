@@ -21,7 +21,6 @@ sys.path.insert(0, str(REPO_ROOT))
 # Import before others since it modifies PYTHONPATH. pylint: disable=unused-import
 import tsfpga.examples.example_pythonpath  # noqa: F401
 
-
 project = "tsfpga"
 copyright = "Lukas Vik"
 author = "Lukas Vik"
