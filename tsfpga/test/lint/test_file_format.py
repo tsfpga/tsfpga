@@ -16,9 +16,27 @@ from tsfpga.system_utils import create_file
 
 
 def open_file_with_encoding(file):
-    print(file)
-    with open(file, encoding="ascii") as file_handle:
-        file_handle.read()
+    """
+    Try to open the ``file`` with ASCII encoding.
+    If that fails, i.e. if it contains non-ASCII characters, print information and raise exception.
+    """
+    try:
+        with open(file, encoding="ascii") as file_handle:
+            file_handle.read()
+
+    except UnicodeDecodeError as exception:
+        print(file)
+        with open(file, encoding="utf8") as file_handle:
+            lines = file_handle.readlines()
+
+        for line_idx, line in enumerate(lines):
+            for character in line:
+                try:
+                    character.encode("ascii")
+                except UnicodeEncodeError:
+                    print(f"Character {character} on line {line_idx + 1} is not ASCII")
+
+        raise exception
 
 
 def test_all_checked_in_files_are_properly_encoded():
