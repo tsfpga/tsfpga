@@ -28,15 +28,7 @@
   :alt: Python line coverage
   :target: https://tsfpga.com/python_coverage_html
 
-.. raw:: html
-
-  <center>
-
 |pic_website| |pic_repository| |pic_chat| |pic_pip_install| |pic_license| |pic_python_line_coverage|
-
-.. raw:: html
-
-    </center>
 
 tsfpga is a flexible and scalable development platform for modern FPGA projects.
 With its Python-based build/simulation flow it is perfect for CI/CD and test-driven development.
