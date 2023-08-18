@@ -1,15 +1,15 @@
-|pic_website| |pic_gitlab| |pic_gitter| |pic_pip_install| |pic_license| |pic_python_line_coverage|
+|pic_website| |pic_repository| |pic_chat| |pic_pip_install| |pic_license| |pic_python_line_coverage|
 
 .. |pic_website| image:: https://tsfpga.com/badges/website.svg
   :alt: Website
   :target: https://tsfpga.com
 
-.. |pic_gitlab| image:: https://tsfpga.com/badges/gitlab.svg
-  :alt: Gitlab
+.. |pic_repository| image:: https://tsfpga.com/badges/repository.svg
+  :alt: Repository
   :target: https://gitlab.com/tsfpga/tsfpga
 
-.. |pic_gitter| image:: https://tsfpga.com/badges/gitter.svg
-  :alt: Gitter
+.. |pic_chat| image:: https://tsfpga.com/badges/chat.svg
+  :alt: Chat
   :target: https://app.gitter.im/#/room/#60a276916da03739847cca54:gitter.im
 
 .. |pic_pip_install| image:: https://tsfpga.com/badges/pip_install.svg
