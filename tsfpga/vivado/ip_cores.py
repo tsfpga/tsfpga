@@ -66,7 +66,10 @@ class VivadoIpCores:
         """
         print(f"Creating IP core project in {self.project_directory}")
         delete(self.project_directory)
-        self._vivado_project.create(self.project_directory)
+        success = self._vivado_project.create(self.project_directory)
+
+        assert success, "IP core generation failed"
+        
         self._save_hash()
 
     def create_vivado_project_if_needed(self):
