@@ -32,6 +32,18 @@ def test_get_ip_core_files_is_called_with_the_correct_arguments(tmp_path):
     modules[0].get_ip_core_files.assert_called_once_with(generics={}, part="test_part")
 
 
+def test_system_call_to_vivado_failing_should_raise_exception(tmp_path):
+    project = VivadoIpCores(modules=[], output_path=tmp_path, part_name="test_part")
+
+    with patch("tsfpga.vivado.ip_cores.VivadoIpCoreProject.create", autospec=True) as create:
+        create.return_value = False
+
+        with pytest.raises(AssertionError) as exception_info:
+            project.create_vivado_project_if_needed()
+
+        assert str(exception_info.value) == "Failed to create Vivado IP core project"
+
+
 @pytest.mark.usefixtures("fixture_tmp_path")
 class TestVivadoIpCores(TestCase):
     tmp_path = None

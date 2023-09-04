@@ -68,7 +68,7 @@ class VivadoIpCores:
         delete(self.project_directory)
         success = self._vivado_project.create(self.project_directory)
 
-        assert success, "IP core generation failed"
+        assert success, "Failed to create Vivado IP core project"
 
         self._save_hash()
 
