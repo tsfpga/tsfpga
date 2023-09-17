@@ -129,7 +129,7 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
         workdir = self.output_path / library_name
         create_directory(workdir, empty=False)
 
-        cmd = [
+        base_ghdl_cmd = [
             self.ghdl_binary,
             "-a",
             "--ieee=synopsys",
@@ -143,9 +143,11 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
             "--mb-comments",
             f"--work={library_name}",
         ]
-        cmd += [str(vhd_file) for vhd_file in vhd_files]
 
-        subprocess.check_call(cmd, cwd=self.output_path)
+        cmds = [base_ghdl_cmd + [str(vhd_file)] for vhd_file in vhd_files]
+
+        for cmd in cmds:
+            subprocess.check_call(cmd, cwd=self.output_path)
 
     def _get_simulator_tag(self):
         """
