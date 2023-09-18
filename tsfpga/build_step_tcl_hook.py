@@ -17,7 +17,10 @@ class BuildStepTclHook:
         """
         Arguments:
             tcl_file (pathlib.Path): Path to a TCL file.
-            hook_step (str): Name of a build step, e.g. "STEPS.ROUTE_DESIGN.TCL.PRE".
+            hook_step (str): Name of a build step, e.g. ``STEPS.ROUTE_DESIGN.TCL.PRE``.
+               See
+               https://docs.xilinx.com/r/en-US/ug894-vivado-tcl-scripting/Defining-Tcl-Hook-Scripts
+               for a list of the available build steps in AMD Vivado.
         """
         self.tcl_file = tcl_file
         self.hook_step = hook_step
