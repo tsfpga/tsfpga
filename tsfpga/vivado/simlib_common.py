@@ -9,6 +9,7 @@
 # Standard libraries
 import platform
 import zipfile
+from abc import ABC, abstractmethod
 from shutil import make_archive
 
 # First party libraries
@@ -19,7 +20,7 @@ from tsfpga.vivado.common import get_vivado_version
 from .common import get_vivado_path
 
 
-class VivadoSimlibCommon:
+class VivadoSimlibCommon(ABC):
 
     """
     Class for handling Vivado simlib used for simulation. Keeps track of when a
@@ -89,6 +90,7 @@ class VivadoSimlibCommon:
 
         create_file(self._done_token, "Done!")
 
+    @abstractmethod
     def _compile(self):
         """
         Compile simlib.
@@ -101,6 +103,7 @@ class VivadoSimlibCommon:
         """
         self._add_to_vunit_project()
 
+    @abstractmethod
     def _add_to_vunit_project(self):
         raise NotImplementedError()
 
@@ -157,6 +160,7 @@ class VivadoSimlibCommon:
 
         return self._format_version(f"vivado_{vivado_version}")
 
+    @abstractmethod
     def _get_simulator_tag(self):
         raise NotImplementedError()
 
