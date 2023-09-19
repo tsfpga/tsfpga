@@ -13,7 +13,7 @@ from pathlib import Path
 
 # First party libraries
 from tsfpga import DEFAULT_FILE_ENCODING
-from tsfpga.system_utils import create_directory
+from tsfpga.system_utils import create_directory, system_is_windows
 
 # Local folder libraries
 from .simlib_common import VivadoSimlibCommon
@@ -115,21 +115,51 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
 
         return vhd_files
 
-    def _compile_ghdl(self, vhd_files, library_name):
+    def _compile_ghdl(self, vhd_files: list[Path], library_name: str):
         """
         Compile a list of files into the specified library.
         """
-        # Print a list of the files that will be compiled.
-        # Relative paths to the Vivado path, which we printed earlier, in order to keep it a little
-        # shorter (it is still massively long).
-        relative_paths = [vhd_file.relative_to(self._libraries_path) for vhd_file in vhd_files]
-        paths_to_print = ", ".join([str(path) for path in relative_paths])
-        print(f"Compiling {paths_to_print} into {library_name}...")
-
         workdir = self.output_path / library_name
         create_directory(workdir, empty=False)
 
-        base_ghdl_cmd = [
+        vhd_paths_str = [str(vhd_file) for vhd_file in vhd_files]
+        # We print a list of the files that will be compiled.
+        # Use relative paths to the Vivado path, in order to keep it a little shorter
+        # (it is still massively long).
+        vhd_paths_relative = [
+            str(vhd_file.relative_to(self._libraries_path)) for vhd_file in vhd_files
+        ]
+
+        def print_compiling(path: str):
+            print(f"Compiling {path} into {library_name}...")
+
+        def execute_ghdl(files: list[str]):
+            self._execute_ghdl(workdir=workdir, library_name=library_name, files=files)
+
+        # There seems to be a command length limit on Windows.
+        # While compiling all files in one command gives a huge performance boost
+        # (on Linux with GCC backend at least, as far as we know) the resulting command is in
+        # the order of 90k characters long.
+        # This does not seem to work on Windows.
+        # So we auto detect the OS to work around this limitation, while keeping the performance
+        # boost on Linux.
+        # See https://gitlab.com/tsfpga/tsfpga/-/merge_requests/499
+        compile_file_by_file = system_is_windows()
+
+        if compile_file_by_file:
+            # Compile each file in a separate command.
+            for vhd_file_idx, vhd_file_str in enumerate(vhd_paths_str):
+                print_compiling(vhd_paths_relative[vhd_file_idx])
+                execute_ghdl(files=[vhd_file_str])
+
+        else:
+            # Compile all files in one single command.
+            paths_to_print = ", ".join(vhd_paths_relative)
+            print_compiling(paths_to_print)
+            execute_ghdl(files=vhd_paths_str)
+
+    def _execute_ghdl(self, workdir: Path, library_name: str, files: list[str]):
+        cmd = [
             self.ghdl_binary,
             "-a",
             "--ieee=synopsys",
@@ -142,12 +172,9 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
             "--warn-binding",
             "--mb-comments",
             f"--work={library_name}",
-        ]
+        ] + files
 
-        cmds = [base_ghdl_cmd + [str(vhd_file)] for vhd_file in vhd_files]
-
-        for cmd in cmds:
-            subprocess.check_call(cmd, cwd=self.output_path)
+        subprocess.check_call(cmd, cwd=self.output_path)
 
     def _get_simulator_tag(self):
         """

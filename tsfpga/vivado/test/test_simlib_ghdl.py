@@ -13,7 +13,7 @@ from the common class.
 
 # Standard libraries
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 # Third party libraries
 import pytest
@@ -32,7 +32,9 @@ def simlib_test(tmp_path):
             self.vivado_simlib = self.get_vivado_simlib()
 
         def get_vivado_simlib(self, ghdl_version_string="GHDL 0.36 ..."):
-            with patch("tsfpga.vivado.simlib_ghdl.subprocess.check_output") as check_output:
+            with patch(
+                "tsfpga.vivado.simlib_ghdl.subprocess.check_output", autospec=True
+            ) as check_output:
                 check_output.return_value = ghdl_version_string.encode("UTF-8")
 
                 simulator_class = MagicMock()
@@ -48,30 +50,28 @@ def simlib_test(tmp_path):
 
                 return vivado_simlib
 
-        @staticmethod
-        def assert_should_compile(vivado_simlib):
-            assert vivado_simlib.compile_is_needed
+        def assert_should_compile(self):
+            assert self.vivado_simlib.compile_is_needed
             with patch(
                 "tsfpga.vivado.simlib_ghdl.VivadoSimlibGhdl._compile", autospec=True
             ) as mock:
-                vivado_simlib.compile_if_needed()
+                self.vivado_simlib.compile_if_needed()
                 mock.assert_called_once()
 
-        @staticmethod
-        def assert_should_not_compile(vivado_simlib):
-            assert not vivado_simlib.compile_is_needed
+        def assert_should_not_compile(self):
+            assert not self.vivado_simlib.compile_is_needed
             with patch(
                 "tsfpga.vivado.simlib_ghdl.VivadoSimlibGhdl._compile", autospec=True
             ) as mock:
-                vivado_simlib.compile_if_needed()
+                self.vivado_simlib.compile_if_needed()
                 mock.assert_not_called()
 
     return SimlibGhdlTestFixture()
 
 
 def test_should_not_recompile(simlib_test):
-    simlib_test.assert_should_compile(simlib_test.vivado_simlib)
-    simlib_test.assert_should_not_compile(simlib_test.vivado_simlib)
+    simlib_test.assert_should_compile()
+    simlib_test.assert_should_not_compile()
 
 
 def test_ghdl_version_string(simlib_test):
@@ -107,3 +107,48 @@ def test_ghdl_version_string(simlib_test):
             ghdl_version_string="GHDL 0.37-dev (v0.36-1605-ge4aa89cd)"
         ).artifact_name
     )
+
+
+def test_should_compile_file_by_file_on_windows_but_not_on_linux(simlib_test):
+    library_name = "unisim"
+
+    # pylint: disable=protected-access
+    unisim_path = simlib_test.vivado_simlib._libraries_path / library_name
+    vhd_files = [unisim_path / "a.vhd", unisim_path / "b.vhd"]
+
+    def run_test(is_windows, expected_calls):
+        with patch.object(
+            simlib_test.vivado_simlib, "_execute_ghdl", autospec=True
+        ) as execute_ghdl, patch(
+            "tsfpga.vivado.simlib_ghdl.system_is_windows", autospec=True
+        ) as system_is_windows:
+            system_is_windows.return_value = is_windows
+
+            simlib_test.vivado_simlib._compile_ghdl(vhd_files=vhd_files, library_name=library_name)
+
+            assert execute_ghdl.call_args_list == expected_calls
+
+    def get_expected_call(files):
+        return call(
+            workdir=simlib_test.vivado_simlib.output_path / library_name,
+            library_name=library_name,
+            files=files,
+        )
+
+    # One call with many files on e.g. Linux.
+    expected_calls = [
+        get_expected_call(
+            files=[
+                str(vhd_files[0]),
+                str(vhd_files[1]),
+            ]
+        )
+    ]
+    run_test(is_windows=False, expected_calls=expected_calls)
+
+    # Many calls with individual file on Windows.
+    expected_calls = [
+        get_expected_call(files=[str(vhd_files[0])]),
+        get_expected_call(files=[str(vhd_files[1])]),
+    ]
+    run_test(is_windows=True, expected_calls=expected_calls)
