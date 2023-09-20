@@ -372,3 +372,23 @@ create_ip_core_my_name
         # When disabled, the run should not even be opened, which saves time
         assert "open_run" not in tcl
         assert "report_clock_interaction" not in tcl
+
+    def test_impl_explore(self):
+        num_runs = 4
+
+        tcl = self.tcl.build(
+            project_file=Path(),
+            output_path=Path(),
+            num_threads=num_runs,
+            run_index=1,
+            impl_explore=True,
+        )
+
+        assert (
+            f"launch_runs -jobs {num_runs} [get_runs impl_explore_*] -to_step write_bitstream"
+            in tcl
+        )
+        assert "wait_on_runs -exit_condition ANY_ONE_MET_TIMING [get_runs impl_explore_*]" in tcl
+        assert 'reset_runs [get_runs -filter {STATUS == "Queued..."}]' in tcl
+        assert 'wait_on_runs [get_runs -filter {STATUS != "Not started"} impl_explore_*]' in tcl
+        assert 'foreach run [get_runs -filter {PROGRESS == "100%"} impl_explore_*]' in tcl

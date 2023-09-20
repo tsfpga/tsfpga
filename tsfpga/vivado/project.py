@@ -43,6 +43,7 @@ class VivadoProject:
         build_step_hooks=None,
         vivado_path=None,
         default_run_index=1,
+        impl_explore=False,
         defined_at=None,
         **other_arguments,
     ):  # pylint: disable=too-many-locals
@@ -112,6 +113,7 @@ class VivadoProject:
         self.build_step_hooks = [] if build_step_hooks is None else build_step_hooks.copy()
         self._vivado_path = vivado_path
         self.default_run_index = default_run_index
+        self.impl_explore = impl_explore
         self.defined_at = defined_at
         self.other_arguments = None if other_arguments is None else other_arguments.copy()
 
@@ -152,6 +154,9 @@ class VivadoProject:
             TSFPGA_TCL / "vivado_fast_run.tcl",
             TSFPGA_TCL / "vivado_messages.tcl",
         ]
+
+        if self.impl_explore:
+            tsfpga_tcl_sources.append(TSFPGA_TCL / "vivado_strategies.tcl")
 
         # Add tsfpga TCL sources first. The user might want to change something in the tsfpga
         # settings. Conversely, tsfpga should not modify something that the user has set up.
@@ -321,6 +326,7 @@ class VivadoProject:
         all_generics,
         synth_only,
         from_impl,
+        impl_explore,
     ):
         """
         Make a TCL file that builds a Vivado project
@@ -341,6 +347,7 @@ class VivadoProject:
             synth_only=synth_only,
             from_impl=from_impl,
             analyze_synthesis_timing=self.analyze_synthesis_timing,
+            impl_explore=impl_explore,
         )
         create_file(build_vivado_project_tcl, tcl)
 
@@ -383,7 +390,7 @@ class VivadoProject:
         """
         return True
 
-    def build(
+    def build(  # pylint: disable=too-many-locals,too-many-branches
         self,
         project_path,
         output_path=None,
@@ -488,6 +495,7 @@ class VivadoProject:
             all_generics=all_generics,
             synth_only=synth_only,
             from_impl=from_impl,
+            impl_explore=self.impl_explore,
         )
 
         if not run_vivado_tcl(self._vivado_path, build_vivado_project_tcl):
@@ -501,10 +509,26 @@ class VivadoProject:
             )
 
         if not synth_only:
-            impl_folder = project_path / f"{self.name}.runs" / f"impl_{run_index}"
-            shutil.copy2(impl_folder / f"{self.top}.bit", output_path / f"{self.name}.bit")
-            shutil.copy2(impl_folder / f"{self.top}.bin", output_path / f"{self.name}.bin")
-            result.implementation_size = self._get_size(project_path, f"impl_{run_index}")
+            if self.impl_explore:
+                runs_path = project_path / f"{self.name}.runs"
+                for run in runs_path.iterdir():
+                    if "impl_explore_" in run.resolve().name:
+                        # Check files for existence, since not all runs may have completed
+                        bit_file = run / f"{self.top}.bit"
+                        bin_file = run / f"{self.top}.bin"
+                        if bit_file.exists() or bin_file.exists():
+                            impl_folder = run
+                            run_name = run.resolve().name
+                            break
+            else:
+                run_name = f"impl_{run_index}"
+                impl_folder = project_path / f"{self.name}.runs" / run_name
+                bit_file = impl_folder / f"{self.top}.bit"
+                bin_file = impl_folder / f"{self.top}.bin"
+
+            shutil.copy2(bit_file, output_path / f"{self.name}.bit")
+            shutil.copy2(bin_file, output_path / f"{self.name}.bin")
+            result.implementation_size = self._get_size(project_path, run_name)
 
         # Send the result object, along with everything else, to the post-build function
         all_parameters.update(build_result=result)

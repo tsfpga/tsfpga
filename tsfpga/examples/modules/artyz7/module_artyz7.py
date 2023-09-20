@@ -41,6 +41,19 @@ class Module(BaseModule):
         )
 
         projects.append(
+            VivadoProject(
+                name="artyz7_explore",
+                top="artyz7_top",
+                modules=modules,
+                part=part,
+                tcl_sources=[block_design],
+                constraints=[pinning],
+                impl_explore=True,
+                defined_at=THIS_FILE,
+            )
+        )
+
+        projects.append(
             SpecialVivadoProject(
                 name="artyz7_dummy",
                 modules=modules,

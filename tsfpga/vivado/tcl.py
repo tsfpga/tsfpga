@@ -13,6 +13,9 @@ from tsfpga.system_utils import create_file
 from .common import to_tcl_path
 from .generics import get_vivado_tcl_generic_value
 
+# Number of availiable Vivado implementation strategies
+NUM_VIVADO_STRATEGIES = 33
+
 
 class VivadoTcl:
     """
@@ -287,10 +290,17 @@ class VivadoTcl:
         generics=None,
         synth_only=False,
         from_impl=False,
+        impl_explore=False,
         analyze_synthesis_timing=True,
     ):
-        # Max value in Vivado 2018.3+. set_param will give an error if higher number.
-        num_threads_general = min(num_threads, 32)
+        if impl_explore:
+            # For implementation explore, threads are divided to one each per job.
+            # Number of jobs in parallel are the number of threads specified for build.
+            num_threads_general = num_threads // NUM_VIVADO_STRATEGIES
+        else:
+            # Max value in Vivado 2018.3+. set_param will give an error if higher number.
+            num_threads_general = min(num_threads, 32)
+
         num_threads_synth = min(num_threads, 8)
 
         tcl = f"open_project {to_tcl_path(project_file)}\n"
@@ -309,7 +319,12 @@ class VivadoTcl:
         if not synth_only:
             impl_run = f"impl_{run_index}"
 
-            tcl += self._run(impl_run, num_threads, to_step="write_bitstream")
+            if impl_explore:
+                tcl += self._run_multiple(num_jobs=num_threads)
+            else:
+                tcl += self._run(impl_run, num_threads, to_step="write_bitstream")
+            tcl += "\n"
+
             tcl += self._write_hw_platform(output_path)
             tcl += "\n"
 
@@ -389,6 +404,41 @@ if {[get_property PROGRESS [get_runs ${run}]] != "100%"} {
   exit 1
 }
 """
+        return tcl
+
+    def _run_multiple(self, num_jobs=4, base_name="impl_explore_"):
+        # Currently, this creates .tcl that waits for all active runs to complete
+
+        tcl = "set build_succeeded 0\n"
+        tcl += f"reset_runs [get_runs {base_name}*]\n"
+        tcl += f"launch_runs -jobs {num_jobs} [get_runs {base_name}*] -to_step write_bitstream\n"
+        tcl += "\n"
+
+        tcl += f"wait_on_runs -exit_condition ANY_ONE_MET_TIMING [get_runs {base_name}*]\n"
+        tcl += "\n"
+
+        tcl += 'reset_runs [get_runs -filter {STATUS == "Queued..."}]\n'
+
+        # Wait on runs that are still going, since Vivado can't kill runs in progress reliably.
+        # Killing runs in progress causes a zombie process which will lock up VUnit's Process class.
+        tcl += f'wait_on_runs [get_runs -filter {{STATUS != "Not started"}} {base_name}*]\n'
+        tcl += "\n"
+
+        tcl_block = """
+  set build_succeeded 1
+  puts "Run $run met timing"
+"""
+        tcl += self._tcl_for_each_run(
+            f'-filter {{PROGRESS == "100%"}} {base_name}*', tcl_block=tcl_block
+        )
+
+        tcl += """
+if {${build_succeeded} eq 0} {
+  puts "No build met timing, exiting."
+  exit 1
+}
+"""
+
         return tcl
 
     def _write_hw_platform(self, output_path):
