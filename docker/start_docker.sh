@@ -13,6 +13,6 @@ docker run \
   --user "${USER_ID}:${USER_ID}" \
   --volume "/etc/localtime:/etc/localtime:ro" \
   --volume "${HOME}/work/repo:/repo" \
-  --workdir "/repo/tsfpga/tsfpga" \
+  --workdir "/repo" \
   tsfpga/ci_everything:latest \
   /bin/bash

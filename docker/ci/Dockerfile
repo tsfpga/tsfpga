@@ -61,8 +61,9 @@ RUN python3 -m pip --no-cache-dir install --upgrade \
   pycairo \
   PyGObject \
   sphinx \
-  sphinx-rtd-theme \
   sphinx_sitemap \
+  sphinx-rtd-theme \
+  sphinx-toolbox \
   sphinxcontrib-wavedrom \
   # Install symbolator and hdlparse from github forks that are maintained.
   # The official versions do not work with newer setuptools or newer sphinx.
