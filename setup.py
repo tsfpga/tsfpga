@@ -62,7 +62,7 @@ def main():
             "Source": "https://gitlab.com/tsfpga/tsfpga",
             "Issues": "https://gitlab.com/tsfpga/tsfpga/-/issues",
         },
-        python_requires=">=3.6",
+        python_requires=">=3.9",
         install_requires=read_requirements_file(REQUIREMENTS_TXT),
         extras_require=dict(dev=read_requirements_file(REQUIREMENTS_DEVELOP_TXT)),
         packages=find_packages(),
