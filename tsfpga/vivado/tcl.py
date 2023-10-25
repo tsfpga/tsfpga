@@ -465,7 +465,7 @@ if {${build_succeeded} eq 0} {
 
         tcl = f"""
 puts "Creating hardware platform {xsa_file}..."
-write_hw_platform -fixed -force -quiet {{{xsa_file}}}
+write_hw_platform -fixed -force -quiet -include_bit {{{xsa_file}}}
 """
 
         return tcl
