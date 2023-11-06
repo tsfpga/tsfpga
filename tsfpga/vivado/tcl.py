@@ -443,7 +443,9 @@ if {${build_succeeded} eq 0} {
 
     def _write_hw_platform(self, output_path):
         """
-        TCL command to create a "hardware platform" .xsa file (aka, "hdf" or "hwdef" file).
+        TCL command to create a Xilinx support archive (.xsa) file, for use as a
+        hardware platform.
+        Used to be known as a "hdf" or "hwdef" file.
 
         This is mainly used for Zynq devices to generate code to set up the PS at boot.
         There is also code generated for each MicroBlaze that is present in the design.
