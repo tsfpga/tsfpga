@@ -296,7 +296,8 @@ class VivadoTcl:
         if impl_explore:
             # For implementation explore, threads are divided to one each per job.
             # Number of jobs in parallel are the number of threads specified for build.
-            num_threads_general = num_threads // NUM_VIVADO_STRATEGIES
+            # Clamp max threads between 1 and 32, which are allowed by Vivado 2018.3+.
+            num_threads_general = min(max(1, num_threads // NUM_VIVADO_STRATEGIES), 32)
         else:
             # Max value in Vivado 2018.3+. set_param will give an error if higher number.
             num_threads_general = min(num_threads, 32)
