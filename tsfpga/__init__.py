@@ -26,5 +26,5 @@ TSFPGA_EXAMPLE_MODULES = TSFPGA_EXAMPLES / "modules"
 # Default encoding when opening files
 DEFAULT_FILE_ENCODING = "utf-8"
 
-__version__ = "12.1.2"
+__version__ = "12.1.3-dev"
 __doc__ = get_short_slogan()  # pylint: disable=redefined-builtin
