@@ -34,8 +34,8 @@ Breaking changes
   to ``axi.axil_simple_crossbar``.
   This naming is factual (it is a crossbar, not an interconnect) and more descriptive.
 * Rename ``RegisterList.create_html_table()`` to
-  :meth:`hdl_registers.register_list.RegisterList.create_html_register_table`.
-  Add :meth:`hdl_registers.register_list.RegisterList.create_html_constant_table`.
+  ``hdl_registers.register_list.RegisterList.create_html_register_table``.
+  Add ``hdl_registers.register_list.RegisterList.create_html_constant_table``.
 * Deprecate ``BaseModule.setup_simulations()`` in favor of :meth:`.BaseModule.setup_vunit`.
 * Rework :class:`.BuildProjectList` class completely.
   See the :class:`class documentation <.BuildProjectList>`, the

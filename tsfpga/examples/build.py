@@ -19,6 +19,14 @@ sys.path.insert(0, str(REPO_ROOT))
 # Import before others since it modifies PYTHONPATH. pylint: disable=unused-import
 import tsfpga.examples.example_pythonpath  # noqa: F401
 
+# Third party libraries
+from hdl_registers.generator.c.header import CHeaderGenerator
+from hdl_registers.generator.cpp.header import CppHeaderGenerator
+from hdl_registers.generator.cpp.implementation import CppImplementationGenerator
+from hdl_registers.generator.cpp.interface import CppInterfaceGenerator
+from hdl_registers.generator.html.page import HtmlPageGenerator
+from hdl_registers.generator.python.python_class_generator import PythonClassGenerator
+
 # First party libraries
 from tsfpga.build_project_list import BuildProjectList
 from tsfpga.examples.example_env import TSFPGA_EXAMPLES_TEMP_DIR, get_tsfpga_example_modules
@@ -238,7 +246,7 @@ def setup_and_run(modules, projects, args, collect_artifacts_function=collect_ar
 
 def generate_registers(modules, output_path):
     """
-    Generate all register artifacts from the given modules.
+    Generate register artifacts from the given modules.
 
     Arguments:
         modules (:class:`.ModuleList`): Registers from these modules will be included.
@@ -248,17 +256,15 @@ def generate_registers(modules, output_path):
 
     for module in modules:
         if module.registers is not None:
-            vhdl_path = create_directory(output_path / "vhdl", empty=False)
-            module.registers.create_vhdl_package(vhdl_path)
+            CHeaderGenerator(module.registers, output_path / "c").create()
 
-            module.registers.create_c_header(output_path / "c")
-            module.registers.create_cpp_interface(output_path / "cpp" / "include")
-            module.registers.create_cpp_header(output_path / "cpp" / "include")
-            module.registers.create_cpp_implementation(output_path / "cpp")
-            module.registers.create_html_page(output_path / "html")
-            module.registers.create_html_register_table(output_path / "html" / "tables")
-            module.registers.create_html_constant_table(output_path / "html" / "tables")
-            module.registers.create_python_class(output_path / "python")
+            CppInterfaceGenerator(module.registers, output_path / "cpp" / "include").create()
+            CppHeaderGenerator(module.registers, output_path / "cpp" / "include").create()
+            CppImplementationGenerator(module.registers, output_path / "cpp").create()
+
+            HtmlPageGenerator(module.registers, output_path / "html").create()
+
+            PythonClassGenerator(module.registers, output_path / "python").create()
 
 
 if __name__ == "__main__":

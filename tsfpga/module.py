@@ -10,6 +10,7 @@
 import random
 
 # Third party libraries
+from hdl_registers.generator.vhdl.register_package import VhdlRegisterPackageGenerator
 from hdl_registers.parser import from_toml
 
 # First party libraries
@@ -122,7 +123,9 @@ class BaseModule:
         Create a VHDL package in this module with register definitions.
         """
         if self.registers is not None:
-            self.registers.create_vhdl_package(self.path)
+            VhdlRegisterPackageGenerator(
+                register_list=self.registers, output_folder=self.path
+            ).create_if_needed()
 
     @property
     def synthesis_folders(self):

@@ -4,7 +4,7 @@ Added
 
 * Add possibility of setting a description for register arrays.
 
-* Add :meth:`hdl_registers.register_list.RegisterList.create_python_class`,
+* Add ``hdl_registers.register_list.RegisterList.create_python_class``,
 * :meth:`hdl_registers.register_list.RegisterList.get_register_array` and
   :meth:`hdl_registers.register_list.RegisterList.get_register_index` methods.
 
