@@ -32,10 +32,10 @@ def svn_commands_are_available(cwd=None):
 
 def check_that_svn_commands_are_available(cwd=None):
     if not svn_commands_are_available(cwd):
-        mesg = (
+        message = (
             "Could not run svn. Is the command available on PATH? Is the script called from a repo?"
         )
-        raise RuntimeError(mesg)
+        raise RuntimeError(message)
 
 
 def get_svn_revision(cwd=None):
