@@ -286,32 +286,38 @@ class Module(BaseModule):
             else:
                 assert False
 
-    @patch("tsfpga.module.from_toml", autospec=True)
-    def test_register_object_creation_called_when_getting_synthesis_files(self, from_toml):
-        toml_file = create_file(self.tmp_path / "a" / "regs_a.toml")
 
-        module = get_modules(self.modules_folders).get("a")
-        module.get_synthesis_files()
-        module.get_synthesis_files()
+@patch("tsfpga.module.from_toml", autospec=True)
+@patch("tsfpga.module.VhdlRegisterPackageGenerator.create", autospec=True)
+def test_register_toml_file_parsed_only_once_when_getting_synthesis_files(_, from_toml, tmp_path):
+    toml_file = create_file(tmp_path / "a" / "regs_a.toml")
 
-        from_toml.assert_called_once_with("a", toml_file, ANY)
+    module = get_modules([tmp_path]).get("a")
+    module.get_synthesis_files()
+    module.get_synthesis_files()
 
-    @patch("tsfpga.module.from_toml", autospec=True)
-    def test_register_object_creation_called_when_getting_simulation_files(self, from_toml):
-        toml_file = create_file(self.tmp_path / "a" / "regs_a.toml")
+    from_toml.assert_called_once_with("a", toml_file, ANY)
 
-        module = get_modules(self.modules_folders).get("a")
-        module.get_simulation_files()
-        module.get_simulation_files()
 
-        from_toml.assert_called_once_with("a", toml_file, ANY)
+@patch("tsfpga.module.from_toml", autospec=True)
+@patch("tsfpga.module.VhdlRegisterPackageGenerator.create", autospec=True)
+def test_register_toml_file_parsed_only_once_when_getting_simulation_files(_, from_toml, tmp_path):
+    toml_file = create_file(tmp_path / "a" / "regs_a.toml")
 
-    @patch("tsfpga.module.from_toml", autospec=True)
-    def test_register_object_creation_called_once_when_getting_mixed_files(self, from_toml):
-        toml_file = create_file(self.tmp_path / "a" / "regs_a.toml")
+    module = get_modules([tmp_path]).get("a")
+    module.get_simulation_files()
+    module.get_simulation_files()
 
-        module = get_modules(self.modules_folders).get("a")
-        module.get_synthesis_files()
-        module.get_simulation_files()
+    from_toml.assert_called_once_with("a", toml_file, ANY)
 
-        from_toml.assert_called_once_with("a", toml_file, ANY)
+
+@patch("tsfpga.module.from_toml", autospec=True)
+@patch("tsfpga.module.VhdlRegisterPackageGenerator.create", autospec=True)
+def test_register_toml_file_parsed_only_once_when_getting_mixed_files(_, from_toml, tmp_path):
+    toml_file = create_file(tmp_path / "a" / "regs_a.toml")
+
+    module = get_modules([tmp_path]).get("a")
+    module.get_synthesis_files()
+    module.get_simulation_files()
+
+    from_toml.assert_called_once_with("a", toml_file, ANY)
