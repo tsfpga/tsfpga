@@ -8,10 +8,14 @@
 
 # Standard libraries
 import random
+from pathlib import Path
+from typing import TYPE_CHECKING, Callable, Optional, Union
 
 # Third party libraries
 from hdl_registers.generator.vhdl.register_package import VhdlRegisterPackageGenerator
 from hdl_registers.parser import from_toml
+from hdl_registers.register import Register
+from hdl_registers.register_list import RegisterList
 
 # First party libraries
 from tsfpga.constraint import Constraint
@@ -19,6 +23,10 @@ from tsfpga.hdl_file import HdlFile
 from tsfpga.ip_core_file import IpCoreFile
 from tsfpga.module_list import ModuleList
 from tsfpga.system_utils import load_python_module
+
+if TYPE_CHECKING:
+    # Local folder libraries
+    from .vivado.project import VivadoProject
 
 
 class BaseModule:
@@ -29,12 +37,14 @@ class BaseModule:
     different catalog structure.
     """
 
-    def __init__(self, path, library_name, default_registers=None):
+    def __init__(
+        self, path: Path, library_name: str, default_registers: Optional[list[Register]] = None
+    ):
         """
         Arguments:
-            path (pathlib.Path): Path to the module folder.
-            library_name (str): VHDL library name.
-            default_registers (list(hdl_registers.register.Register)): Default registers.
+            path: Path to the module folder.
+            library_name: VHDL library name.
+            default_registers: Default registers.
         """
         self.path = path.resolve()
         self.name = path.name
@@ -44,15 +54,20 @@ class BaseModule:
         self._registers = None
 
     @staticmethod
-    def _get_file_list(folders, file_endings, files_include=None, files_avoid=None):
+    def _get_file_list(
+        folders: list[Path],
+        file_endings: Union[str, tuple[str]],
+        files_include: Optional[set[Path]] = None,
+        files_avoid: Optional[set[Path]] = None,
+    ):
         """
         Returns a list of files given a list of folders.
 
         Arguments:
-            folders (pathlib.Path): The folders to search.
-            file_endings (tuple(str)): File endings to include.
-            files_include (set(pathlib.Path)): Optionally filter to only include these files.
-            files_avoid (set(pathlib.Path)): Optionally filter to discard these files.
+            folders: The folders to search.
+            file_endings: File endings to include.
+            files_include: Optionally filter to only include these files.
+            files_avoid: Optionally filter to discard these files.
         """
         files = []
         for folder in folders:
@@ -73,7 +88,12 @@ class BaseModule:
 
         return files
 
-    def _get_hdl_file_list(self, folders, files_include=None, files_avoid=None):
+    def _get_hdl_file_list(
+        self,
+        folders: list[Path],
+        files_include: Optional[set[Path]] = None,
+        files_avoid: Optional[set[Path]] = None,
+    ):
         """
         Return a list of HDL file objects.
         """
@@ -88,12 +108,12 @@ class BaseModule:
         ]
 
     @property
-    def registers(self):
+    def registers(self) -> Union[RegisterList, None]:
         """
-        hdl_registers.register_list.RegisterList: Get the registers for this module. Can be
-            ``None`` if no TOML file exists and no hook creates registers.
+        Get the registers for this module.
+        Can be ``None`` if no TOML file exists and no hook creates registers.
         """
-        if self._registers is not None:
+        if self._registers:
             # Only create object once
             return self._registers
 
@@ -128,12 +148,9 @@ class BaseModule:
             ).create_if_needed()
 
     @property
-    def synthesis_folders(self):
+    def synthesis_folders(self) -> list[Path]:
         """
         Synthesis/implementation source code files will be gathered from these folders.
-
-        Return:
-            list(pathlib.Path): Folder paths.
         """
         return [
             self.path,
@@ -144,24 +161,18 @@ class BaseModule:
         ]
 
     @property
-    def sim_folders(self):
+    def sim_folders(self) -> list[Path]:
         """
         Files with simulation models (the ``sim`` folder) will be gathered from these folders.
-
-        Return:
-            list(pathlib.Path): Folder paths.
         """
         return [
             self.path / "sim",
         ]
 
     @property
-    def test_folders(self):
+    def test_folders(self) -> list[Path]:
         """
         Testbench files will be gathered from these folders.
-
-        Return:
-            list(pathlib.Path): Folder paths.
         """
         return [
             self.path / "test",
@@ -169,8 +180,11 @@ class BaseModule:
         ]
 
     def get_synthesis_files(
-        self, files_include=None, files_avoid=None, **kwargs
-    ):  # pylint: disable=unused-argument
+        self,
+        files_include: Optional[set[Path]] = None,
+        files_avoid: Optional[set[Path]] = None,
+        **kwargs,  # pylint: disable=unused-argument
+    ) -> list[HdlFile]:
         """
         Get a list of files that shall be included in a synthesis project.
 
@@ -182,13 +196,13 @@ class BaseModule:
         and call this super method with the arguments supplied.
 
         Arguments:
-            files_include (set(`pathlib.Path`)): Optionally filter to only include these files.
-            files_avoid (set(`pathlib.Path`)): Optionally filter to discard these files.
+            files_include: Optionally filter to only include these files.
+            files_avoid: Optionally filter to discard these files.
             kwargs: Further parameters that can be sent by build flow to control what
                 files are included.
 
         Return:
-            list(HdlFile): Files that should be included in a synthesis project.
+            Files that should be included in a synthesis project.
         """
         self.create_regs_vhdl_package()
 
@@ -197,22 +211,26 @@ class BaseModule:
         )
 
     def get_simulation_files(
-        self, include_tests=True, files_include=None, files_avoid=None, **kwargs
-    ):
+        self,
+        include_tests: bool = True,
+        files_include: Optional[set[Path]] = None,
+        files_avoid: Optional[set[Path]] = None,
+        **kwargs,
+    ) -> list[HdlFile]:
         """
         See :meth:`.get_synthesis_files` for instructions on how to use ``files_include``
         and ``files_avoid``.
 
         Arguments:
-            include_tests (bool): When ``False``, the ``test`` files are not included
+            include_tests: When ``False``, the ``test`` files are not included
                 (the ``sim`` files are always included).
-            files_include (set(`pathlib.Path`)): Optionally filter to only include these files.
-            files_avoid (set(`pathlib.Path`)): Optionally filter to discard these files.
+            files_include: Optionally filter to only include these files.
+            files_avoid: Optionally filter to discard these files.
             kwargs: Further parameters that can be sent by simulation flow to control what
                 files are included.
 
         Return:
-            list(HdlFile): Files that should be included in a simulation project.
+            Files that should be included in a simulation project.
         """
         test_folders = self.sim_folders.copy()
 
@@ -230,8 +248,11 @@ class BaseModule:
         return synthesis_files + test_files
 
     def get_documentation_files(
-        self, files_include=None, files_avoid=None, **kwargs
-    ):  # pylint: disable=unused-argument
+        self,
+        files_include: Optional[set[Path]] = None,
+        files_avoid: Optional[set[Path]] = None,
+        **kwargs,  # pylint: disable=unused-argument
+    ) -> list[HdlFile]:
         """
         Get a list of files that shall be included in a documentation build.
 
@@ -240,7 +261,7 @@ class BaseModule:
         Overwrite in a child class if you want to change this behavior.
 
         Return:
-            list(HdlFile): Files that should be included in documentation.
+            Files that should be included in documentation.
         """
         return self._get_hdl_file_list(
             folders=self.synthesis_folders + self.sim_folders,
@@ -249,7 +270,12 @@ class BaseModule:
         )
 
     # pylint: disable=unused-argument
-    def get_ip_core_files(self, files_include=None, files_avoid=None, **kwargs):
+    def get_ip_core_files(
+        self,
+        files_include: Optional[set[Path]] = None,
+        files_avoid: Optional[set[Path]] = None,
+        **kwargs,
+    ) -> list[IpCoreFile]:
         """
         Get IP cores for this module.
 
@@ -259,13 +285,13 @@ class BaseModule:
         :class:`.ip_core_file.IpCoreFile` creation to achieve this parameterization.
 
         Arguments:
-            files_include (set(`pathlib.Path`)): Optionally filter to only include these files.
-            files_avoid (set(`pathlib.Path`)): Optionally filter to discard these files.
+            files_include: Optionally filter to only include these files.
+            files_avoid: Optionally filter to discard these files.
             kwargs: Further parameters that can be sent by build/simulation flow to control what
                 IP cores are included and what their variables are.
 
         Return:
-            list(IpCoreFile): The IP cores for this module.
+            The IP cores for this module.
         """
         folders = [
             self.path / "ip_cores",
@@ -282,18 +308,23 @@ class BaseModule:
         ]
 
     # pylint: disable=unused-argument
-    def get_scoped_constraints(self, files_include=None, files_avoid=None, **kwargs):
+    def get_scoped_constraints(
+        self,
+        files_include: Optional[set[Path]] = None,
+        files_avoid: Optional[set[Path]] = None,
+        **kwargs,
+    ) -> list[Constraint]:
         """
         Constraints that shall be applied to a certain entity within this module.
 
         Arguments:
-            files_include (set(`pathlib.Path`)): Optionally filter to only include these files.
-            files_avoid (set(`pathlib.Path`)): Optionally filter to discard these files.
+            files_include: Optionally filter to only include these files.
+            files_avoid: Optionally filter to discard these files.
             kwargs: Further parameters that can be sent by build/simulation flow to control what
                 constraints are included.
 
         Return:
-            list(Constraint): The constraints.
+            The constraints.
         """
         folders = [
             self.path / "scoped_constraints",
@@ -337,7 +368,9 @@ class BaseModule:
                 location of test files, etc.
         """
 
-    def pre_build(self, project, **kwargs):  # pylint: disable=unused-argument
+    def pre_build(
+        self, project: "VivadoProject", **kwargs
+    ) -> bool:  # pylint: disable=unused-argument
         """
         This method hook will be called before an FPGA build is run. A typical use case for this
         mechanism is to set a register constant or default value based on the generics that
@@ -349,17 +382,17 @@ class BaseModule:
             utilize this mechanism.
 
         Arguments:
-            project (VivadoProject): The project that is being built.
+            project: The project that is being built.
             kwargs: All other parameters to the build flow. Includes arguments to
                 :meth:`.VivadoProject.build` method as well as other arguments set in
                 :meth:`.VivadoProject.__init__`.
 
         Return:
-            bool: True if everything went well.
+            True if everything went well.
         """
         return True
 
-    def get_build_projects(self):
+    def get_build_projects(self) -> list["VivadoProject"]:
         """
         Get FPGA build projects defined by this module.
 
@@ -368,21 +401,21 @@ class BaseModule:
             build projects.
 
         Return:
-            list(VivadoProject): FPGA build projects.
+            FPGA build projects.
         """
         return []
 
     @staticmethod
-    def test_case_name(name=None, generics=None):
+    def test_case_name(name: Optional[str] = None, generics: Optional[dict] = None) -> str:
         """
         Construct a string suitable for naming test cases.
 
         Arguments:
-            name (str): Optional base name.
-            generics (dict): Dictionary of values that will be included in the name.
+            name: Optional base name.
+            generics: Dictionary of values that will be included in the name.
 
         Returns:
-            str: For example ``MyBaseName.GenericA_ValueA.GenericB_ValueB``.
+            For example ``MyBaseName.GenericA_ValueA.GenericB_ValueB``.
         """
         if name:
             test_case_name = name
@@ -402,11 +435,11 @@ class BaseModule:
     def add_vunit_config(
         self,
         test,
-        name=None,
-        generics=None,
-        set_random_seed=False,
-        pre_config=None,
-        post_check=None,
+        name: Optional[str] = None,
+        generics: Optional[dict] = None,
+        set_random_seed: Optional[Union[bool, int]] = False,
+        pre_config: Optional[Callable] = None,
+        post_check: Optional[Callable] = None,
     ):  # pylint: disable=too-many-arguments
         """
         Add config for VUnit test case. Wrapper that sets a suitable name and can set a random
@@ -414,11 +447,11 @@ class BaseModule:
 
         Arguments:
             test: VUnit test object. Can be testbench or test case.
-            name (str): Optional designated name for this config. Will be used to form the name of
+            name: Optional designated name for this config. Will be used to form the name of
                 the config together with the ``generics`` value.
-            generics (dict): Generic values that will be applied to the testbench entity. The values
+            generics: Generic values that will be applied to the testbench entity. The values
                 will also be used to form the name of the config.
-            set_random_seed (bool, int): Controls setting of the ``seed`` generic:
+            set_random_seed: Controls setting of the ``seed`` generic:
 
                 * When this argument is not assigned, or assigned ``False``, the generic will not
                   be set.
@@ -456,25 +489,25 @@ class BaseModule:
 
 
 def get_modules(
-    modules_folders,
-    names_include=None,
-    names_avoid=None,
-    library_name_has_lib_suffix=False,
-    default_registers=None,
-):
+    modules_folders: list[Path],
+    names_include: Optional[set[str]] = None,
+    names_avoid: Optional[set[str]] = None,
+    library_name_has_lib_suffix: Optional[bool] = False,
+    default_registers: Optional[list[Register]] = None,
+) -> ModuleList:
     """
     Get a list of Module objects based on the source code folders.
 
     Arguments:
-        modules_folders (list(pathlib.Path)): A list of paths where your modules are located.
-        names_include (list(str)): If specified, only modules with these names will be included.
-        names_avoid (list(str)): If specified, modules with these names will be discarded.
-        library_name_has_lib_suffix (bool): If set, the library name will be
-            ``<module name>_lib``, otherwise it is just ``<module name>``.
-        default_registers (list(hdl_registers.register.Register)): Default registers.
+        modules_folders: A list of paths where your modules are located.
+        names_include: If specified, only modules with these names will be included.
+        names_avoid: If specified, modules with these names will be discarded.
+        library_name_has_lib_suffix: If set, the library name will be ``<module name>_lib``,
+            otherwise it is just ``<module name>``.
+        default_registers: Default registers.
 
     Return:
-        ModuleList: List of module objects (:class:`BaseModule` or child classes thereof)
+        List of module objects (:class:`BaseModule` or subclasses thereof)
         created from the specified folders.
     """
     modules = ModuleList()

@@ -29,7 +29,7 @@ def create_file(file, contents=None):
     return file
 
 
-def read_file(file):
+def read_file(file: Path) -> str:
     with open(file, encoding=DEFAULT_FILE_ENCODING) as file_handle:
         return file_handle.read()
 
