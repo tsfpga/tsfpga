@@ -14,5 +14,5 @@ docker run \
   --volume "/etc/localtime:/etc/localtime:ro" \
   --volume "${HOME}/work/repo:/repo" \
   --workdir "/repo" \
-  tsfpga/ci_everything:latest \
+  tsfpga/ci_py_sim_sphinx:latest \
   /bin/bash

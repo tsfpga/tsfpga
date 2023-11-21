@@ -29,6 +29,7 @@ RUN python3 -m pip --no-cache-dir install --upgrade \
   black \
   GitPython \
   flake8 \
+  mypy \
   pylint \
   pytest \
   pytest-cov \
