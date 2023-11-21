@@ -72,7 +72,7 @@ class BuildResultChecker:
         Return:
             bool: True if check passed, false otherwise.
         """
-        raise NotImplementedError("Implement in child class")
+        raise NotImplementedError("Implement in subclass")
 
     def _check_value(self, name, value):
         if self.limit.check(value):
@@ -158,7 +158,7 @@ class DspBlocks(SizeChecker):
 
     def check(self, build_result):
         """
-        Same as parent class, but checks for the legacy name as well as the current name.
+        Same as super class, but checks for the legacy name as well as the current name.
         """
         legacy_name = "DSP48 Blocks"
         if legacy_name in build_result.synthesis_size:

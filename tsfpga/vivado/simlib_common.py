@@ -26,21 +26,21 @@ class VivadoSimlibCommon(ABC):
     Class for handling Vivado simlib used for simulation. Keeps track of when a
     (re)compile is needed.
 
-    This is a parent class that defines an interface and some common methods.
-    See child classes for details: :class:`.VivadoSimlibGhdl`, :class:`.VivadoSimlibCommercial`.
+    This is a base class that defines an interface and some common methods.
+    See subclasses for details: :class:`.VivadoSimlibGhdl`, :class:`.VivadoSimlibCommercial`.
     """
 
     # The version of this class. Can be bumped to force a re-compile if e.g. the TCL script changes
     # or the output folder structure is updated.
     _format_version_id = 3
 
-    # Set in child class to a list of strings. The libraries that shall be compiled and added to
+    # Set in subclass to a list of strings. The libraries that shall be compiled and added to
     # VUnit project.
     library_names = None
 
     def __init__(self, vivado_path, output_path):
         """
-        Call from child class. Please do not instantiate this class directly.
+        Call from subclass. Please do not instantiate this class directly.
         """
         self._vivado_path = get_vivado_path(vivado_path)
         self._libraries_path = (self._vivado_path.parent.parent / "data" / "vhdl" / "src").resolve()
@@ -69,7 +69,7 @@ class VivadoSimlibCommon(ABC):
         then there should not be a recompile.
 
         .. note::
-            Child implementations might add further conditions.
+            Subclass implementations might add further conditions.
 
         Return:
             True if compiled simlib is not available. False otherwise.

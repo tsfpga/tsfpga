@@ -131,7 +131,7 @@ class BaseModule:
         but the module's registers will be ``None``.
 
         This is a good place if you want to add or modify some registers from Python.
-        Override this method and implement the desired behavior in a child class.
+        Override this method and implement the desired behavior in a subclass.
 
         .. Note::
             This default method does nothing. Shall be overridden by modules that utilize
@@ -192,7 +192,7 @@ class BaseModule:
         included.
         This can be useful in many situations, e.g. when encrypted files of files that include an
         IP core shall be avoided.
-        It is recommended to overload this function in a child class in your ``module_*.py``,
+        It is recommended to overload this function in a subclass in your ``module_*.py``,
         and call this super method with the arguments supplied.
 
         Arguments:
@@ -258,7 +258,7 @@ class BaseModule:
 
         It will return all files from the module except testbenches and any generated
         register package.
-        Overwrite in a child class if you want to change this behavior.
+        Overwrite in a subclass if you want to change this behavior.
 
         Return:
             Files that should be included in documentation.
@@ -280,7 +280,7 @@ class BaseModule:
         Get IP cores for this module.
 
         Note that the :class:`.ip_core_file.IpCoreFile` class accepts a ``variables`` argument that
-        can be used to parameterize IP core creation. By overloading this method in a child class
+        can be used to parameterize IP core creation. By overloading this method in a subclass
         you can pass on ``kwargs`` arguments from the build/simulation flow to
         :class:`.ip_core_file.IpCoreFile` creation to achieve this parameterization.
 

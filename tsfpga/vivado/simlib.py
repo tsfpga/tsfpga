@@ -29,7 +29,7 @@ class VivadoSimlib:
             vivado_path (pathlib.Path): Path to Vivado executable. If left out, the default
                 from system ``PATH`` will be used.
         Return:
-            A :class:`.VivadoSimlibCommon` child object.
+            A :class:`.VivadoSimlibCommon` subclass object.
         """
         simulator_interface = vunit_proj._simulator_class  # pylint: disable=protected-access
         if simulator_interface.name == "ghdl":

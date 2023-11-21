@@ -166,7 +166,7 @@ class SimulationProject:
 
         .. note::
 
-            This method can be overloaded in a child class if you want to do something more
+            This method can be overloaded in a subclass if you want to do something more
             advanced, e.g. fetching compiled simlib from Artifactory.
 
         Arguments:

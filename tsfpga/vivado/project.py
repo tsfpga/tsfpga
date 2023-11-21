@@ -117,7 +117,7 @@ class VivadoProject:
         self.defined_at = defined_at
         self.other_arguments = None if other_arguments is None else other_arguments.copy()
 
-        # Will be set by child class when applicable
+        # Will be set by subclass when applicable
         self.is_netlist_build = False
         self.analyze_synthesis_timing = True
         self.report_logic_level_distribution = False
@@ -297,7 +297,7 @@ class VivadoProject:
 
     def pre_create(self, **kwargs):  # pylint: disable=unused-argument
         """
-        Override this function in a child class if you wish to do something useful with it.
+        Override this function in a subclass if you wish to do something useful with it.
         Will be called from :meth:`.create` right before the call to Vivado.
 
         An example use case for this function is when TCL source scripts for the Vivado project
@@ -355,7 +355,7 @@ class VivadoProject:
 
     def pre_build(self, **kwargs):  # pylint: disable=unused-argument
         """
-        Override this function in a child class if you wish to do something useful with it.
+        Override this function in a subclass if you wish to do something useful with it.
         Will be called from :meth:`.build` right before the call to Vivado.
 
         Arguments:
@@ -369,7 +369,7 @@ class VivadoProject:
 
     def post_build(self, **kwargs):  # pylint: disable=unused-argument
         """
-        Override this function in a child class if you wish to do something useful with it.
+        Override this function in a subclass if you wish to do something useful with it.
         Will be called from :meth:`.build` right after the call to Vivado.
 
         An example use case for this function is to encrypt the bit file, or generate any other
