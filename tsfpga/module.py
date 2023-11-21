@@ -414,7 +414,7 @@ class BaseModule:
             name: Optional base name.
             generics: Dictionary of values that will be included in the name.
 
-        Returns:
+        Return:
             For example ``MyBaseName.GenericA_ValueA.GenericB_ValueB``.
         """
         if name:

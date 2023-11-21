@@ -45,7 +45,7 @@ class BuildResult:
         """
         Return a string with a formatted message of the size.
 
-        Returns:
+        Return:
             str: A human-readable message of the latest size. ``None`` if no size is set.
         """
         build_step = None
@@ -67,7 +67,7 @@ class BuildResult:
         Return a report of the build result. Includes all metrics and information that has been
         extracted from the Vivado reports.
 
-        Returns:
+        Return:
             str: The report.
         """
         result = self.size_summary()
@@ -84,7 +84,7 @@ class BuildResult:
         Will be ``None`` for non-netlist builds.
         Will be ``None`` if synthesis failed or did not run.
 
-        Returns:
+        Return:
             int: The maximum logic level.
         """
         if self.logic_level_distribution is None:

@@ -54,7 +54,7 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
         Arguments:
             simulator_interface: A VUnit SimulatorInterface object.
 
-        Returns:
+        Return:
             str: The simulator name preferred by Vivado.
         """
         # Aldec Riviera-PRO is called "rivierapro" in VUnit but Vivado needs the name "riviera"

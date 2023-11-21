@@ -85,7 +85,7 @@ def get_vivado_path(vivado_path=None):
         vivado_path (pathlib.Path): Path to vivado executable. Set to ``None`` to use whatever
             is available in the system ``PATH``.
 
-    Returns:
+    Return:
         pathlib.Path: The path.
     """
     if vivado_path is not None:
@@ -106,7 +106,7 @@ def get_vivado_version(vivado_path=None):
         vivado_path (pathlib.Path): Path to vivado executable. Set to ``None`` to use whatever
             is available in the system ``PATH``.
 
-    Returns:
+    Return:
         str: The version, e.g. ``"2021.2"``.
     """
     vivado_path = get_vivado_path(vivado_path=vivado_path)
@@ -128,7 +128,7 @@ def get_git_sha_slv(git_directory):
     Arguments:
         directory (pathlib.Path): The directory where git commands will be run.
 
-    Returns:
+    Return:
         tuple(str, str): First object in tuple is the left-most eight characters of the git SHA
         encoded as a 32-character binary string. Second object is the next eight characters from
         the git SHA.

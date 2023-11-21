@@ -82,7 +82,7 @@ def delete(path, wait_until_deleted=False):
             Is needed on some filesystems/mounts in a situation where we delete a path and
             then directly want to write to it afterwards.
 
-    Returns:
+    Return:
         pathlib.Path: The path that was deleted (i.e. the original ``path`` argument).
     """
     if path.exists():
@@ -116,7 +116,7 @@ def file_is_in_directory(file_path, directories):
         file_path (pathlib.Path): The file to be checked.
         directories (list(pathlib.Path)): The directories to be controlled.
 
-    Returns:
+    Return:
         bool: True if there is a common path.
     """
     for directory in directories:

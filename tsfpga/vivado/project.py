@@ -261,7 +261,7 @@ class VivadoProject:
 
                 .. note::
                     This is a "kwargs" style argument. You can pass any number of named arguments.
-        Returns:
+        Return:
             bool: True if everything went well.
         """
         print(f"Creating Vivado project in {project_path}")
@@ -546,7 +546,7 @@ class VivadoProject:
         Arguments:
             project_path (pathlib.Path): A path containing a Vivado project.
 
-        Returns:
+        Return:
             bool: True if everything went well.
         """
         return run_vivado_gui(self._vivado_path, self.project_file(project_path))

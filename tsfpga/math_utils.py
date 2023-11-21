@@ -16,7 +16,7 @@ def to_binary_string(int_value, result_width):
         int_value (int): The value to be converted.
         result_width (int): The number of bits in the result. The supplied ``int_value`` must fit.
 
-    Returns:
+    Return:
         str: A string of  length ``result_width`` containing only "1" and "0".
     """
     if int_value < 0:

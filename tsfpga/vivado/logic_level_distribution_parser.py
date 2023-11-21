@@ -44,7 +44,7 @@ class LogicLevelDistributionParser:
         Arguments:
             table (str): The table as returned by :meth:`.get_table`.
 
-        Returns:
+        Return:
             int: The maximum logic level.
         """
         header_line = table.split("\n")[1]

@@ -23,7 +23,7 @@ def get_git_commit(directory: Path) -> str:
     Arguments:
         directory: The directory where git commands will be run.
 
-    Returns:
+    Return:
         Git commit information.
     """
     git_commit = get_git_sha(directory=directory)
@@ -40,7 +40,7 @@ def get_git_sha(directory: Path) -> str:
     Arguments:
         directory: The directory where git commands will be run.
 
-    Returns:
+    Return:
         The SHA.
     """
     # Generally, eight to ten characters are more than enough to be unique within a project.
@@ -70,7 +70,7 @@ def git_local_changes_present(directory: Path) -> bool:
     Arguments:
         directory: The directory where git commands will be run.
 
-    Returns:
+    Return:
         ``True`` if the repo contains changes that have been made after the last commit.
     """
     # Import fails if "git" executable is not available, hence it can not be on top level.
@@ -118,7 +118,7 @@ def find_git_files(
         file_endings_include: Only files with these endings will be included.
         file_endings_avoid: Files with these endings will not be included.
 
-    Returns:
+    Return:
         The files that are available in git.
     """
 

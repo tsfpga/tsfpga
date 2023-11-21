@@ -132,7 +132,7 @@ register documentation.
             exclude_module_folders (list(str)): Folder names within the module root that shall be
                 excluded from documentation.
 
-        Returns:
+        Return:
             str: An RST document.
         """
         heading_character_1 = "="

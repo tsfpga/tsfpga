@@ -78,7 +78,7 @@ def find_svn_files(
         file_endings_avoid (str or tuple(str)): String or tuple of strings. Files with these endings
             will not be included.
 
-    Returns:
+    Return:
         list(pathlib.Path): The files that are available in SVN.
     """
     excludes = [] if excludes is None else [exclude.resolve() for exclude in excludes]

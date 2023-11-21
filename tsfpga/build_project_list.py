@@ -89,7 +89,7 @@ class BuildProjectList:
                     Argument ``project_path`` can not be set, it is set by this class
                     based on the ``project_paths`` argument to this function.
 
-        Returns:
+        Return:
             bool: True if everything went well.
         """
         build_wrappers = []
@@ -118,7 +118,7 @@ class BuildProjectList:
                     Argument ``project_path`` can not be set, it is set by this class
                     based on the ``project_paths`` argument to this function.
 
-        Returns:
+        Return:
             bool: True if everything went well.
         """
         build_wrappers = []
@@ -177,7 +177,7 @@ class BuildProjectList:
                     confusion with regards to ``num_parallel_builds``.
 
 
-        Returns:
+        Return:
             bool: True if everything went well.
         """
         if collect_artifacts:
@@ -216,7 +216,7 @@ class BuildProjectList:
         Arguments:
             projects_path (pathlib.Path): The projects are placed here.
 
-        Returns:
+        Return:
             bool: True if everything went well.
         """
         build_wrappers = []

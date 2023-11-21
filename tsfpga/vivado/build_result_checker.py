@@ -69,7 +69,7 @@ class BuildResultChecker:
             build_result (tsfpga.vivado.build_result.BuildResult): Build result that shall
                 be checked.
 
-        Returns:
+        Return:
             bool: True if check passed, false otherwise.
         """
         raise NotImplementedError("Implement in child class")
