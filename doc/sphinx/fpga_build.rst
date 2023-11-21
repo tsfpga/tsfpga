@@ -175,7 +175,7 @@ The modules, part name, TCL sources and constraints are passed to the constructo
 There is also a ``defined_at`` argument, which is given the path to the ``module_artyz7.py`` file.
 This is used to get a useful ``--list`` result in our :ref:`build.py <example_build_py>`.
 
-The second project is created using a child class that inherits :class:`.VivadoProject`.
+The second project is created using a subclass that inherits :class:`.VivadoProject`.
 It showcases how to use :ref:`pre and post build hook functions <pre_post_build>`.
 The ``post_build()`` function does nothing in this example, but the mechanism can be very useful
 in real-world cases.

@@ -117,7 +117,7 @@ This will result in the tests
     fifo.tb_fifo.width_24.depth_1024.all
 
 So what happens here is that we created a class ``Module`` that inherits from :class:`.BaseModule`.
-In this class we override the ``setup_vunit()`` method, which does nothing in the parent class, to
+In this class we override the ``setup_vunit()`` method, which does nothing in the super class, to
 set up our simulation configurations.
 The :func:`.get_modules` call used in our ``simulate.py`` will recognize that this module has a
 Python file to set up it's own class.

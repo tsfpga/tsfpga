@@ -85,7 +85,7 @@ This is easily achieved by using the tsfpga :ref:`FPGA project build flow <build
 Python class
 ------------
 
-The python class for netlist builds, :class:`.VivadoNetlistProject`, is a child class of
+The python class for netlist builds, :class:`.VivadoNetlistProject`, is a subclass of
 :class:`.VivadoProject`, with marginal differences in settings.
 By separating these builds into separate classes, top level FPGA builds and netlist builds can be
 listed and built separately.
