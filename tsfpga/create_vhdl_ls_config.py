@@ -8,6 +8,7 @@
 
 # Standard libraries
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, Optional
 
 # Third party libraries
 import tomlkit
@@ -16,14 +17,18 @@ import tomlkit
 from tsfpga.system_utils import create_file
 from tsfpga.vivado.ip_cores import VivadoIpCores
 
+if TYPE_CHECKING:
+    # Local folder libraries
+    from .module_list import ModuleList
+
 
 def create_configuration(
-    output_path,
-    modules=None,
-    vunit_proj=None,
-    vivado_location=None,
-    ip_core_vivado_project_directory=None,
-):
+    output_path: Path,
+    modules: Optional["ModuleList"] = None,
+    vunit_proj: Optional[Any] = None,
+    vivado_location: Optional[Path] = None,
+    ip_core_vivado_project_directory: Optional[Path] = None,
+) -> None:
     """
     Create a configuration file (vhdl_ls.toml) for the rust_hdl VHDL Language Server.
 
@@ -34,16 +39,15 @@ def create_configuration(
     VUnit project).
 
     Arguments:
-        output_path (pathlib.Path): vhdl_ls.toml file will be placed in this folder.
-        modules (ModuleList): A list of Module objects.
+        output_path: vhdl_ls.toml file will be placed in this folder.
+        modules: A list of Module objects.
         vunit_proj: A VUnit project.
-        vivado_location (pathlib.Path): Vivado binary path. Will add unisim from this Vivado
-            installation.
-        ip_core_vivado_project_directory (pathlib.Path): Path to a Vivado project that contains
+        vivado_location: Vivado binary path. Will add unisim from this Vivado installation.
+        ip_core_vivado_project_directory: Path to a Vivado project that contains
             generated "simulation" and "synthesis" files of IP cores
             (the "generate_target" TCL command). See simulate.py for an example of using this.
     """
-    toml_data = dict(libraries={})
+    toml_data: dict[str, dict[str, dict[str, list[str]]]] = dict(libraries={})
 
     if modules is not None:
         for module in modules:

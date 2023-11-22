@@ -80,6 +80,25 @@ def test_flake8_lint():
     run_flake8_lint(_files_to_check())
 
 
+def test_mypy():
+    command = [sys.executable, "-m", "mypy", "--package", "tsfpga", "--package", "tools"]
+
+    # Add to PYTHONPATH so that mypy can find everything
+    sys.path.append(
+        str(tsfpga.REPO_ROOT.parent.parent.resolve() / "hdl_registers" / "hdl_registers")
+    )
+    sys.path.append(str(tsfpga.REPO_ROOT.parent.parent.resolve() / "vunit" / "vunit"))
+
+    # Third party libraries
+    import vunit  # pylint: disable=import-outside-toplevel
+
+    # Create the py.typed file that is currently missing in VUnit.
+    create_file(Path(vunit.__file__).parent / "py.typed")
+
+    env = dict(PYTHONPATH=":".join(sys.path))
+    subprocess.check_call(command, cwd=tsfpga.REPO_ROOT, env=env)
+
+
 # pylint: disable=redefined-outer-name
 @pytest.fixture
 def invalid_python_code_file(tmp_path):

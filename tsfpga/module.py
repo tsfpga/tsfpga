@@ -9,7 +9,7 @@
 # Standard libraries
 import random
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, Union
 
 # Third party libraries
 from hdl_registers.generator.vhdl.register_package import VhdlRegisterPackageGenerator
@@ -51,15 +51,15 @@ class BaseModule:
         self.library_name = library_name
 
         self._default_registers = default_registers
-        self._registers = None
+        self._registers: Optional[RegisterList] = None
 
     @staticmethod
     def _get_file_list(
         folders: list[Path],
-        file_endings: Union[str, tuple[str]],
+        file_endings: Union[str, tuple[str, ...]],
         files_include: Optional[set[Path]] = None,
         files_avoid: Optional[set[Path]] = None,
-    ):
+    ) -> list[Path]:
         """
         Returns a list of files given a list of folders.
 
@@ -93,7 +93,7 @@ class BaseModule:
         folders: list[Path],
         files_include: Optional[set[Path]] = None,
         files_avoid: Optional[set[Path]] = None,
-    ):
+    ) -> list[HdlFile]:
         """
         Return a list of HDL file objects.
         """
@@ -124,7 +124,7 @@ class BaseModule:
         self.registers_hook()
         return self._registers
 
-    def registers_hook(self):
+    def registers_hook(self) -> None:
         """
         This function will be called directly after creating this module's registers from
         the TOML definition file. If the TOML file does not exist this hook will still be called,
@@ -138,7 +138,7 @@ class BaseModule:
             this mechanism.
         """
 
-    def create_regs_vhdl_package(self):
+    def create_regs_vhdl_package(self) -> None:
         """
         Create a VHDL package in this module with register definitions.
         """
@@ -179,11 +179,11 @@ class BaseModule:
             self.path / "rtl" / "tb",
         ]
 
-    def get_synthesis_files(
+    def get_synthesis_files(  # pylint: disable=unused-argument
         self,
         files_include: Optional[set[Path]] = None,
         files_avoid: Optional[set[Path]] = None,
-        **kwargs,  # pylint: disable=unused-argument
+        **kwargs: Any,
     ) -> list[HdlFile]:
         """
         Get a list of files that shall be included in a synthesis project.
@@ -215,7 +215,7 @@ class BaseModule:
         include_tests: bool = True,
         files_include: Optional[set[Path]] = None,
         files_avoid: Optional[set[Path]] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> list[HdlFile]:
         """
         See :meth:`.get_synthesis_files` for instructions on how to use ``files_include``
@@ -247,11 +247,11 @@ class BaseModule:
 
         return synthesis_files + test_files
 
-    def get_documentation_files(
+    def get_documentation_files(  # pylint: disable=unused-argument
         self,
         files_include: Optional[set[Path]] = None,
         files_avoid: Optional[set[Path]] = None,
-        **kwargs,  # pylint: disable=unused-argument
+        **kwargs: Any,
     ) -> list[HdlFile]:
         """
         Get a list of files that shall be included in a documentation build.
@@ -274,7 +274,7 @@ class BaseModule:
         self,
         files_include: Optional[set[Path]] = None,
         files_avoid: Optional[set[Path]] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> list[IpCoreFile]:
         """
         Get IP cores for this module.
@@ -312,7 +312,7 @@ class BaseModule:
         self,
         files_include: Optional[set[Path]] = None,
         files_avoid: Optional[set[Path]] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> list[Constraint]:
         """
         Constraints that shall be applied to a certain entity within this module.
@@ -353,7 +353,7 @@ class BaseModule:
                 constraints.append(constraint)
         return constraints
 
-    def setup_vunit(self, vunit_proj, **kwargs):
+    def setup_vunit(self, vunit_proj: Any, **kwargs: Any) -> None:
         """
         Setup local configuration of this module's test benches.
 
@@ -369,7 +369,7 @@ class BaseModule:
         """
 
     def pre_build(
-        self, project: "VivadoProject", **kwargs
+        self, project: "VivadoProject", **kwargs: Any
     ) -> bool:  # pylint: disable=unused-argument
         """
         This method hook will be called before an FPGA build is run. A typical use case for this
@@ -406,7 +406,9 @@ class BaseModule:
         return []
 
     @staticmethod
-    def test_case_name(name: Optional[str] = None, generics: Optional[dict] = None) -> str:
+    def test_case_name(
+        name: Optional[str] = None, generics: Optional[dict[str, Any]] = None
+    ) -> str:
         """
         Construct a string suitable for naming test cases.
 
@@ -432,15 +434,15 @@ class BaseModule:
 
         return test_case_name
 
-    def add_vunit_config(
+    def add_vunit_config(  # pylint: disable=too-many-arguments
         self,
-        test,
+        test: Any,
         name: Optional[str] = None,
-        generics: Optional[dict] = None,
+        generics: Optional[dict[str, Any]] = None,
         set_random_seed: Optional[Union[bool, int]] = False,
-        pre_config: Optional[Callable] = None,
-        post_check: Optional[Callable] = None,
-    ):  # pylint: disable=too-many-arguments
+        pre_config: Optional[Callable[..., bool]] = None,
+        post_check: Optional[Callable[..., bool]] = None,
+    ) -> None:
         """
         Add config for VUnit test case. Wrapper that sets a suitable name and can set a random
         seed generic.
@@ -484,7 +486,7 @@ class BaseModule:
 
         test.add_config(name=name, generics=generics, pre_config=pre_config, post_check=post_check)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.name}:{self.path}"
 
 
@@ -492,7 +494,7 @@ def get_modules(
     modules_folders: list[Path],
     names_include: Optional[set[str]] = None,
     names_avoid: Optional[set[str]] = None,
-    library_name_has_lib_suffix: Optional[bool] = False,
+    library_name_has_lib_suffix: bool = False,
     default_registers: Optional[list[Register]] = None,
 ) -> ModuleList:
     """
@@ -523,24 +525,39 @@ def get_modules(
 
         modules.append(
             _get_module_object(
-                module_folder, module_name, library_name_has_lib_suffix, default_registers
+                path=module_folder,
+                name=module_name,
+                library_name_has_lib_suffix=library_name_has_lib_suffix,
+                default_registers=default_registers,
             )
         )
 
     return modules
 
 
-def _iterate_module_folders(modules_folders):
+def _iterate_module_folders(modules_folders: list[Path]) -> Iterable[Path]:
     for modules_folder in modules_folders:
         for module_folder in modules_folder.glob("*"):
             if module_folder.is_dir():
                 yield module_folder
 
 
-def _get_module_object(path, name, library_name_has_lib_suffix, default_registers):
+def _get_module_object(
+    path: Path,
+    name: str,
+    library_name_has_lib_suffix: bool,
+    default_registers: Optional[list["Register"]],
+) -> BaseModule:
     module_file = path / f"module_{name}.py"
     library_name = f"{name}_lib" if library_name_has_lib_suffix else name
 
     if module_file.exists():
-        return load_python_module(module_file).Module(path, library_name, default_registers)
-    return BaseModule(path, library_name, default_registers)
+        # We assume that the user lets their 'Module' class inherit from 'BaseModule'.
+        module: BaseModule = load_python_module(module_file).Module(
+            path=path,
+            library_name=library_name,
+            default_registers=default_registers,
+        )
+        return module
+
+    return BaseModule(path=path, library_name=library_name, default_registers=default_registers)

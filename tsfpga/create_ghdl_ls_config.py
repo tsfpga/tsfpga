@@ -9,12 +9,23 @@
 # Standard libraries
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, Optional
 
-# First party libraries
-from tsfpga.system_utils import create_file, path_relative_to
+# Local folder libraries
+from .system_utils import create_file, path_relative_to
+
+if TYPE_CHECKING:
+    # Local folder libraries
+    from .module_list import ModuleList
+    from .vivado.simlib_common import VivadoSimlibCommon
 
 
-def create_ghdl_ls_configuration(output_path, modules, vunit_proj, simlib=None):
+def create_ghdl_ls_configuration(
+    output_path: Path,
+    modules: "ModuleList",
+    vunit_proj: Any,
+    simlib: Optional["VivadoSimlibCommon"] = None,
+) -> None:
     """
     Create a configuration file (hdl-prj.json) for the vhdl-lsp VHDL Language Server
     (https://github.com/ghdl/ghdl-language-server).
@@ -26,22 +37,22 @@ def create_ghdl_ls_configuration(output_path, modules, vunit_proj, simlib=None):
     VUnit project).
 
     Arguments:
-        output_path (pathlib.Path): Output folder.
-        modules: A list of Module objects.
+        output_path: Output folder.
+        modules: Source files from these modules will be included.
         vunit_proj: A VUnit project.
-        simlib (VivadoSimlibCommon): Source from this Vivado simlib project will be added.
+        simlib: Source from this Vivado simlib project will be added.
     """
 
-    def get_relative_path(path):
+    def get_relative_path(path: Path) -> Path:
         return path_relative_to(path=path, other=output_path)
 
     data = dict(options=dict(ghdl_analysis=[]), files=[])
 
-    def add_compiled_library(path):
+    def add_compiled_library(path: Path) -> None:
         relative_path = get_relative_path(path)
-        data["options"]["ghdl_analysis"].append(f"-P{relative_path}")
+        data["options"]["ghdl_analysis"].append(f"-P{relative_path}")  # type: ignore[index]
 
-    data["options"]["ghdl_analysis"] += [
+    data["options"]["ghdl_analysis"] += [  # type: ignore[index]
         "--std=08",
     ]
 
@@ -69,6 +80,8 @@ def create_ghdl_ls_configuration(output_path, modules, vunit_proj, simlib=None):
         files.add(Path(source_file.name).resolve())
 
     for file_path in files:
-        data["files"].append(dict(file=str(get_relative_path(file_path)), language="vhdl"))
+        data["files"].append(  # type: ignore[attr-defined]
+            dict(file=str(get_relative_path(file_path)), language="vhdl")
+        )
 
     create_file(output_path / "hdl-prj.json", json.dumps(data))

@@ -11,7 +11,9 @@ from tsfpga.module import BaseModule
 
 
 class Module(BaseModule):
-    def get_simulation_files(self, include_ip_cores, **kwargs):  # pylint: disable=arguments-differ
+    def get_simulation_files(  # type: ignore  # pylint: disable=arguments-differ
+        self, include_ip_cores: bool, **kwargs
+    ):
         """
         Exclude files that depend on IP cores, if instructed to by the simulation script.
         """

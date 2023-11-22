@@ -177,7 +177,7 @@ def test_project_create_should_raise_exception_if_project_path_already_exists(tm
 
 
 def test_copy_and_combine_dict_with_both_arguments_none():
-    assert copy_and_combine_dicts(None, None) is None
+    assert copy_and_combine_dicts(None, None) == {}
 
 
 def test_copy_and_combine_dict_with_first_argument_valid():

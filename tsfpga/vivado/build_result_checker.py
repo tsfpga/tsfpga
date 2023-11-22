@@ -6,82 +6,94 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
+from abc import ABC, abstractmethod
+from typing import Union
 
-class LessThan:
+# Local folder libraries
+from .build_result import BuildResult
+
+
+class Limit(ABC):
+    """
+    Base class for limit checks.
+    Inherit and implement the check in subclass.
+    """
+
+    def __init__(self, value: int) -> None:
+        """
+        Arguments:
+            value: The result value shall be compared with this number.
+        """
+        self.value = value
+
+    @abstractmethod
+    def check(self, result_value: int) -> bool:
+        pass
+
+    @abstractmethod
+    def __str__(self) -> str:
+        pass
+
+
+class LessThan(Limit):
 
     """
     Limit to be used with a checker to see that a figure is less than the specified value.
     """
 
-    def __init__(self, value):
-        """
-        Arguments:
-            value (int): The result value shall be less than this.
-        """
-        self.value = value
-
-    def check(self, result_value):
+    def check(self, result_value: int) -> bool:
         return result_value < self.value
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"< {self.value}"
 
 
-class EqualTo:
+class EqualTo(Limit):
 
     """
     Limit to be used with a checker to see that a figure is equal to the specified value.
     """
 
-    def __init__(self, value):
-        """
-        Arguments:
-            value (int): The result value shall be equal to this.
-        """
-        self.value = value
-
-    def check(self, result_value):
+    def check(self, result_value: int) -> bool:
         return result_value == self.value
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.value)
 
 
-class BuildResultChecker:
+class BuildResultChecker(ABC):
 
     """
-    Check a build result value against a limit.
+    Base class for build result checkers that check a certain build result value against a limit.
 
-    Overload and implement the ``check`` method according to the resource you want to check.
+    Overload in subclass and implement the ``check`` method according to the resource you want
+    to check.
     """
 
-    def __init__(self, limit):
+    def __init__(self, limit: Limit):
         """
         Arguments:
-            limit: The limit that the specified resource shall be checked against. Should
-                be e.g. a :class:`LessThan` object.
+            limit: The limit that the specified resource shall be checked against.
         """
         self.limit = limit
 
-    def check(self, build_result):
+    @abstractmethod
+    def check(self, build_result: BuildResult) -> bool:
         """
         Arguments:
-            build_result (tsfpga.vivado.build_result.BuildResult): Build result that shall
-                be checked.
+            build_result: Build result that shall be checked. Should come from a successful build.
 
         Return:
-            bool: True if check passed, false otherwise.
+            True if check passed, false otherwise.
         """
-        raise NotImplementedError("Implement in subclass")
 
-    def _check_value(self, name, value):
-        if self.limit.check(value):
-            message = f"Result check passed for {name}: {value} ({self.limit})"
-            print(message)
+    def _check_result_value(self, name: str, result_value: Union[int, None]) -> bool:
+        if result_value and self.limit.check(result_value=result_value):
+            print(f"Result check passed for {name}: {result_value} ({self.limit})")
             return True
 
-        message = f"Result check failed for {name}. " f"Got {value}, expected {self.limit}."
-        print(message)
+        print(f"Result check failed for {name}. Got {result_value}, expected {self.limit}.")
         return False
 
 
@@ -93,8 +105,10 @@ class MaximumLogicLevel(BuildResultChecker):
 
     name = "Maximum logic level"
 
-    def check(self, build_result):
-        return self._check_value("maximum logic level", build_result.maximum_logic_level)
+    def check(self, build_result: BuildResult) -> bool:
+        return self._check_result_value(
+            name="maximum logic level", result_value=build_result.maximum_logic_level
+        )
 
 
 class SizeChecker(BuildResultChecker):
@@ -109,10 +123,18 @@ class SizeChecker(BuildResultChecker):
     the implemented one, even if available.
     """
 
-    name = ""
+    name: str
 
-    def check(self, build_result):
-        return self._check_value(self.name, build_result.synthesis_size[self.name])
+    def check(self, build_result: BuildResult) -> bool:
+        # If handled correctly, this method should only be called for a successful result where
+        # the size is set.
+        # But just to be sure, and to be type-correct, we do this check anyway.
+        if build_result.synthesis_size:
+            value = build_result.synthesis_size[self.name]
+        else:
+            value = None
+
+        return self._check_result_value(name=self.name, result_value=value)
 
 
 class TotalLuts(SizeChecker):
@@ -156,12 +178,18 @@ class DspBlocks(SizeChecker):
 
     name = "DSP Blocks"
 
-    def check(self, build_result):
+    def check(self, build_result: BuildResult) -> bool:
         """
         Same as super class, but checks for the legacy name as well as the current name.
         """
-        legacy_name = "DSP48 Blocks"
-        if legacy_name in build_result.synthesis_size:
-            return self._check_value(legacy_name, build_result.synthesis_size[legacy_name])
+        if build_result.synthesis_size:
+            legacy_name = "DSP48 Blocks"
 
-        return self._check_value(self.name, build_result.synthesis_size[self.name])
+            if legacy_name in build_result.synthesis_size:
+                value = build_result.synthesis_size[legacy_name]
+            else:
+                value = build_result.synthesis_size[self.name]
+        else:
+            value = None
+
+        return self._check_result_value(name=self.name, result_value=value)

@@ -10,20 +10,25 @@
 import argparse
 from pathlib import Path
 from shutil import which
+from typing import TYPE_CHECKING, Any, Optional, Type
+
+if TYPE_CHECKING:
+    from tsfpga.vivado.simlib_common import VivadoSimlibCommon
 
 # Third party libraries
-from vunit import VUnit, VUnitCLI
+from vunit.ui import VUnit
 from vunit.vivado.vivado import add_from_compile_order_file, create_compile_order_file
+from vunit.vunit_cli import VUnitCLI
 
 # First party libraries
 import tsfpga
 import tsfpga.create_vhdl_ls_config
-from tsfpga.module import ModuleList
+from tsfpga.module_list import ModuleList
 from tsfpga.vivado.ip_cores import VivadoIpCores
 from tsfpga.vivado.simlib import VivadoSimlib
 
 
-def get_arguments_cli(default_output_path):
+def get_arguments_cli(default_output_path: Path) -> VUnitCLI:
     """
     Get arguments for the simulation flow.
 
@@ -80,13 +85,13 @@ class SimulationProject:
     Class for setting up and handling a VUnit simulation project. Should be reusable in most cases.
     """
 
-    def __init__(self, args, enable_preprocessing=False):
+    def __init__(self, args: argparse.Namespace, enable_preprocessing: bool = False) -> None:
         """
         Create a VUnit project, configured according to the given arguments.
 
         Arguments:
-            enable_preprocessing (bool): If ``True``, VUnit location/check preprocessing will
-                be enabled.
+        args: Command line argument namespace from ``simulate.py``.
+        enable_preprocessing: If ``True``, VUnit location/check preprocessing will be enabled.
         """
         self.vunit_proj = VUnit.from_args(args=args)
         self.vunit_proj.add_vhdl_builtins()
@@ -99,19 +104,25 @@ class SimulationProject:
 
         self.has_commercial_simulator = self.vunit_proj.get_simulator_name() != "ghdl"
 
-    def add_modules(self, args, modules, modules_no_sim=None, **setup_vunit_kwargs):
+    def add_modules(
+        self,
+        args: argparse.Namespace,
+        modules: ModuleList,
+        modules_no_sim: Optional[ModuleList] = None,
+        **setup_vunit_kwargs: Any,
+    ) -> None:
         """
         Add module source files to the VUnit project.
 
         Arguments:
-            args: Command line argument namespace.
-            modules (:class:`.ModuleList`): These modules will be included in the
-                simulation project.
-            modules_no_sim (:class:`.ModuleList`): These modules will be included in the simulation
-                project, but their test files will not be added.
+            args: Command line argument namespace from ``simulate.py``.
+            modules: These modules will be included in the simulation project.
+            modules_no_sim: These modules will be included in the simulation project,
+                but their test files will not be added.
             setup_vunit_kwargs: Further arguments that will be sent to
-                :meth:`.BaseModule.setup_vunit` for each module. Note that this is a "kwargs" style
-                argument; any number of named arguments can be sent.
+                :meth:`.BaseModule.setup_vunit` for each module.
+                Note that this is a "kwargs" style argument; any number of named arguments can
+                be sent.
         """
         modules_no_sim = ModuleList() if modules_no_sim is None else modules_no_sim
 
@@ -142,7 +153,7 @@ class SimulationProject:
                     **setup_vunit_kwargs,
                 )
 
-    def add_vivado_simlib(self, args):
+    def add_vivado_simlib(self, args: argparse.Namespace) -> Optional["VivadoSimlibCommon"]:
         """
         Add Vivado simlib to the VUnit project, unless instructed not to by ``args``.
         Will compile simlib if necessary.
@@ -151,7 +162,7 @@ class SimulationProject:
             args: Command line argument namespace from ``simulate.py``.
 
         Return:
-            :class:`.VivadoSimlibCommon`: The simlib object.
+            The simlib object, ``None`` if simlib was not added due to command line argument.
         """
         if args.vivado_skip:
             return None
@@ -160,7 +171,7 @@ class SimulationProject:
             output_path=args.output_path_vivado, force_compile=args.simlib_compile
         )
 
-    def _add_simlib(self, output_path, force_compile):
+    def _add_simlib(self, output_path: Path, force_compile: bool) -> "VivadoSimlibCommon":
         """
         Add Vivado simlib to the VUnit project. Compile if needed.
 
@@ -170,12 +181,11 @@ class SimulationProject:
             advanced, e.g. fetching compiled simlib from Artifactory.
 
         Arguments:
-            output_path (pathlib.Path): Compiled simlib will be placed in sub-directory of
-                this path.
-            force_compile (bool): Will (re)-compile simlib even if compiled artifacts exist.
+            output_path: Compiled simlib will be placed in sub-directory of this path.
+            force_compile: Will (re)-compile simlib even if compiled artifacts exist.
 
         Return:
-            VivadoSimlibCommon: The simlib object.
+            The simlib object.
         """
         vivado_simlib = VivadoSimlib.init(output_path=output_path, vunit_proj=self.vunit_proj)
         if force_compile or vivado_simlib.compile_is_needed:
@@ -185,7 +195,7 @@ class SimulationProject:
         vivado_simlib.add_to_vunit_project()
 
         # Code in the "vital2000" package gives GHDL errors such as "result subtype of a pure
-        # function cannot have access subelements". Hence, relaxed rules need to be enabled when
+        # function cannot have access sub-elements". Hence, relaxed rules need to be enabled when
         # using unisim.
         self.vunit_proj.set_sim_option("ghdl.elab_flags", ["-frelaxed-rules"])
 
@@ -193,27 +203,27 @@ class SimulationProject:
 
     def add_vivado_ip_cores(
         self,
-        args,
-        modules,
-        vivado_part_name="xc7z020clg400-1",
-        vivado_ip_core_project_class=None,
-    ):
+        args: argparse.Namespace,
+        modules: ModuleList,
+        vivado_part_name: str = "xc7z020clg400-1",
+        vivado_ip_core_project_class: Optional[Type[Any]] = None,
+    ) -> Optional[Path]:
         """
         Generate IP cores from the modules, unless instructed not to by ``args``.
         When running with a commercial simulator they will be added to the VUnit project.
 
         Arguments:
             args: Command line argument namespace from ``simulate.py``.
-            modules (:class:`.ModuleList`): IP cores from these modules will be included in the
-                simulation project.
-            vivado_part_name (str): Part name to be used for Vivado IP core project. Might have to
-                change from default depending on what parts you have available in your
+            modules: IP cores from these modules will be included in the simulation project.
+            vivado_part_name: Part name to be used for Vivado IP core project.
+                Might have to change from default depending on what parts you have available in your
                 Vivado installation.
-            vivado_ip_core_project_class: Class to be used for Vivado IP core project. Can be left
-                at default in most cases.
+            vivado_ip_core_project_class: Class to be used for Vivado IP core project.
+                Can be left at default in most cases.
 
         Return:
-            pathlib.Path: Path to the Vivado IP core project's ``project`` directory.
+            Path to the Vivado IP core project's ``project`` directory.
+            ``None`` if Vivado IP cores were not added due to command line argument.
         """
         if args.vivado_skip:
             return None
@@ -239,17 +249,21 @@ class SimulationProject:
 
     @staticmethod
     def _generate_ip_core_files(
-        modules, output_path, force_generate, part_name, vivado_project_class=None
-    ):
+        modules: ModuleList,
+        output_path: Path,
+        force_generate: bool,
+        part_name: str,
+        vivado_project_class: Optional[Type[Any]] = None,
+    ) -> tuple[Path, Path]:
         """
         Generate Vivado IP core files that are to be added to the VUnit project.
         Create a new project to generate files if needed.
 
         Arguments:
-            modules (:class:`.ModuleList`): IP cores from these modules will be included.
-            output_path (pathlib.Path): IP core files will be placed in sub-directory of this path.
-            force_generate (bool): Will (re)-generate files even if they exist.
-            part_name (str): Vivado part name.
+            modules: IP cores from these modules will be included.
+            output_path: IP core files will be placed in sub-directory of this path.
+            force_generate: Will (re)-generate files even if they exist.
+            part_name: Vivado part name.
             vivado_project_class: Class to be used for Vivado IP core project.
         """
         vivado_ip_cores = VivadoIpCores(
@@ -276,8 +290,11 @@ class SimulationProject:
 
 
 def create_vhdl_ls_configuration(
-    output_path, temp_files_path, modules, ip_core_vivado_project_directory=None
-):
+    output_path: Path,
+    temp_files_path: Path,
+    modules: ModuleList,
+    ip_core_vivado_project_directory: Optional[Path] = None,
+) -> None:
     """
     Create config for vhdl_ls (https://github.com/VHDL-LS/rust_hdl).
     Granted this might no be the "correct" place for this functionality.
@@ -285,11 +302,10 @@ def create_vhdl_ls_configuration(
     appropriate place in order to always have an up-to-date vhdl_ls config.
 
     Arguments:
-        output_path (pathlib.Path): Config file will be placed here.
-        temp_files_path (pathlib.Path): Some temporary files will be placed here.
-        modules (:class:`.ModuleList`): These modules will be added.
-        ip_core_vivado_project_directory (pathlib.Path): Vivado IP core files in this location
-            will be added.
+        output_path: Config file will be placed here.
+        temp_files_path: Some temporary files will be placed here.
+        modules: These modules will be added.
+        ip_core_vivado_project_directory: Vivado IP core files in this location will be added.
     """
     # Create an empty VUnit project to add files from VUnit and OSVVM library.
     # If we were to use the "real" VUnit project that we set up above instead, all the files would
@@ -301,7 +317,9 @@ def create_vhdl_ls_configuration(
     vunit_proj.add_random()
     vunit_proj.add_osvvm()
 
-    vivado_location = None if which("vivado") is None else Path(which("vivado"))
+    which_vivado = which("vivado")
+    vivado_location = None if which_vivado is None else Path(which_vivado)
+
     tsfpga.create_vhdl_ls_config.create_configuration(
         output_path=output_path,
         modules=modules,

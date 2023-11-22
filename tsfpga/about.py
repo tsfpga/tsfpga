@@ -7,7 +7,7 @@
 # --------------------------------------------------------------------------------------------------
 
 
-def get_short_slogan():
+def get_short_slogan() -> str:
     """
     Short slogan used e.g. on pypi.org.
     Note that there seems to be an upper limit of 98 characters when rendering the slogan
@@ -21,10 +21,10 @@ def get_short_slogan():
 
 
 def get_readme_rst(
-    include_extra_for_gitlab=False,
-    include_extra_for_website=False,
-    include_extra_for_pypi=False,
-):
+    include_extra_for_gitlab: bool = False,
+    include_extra_for_website: bool = False,
+    include_extra_for_pypi: bool = False,
+) -> str:
     """
     Get the complete README.rst for tsfpga (to be used on website and in PyPI release).
 

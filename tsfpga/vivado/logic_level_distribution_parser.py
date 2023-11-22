@@ -21,12 +21,12 @@ class LogicLevelDistributionParser:
     """
 
     @staticmethod
-    def get_table(report):
+    def get_table(report: str) -> str:
         """
         Takes a report as a string and returns the table.
 
         Arguments:
-            report (str): A string containing the entire Vivado
+            report: A string containing the entire Vivado
                 ``report_design_analysis -logic_level_distribution`` report.
         """
         table_regexp = re.compile(r"\n(\+--.*-\+)\n", re.DOTALL)
@@ -37,15 +37,15 @@ class LogicLevelDistributionParser:
         raise ValueError(f"Could not find table in report: {report}")
 
     @staticmethod
-    def get_maximum_logic_level(table):
+    def get_maximum_logic_level(table: str) -> int:
         """
         Returns the maximum logic level in the table.
 
         Arguments:
-            table (str): The table as returned by :meth:`.get_table`.
+            table: The table as returned by :meth:`.get_table`.
 
         Return:
-            int: The maximum logic level.
+            The maximum logic level.
         """
         header_line = table.split("\n")[1]
         # First and last items are empty, due to leading and trailing "|" in the table

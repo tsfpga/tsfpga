@@ -7,15 +7,19 @@
 # --------------------------------------------------------------------------------------------------
 
 
+# Standard libraries
+from typing import Union
+
+
 class StringGenericValue:
     """
     Use this type for generic values of type ``string``.
     """
 
-    def __init__(self, value):
+    def __init__(self, value: str) -> None:
         """
         Arguments:
-            value (str): A string of variable length with any content.
+            value: A string of variable length with any content.
         """
         if not isinstance(value, str):
             raise ValueError(
@@ -30,7 +34,7 @@ class StringGenericValue:
 
         self.value = value
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.value
 
 
@@ -39,10 +43,10 @@ class BitVectorGenericValue:
     Use this type for generic values of type ``std_logic_vector``.
     """
 
-    def __init__(self, value):
+    def __init__(self, value: str) -> None:
         """
         Arguments:
-            value (str): A string of variable length containing only "1" or "0".
+            value: A string of variable length containing only "1" or "0".
         """
         if not isinstance(value, str):
             raise ValueError(
@@ -60,23 +64,28 @@ class BitVectorGenericValue:
         self.value = value
 
     @property
-    def length(self):
+    def length(self) -> int:
         """
-        int: The number of bits in the vector.
+        The number of bits in the vector.
         """
         return len(self.value)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.value
 
 
-def get_vivado_tcl_generic_value(value):
+def get_vivado_tcl_generic_value(
+    value: Union[bool, int, float, StringGenericValue, BitVectorGenericValue]
+) -> str:
     """
     Convert generic values of different types to the format recognized by Vivado TCL:
     https://www.xilinx.com/support/answers/52217.html
 
     Arguments:
-        value (bool, int, float, StringGenericValue, BitVectorGenericValue): A generic value.
+        value: A generic value of native Python type..
+
+    Return:
+        The ``value`` formatted as TCL.
     """
     # Note that bool is a sub-class of int in Python, so check for bool must be first
     if isinstance(value, bool):

@@ -18,7 +18,7 @@ class HierarchicalUtilizationParser:
     """
 
     @staticmethod
-    def get_size(report):
+    def get_size(report: str) -> dict[str, int]:
         """
         Takes a hierarchical utilization report as a string and returns the top level size
         for the specified run.
@@ -35,11 +35,14 @@ class HierarchicalUtilizationParser:
                 # above the row for the top level.
                 headers = [column_data.strip() for column_data in lines[idx - 2].split("|")]
                 numbers = [column_data.strip() for column_data in line.split("|")]
+
                 # The first columns contain entity name, etc. We only want the numbers
                 headers = headers[3:-1]
                 numbers = numbers[3:-1]
+
                 # Convert numbers from string to integers
-                numbers = [int(number) for number in numbers]
-                return OrderedDict(zip(headers, numbers))
+                numbers_int = [int(number) for number in numbers]
+
+                return OrderedDict(zip(headers, numbers_int))
 
         return {}

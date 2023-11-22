@@ -9,7 +9,8 @@
 # Standard libraries
 import shutil
 from copy import deepcopy
-from pathlib import PurePath
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 # First party libraries
 from tsfpga import TSFPGA_TCL
@@ -24,6 +25,13 @@ from .hierarchical_utilization_parser import HierarchicalUtilizationParser
 from .logic_level_distribution_parser import LogicLevelDistributionParser
 from .tcl import VivadoTcl
 
+if TYPE_CHECKING:
+    # First party libraries
+    from tsfpga.module_list import ModuleList
+
+    # Local folder libraries
+    from .build_result_checker import MaximumLogicLevel, SizeChecker
+
 
 class VivadoProject:
     """
@@ -33,31 +41,31 @@ class VivadoProject:
     # pylint: disable=too-many-arguments,too-many-instance-attributes
     def __init__(
         self,
-        name,
-        modules,
-        part,
-        top=None,
-        generics=None,
-        constraints=None,
-        tcl_sources=None,
-        build_step_hooks=None,
-        vivado_path=None,
-        default_run_index=1,
-        impl_explore=False,
-        defined_at=None,
-        **other_arguments,
+        name: str,
+        modules: "ModuleList",
+        part: str,
+        top: Optional[str] = None,
+        generics: Optional[dict[str, Any]] = None,
+        constraints: Optional[list["Constraint"]] = None,
+        tcl_sources: Optional[list[Path]] = None,
+        build_step_hooks: Optional[list["BuildStepTclHook"]] = None,
+        vivado_path: Optional[Path] = None,
+        default_run_index: int = 1,
+        impl_explore: bool = False,
+        defined_at: Optional[Path] = None,
+        **other_arguments: Any,
     ):  # pylint: disable=too-many-locals
         """
         Class constructor. Performs a shallow copy of the mutable arguments, so that the user
         can e.g. append items to their list after creating an object.
 
         Arguments:
-            name (str): Project name.
-            modules (list(BaseModule)): Modules that shall be included in the project.
-            part (str): Part identification.
-            top (str): Name of top level entity. If left out, the top level name will be
-                inferred from the ``name``.
-            generics: A dict with generics values (`dict(name: value)`). Use this parameter
+            name: Project name.
+            modules: Modules that shall be included in the project.
+            part: Part identification.
+            top: Name of top level entity.
+                If left out, the top level name will be inferred from the ``name``.
+            generics: A dict with generics values (name: value). Use this parameter
                 for "static" generics that do not change between multiple builds of this
                 project. These will be set in the project when it is created.
 
@@ -71,18 +79,17 @@ class VivadoProject:
                 * :class:`.BitVectorGenericValue` (suitable for VHDL type ``std_logic_vector``,
                   ``unsigned``, etc.), or
                 * :class:`.StringGenericValue` (suitable for VHDL type ``string``).
-            constraints (list(Constraint)): Constraints that will be applied to the project.
-            tcl_sources (list(pathlib.Path)): A list of TCL files. Use for e.g. block design,
-                pinning, settings, etc.
-            build_step_hooks (list(BuildStepTclHook)): Build step hooks that will be applied to the
+            constraints: Constraints that will be applied to the project.
+            tcl_sources: A list of TCL files. Use for e.g. block design, pinning, settings, etc.
+            build_step_hooks: Build step hooks that will be applied to the project.
+            vivado_path: A path to the Vivado executable.
+                If omitted, the default location from the system PATH will be used.
+            default_run_index: Default run index (synth_X and impl_X) that is set in the
                 project.
-            vivado_path (pathlib.Path): A path to the Vivado executable. If omitted,
-                the default location from the system PATH will be used.
-            default_run_index (int): Default run index (synth_X and impl_X) that is set in the
-                project. Can also use the argument to :meth:`build() <VivadoProject.build>` to
+                Can also use the argument to :meth:`build() <VivadoProject.build>` to
                 specify at build-time.
-            defined_at (pathlib.Path): Optional path to the file where you defined this
-                project. To get a useful ``build.py --list`` message. Is useful when you have many
+            defined_at: Optional path to the file where you defined this project.
+                To get a useful ``build.py --list`` message. Is useful when you have many
                 projects set up.
             other_arguments: Optional further arguments. Will not be used by tsfpga, but will
                 instead be passed on to
@@ -132,23 +139,24 @@ class VivadoProject:
                 raise TypeError(f'Got bad type for "constraints" element: {constraint}')
 
         for tcl_source in self.tcl_sources:
-            if not isinstance(tcl_source, PurePath):
+            if not isinstance(tcl_source, Path):
                 raise TypeError(f'Got bad type for "tcl_sources" element: {tcl_source}')
 
         for build_step_hook in self.build_step_hooks:
             if not isinstance(build_step_hook, BuildStepTclHook):
                 raise TypeError(f'Got bad type for "build_step_hooks" element: {build_step_hook}')
 
-    def project_file(self, project_path):
+    def project_file(self, project_path: Path) -> Path:
         """
         Arguments:
-            project_path (pathlib.Path): A path containing a Vivado project.
+            project_path: A path containing a Vivado project.
+
         Return:
-            pathlib.Path: The project file of this project, in the given folder
+            The project file of this project, in the given folder
         """
         return project_path / (self.name + ".xpr")
 
-    def _setup_tcl_sources(self):
+    def _setup_tcl_sources(self) -> None:
         tsfpga_tcl_sources = [
             TSFPGA_TCL / "vivado_default_run.tcl",
             TSFPGA_TCL / "vivado_fast_run.tcl",
@@ -162,7 +170,7 @@ class VivadoProject:
         # settings. Conversely, tsfpga should not modify something that the user has set up.
         self.tcl_sources = tsfpga_tcl_sources + self.tcl_sources
 
-    def _setup_build_step_hooks(self):
+    def _setup_build_step_hooks(self) -> None:
         # Check that no ERROR messages have been sent by Vivado. After synthesis as well as
         # after implementation.
         self.build_step_hooks.append(
@@ -210,7 +218,9 @@ class VivadoProject:
                 )
             )
 
-    def _create_tcl(self, project_path, ip_cache_path, all_arguments):
+    def _create_tcl(
+        self, project_path: Path, ip_cache_path: Optional[Path], all_arguments: dict[str, Any]
+    ) -> Path:
         """
         Make a TCL file that creates a Vivado project
         """
@@ -238,13 +248,18 @@ class VivadoProject:
 
         return create_vivado_project_tcl
 
-    def create(self, project_path, ip_cache_path=None, **other_arguments):
+    def create(
+        self,
+        project_path: Path,
+        ip_cache_path: Optional[Path] = None,
+        **other_arguments: Any,
+    ) -> bool:
         """
         Create a Vivado project
 
         Arguments:
-            project_path (pathlib.Path): Path where the project shall be placed.
-            ip_cache_path (pathlib.Path): Path to a folder where the Vivado IP cache can be
+            project_path: Path where the project shall be placed.
+            ip_cache_path: Path to a folder where the Vivado IP cache can be
                 placed. If omitted, the Vivado IP cache mechanism will not be enabled.
             other_arguments: Optional further arguments. Will not be used by tsfpga, but will
                 instead be sent to
@@ -262,7 +277,7 @@ class VivadoProject:
                 .. note::
                     This is a "kwargs" style argument. You can pass any number of named arguments.
         Return:
-            bool: True if everything went well.
+            True if everything went well.
         """
         print(f"Creating Vivado project in {project_path}")
         self._setup_tcl_sources()
@@ -295,7 +310,7 @@ class VivadoProject:
         )
         return run_vivado_tcl(self._vivado_path, create_vivado_project_tcl)
 
-    def pre_create(self, **kwargs):  # pylint: disable=unused-argument
+    def pre_create(self, **kwargs: Any) -> bool:  # pylint: disable=unused-argument
         """
         Override this function in a subclass if you wish to do something useful with it.
         Will be called from :meth:`.create` right before the call to Vivado.
@@ -313,21 +328,21 @@ class VivadoProject:
                 the ``other_arguments`` argument to :func:`VivadoProject.__init__`.
 
         Return:
-            bool: True if everything went well.
+            True if everything went well.
         """
         return True
 
     def _build_tcl(
         self,
-        project_path,
-        output_path,
-        num_threads,
-        run_index,
-        all_generics,
-        synth_only,
-        from_impl,
-        impl_explore,
-    ):
+        project_path: Path,
+        output_path: Path,
+        num_threads: int,
+        run_index: int,
+        all_generics: dict[str, Any],
+        synth_only: bool,
+        from_impl: bool,
+        impl_explore: bool,
+    ) -> Path:
         """
         Make a TCL file that builds a Vivado project
         """
@@ -353,7 +368,7 @@ class VivadoProject:
 
         return build_vivado_project_tcl
 
-    def pre_build(self, **kwargs):  # pylint: disable=unused-argument
+    def pre_build(self, **kwargs: Any) -> bool:  # pylint: disable=unused-argument
         """
         Override this function in a subclass if you wish to do something useful with it.
         Will be called from :meth:`.build` right before the call to Vivado.
@@ -363,11 +378,11 @@ class VivadoProject:
                 parameters from the user.
 
         Return:
-            bool: True if everything went well.
+            True if everything went well.
         """
         return True
 
-    def post_build(self, **kwargs):  # pylint: disable=unused-argument
+    def post_build(self, **kwargs: Any) -> bool:  # pylint: disable=unused-argument
         """
         Override this function in a subclass if you wish to do something useful with it.
         Will be called from :meth:`.build` right after the call to Vivado.
@@ -386,37 +401,37 @@ class VivadoProject:
                 utilization.
 
         Return:
-            bool: True if everything went well.
+            True if everything went well.
         """
         return True
 
     def build(  # pylint: disable=too-many-locals,too-many-branches
         self,
-        project_path,
-        output_path=None,
-        run_index=None,
-        generics=None,
-        synth_only=False,
-        from_impl=False,
-        num_threads=12,
-        **pre_and_post_build_parameters,
-    ):
+        project_path: Path,
+        output_path: Optional[Path] = None,
+        run_index: Optional[int] = None,
+        generics: Optional[dict[str, Any]] = None,
+        synth_only: bool = False,
+        from_impl: bool = False,
+        num_threads: int = 12,
+        **pre_and_post_build_parameters: Any,
+    ) -> BuildResult:
         """
         Build a Vivado project
 
         Arguments:
-            project_path (pathlib.Path): A path containing a Vivado project.
-            output_path (pathlib.Path): Results (bit file, ...) will be placed here.
-            run_index (int): Select Vivado run (synth_X and impl_X) to build with.
+            project_path: A path containing a Vivado project.
+            output_path: Results (bit file, ...) will be placed here.
+            run_index: Select Vivado run (synth_X and impl_X) to build with.
             generics: A dict with generics values (`dict(name: value)`). Use for run-time
                 generics, i.e. values that can change between each build of this project.
 
                 Compare to the create-time generics argument in :meth:`.__init__`.
 
                 The generic value types follow the same rules as for :meth:`.__init__`.
-            synth_only (bool): Run synthesis and then stop.
-            from_impl (bool): Run the ``impl`` steps and onward on an existing synthesized design.
-            num_threads (int): Number of parallel threads to use during run.
+            synth_only: Run synthesis and then stop.
+            from_impl: Run the ``impl`` steps and onward on an existing synthesized design.
+            num_threads: Number of parallel threads to use during run.
             pre_and_post_build_parameters: Optional further arguments. Will not be used by tsfpga,
                 but will instead be sent to
 
@@ -430,7 +445,7 @@ class VivadoProject:
                     This is a "kwargs" style argument. You can pass any number of named arguments.
 
         Return:
-            :class:`.build_result.BuildResult`: Result object with build information.
+            Result object with build information.
         """
         synth_only = synth_only or self.is_netlist_build
 
@@ -487,9 +502,13 @@ class VivadoProject:
             result.success = False
             return result
 
+        # We ignore the type of 'output_path' going from 'Path | None' to 'Path'.
+        # It is only used if 'synth_only' is False, and we have an assertion that 'output_path' is
+        # not None in that case above.
+
         build_vivado_project_tcl = self._build_tcl(
             project_path=project_path,
-            output_path=output_path,
+            output_path=output_path,  # type: ignore[arg-type]
             num_threads=num_threads,
             run_index=run_index,
             all_generics=all_generics,
@@ -526,8 +545,8 @@ class VivadoProject:
                 bit_file = impl_folder / f"{self.top}.bit"
                 bin_file = impl_folder / f"{self.top}.bin"
 
-            shutil.copy2(bit_file, output_path / f"{self.name}.bit")
-            shutil.copy2(bin_file, output_path / f"{self.name}.bin")
+            shutil.copy2(bit_file, output_path / f"{self.name}.bit")  # type: ignore[operator]
+            shutil.copy2(bin_file, output_path / f"{self.name}.bin")  # type: ignore[operator]
             result.implementation_size = self._get_size(project_path, run_name)
 
         # Send the result object, along with everything else, to the post-build function
@@ -539,19 +558,19 @@ class VivadoProject:
 
         return result
 
-    def open(self, project_path):
+    def open(self, project_path: Path) -> bool:
         """
         Open the project in Vivado GUI.
 
         Arguments:
-            project_path (pathlib.Path): A path containing a Vivado project.
+            project_path: A path containing a Vivado project.
 
         Return:
-            bool: True if everything went well.
+            True if everything went well.
         """
         return run_vivado_gui(self._vivado_path, self.project_file(project_path))
 
-    def _get_size(self, project_path, run):
+    def _get_size(self, project_path: Path, run: str) -> dict[str, int]:
         """
         Reads the hierarchical utilization report and returns the top level size
         for the specified run.
@@ -561,7 +580,7 @@ class VivadoProject:
         )
         return HierarchicalUtilizationParser.get_size(report_as_string)
 
-    def _get_logic_level_distribution(self, project_path, run):
+    def _get_logic_level_distribution(self, project_path: Path, run: str) -> str:
         """
         Reads the hierarchical utilization report and returns the top level size
         for the specified run.
@@ -571,7 +590,7 @@ class VivadoProject:
         )
         return LogicLevelDistributionParser.get_table(report_as_string)
 
-    def __str__(self):
+    def __str__(self) -> str:
         result = f"{self.name}\n"
 
         if self.defined_at is not None:
@@ -592,7 +611,7 @@ class VivadoProject:
         return result
 
     @staticmethod
-    def _dict_to_string(data):
+    def _dict_to_string(data: dict[str, Any]) -> str:
         return ", ".join([f"{name}={value}" for name, value in data.items()])
 
 
@@ -601,16 +620,21 @@ class VivadoNetlistProject(VivadoProject):
     Used for handling Vivado build of a module without top level pinning.
     """
 
-    def __init__(self, analyze_synthesis_timing=False, build_result_checkers=None, **kwargs):
+    def __init__(
+        self,
+        analyze_synthesis_timing: bool = False,
+        build_result_checkers: Optional[list[Union["SizeChecker", "MaximumLogicLevel"]]] = None,
+        **kwargs: Any,
+    ) -> None:
         """
         Arguments:
-            analyze_synthesis_timing (bool): Enable analysis of the synthesized design's timing.
+            analyze_synthesis_timing: Enable analysis of the synthesized design's timing.
                 This will make the build flow open the design, and check for unhandled clock
                 crossings and pulse width violations.
                 Enabling it will add significant build time (can be as much as +40%).
                 Also, in order for clock crossing check to work, the clocks have to be created
                 using a constraint file.
-            build_result_checkers (list(SizeChecker, MaximumLogicLevel)):
+            build_result_checkers:
                 Checkers that will be executed after a successful build. Is used to automatically
                 check that e.g. resource utilization is not greater than expected.
             kwargs: Further arguments accepted by :meth:`.VivadoProject.__init__`.
@@ -622,7 +646,9 @@ class VivadoNetlistProject(VivadoProject):
         self.report_logic_level_distribution = True
         self.build_result_checkers = [] if build_result_checkers is None else build_result_checkers
 
-    def build(self, **kwargs):  # pylint: disable=arguments-differ
+    def build(  # type: ignore  # pylint: disable=arguments-differ
+        self, **kwargs: Any
+    ) -> BuildResult:
         """
         Build the project.
 
@@ -634,7 +660,7 @@ class VivadoNetlistProject(VivadoProject):
 
         return result
 
-    def _check_size(self, build_result):
+    def _check_size(self, build_result: BuildResult) -> bool:
         if not build_result.success:
             print(f"Can not do post_build check for {self.name} since it did not succeed.")
             return False
@@ -652,31 +678,33 @@ class VivadoIpCoreProject(VivadoProject):
     A Vivado project that is only used to generate simulation models of IP cores.
     """
 
-    def __init__(self, **kwargs):
+    ip_cores_only = True
+
+    def __init__(self, **kwargs: Any) -> None:
         """
         Arguments:
             kwargs: Arguments as accepted by :meth:`.VivadoProject.__init__`.
         """
         super().__init__(**kwargs)
 
-        self.ip_cores_only = True
-
-    def build(self, **kwargs):  # pylint: disable=arguments-differ
+    def build(self, **kwargs: Any):  # type: ignore  # pylint: disable=arguments-differ
         """
         Not implemented.
         """
         raise NotImplementedError("IP core project can not be built")
 
 
-def copy_and_combine_dicts(dict_first, dict_second):
+def copy_and_combine_dicts(
+    dict_first: Optional[dict[str, Any]], dict_second: Optional[dict[str, Any]]
+) -> dict[str, Any]:
     """
     Will prefer values in the second dict, in case the same key occurs in both.
-    Will return ``None`` if both are ``None``.
+    Will return an empty dictionary if both are ``None``.
     """
-    if dict_first is None and dict_second is None:
-        return None
-
     if dict_first is None:
+        if dict_second is None:
+            return dict()
+
         return dict_second.copy()
 
     if dict_second is None:
@@ -684,4 +712,5 @@ def copy_and_combine_dicts(dict_first, dict_second):
 
     result = dict_first.copy()
     result.update(dict_second)
+
     return result

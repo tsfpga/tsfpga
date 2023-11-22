@@ -36,7 +36,7 @@ def test_hdl_compilation(vunit_simulator, tmp_path):
     env = os.environ.copy()
     env["VUNIT_SIMULATOR"] = vunit_simulator
 
-    run_command(cmd=command, cwd=str(tmp_path), env=env)
+    run_command(cmd=command, cwd=tmp_path, env=env)
 
 
 @pytest.mark.parametrize("vunit_simulator", ["modelsim", "rivierapro", "ghdl"])
@@ -59,7 +59,7 @@ def test_hdl_test_cases(vunit_simulator, tmp_path):
     env = os.environ.copy()
     env["VUNIT_SIMULATOR"] = vunit_simulator
 
-    run_command(cmd=command, cwd=str(tmp_path), env=env)
+    run_command(cmd=command, cwd=tmp_path, env=env)
 
 
 @pytest.mark.parametrize("vunit_simulator", ["modelsim", "rivierapro", "ghdl"])
@@ -83,4 +83,4 @@ def test_simlib_compilation_and_ip_core_test_cases(vunit_simulator, tmp_path):
     env = os.environ.copy()
     env["VUNIT_SIMULATOR"] = vunit_simulator
 
-    run_command(cmd=command, cwd=str(tmp_path), env=env)
+    run_command(cmd=command, cwd=tmp_path, env=env)

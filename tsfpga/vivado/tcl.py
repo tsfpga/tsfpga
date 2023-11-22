@@ -6,6 +6,10 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Iterable, Optional
+
 # First party libraries
 from tsfpga.system_utils import create_file
 
@@ -13,7 +17,13 @@ from tsfpga.system_utils import create_file
 from .common import to_tcl_path
 from .generics import get_vivado_tcl_generic_value
 
-# Number of availiable Vivado implementation strategies
+if TYPE_CHECKING:
+    # First party libraries
+    from tsfpga.build_step_tcl_hook import BuildStepTclHook
+    from tsfpga.constraint import Constraint
+    from tsfpga.module_list import ModuleList
+
+# Number of available Vivado implementation strategies
 NUM_VIVADO_STRATEGIES = 33
 
 
@@ -24,29 +34,29 @@ class VivadoTcl:
 
     def __init__(
         self,
-        name,
-    ):
+        name: str,
+    ) -> None:
         self.name = name
 
     # pylint: disable=too-many-arguments
     def create(
         self,
-        project_folder,
-        modules,
-        part,
-        top,
-        run_index,
-        generics=None,
-        constraints=None,
-        tcl_sources=None,
-        build_step_hooks=None,
-        ip_cache_path=None,
-        disable_io_buffers=True,
+        project_folder: Path,
+        modules: "ModuleList",
+        part: str,
+        top: str,
+        run_index: int,
+        generics: Optional[dict[str, str]] = None,
+        constraints: Optional[list["Constraint"]] = None,
+        tcl_sources: Optional[list[Path]] = None,
+        build_step_hooks: Optional[list["BuildStepTclHook"]] = None,
+        ip_cache_path: Optional[Path] = None,
+        disable_io_buffers: bool = True,
         # Add no sources other than IP cores
-        ip_cores_only=False,
+        ip_cores_only: bool = False,
         # Will be passed on to module functions. Enables parameterization of e.g. IP cores.
-        other_arguments=None,
-    ):
+        other_arguments: Optional[dict[str, Any]] = None,
+    ) -> str:
         generics = {} if generics is None else generics
         other_arguments = {} if other_arguments is None else other_arguments
 
@@ -94,7 +104,9 @@ class VivadoTcl:
         tcl += "exit\n"
         return tcl
 
-    def _add_module_source_files(self, modules, other_arguments):
+    def _add_module_source_files(
+        self, modules: "ModuleList", other_arguments: dict[str, Any]
+    ) -> str:
         tcl = ""
         for module in modules:
             vhdl_files = []
@@ -126,7 +138,7 @@ class VivadoTcl:
         return tcl
 
     @staticmethod
-    def _to_file_list(file_paths):
+    def _to_file_list(file_paths: list[Path]) -> str:
         """
         Return a TCL snippet for a file list, with each file enclosed in curly braces.
         E.g. "{file1}" or "{{file1} {file2} {file3}}"
@@ -139,7 +151,7 @@ class VivadoTcl:
         return f"{{{files_string}}}"
 
     @staticmethod
-    def _add_tcl_sources(tcl_sources):
+    def _add_tcl_sources(tcl_sources: Optional[list[Path]]) -> str:
         if tcl_sources is None:
             return ""
 
@@ -149,7 +161,7 @@ class VivadoTcl:
         return tcl
 
     @staticmethod
-    def _add_ip_cores(modules, other_arguments):
+    def _add_ip_cores(modules: "ModuleList", other_arguments: dict[str, Any]) -> str:
         tcl = ""
         for module in modules:
             for ip_core_file in module.get_ip_core_files(**other_arguments):
@@ -168,13 +180,14 @@ class VivadoTcl:
 
         return tcl
 
-    def _add_build_step_hooks(self, build_step_hooks, project_folder):
+    def _add_build_step_hooks(
+        self, build_step_hooks: Optional[list["BuildStepTclHook"]], project_folder: Path
+    ) -> str:
         if build_step_hooks is None:
             return ""
 
-        # There can be many hooks for the same step. Reorganize them into a dict, according
-        # to the format step_name: [list of hooks]
-        hook_steps = {}
+        # There can be many hooks for the same step. Reorganize them into a dict.
+        hook_steps: dict[str, list["BuildStepTclHook"]] = {}
         for build_step_hook in build_step_hooks:
             if build_step_hook.hook_step in hook_steps:
                 hook_steps[build_step_hook.hook_step].append(build_step_hook)
@@ -205,7 +218,7 @@ class VivadoTcl:
 
         return tcl
 
-    def _add_project_settings(self):
+    def _add_project_settings(self) -> str:
         tcl = ""
 
         # Default value for when opening project in GUI.
@@ -224,7 +237,7 @@ class VivadoTcl:
         return tcl
 
     @staticmethod
-    def _tcl_for_each_run(run_wildcard, tcl_block):
+    def _tcl_for_each_run(run_wildcard: str, tcl_block: str) -> str:
         """
         Apply TCL block for each defined run. Use ${run} for run variable in TCL.
         """
@@ -235,7 +248,7 @@ class VivadoTcl:
         return tcl
 
     @staticmethod
-    def _add_generics(generics):
+    def _add_generics(generics: Optional[dict[str, Any]]) -> str:
         """
         Generics are set according to this weird format:
         https://www.xilinx.com/support/answers/52217.html
@@ -252,7 +265,11 @@ class VivadoTcl:
         return f"set_property generic {{{generics_string}}} [current_fileset]\n"
 
     @staticmethod
-    def _iterate_constraints(modules, constraints, other_arguments):
+    def _iterate_constraints(
+        modules: "ModuleList",
+        constraints: Optional[list["Constraint"]],
+        other_arguments: dict[str, Any],
+    ) -> Iterable["Constraint"]:
         for module in modules:
             for constraint in module.get_scoped_constraints(**other_arguments):
                 yield constraint
@@ -262,7 +279,7 @@ class VivadoTcl:
                 yield constraint
 
     @staticmethod
-    def _add_constraints(constraints):
+    def _add_constraints(constraints: Iterable["Constraint"]) -> str:
         tcl = ""
         for constraint in constraints:
             constraint_file = to_tcl_path(constraint.file)
@@ -283,16 +300,16 @@ class VivadoTcl:
 
     def build(
         self,
-        project_file,
-        output_path,
-        num_threads,
-        run_index,
-        generics=None,
-        synth_only=False,
-        from_impl=False,
-        impl_explore=False,
-        analyze_synthesis_timing=True,
-    ):
+        project_file: Path,
+        output_path: Path,
+        num_threads: int,
+        run_index: int,
+        generics: Optional[dict[str, Any]] = None,
+        synth_only: bool = False,
+        from_impl: bool = False,
+        impl_explore: bool = False,
+        analyze_synthesis_timing: bool = True,
+    ) -> str:
         if impl_explore:
             # For implementation explore, threads are divided to one each per job.
             # Number of jobs in parallel are the number of threads specified for build.
@@ -333,7 +350,7 @@ class VivadoTcl:
 
         return tcl
 
-    def _synthesis(self, run, num_threads, analyze_synthesis_timing):
+    def _synthesis(self, run: str, num_threads: int, analyze_synthesis_timing: bool) -> str:
         tcl = self._run(run, num_threads)
         if analyze_synthesis_timing:
             # For synthesis flow we perform the timing checks by opening the design. It would have
@@ -388,8 +405,8 @@ timing_summary.rpt in ${run_directory}."
         return tcl
 
     @staticmethod
-    def _run(run, num_threads, to_step=None):
-        to_step = "" if to_step is None else " -to_step " + to_step
+    def _run(run: str, num_threads: int, to_step: Optional[str] = None) -> str:
+        to_step = "" if to_step is None else f" -to_step {to_step}"
 
         tcl = f"""
 set run {run}
@@ -407,7 +424,7 @@ if {[get_property PROGRESS [get_runs ${run}]] != "100%"} {
 """
         return tcl
 
-    def _run_multiple(self, num_jobs=4, base_name="impl_explore_"):
+    def _run_multiple(self, num_jobs: int = 4, base_name: str = "impl_explore_") -> str:
         # Currently, this creates .tcl that waits for all active runs to complete
 
         tcl = "set build_succeeded 0\n"
@@ -442,7 +459,7 @@ if {${build_succeeded} eq 0} {
 
         return tcl
 
-    def _write_hw_platform(self, output_path):
+    def _write_hw_platform(self, output_path: Path) -> str:
         """
         TCL command to create a Xilinx support archive (.xsa) file, for use as a
         hardware platform.

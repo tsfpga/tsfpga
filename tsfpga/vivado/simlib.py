@@ -6,9 +6,20 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
+from pathlib import Path
+from typing import TYPE_CHECKING, Optional
+
+# Third party libraries
+from vunit.ui import VUnit
+
 # Local folder libraries
 from .simlib_commercial import VivadoSimlibCommercial
 from .simlib_ghdl import VivadoSimlibGhdl
+
+if TYPE_CHECKING:
+    # Local folder libraries
+    from .simlib_common import VivadoSimlibCommon
 
 
 class VivadoSimlib:
@@ -18,20 +29,34 @@ class VivadoSimlib:
     """
 
     @staticmethod
-    def init(output_path, vunit_proj, vivado_path=None):
+    def init(
+        output_path: Path, vunit_proj: VUnit, vivado_path: Optional[Path] = None
+    ) -> "VivadoSimlibCommon":
         """
         Get a Vivado simlib API suitable for your current simulator. Uses VUnit mechanism
         for detecting the simulator currently in use.
 
+        Will return a :class:`.VivadoSimlibCommon` subclass object.
+
         Arguments:
-            output_path (pathlib.Path): The compiled simlib will be placed here.
+            output_path: The compiled simlib will be placed here.
             vunit_proj: The VUnit project that is used to run simulation.
-            vivado_path (pathlib.Path): Path to Vivado executable. If left out, the default
+            vivado_path: Path to Vivado executable. If left out, the default
                 from system ``PATH`` will be used.
-        Return:
-            A :class:`.VivadoSimlibCommon` subclass object.
         """
         simulator_interface = vunit_proj._simulator_class  # pylint: disable=protected-access
+
         if simulator_interface.name == "ghdl":
-            return VivadoSimlibGhdl(output_path, vunit_proj, simulator_interface, vivado_path)
-        return VivadoSimlibCommercial(output_path, vunit_proj, simulator_interface, vivado_path)
+            return VivadoSimlibGhdl(
+                vivado_path=vivado_path,
+                output_path=output_path,
+                vunit_proj=vunit_proj,
+                simulator_interface=simulator_interface,
+            )
+
+        return VivadoSimlibCommercial(
+            vivado_path=vivado_path,
+            output_path=output_path,
+            vunit_proj=vunit_proj,
+            simulator_interface=simulator_interface,
+        )

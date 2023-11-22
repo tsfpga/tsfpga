@@ -9,12 +9,22 @@
 # Standard libraries
 import hashlib
 import json
+from pathlib import Path
+from typing import TYPE_CHECKING, Optional
 
 # First party libraries
 from tsfpga.system_utils import create_file, delete, read_file
 
 # Local folder libraries
 from .project import VivadoIpCoreProject
+
+if TYPE_CHECKING:
+    # First party libraries
+    from tsfpga.ip_core_file import IpCoreFile
+    from tsfpga.module_list import ModuleList
+
+    # Local folder libraries
+    from .project import VivadoProject
 
 
 class VivadoIpCores:
@@ -26,12 +36,18 @@ class VivadoIpCores:
 
     project_name = "vivado_ip_project"
 
-    def __init__(self, modules, output_path, part_name, vivado_project_class=None):
+    def __init__(
+        self,
+        modules: "ModuleList",
+        output_path: Path,
+        part_name: str,
+        vivado_project_class: Optional[type["VivadoProject"]] = None,
+    ) -> None:
         """
         Arguments:
-            modules (list(BaseModule)): IP cores from  these modules will be included.
-            output_path (pathlib.Path): The Vivado project will be placed here.
-            part_name (str): Vivado part name to be used for the project.
+            modules: IP cores from  these modules will be included.
+            output_path: The Vivado project will be placed here.
+            part_name: Vivado part name to be used for the project.
             vivado_project_class: The Vivado project class that will be used for the IP core
                 project. Is safe to leave at default in most cases.
         """
@@ -47,20 +63,20 @@ class VivadoIpCores:
         self._setup(modules, vivado_project_class)
 
     @property
-    def compile_order_file(self):
+    def compile_order_file(self) -> Path:
         """
         pathlib.Path: Path to the generated compile order file.
         """
         return self.project_directory / "compile_order.txt"
 
     @property
-    def vivado_project_file(self):
+    def vivado_project_file(self) -> Path:
         """
         pathlib.Path: Path to the Vivado project file.
         """
         return self._vivado_project.project_file(self.project_directory)
 
-    def create_vivado_project(self):
+    def create_vivado_project(self) -> None:
         """
         Create IP core Vivado project.
         """
@@ -72,7 +88,7 @@ class VivadoIpCores:
 
         self._save_hash()
 
-    def create_vivado_project_if_needed(self):
+    def create_vivado_project_if_needed(self) -> bool:
         """
         Create IP core Vivado project if anything has changed since last time this was run.
         If
@@ -92,7 +108,7 @@ class VivadoIpCores:
 
         return False
 
-    def _setup(self, modules, vivado_project_class):
+    def _setup(self, modules: "ModuleList", vivado_project_class: type["VivadoProject"]) -> None:
         self._vivado_project = vivado_project_class(
             name=self.project_name, modules=modules, part=self._part_name
         )
@@ -105,13 +121,13 @@ class VivadoIpCores:
         self._hash = self._calculate_hash(ip_core_files)
 
     @staticmethod
-    def _calculate_hash(ip_core_files):
+    def _calculate_hash(ip_core_files: list["IpCoreFile"]) -> str:
         """
         A string with hashes of the different IP core files.
         """
         data = ""
 
-        def sort_by_file_name(ip_core_file):
+        def sort_by_file_name(ip_core_file: "IpCoreFile") -> str:
             return ip_core_file.path.name
 
         for ip_core_file in sorted(ip_core_files, key=sort_by_file_name):
@@ -128,10 +144,10 @@ class VivadoIpCores:
 
         return data
 
-    def _save_hash(self):
+    def _save_hash(self) -> None:
         create_file(self._hash_file, self._hash)
 
-    def _should_create(self):
+    def _should_create(self) -> bool:
         """
         Return True if a Vivado project create is needed, i.e. if anything has changed.
         """

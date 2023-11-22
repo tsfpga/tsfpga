@@ -6,9 +6,21 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
+from pathlib import Path
+from typing import TYPE_CHECKING, Optional
+
 # First party libraries
 from tsfpga.system_utils import create_file, file_is_in_directory, read_file
 from tsfpga.vhdl_file_documentation import VhdlFileDocumentation
+
+# Local folder libraries
+from .vivado.project import VivadoNetlistProject
+
+if TYPE_CHECKING:
+    # Local folder libraries
+    from .hdl_file import HdlFile
+    from .module import BaseModule
 
 
 class ModuleDocumentation:
@@ -18,19 +30,19 @@ class ModuleDocumentation:
     The content is extracted from VHDL source file headers.
     """
 
-    def __init__(self, module):
+    def __init__(self, module: "BaseModule") -> None:
         """
         Arguments:
-            module (:class:`.BaseModule`): The module which shall be documented.
+            module: The module which shall be documented.
         """
         self._module = module
 
-    def get_overview_rst(self):
+    def get_overview_rst(self) -> Optional[str]:
         """
         Get the contents of the module's ``doc/<name>.rst``, i.e. the module "overview" document.
 
         Return:
-            str: Module overview RST. ``None`` if file does not exist.
+            Module overview RST. ``None`` if file does not exist.
         """
         overview_rst_file = self._module.path / "doc" / f"{self._module.name}.rst"
         if overview_rst_file.exists():
@@ -38,7 +50,7 @@ class ModuleDocumentation:
 
         return None
 
-    def get_register_rst(self, heading_character):
+    def get_register_rst(self, heading_character: str) -> Optional[str]:
         """
         Get an RST snippet with a link to the module's register documentation, if available.
         Note that this will create an RST ``:download:`` statement to the register .html page.
@@ -47,10 +59,10 @@ class ModuleDocumentation:
         This is done automatically by :meth:`.create_rst_document`.
 
         Arguments:
-            heading_character (str): Character to use for heading underline.
+            heading_character: Character to use for heading underline.
 
         Return:
-            str: RST snippet with link to register HTML. ``None`` if module does not have registers.
+            RST snippet with link to register HTML. ``None`` if module does not have registers.
         """
         if self._module.registers is not None:
             heading = "Register interface"
@@ -70,27 +82,27 @@ register documentation.
 
     def get_submodule_rst(
         self,
-        heading_character,
-        heading_character_2,
-        exclude_files=None,
-        exclude_module_folders=None,
-    ):
+        heading_character: str,
+        heading_character_2: str,
+        exclude_files: Optional[set[Path]] = None,
+        exclude_module_folders: Optional[list[str]] = None,
+    ) -> str:
         """
         Get RST code with documentation of the different sub-modules (files) of the module.
         Contains documentation that is extracted from the file headers, as well as a
         symbolator symbol of the entity.
 
         Arguments:
-            heading_character (str): Character to use for heading underline.
-            heading_character_2 (str): Character to use for next level of heading underline.
-            exclude_files (set(pathlib.Path)): Files that shall be excluded from the documentation.
-            exclude_module_folders (list(str)): Folder names within the module root that shall be
+            heading_character: Character to use for heading underline.
+            heading_character_2: Character to use for next level of heading underline.
+            exclude_files: Files that shall be excluded from the documentation.
+            exclude_module_folders: Folder names within the module root that shall be
                 excluded from documentation. For example, if you chosen module structure places
                 only netlist build wrappers in the "rtl/" folder within modules, and you do not
                 want them included in the documentation, then pass the argument ["rtl"].
 
         Return:
-            str: RST code with sub-module documentation.
+            RST code with sub-module documentation.
         """
         exclude_module_folders = [] if exclude_module_folders is None else exclude_module_folders
         exclude_module_paths = [self._module.path / name for name in exclude_module_folders]
@@ -99,16 +111,15 @@ register documentation.
 
         rst = ""
 
-        for hdl_file in self._get_vhdl_files(
+        for vhdl_file_path in self._get_vhdl_files(
             exclude_files=exclude_files, exclude_folders=exclude_module_paths
         ):
-            vhdl_file_path = hdl_file.path
             netlist_build_base_name = f"{self._module.library_name}.{vhdl_file_path.stem}"
 
             netlist_builds = []
             # Include all netlist builds whose project name matches this file
             for project in all_builds:
-                if project.is_netlist_build and (
+                if isinstance(project, VivadoNetlistProject) and (
                     project.name == netlist_build_base_name
                     or project.name.startswith(f"{netlist_build_base_name}.")
                 ):
@@ -123,17 +134,17 @@ register documentation.
 
         return rst
 
-    def get_rst_document(self, exclude_module_folders=None):
+    def get_rst_document(self, exclude_module_folders: Optional[list[str]] = None) -> str:
         """
         Get a complete RST document with the content of :meth:`.get_overview_rst`,
         :meth:`.get_register_rst`, and :meth:`.get_submodule_rst`, as well as a top level heading.
 
         Arguments:
-            exclude_module_folders (list(str)): Folder names within the module root that shall be
+            exclude_module_folders: Folder names within the module root that shall be
                 excluded from documentation.
 
         Return:
-            str: An RST document.
+            An RST document.
         """
         heading_character_1 = "="
         heading_character_2 = "-"
@@ -172,15 +183,17 @@ This document contains technical documentation for the ``{self._module.name}`` m
 
         return rst
 
-    def create_rst_document(self, output_path, exclude_module_folders=None):
+    def create_rst_document(
+        self, output_path: Path, exclude_module_folders: Optional[list[str]] = None
+    ) -> None:
         """
         Create an ``.rst`` file in ``output_path`` with the content from :meth:`.get_rst_document`.
         If the module has registers, the HTML page will also be generated in ``output_path``, so
         that e.g. sphinx can be run directly.
 
         Arguments:
-            output_path (pathlib.Path): Document will be placed here.
-            exclude_module_folders (list(str)): Folder names within the module root that shall be
+            output_path: Document will be placed here.
+            exclude_module_folders: Folder names within the module root that shall be
                 excluded from documentation.
         """
         register_list = self._module.registers
@@ -190,7 +203,9 @@ This document contains technical documentation for the ``{self._module.name}`` m
         rst = self.get_rst_document(exclude_module_folders=exclude_module_folders)
         create_file(output_path / f"{self._module.name}.rst", contents=rst)
 
-    def _get_vhdl_files(self, exclude_files, exclude_folders):
+    def _get_vhdl_files(
+        self, exclude_files: Optional[set[Path]], exclude_folders: list[Path]
+    ) -> list[Path]:
         """
         Get VHDL files that shall be included in the documentation, in order.
         """
@@ -198,7 +213,7 @@ This document contains technical documentation for the ``{self._module.name}`` m
 
         module_regs_pkg = self._module.path / f"{self._module.name}_regs_pkg.vhd"
 
-        def file_should_be_included(hdl_file):
+        def file_should_be_included(hdl_file: "HdlFile") -> bool:
             if file_is_in_directory(hdl_file.path, exclude_folders):
                 return False
 
@@ -210,19 +225,25 @@ This document contains technical documentation for the ``{self._module.name}`` m
 
             return True
 
-        vhdl_files = [hdl_file for hdl_file in hdl_files if file_should_be_included(hdl_file)]
+        vhdl_file_paths = [
+            hdl_file.path for hdl_file in hdl_files if file_should_be_included(hdl_file)
+        ]
 
         # Sort by file name
-        def sort_key(vhdl_file):
-            return vhdl_file.path.name
+        def sort_key(path: Path) -> str:
+            return path.name
 
-        vhdl_files = sorted(vhdl_files, key=sort_key)
+        vhdl_files = sorted(vhdl_file_paths, key=sort_key)
 
         return vhdl_files
 
     def _get_vhdl_file_rst(
-        self, vhdl_file_path, heading_character, heading_character_2, netlist_builds
-    ):
+        self,
+        vhdl_file_path: Path,
+        heading_character: str,
+        heading_character_2: str,
+        netlist_builds: list["VivadoNetlistProject"],
+    ) -> str:
         """
         Get reStructuredText documentation for a VHDL file.
         """
@@ -260,7 +281,7 @@ This document contains technical documentation for the ``{self._module.name}`` m
         return rst
 
     @staticmethod
-    def _get_symbolator_rst(vhdl_file_documentation):
+    def _get_symbolator_rst(vhdl_file_documentation: VhdlFileDocumentation) -> str:
         """
         Get RST for rendering a symbolator component.
         """
@@ -274,12 +295,12 @@ This document contains technical documentation for the ``{self._module.name}`` m
 
         return rst
 
-    def _get_resource_utilization_rst(
+    def _get_resource_utilization_rst(  # pylint: disable=too-many-locals,too-many-branches
         self,
-        vhdl_file_path,
-        heading_character,
-        netlist_builds,
-    ):  # pylint: disable=too-many-locals,too-many-branches
+        vhdl_file_path: Path,
+        heading_character: str,
+        netlist_builds: list["VivadoNetlistProject"],
+    ) -> str:
         # First, loop over all netlist builds for this module and assemble information
         generics = []
         checkers = []

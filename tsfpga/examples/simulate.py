@@ -7,8 +7,14 @@
 # --------------------------------------------------------------------------------------------------
 
 # Standard libraries
+import argparse
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, Optional
+
+if TYPE_CHECKING:
+    # First party libraries
+    from tsfpga.module_list import ModuleList
 
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
 REPO_ROOT = Path(__file__).parent.parent.parent.resolve()
@@ -34,7 +40,7 @@ from tsfpga.examples.simulation_utils import (
 from tsfpga.git_simulation_subset import GitSimulationSubset
 
 
-def main():
+def main() -> None:
     """
     Main function for the simulation flow. If you are setting up a new simulation environment
     you probably want to copy and modify this function. The other functions and classes
@@ -46,7 +52,7 @@ def main():
     modules = get_tsfpga_example_modules()
 
     # Avoid the module that depends on Xilinx unisim library
-    module_names_avoid = ["hard_fifo"] if args.vivado_skip else []
+    module_names_avoid = set(["hard_fifo"]) if args.vivado_skip else None
     modules_no_sim = get_hdl_modules(names_avoid=module_names_avoid)
 
     if args.vcs_minimal:
@@ -99,13 +105,13 @@ def main():
 
 
 def find_git_test_filters(
-    args,
-    repo_root,
-    modules,
-    modules_no_sim=None,
-    reference_branch="origin/master",
-    **setup_vunit_kwargs,
-):
+    args: argparse.Namespace,
+    repo_root: Path,
+    modules: "ModuleList",
+    modules_no_sim: Optional["ModuleList"] = None,
+    reference_branch: str = "origin/master",
+    **setup_vunit_kwargs: Any,
+) -> list[str]:
     """
     Construct a VUnit test filter that will run all test cases that are affected by git changes.
     The current git state is compared to a reference branch, and differences are derived.
@@ -113,15 +119,14 @@ def find_git_test_filters(
 
     Arguments:
         args: Command line argument namespace.
-        repo_root (pathlib.Path): Path to the repository root. Git commands will be run here.
-        modules (ModuleList): Will be passed on to :meth:`.SimulationProject.add_modules`.
-        modules_no_sim (list(BaseModule)): Will be passed on
-            to :meth:`.SimulationProject.add_modules`.
+        repo_root: Path to the repository root. Git commands will be run here.
+        modules: Will be passed on to :meth:`.SimulationProject.add_modules`.
+        modules_no_sim: Will be passed on to :meth:`.SimulationProject.add_modules`.
         reference_branch (str): The name of the reference branch that is used to collect a diff.
         setup_vunit_kwargs : Will be passed on to :meth:`.SimulationProject.add_modules`.
 
     Return:
-        `list(str)`: A list of VUnit test case filters.
+        A list of VUnit test case filters.
     """
     # Set up a dummy VUnit project that will be used for dependency scanning.
     # Note that sources are added identical to the "real" project above.

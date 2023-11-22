@@ -8,6 +8,8 @@
 
 # Standard libraries
 import re
+from pathlib import Path
+from typing import Optional
 
 # First party libraries
 from tsfpga.system_utils import read_file
@@ -22,20 +24,20 @@ class VhdlFileDocumentation:
     Methods to extract documentation from a VHDL source file.
     """
 
-    def __init__(self, vhd_file_path):
+    def __init__(self, vhd_file_path: Path) -> None:
         """
         Arguments:
-            vhd_file_path (pathlib.Path): Path to the VHDL file which shall be documented.
+            vhd_file_path: Path to the VHDL file which shall be documented.
         """
         self._vhd_file_path = vhd_file_path
 
-    def get_header_rst(self):
+    def get_header_rst(self) -> Optional[str]:
         """
         Get the contents of the VHDL file's header. This means everything that is in the comment
         block at the start of the file, after the copyright notice.
 
         Return:
-            str: File header content.
+            File header content.
         """
         file_contents = read_file(self._vhd_file_path)
 
@@ -64,7 +66,7 @@ class VhdlFileDocumentation:
 
         return text
 
-    def get_symbolator_component(self):
+    def get_symbolator_component(self) -> Optional[str]:
         """
         Return a string with a ``component`` declaration equivalent to the ``entity`` declaration
         within the file. (We use entity's but symbolator requires component's).
@@ -84,7 +86,7 @@ class VhdlFileDocumentation:
         The real solution would be to fix upstream in symbolator and hdlparse.
 
         Return:
-            str: VHDL ``component`` declaration. ``None`` if file is a package, and hence contains
+            VHDL ``component`` declaration. ``None`` if file is a package, and hence contains
             no ``entity``.
         """
         if self._vhd_file_path.name.endswith("_pkg.vhd"):
@@ -132,7 +134,7 @@ class VhdlFileDocumentation:
         default_value_regexp = re.compile(r"\s*:=.+?(;|$)", re.IGNORECASE | re.DOTALL)
 
         # Replace the assignment with only the ending character (";" or "")
-        def default_value_replace(match):
+        def default_value_replace(match):  # type: ignore
             return match.group(1)
 
         # Remove any vector range declarations in port list.

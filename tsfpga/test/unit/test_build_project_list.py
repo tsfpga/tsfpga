@@ -48,12 +48,12 @@ class TestBuildProjectList(unittest.TestCase):
         self.modules = [self.module_one, self.module_two, self.module_three, self.module_four]
 
     def test_can_list_without_error(self):
-        list_str = str(BuildProjectList(self.modules))
+        list_str = str(BuildProjectList(self.modules, project_filters=[]))
         assert "one" in list_str
         assert "two" in list_str
 
     def test_project_filtering(self):
-        project_list = BuildProjectList(self.modules)
+        project_list = BuildProjectList(self.modules, project_filters=[])
         assert len(project_list.projects) == 2
         assert self.project_one in project_list.projects
         assert self.project_two in project_list.projects
@@ -68,7 +68,9 @@ class TestBuildProjectList(unittest.TestCase):
         assert len(project_list.projects) == 1
         assert self.project_one in project_list.projects
 
-        project_list = BuildProjectList(self.modules, include_netlist_not_top_builds=True)
+        project_list = BuildProjectList(
+            self.modules, project_filters=[], include_netlist_not_top_builds=True
+        )
         assert len(project_list.projects) == 2
         assert self.project_three in project_list.projects
         assert self.project_four in project_list.projects
@@ -217,7 +219,9 @@ class TestBuildProjectList(unittest.TestCase):
         )
 
     def test_open(self):
-        project_list = BuildProjectList(self.modules, include_netlist_not_top_builds=True)
+        project_list = BuildProjectList(
+            self.modules, project_filters=[], include_netlist_not_top_builds=True
+        )
         assert project_list.open(projects_path=self.tmp_path / "projects_path")
 
         self.project_three.open.assert_called_once_with(

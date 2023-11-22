@@ -9,6 +9,7 @@
 # Standard libraries
 from pathlib import Path
 from shutil import which
+from typing import Optional
 
 # Third party libraries
 from vunit.ostools import Process
@@ -18,18 +19,19 @@ from tsfpga.git_utils import get_git_sha
 from tsfpga.math_utils import to_binary_string
 
 
-def run_vivado_tcl(vivado_path, tcl_file, no_log_file=False):
+def run_vivado_tcl(vivado_path: Optional[Path], tcl_file: Path, no_log_file: bool = False) -> bool:
     """
     Setting cwd ensures that any .log or .jou files produced are placed in
     the same directory as the TCL file that produced them.
 
     Arguments:
-        vivado_path (pathlib.Path): Path to Vivado executable. Can set to ``None``
+        vivado_path: Path to Vivado executable. Can set to ``None``
             to use whatever version is in ``PATH``.
-        tcl_file (pathlib.Path): Path to TCL file.
+        tcl_file: Path to TCL file.
+        no_log_file: Optionally set Vivado flags to not create log and journal files.
 
     Return:
-        bool: True if everything went well.
+        True if everything went well.
     """
     tcl_file = tcl_file.resolve()
 
@@ -51,18 +53,18 @@ def run_vivado_tcl(vivado_path, tcl_file, no_log_file=False):
     return True
 
 
-def run_vivado_gui(vivado_path, project_file):
+def run_vivado_gui(vivado_path: Optional[Path], project_file: Path) -> bool:
     """
     Setting cwd ensures that any .log or .jou files produced are placed in
     the same directory as the project.
 
     Arguments:
-        vivado_path (pathlib.Path): Path to Vivado executable. Can set to ``None``
+        vivado_path: Path to Vivado executable. Can set to ``None``
             to use whatever version is in ``PATH``.
-        project_file (pathlib.Path): Path to a project .xpr file.
+        project_file: Path to a project .xpr file.
 
     Return:
-        bool: True if everything went well.
+        True if everything went well.
     """
     project_file = project_file.resolve()
     if not project_file.exists():
@@ -77,16 +79,13 @@ def run_vivado_gui(vivado_path, project_file):
     return True
 
 
-def get_vivado_path(vivado_path=None):
+def get_vivado_path(vivado_path: Optional[Path] = None) -> Path:
     """
     Wrapper to get a path to Vivado executable.
 
     Arguments:
-        vivado_path (pathlib.Path): Path to vivado executable. Set to ``None`` to use whatever
+        vivado_path: Path to vivado executable. Set to ``None`` to use whatever
             is available in the system ``PATH``.
-
-    Return:
-        pathlib.Path: The path.
     """
     if vivado_path is not None:
         return vivado_path.resolve()
@@ -98,16 +97,16 @@ def get_vivado_path(vivado_path=None):
     return Path(which_vivado).resolve()
 
 
-def get_vivado_version(vivado_path=None):
+def get_vivado_version(vivado_path: Optional[Path] = None) -> str:
     """
     Get the version number of the Vivado installation.
 
     Arguments:
-        vivado_path (pathlib.Path): Path to vivado executable. Set to ``None`` to use whatever
+        vivado_path: Path to vivado executable. Set to ``None`` to use whatever
             is available in the system ``PATH``.
 
     Return:
-        str: The version, e.g. ``"2021.2"``.
+        The version, e.g. ``"2021.2"``.
     """
     vivado_path = get_vivado_path(vivado_path=vivado_path)
 
@@ -117,7 +116,7 @@ def get_vivado_version(vivado_path=None):
     return vivado_version
 
 
-def get_git_sha_slv(git_directory):
+def get_git_sha_slv(git_directory: Path) -> tuple[str, str]:
     """
     Get the current git SHA encoded as 32-character binary strings. Suitable for setting
     as ``std_logic_vector`` generics to a Vivado build, where they can be assigned to
@@ -129,14 +128,14 @@ def get_git_sha_slv(git_directory):
         directory (pathlib.Path): The directory where git commands will be run.
 
     Return:
-        tuple(str, str): First object in tuple is the left-most eight characters of the git SHA
+        First object in tuple is the left-most eight characters of the git SHA
         encoded as a 32-character binary string. Second object is the next eight characters from
         the git SHA.
     """
     git_sha = get_git_sha(directory=git_directory)
     assert len(git_sha) == 16
 
-    def hex_to_binary_string(hex_string):
+    def hex_to_binary_string(hex_string: str) -> str:
         assert len(hex_string) == 8
         int_value = int(hex_string, base=16)
 
@@ -148,7 +147,7 @@ def get_git_sha_slv(git_directory):
     return (left_binary_string, right_binary_string)
 
 
-def to_tcl_path(path):
+def to_tcl_path(path: Path) -> str:
     """
     Return a path string in a format suitable for TCL.
     """

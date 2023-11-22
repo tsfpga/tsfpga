@@ -44,6 +44,8 @@ nitpick_ignore = [
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
+    "git": ("https://gitpython.readthedocs.io/en/stable/", None),
+    "vunit": ("https://vunit.github.io/", None),
     "hdl_modules": ("https://hdl-modules.com", None),
     "hdl_registers": ("https://hdl-registers.com", None),
 }

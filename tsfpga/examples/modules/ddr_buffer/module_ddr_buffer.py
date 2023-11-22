@@ -16,7 +16,11 @@ class Module(BaseModule):
     version = "00000011"
 
     def registers_hook(self):
-        self.registers.add_constant(
+        # Should have some registers already from the TOML file.
+        register_list = self.registers
+        assert register_list is not None
+
+        register_list.add_constant(
             "version", int(self.version, base=2), f"Version number for the {self.name} module."
         )
-        self.registers.get_register("version").get_field("version").default_value = self.version
+        register_list.get_register("version").get_field("version").default_value = self.version

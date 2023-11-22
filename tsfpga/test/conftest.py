@@ -14,7 +14,7 @@ import pytest
 
 
 @pytest.fixture
-def fixture_tmp_path(request, tmp_path):
+def fixture_tmp_path(request, tmp_path):  # type: ignore[no-untyped-def]
     """
     A pytest fixture for usage in unittest.TestCase style test classes which gives
     access to a unique temp path for each test case.

@@ -6,6 +6,16 @@
 # https://gitlab.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+# Standard libraries
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # Standard libraries
+
+    # Local folder libraries
+    from .hdl_file import HdlFile
+
 
 class Constraint:
     """
@@ -16,15 +26,20 @@ class Constraint:
     which must be the same as the entity name.
     """
 
-    def __init__(self, file, used_in="all", scoped_constraint=False, processing_order="normal"):
+    def __init__(
+        self,
+        file: Path,
+        used_in: str = "all",
+        scoped_constraint: bool = False,
+        processing_order: str = "normal",
+    ) -> None:
         """
         Arguments:
-            file (pathlib.Path): Path to the constraint file. Typically ends in .xdc or .tcl.
-            used_in (str): Optionally the constraint can be enabled only for "synth" or "impl".
-            scoped_constraint (bool): If enabled the constraint file will be loaded with the "-ref"
+            file: Path to the constraint file. Typically ends in .xdc or .tcl.
+            used_in: Optionally the constraint can be enabled only for "synth" or "impl".
+            scoped_constraint: If enabled the constraint file will be loaded with the "-ref"
                 argument in Vivado. An entity with the same name must exist.
-            processing_order (str): Optionally the processing order can be changed to "early" or
-                "late".
+            processing_order: Optionally the processing order can be changed to "early" or "late".
         """
         self.file = file
         self.used_in = used_in
@@ -34,7 +49,7 @@ class Constraint:
         assert self.used_in in ["all", "synth", "impl"], self.used_in
         assert self.processing_order in ["early", "normal", "late"], self.processing_order
 
-    def validate_scoped_entity(self, source_files):
+    def validate_scoped_entity(self, source_files: list["HdlFile"]) -> bool:
         """
         Make sure that a matching entity file exists in case this is a scoped constraint.
         The list of source files should be the synthesis files for the module that this
@@ -47,5 +62,5 @@ class Constraint:
                 )
         return True
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.file)

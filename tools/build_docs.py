@@ -11,7 +11,6 @@ import argparse
 import shutil
 import sys
 from pathlib import Path
-from subprocess import check_call
 from xml.etree import ElementTree
 
 # Third party libraries
@@ -24,7 +23,7 @@ sys.path.insert(0, str(REPO_ROOT))
 # First party libraries
 import tsfpga
 from tsfpga.about import get_readme_rst, get_short_slogan
-from tsfpga.system_utils import create_directory, create_file, delete, read_file
+from tsfpga.system_utils import create_directory, create_file, delete, read_file, run_command
 from tsfpga.tools.sphinx_doc import build_sphinx, generate_release_notes
 
 GENERATED_SPHINX = tsfpga.TSFPGA_GENERATED / "sphinx_rst"
@@ -81,10 +80,10 @@ def arguments():
 def generate_registers():
     cmd = [
         sys.executable,
-        tsfpga.TSFPGA_EXAMPLES / "build.py",
+        str(tsfpga.TSFPGA_EXAMPLES / "build.py"),
         "--generate-registers-only",
     ]
-    check_call(cmd)
+    run_command(cmd=cmd)
 
 
 def generate_apidoc():
@@ -103,7 +102,7 @@ def generate_apidoc():
         # exclude pattern
         "**/test/**",
     ]
-    check_call(cmd, cwd=tsfpga.REPO_ROOT)
+    run_command(cmd=cmd, cwd=tsfpga.REPO_ROOT)
 
 
 def generate_bibtex():

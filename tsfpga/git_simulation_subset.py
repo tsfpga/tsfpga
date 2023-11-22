@@ -9,9 +9,14 @@
 # Standard libraries
 import re
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, Optional
 
 # Third party libraries
-from git import Repo
+from git.repo import Repo
+
+if TYPE_CHECKING:
+    # Local folder libraries
+    from .module_list import ModuleList
 
 
 class GitSimulationSubset:
@@ -22,19 +27,24 @@ class GitSimulationSubset:
     _re_tb_filename = re.compile(r"(tb_.+\.vhd)|(.+\_tb.vhd)")
 
     def __init__(
-        self, repo_root, reference_branch, vunit_proj, vunit_preprocessed_path=None, modules=None
-    ):
+        self,
+        repo_root: Path,
+        reference_branch: str,
+        vunit_proj: Any,
+        vunit_preprocessed_path: Optional[Path] = None,
+        modules: Optional["ModuleList"] = None,
+    ) -> None:
         """
         Arguments:
-            repo_root (pathlib.Path): Root directory where git commands will be run.
-            reference_branch (str): What git branch to compare against, when finding what files have
+            repo_root: Root directory where git commands will be run.
+            reference_branch: What git branch to compare against, when finding what files have
                 changed. Typically "origin/main" or "origin/master".
             vunit_proj: A vunit project with all source files and testbenches added. Will be used
                 for dependency scanning.
-            vunit_preprocessed_path (pathlib.Path): If location/check preprocessing is enabled
+            vunit_preprocessed_path: If location/check preprocessing is enabled
                 in your VUnit project, supply the path to vunit_out/preprocessed.
-            modules (ModuleList): A list of modules that are included in the VUnit project. Must be
-                supplied only if preprocessing is enabled.
+            modules: A list of modules that are included in the VUnit project.
+                Must be supplied only if preprocessing is enabled.
         """
         self._repo_root = repo_root
         self._reference_branch = reference_branch
@@ -45,13 +55,13 @@ class GitSimulationSubset:
         if (vunit_preprocessed_path is not None) != (modules is not None):
             raise ValueError("Can not supply only one of vunit_preprocessed_path and modules")
 
-    def find_subset(self):
+    def find_subset(self) -> list[tuple[str, str]]:
         """
         Return all testbenches that have changes, or depend on files that have changes.
 
         Return:
-            list(tuple(str, str)): The testbench names and their corresponding library names. A list
-            of tuples ("testbench name", "library name").
+            The testbench names and their corresponding library names.
+            A list of tuples ("testbench name", "library name").
         """
         diff_files = self._find_diff_vhd_files()
 
@@ -77,7 +87,7 @@ class GitSimulationSubset:
 
         return testbenches_to_run
 
-    def _find_diff_vhd_files(self):
+    def _find_diff_vhd_files(self) -> set[Path]:
         repo = Repo(self._repo_root)
 
         head_commit = repo.head.commit
@@ -91,12 +101,10 @@ class GitSimulationSubset:
 
         return self._iterate_vhd_file_diffs(diffs=working_tree_changes + history_changes)
 
-    def _iterate_vhd_file_diffs(self, diffs):
+    def _iterate_vhd_file_diffs(self, diffs: Any) -> set[Path]:
         """
         Return the currently existing files that have been changed (added/renamed/modified)
         within any of the diffs commits.
-
-        Returns a set of Paths.
         """
         files = set()
 
@@ -115,7 +123,7 @@ class GitSimulationSubset:
         self._print_file_list("Found git diff in the following files", files)
         return files
 
-    def _get_preprocessed_file_locations(self, vhd_files):
+    def _get_preprocessed_file_locations(self, vhd_files: set[Path]) -> set[Path]:
         """
         Find the location of a VUnit preprocessed file, based on the path in the modules tree.
         Not all VHDL files are included in the simulation projects (e.g. often files that depend
@@ -127,19 +135,27 @@ class GitSimulationSubset:
             library_name = self._get_library_name_from_path(vhd_file)
 
             if library_name is not None:
-                preprocessed_file = self._vunit_preprocessed_path / library_name / vhd_file.name
+                # Ignore that '_vunit_preprocessed_path' is type 'Path | None', since we only come
+                # if it is not 'None'.
+                preprocessed_file = (
+                    self._vunit_preprocessed_path  # type: ignore[operator]
+                    / library_name
+                    / vhd_file.name
+                )
                 assert preprocessed_file.exists(), preprocessed_file
 
                 result.add(preprocessed_file)
 
         return result
 
-    def _get_library_name_from_path(self, vhd_file):
+    def _get_library_name_from_path(self, vhd_file: Path) -> Optional[str]:
         """
         Returns (str): Library name for the given file path.
             Will return None if no library can be found.
         """
-        for module in self._modules:
+        # Ignore that '_modules' is type 'Path | None', since we only come
+        # if it is not 'None'.
+        for module in self._modules:  # type: ignore[union-attr]
             for module_hdl_file in module.get_simulation_files(include_ip_cores=True):
                 if module_hdl_file.path.name == vhd_file.name:
                     return module.library_name
@@ -147,13 +163,12 @@ class GitSimulationSubset:
         print(f"Could not find library for file {vhd_file}. It will be skipped.")
         return None
 
-    def _find_testbenches(self):
+    def _find_testbenches(self) -> list[tuple[Any, str]]:
         """
         Find all testbench files that are available in the VUnit project.
 
         Return:
-            list(tuple(``SourceFile``, str)): The VUnit SourceFile objects and library names
-                for the files.
+            The VUnit ``SourceFile`` objects and library names for the files.
         """
         result = []
         for source_file in self._vunit_proj.get_source_files():
@@ -166,7 +181,7 @@ class GitSimulationSubset:
 
         return result
 
-    def _source_file_depends_on_files(self, source_file, files):
+    def _source_file_depends_on_files(self, source_file: Any, files: set[Path]) -> bool:
         """
         Return True if the source_file depends on any of the files.
         """
@@ -190,7 +205,7 @@ class GitSimulationSubset:
         return True
 
     @staticmethod
-    def _print_file_list(title, files):
+    def _print_file_list(title: str, files: set[Path]) -> None:
         print(f"{title}:")
         for file_path in files:
             print(f"  {file_path}")

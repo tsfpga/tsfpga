@@ -22,3 +22,24 @@ import_heading_localfolder = "Local folder libraries"
 # third party import.
 known_example_pythonpath = "tsfpga.examples.example_pythonpath"
 sections = "FUTURE,STDLIB,EXAMPLE_PYTHONPATH,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
+
+
+[tool.mypy]
+exclude = ['/test_.*\.py$']
+
+# Use strict as a base, and explicitly remove the checks that we do not want.
+strict = true
+
+# There are not type hints in e.g. 'subprocess' which we call a lot.
+disallow_untyped_calls = false
+
+
+[[tool.mypy.overrides]]
+module = "tsfpga.examples.modules.*"
+strict = false
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "tools.*"
+strict = false
+disallow_untyped_defs = false

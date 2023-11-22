@@ -55,7 +55,7 @@ def get_git_sha(directory: Path) -> str:
     # This function should only be called if git is available.
     # pylint: disable=import-outside-toplevel
     # Third party libraries
-    from git import Repo
+    from git.repo import Repo
 
     repo = Repo(directory, search_parent_directories=True)
     git_sha = repo.head.commit.hexsha[0:sha_length]
@@ -77,7 +77,7 @@ def git_local_changes_present(directory: Path) -> bool:
     # This function should only be called if git is available.
     # pylint: disable=import-outside-toplevel
     # Third party libraries
-    from git import Repo
+    from git.repo import Repo
 
     repo = Repo(directory, search_parent_directories=True)
 
@@ -91,7 +91,8 @@ def git_commands_are_available(directory: Path) -> bool:
     try:
         # pylint: disable=import-outside-toplevel
         # Third party libraries
-        from git import InvalidGitRepositoryError, Repo
+        from git import InvalidGitRepositoryError
+        from git.repo import Repo
     except ImportError:
         return False
 
@@ -126,7 +127,7 @@ def find_git_files(
     # This function should only be called if git is available.
     # pylint: disable=import-outside-toplevel
     # Third party libraries
-    from git import Repo
+    from git.repo import Repo
 
     exclude_directories = (
         []

@@ -11,28 +11,32 @@
 # Standard libraries
 import sys
 from datetime import datetime
+from pathlib import Path
 from subprocess import check_call
+from typing import Iterable, Optional
 
 # Third party libraries
-from git import Repo
-from packaging.version import parse
+from git.repo import Repo
+from packaging.version import Version, parse
 
 # First party libraries
 from tsfpga.system_utils import read_file
 
 
-def generate_release_notes(repo_root, release_notes_directory, project_name):
+def generate_release_notes(
+    repo_root: Path, release_notes_directory: Path, project_name: str
+) -> str:
     """
     Generate release notes in RST format based on a directory full of release note files.
     Will match each file to a git tag.
 
     Arguments:
-        repo_root (pathlib.Path): Git commands will be executed here.
-        release_notes_directory (pathlib.Path): Location of release notes files.
-        project_name (str): Name of project will be used for the gitlab link.
+        repo_root: Git commands will be executed here.
+        release_notes_directory: Location of release notes files.
+        project_name: Name of project will be used for the gitlab link.
 
     Return:
-        str: RST code with release notes.
+        RST code with release notes.
     """
     rst = ""
 
@@ -56,7 +60,9 @@ def generate_release_notes(repo_root, release_notes_directory, project_name):
     return rst
 
 
-def _get_release_notes_files(repo_root, release_notes_directory):
+def _get_release_notes_files(
+    repo_root: Path, release_notes_directory: Path
+) -> Iterable[tuple["Release", Optional[str]]]:
     """
     Iterate the release notes.
     """
@@ -70,7 +76,7 @@ def _get_release_notes_files(repo_root, release_notes_directory):
             release_notes.append(release_notes_file)
 
     # Sort by parsing the version number in the file name. Newest to oldest.
-    def sort_key(path):
+    def sort_key(path: Path) -> Version:
         return parse(path.stem)
 
     release_notes.sort(key=sort_key, reverse=True)
@@ -98,7 +104,7 @@ class Release:
     Used to represent a release.
     """
 
-    def __init__(self, repo, release_notes_file):
+    def __init__(self, repo: Repo, release_notes_file: Path) -> None:
         self.release_notes_file = release_notes_file
 
         version = release_notes_file.stem
@@ -112,7 +118,7 @@ class Release:
             self.date = self.get_git_date_from_tag(repo=repo, tag=self.git_tag)
 
     @staticmethod
-    def get_git_date_from_tag(repo, tag):
+    def get_git_date_from_tag(repo: Repo, tag: str) -> str:
         """
         Get a formatted date string, gathered from git log based on tag name.
         """
@@ -121,13 +127,13 @@ class Release:
         return f"{time.day} {time:%B} {time.year}".lower()
 
 
-def build_sphinx(build_path, output_path):
+def build_sphinx(build_path: Path, output_path: Path) -> None:
     """
     Execute sphinx on command line to build HTML documentation.
 
     Arguments:
-        build_path (pathlib.Path): The location that contains ``conf.py`` and ``index.rst``.
-        output_path (pathlib.Path): Where to place the generated HTML.
+        build_path: The location that contains ``conf.py`` and ``index.rst``.
+        output_path: Where to place the generated HTML.
     """
     # Since we set the working directory when making the system call, the paths must be absolute
     build_path = build_path.resolve()

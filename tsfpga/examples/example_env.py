@@ -10,11 +10,17 @@
 Common functions and definitions in the example build environment.
 """
 
+# Standard libraries
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from tsfpga.module_list import ModuleList
+
 # Import before others since it modifies PYTHONPATH. pylint: disable=unused-import
 import tsfpga.examples.example_pythonpath  # noqa: F401
 
 # Third party libraries
-from hdl_registers.register_list import Register
+from hdl_registers.register import Register
 
 # First party libraries
 import tsfpga
@@ -23,7 +29,7 @@ from tsfpga.module import get_modules
 TSFPGA_EXAMPLES_TEMP_DIR = tsfpga.TSFPGA_GENERATED
 
 
-def get_default_registers():
+def get_default_registers() -> list[Register]:
     """
     Default registers for tsfpga examples.
     """
@@ -55,7 +61,9 @@ def get_default_registers():
     return registers
 
 
-def get_tsfpga_example_modules(names_include=None, names_avoid=None):
+def get_tsfpga_example_modules(
+    names_include: Optional[set[str]] = None, names_avoid: Optional[set[str]] = None
+) -> "ModuleList":
     """
     Wrapper of the regular :func:`.get_modules`. call with correct settings for tsfpga
     example modules.
@@ -72,7 +80,9 @@ def get_tsfpga_example_modules(names_include=None, names_avoid=None):
     )
 
 
-def get_hdl_modules(names_include=None, names_avoid=None):
+def get_hdl_modules(
+    names_include: Optional[set[str]] = None, names_avoid: Optional[set[str]] = None
+) -> "ModuleList":
     """
     Wrapper of :func:`.get_modules` which returns the ``hdl_modules`` module objects
     (https://hdl-modules.com), if available.

@@ -7,17 +7,17 @@
 # --------------------------------------------------------------------------------------------------
 
 
-def to_binary_string(int_value, result_width):
+def to_binary_string(int_value: int, result_width: int) -> str:
     """
     Convert natural integer value to a string of 1's and 0's.
     Most significant bit is the first (left-most) character in the string.
 
     Arguments:
-        int_value (int): The value to be converted.
-        result_width (int): The number of bits in the result. The supplied ``int_value`` must fit.
+        int_value: The value to be converted.
+        result_width: The number of bits in the result. The supplied ``int_value`` must fit.
 
     Return:
-        str: A string of  length ``result_width`` containing only "1" and "0".
+        A string of  length ``result_width`` containing only "1" and "0".
     """
     if int_value < 0:
         raise ValueError(f"Negative value {int_value} not supported")

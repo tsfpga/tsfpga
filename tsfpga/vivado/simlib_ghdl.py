@@ -10,6 +10,7 @@
 import re
 import subprocess
 from pathlib import Path
+from typing import Any, Optional
 
 # First party libraries
 from tsfpga import DEFAULT_FILE_ENCODING
@@ -27,13 +28,19 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
 
     library_names = ["unisim", "secureip", "unimacro", "unifast"]
 
-    def __init__(self, output_path, vunit_proj, simulator_interface, vivado_path):
+    def __init__(
+        self,
+        vivado_path: Optional[Path],
+        output_path: Path,
+        vunit_proj: Any,
+        simulator_interface: Any,
+    ) -> None:
         """
         Arguments:
-            output_path (pathlib.Path): The compiled simlib will be placed here.
+            output_path: The compiled simlib will be placed here.
             vunit_proj: The VUnit project that is used to run simulation.
             simulator_interface: A VUnit SimulatorInterface class.
-            vivado_path (pathlib.Path): Path to Vivado executable.
+            vivado_path: Path to Vivado executable.
         """
         self.ghdl_binary = Path(simulator_interface.find_prefix()) / "ghdl"
 
@@ -41,13 +48,13 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
 
         self._vunit_proj = vunit_proj
 
-    def _compile(self):
+    def _compile(self) -> None:
         self._compile_unisim()
         self._compile_secureip()
         self._compile_unimacro()
         self._compile_unifast()
 
-    def _compile_unisim(self):
+    def _compile_unisim(self) -> None:
         library_path = self._libraries_path / "unisims"
 
         vhd_files = []
@@ -57,7 +64,8 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
             "unisim_retarget_VCOMP",
         ]:
             vhd_file = library_path / f"{vhd_file_base}.vhd"
-            assert vhd_file.exists, vhd_file
+            assert vhd_file.exists(), vhd_file
+
             vhd_files.append(vhd_file)
 
         primitive_dir = library_path / "primitive"
@@ -69,7 +77,7 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
 
         self._compile_ghdl(vhd_files=vhd_files, library_name="unisim")
 
-    def _compile_secureip(self):
+    def _compile_secureip(self) -> None:
         library_path = self._libraries_path / "unisims" / "secureip"
 
         vhd_files = []
@@ -78,27 +86,27 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
 
         self._compile_ghdl(vhd_files=vhd_files, library_name="secureip")
 
-    def _compile_unimacro(self):
+    def _compile_unimacro(self) -> None:
         library_path = self._libraries_path / "unimacro"
 
         vhd_files = []
 
         vhd_file = library_path / "unimacro_VCOMP.vhd"
-        assert vhd_file.exists, vhd_file
+        assert vhd_file.exists(), vhd_file
         vhd_files.append(vhd_file)
 
         vhd_files += self._get_compile_order(library_path=library_path)
 
         self._compile_ghdl(vhd_files=vhd_files, library_name="unimacro")
 
-    def _compile_unifast(self):
+    def _compile_unifast(self) -> None:
         library_path = self._libraries_path / "unifast" / "primitive"
         vhd_files = self._get_compile_order(library_path=library_path)
 
         self._compile_ghdl(vhd_files=vhd_files, library_name="unifast")
 
     @staticmethod
-    def _get_compile_order(library_path):
+    def _get_compile_order(library_path: Path) -> list[Path]:
         """
         Get compile order (list of file paths, in order) from an existing compile order
         file provided by Xilinx.
@@ -115,7 +123,7 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
 
         return vhd_files
 
-    def _compile_ghdl(self, vhd_files: list[Path], library_name: str):
+    def _compile_ghdl(self, vhd_files: list[Path], library_name: str) -> None:
         """
         Compile a list of files into the specified library.
         """
@@ -130,10 +138,10 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
             str(vhd_file.relative_to(self._libraries_path)) for vhd_file in vhd_files
         ]
 
-        def print_compiling(path: str):
+        def print_compiling(path: str) -> None:
             print(f"Compiling {path} into {library_name}...")
 
-        def execute_ghdl(files: list[str]):
+        def execute_ghdl(files: list[str]) -> None:
             self._execute_ghdl(workdir=workdir, library_name=library_name, files=files)
 
         # There seems to be a command length limit on Windows.
@@ -158,9 +166,9 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
             print_compiling(paths_to_print)
             execute_ghdl(files=vhd_paths_str)
 
-    def _execute_ghdl(self, workdir: Path, library_name: str, files: list[str]):
+    def _execute_ghdl(self, workdir: Path, library_name: str, files: list[str]) -> None:
         cmd = [
-            self.ghdl_binary,
+            str(self.ghdl_binary),
             "-a",
             "--ieee=synopsys",
             "--std=08",
@@ -176,11 +184,11 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
 
         subprocess.check_call(cmd, cwd=self.output_path)
 
-    def _get_simulator_tag(self):
+    def _get_simulator_tag(self) -> str:
         """
         Return simulator version tag as a string.
         """
-        cmd = [self.ghdl_binary, "--version"]
+        cmd = [str(self.ghdl_binary), "--version"]
         output = subprocess.check_output(cmd).decode()
 
         regexp_with_tag = re.compile(r"^GHDL (\S+) \((\S+)\).*")
@@ -195,11 +203,12 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
 
         raise ValueError(f"Could not find GHDL version string: {output}")
 
-    def _add_to_vunit_project(self):
+    def _add_to_vunit_project(self) -> None:
         """
         Add the compiled simlib to your VUnit project.
         """
         for library_name in self.library_names:
             library_path = self.output_path / library_name
             assert library_path.exists(), library_path
+
             self._vunit_proj.add_external_library(library_name, library_path)

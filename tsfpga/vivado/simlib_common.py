@@ -10,7 +10,9 @@
 import platform
 import zipfile
 from abc import ABC, abstractmethod
+from pathlib import Path
 from shutil import make_archive
+from typing import Optional
 
 # First party libraries
 from tsfpga.system_utils import create_file, delete
@@ -36,9 +38,9 @@ class VivadoSimlibCommon(ABC):
 
     # Set in subclass to a list of strings. The libraries that shall be compiled and added to
     # VUnit project.
-    library_names = None
+    library_names: list[str]
 
-    def __init__(self, vivado_path, output_path):
+    def __init__(self, vivado_path: Optional[Path], output_path: Path) -> None:
         """
         Call from subclass. Please do not instantiate this class directly.
         """
@@ -47,7 +49,7 @@ class VivadoSimlibCommon(ABC):
 
         self.output_path = output_path.resolve() / self._get_version_tag()
 
-    def compile_if_needed(self):
+    def compile_if_needed(self) -> bool:
         """
         Compile if needed (if :meth:`compile_is_needed <.compile_is_needed>` condition is not
         fulfilled).
@@ -55,10 +57,11 @@ class VivadoSimlibCommon(ABC):
         if self.compile_is_needed:
             self.compile()
             return True
+
         return False
 
     @property
-    def compile_is_needed(self):
+    def compile_is_needed(self) -> bool:
         """
         If there is compiled simlib available that matches
 
@@ -76,9 +79,10 @@ class VivadoSimlibCommon(ABC):
         """
         if self._done_token.exists():
             return False
+
         return True
 
-    def compile(self):
+    def compile(self) -> None:
         """
         Compile simlib.
         """
@@ -91,43 +95,47 @@ class VivadoSimlibCommon(ABC):
         create_file(self._done_token, "Done!")
 
     @abstractmethod
-    def _compile(self):
+    def _compile(self) -> None:
         """
         Compile simlib.
+        Overload in a subclass.
         """
-        raise NotImplementedError()
 
-    def add_to_vunit_project(self):
+    def add_to_vunit_project(self) -> None:
         """
         Add the compiled simlib to your VUnit project.
         """
         self._add_to_vunit_project()
 
     @abstractmethod
-    def _add_to_vunit_project(self):
-        raise NotImplementedError()
+    def _add_to_vunit_project(self) -> None:
+        """
+        Add the compiled simlib to your VUnit project.
+        Overload in a subclass.
+        """
 
     @property
-    def artifact_name(self):
+    def artifact_name(self) -> str:
         """
-        str: The name of the folder where simlib is or will be compiled.
+        The name of the folder where simlib is or will be compiled.
         Follows a format ``vivado-simlib-WW.XX.YY.ZZ`` suitable for storage and versioning
         in Artifactory.
         """
         return self.output_path.name
 
-    def to_archive(self):
+    def to_archive(self) -> Path:
         """
         Compress compiled simlib to an archive.
 
         Return:
-            pathlib.Path: Path to the archive.
+            Path to the archive.
         """
-        make_archive(self.output_path, "zip", self.output_path)
+        make_archive(str(self.output_path), "zip", self.output_path)
         archive = self.output_path.parent / (self.output_path.name + ".zip")
+
         return archive
 
-    def from_archive(self, archive):
+    def from_archive(self, archive: Path) -> None:
         """
         Unpack compiled simlib from an existing archive.
 
@@ -137,7 +145,7 @@ class VivadoSimlibCommon(ABC):
         with zipfile.ZipFile(archive, "r") as zip_handle:
             zip_handle.extractall(self.output_path)
 
-    def _get_version_tag(self):
+    def _get_version_tag(self) -> str:
         tag = "vivado-simlib-"
         tag += self._get_operating_system_tag()
         tag += f".{self._get_vivado_version_tag()}"
@@ -146,13 +154,13 @@ class VivadoSimlibCommon(ABC):
 
         return tag
 
-    def _get_operating_system_tag(self):
+    def _get_operating_system_tag(self) -> str:
         """
         Return e.g. "linux".
         """
         return self._format_version(platform.system())
 
-    def _get_vivado_version_tag(self):
+    def _get_vivado_version_tag(self) -> str:
         """
         Return e.g. "vivado_2021_2".
         """
@@ -161,18 +169,21 @@ class VivadoSimlibCommon(ABC):
         return self._format_version(f"vivado_{vivado_version}")
 
     @abstractmethod
-    def _get_simulator_tag(self):
-        raise NotImplementedError()
+    def _get_simulator_tag(self) -> str:
+        """
+        Return a simulator tag as a string, e.g. "ghdl_1.2.3".
+        Overload in a subclass.
+        """
 
     @staticmethod
-    def _format_version(version):
+    def _format_version(version: str) -> str:
         """
         Format version string to something suitable for artifactory versioning.
         """
         return version.replace(".", "_").replace("-", "_").lower()
 
     @property
-    def _done_token(self):
+    def _done_token(self) -> Path:
         """
         Path to "done" token file.
         """
