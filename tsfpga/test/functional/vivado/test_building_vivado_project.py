@@ -181,13 +181,33 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
             assert path.exists(), path
 
     def test_synth_should_fail_if_source_code_does_not_compile(self):
-        create_file(self.top_file, "garbage\napa\nhest")
+        create_file(
+            file=self.top_file,
+            contents="""
+entity test_proj_top is
+end entity;
+
+architecture a of test_proj_top is
+begin
+
+  garbage;
+  apa();
+
+end architecture;
+""",
+        )
 
         self._create_vivado_project()
 
         build_result = self.proj.build(self.project_folder, synth_only=True)
         assert not build_result.success
-        assert file_contains_string(self.log_file, "\nERROR: Run synth_2 failed.")
+
+        assert file_contains_string(
+            self.log_file, "\nERROR: [Synth 8-36] 'garbage' is not declared"
+        )
+        assert file_contains_string(
+            self.log_file, "\nERROR: [Vivado 12-13638] Failed runs(s) : 'synth_2'\n"
+        )
 
     def test_synth_with_assert_false_should_fail(self):
         assert_false = """
@@ -217,9 +237,20 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
 
         build_result = self.proj.build(self.project_folder, synth_only=True)
         assert not build_result.success
-        assert file_contains_string(self.log_file, "\nERROR: Run synth_2 failed.")
+
         assert file_contains_string(
-            self.log_file, "\nERROR: Vivado has reported one or more ERROR messages. See build log."
+            self.log_file,
+            (
+                "\nERROR: [Synth 8-3819] Generic 'non_existing' not present in "
+                "instantiated entity will be ignored\n"
+            ),
+        )
+        assert file_contains_string(
+            self.log_file, "\nERROR: [Vivado 12-13638] Failed runs(s) : 'synth_2'\n"
+        )
+        assert file_contains_string(
+            self.log_file,
+            "\nERROR: Vivado has reported one or more ERROR messages. See build log.\n",
         )
 
     def test_build_project(self):
