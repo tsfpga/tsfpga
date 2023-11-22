@@ -10,6 +10,9 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
+# Third party libraries
+from hdl_registers.generator.html.page import HtmlPageGenerator
+
 # First party libraries
 from tsfpga.system_utils import create_file, file_is_in_directory, read_file
 from tsfpga.vhdl_file_documentation import VhdlFileDocumentation
@@ -198,7 +201,7 @@ This document contains technical documentation for the ``{self._module.name}`` m
         """
         register_list = self._module.registers
         if register_list is not None:
-            register_list.create_html_page(output_path)
+            HtmlPageGenerator(register_list=register_list, output_folder=output_path).create()
 
         rst = self.get_rst_document(exclude_module_folders=exclude_module_folders)
         create_file(output_path / f"{self._module.name}.rst", contents=rst)
