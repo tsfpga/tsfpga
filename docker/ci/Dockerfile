@@ -27,9 +27,13 @@ RUN python3 -m pip --no-cache-dir install --upgrade \
   pip \
   && python3 -m pip --no-cache-dir install --upgrade \
   black \
-  GitPython \
   flake8 \
+  GitPython \
   mypy \
+  # Include this in this image though it is technically used by the Sphinx builder.
+  # However it is needed for mypy static typing check which is run on this image.
+  # It is only 60 kB large, so it is quite fine.
+  pybadges \
   pylint \
   pytest \
   pytest-cov \
@@ -58,7 +62,6 @@ RUN apt-get update && \
   && rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m pip --no-cache-dir install --upgrade \
-  pybadges \
   pycairo \
   PyGObject \
   sphinx \
