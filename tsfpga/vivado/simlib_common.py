@@ -34,7 +34,7 @@ class VivadoSimlibCommon(ABC):
 
     # The version of this class. Can be bumped to force a re-compile if e.g. the TCL script changes
     # or the output folder structure is updated.
-    _format_version_id = 3
+    _format_version_id = 4
 
     # Set in subclass to a list of strings. The libraries that shall be compiled and added to
     # VUnit project.

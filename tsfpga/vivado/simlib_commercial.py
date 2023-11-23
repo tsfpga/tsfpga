@@ -27,9 +27,17 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
     library_names = ["unisim", "secureip", "unimacro", "unifast", "xpm"]
 
     _tcl = (
-        "set_param general.maxthreads 4\n"
-        "compile_simlib -simulator {simulator_name} -simulator_exec_path {{{simulator_folder}}} "
-        "-family all -language all -library all -no_ip_compile -dir {{{output_path}}} -force"
+        "set_param general.maxthreads 8\n"
+        "compile_simlib "
+        "-simulator {simulator_name} "
+        "-simulator_exec_path {{{simulator_folder}}} "
+        "-directory {{{output_path}}} "
+        "-force "
+        "-family all "
+        "-language all "
+        "-library all "
+        "-no_ip_compile "
+        "-no_systemc_compile "
     )
 
     def __init__(
@@ -89,7 +97,10 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
             output_path=to_tcl_path(self.output_path),
         )
         create_file(tcl_file, tcl)
-        run_vivado_tcl(self._vivado_path, tcl_file)
+        compile_ok = run_vivado_tcl(self._vivado_path, tcl_file)
+
+        if not compile_ok:
+            raise RuntimeError("Vivado simlib compile call failed!")
 
     def _get_simulator_tag(self) -> str:
         """
