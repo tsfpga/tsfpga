@@ -31,7 +31,7 @@ GENERATED_SPHINX_HTML = tsfpga.TSFPGA_GENERATED / "sphinx_html"
 SPHINX_DOC = tsfpga.TSFPGA_DOC / "sphinx"
 
 
-def main():
+def main() -> None:
     args = arguments()
 
     generate_registers()
@@ -64,7 +64,7 @@ def main():
     copy_python_coverage_to_html_output()
 
 
-def arguments():
+def arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         "Build sphinx documentation", formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
@@ -77,7 +77,7 @@ def arguments():
     return parser.parse_args()
 
 
-def generate_registers():
+def generate_registers() -> None:
     cmd = [
         sys.executable,
         str(tsfpga.TSFPGA_EXAMPLES / "build.py"),
@@ -86,7 +86,7 @@ def generate_registers():
     run_command(cmd=cmd)
 
 
-def generate_apidoc():
+def generate_apidoc() -> None:
     output_path = delete(GENERATED_SPHINX / "apidoc")
 
     cmd = [
@@ -105,7 +105,7 @@ def generate_apidoc():
     run_command(cmd=cmd, cwd=tsfpga.REPO_ROOT)
 
 
-def generate_bibtex():
+def generate_bibtex() -> None:
     """
     Generate a BibTeX snippet for citing this project.
 
@@ -129,7 +129,7 @@ def generate_bibtex():
     create_file(GENERATED_SPHINX / "bibtex.rst", rst)
 
 
-def generate_sphinx_index():
+def generate_sphinx_index() -> None:
     """
     Generate index.rst for sphinx. Also verify that readme.rst in the project root is identical.
 
@@ -147,7 +147,7 @@ def generate_sphinx_index():
     create_file(GENERATED_SPHINX / "index.rst", rst)
 
 
-def build_information_badges(output_path):
+def build_information_badges(output_path: Path) -> None:
     badge_svg = badge(left_text="pip install", right_text="tsfpga", right_color="blue")
     create_file(output_path / "pip_install.svg", badge_svg)
 
@@ -189,7 +189,7 @@ def build_information_badges(output_path):
     create_file(output_path / "gitter.svg", badge_svg)
 
 
-def build_python_coverage_badge(output_path):
+def build_python_coverage_badge(output_path: Path) -> None:
     coverage_xml = tsfpga.TSFPGA_GENERATED / "python_coverage.xml"
     assert coverage_xml.exists(), "Run pytest with coverage before building documentation"
 
@@ -208,7 +208,7 @@ def build_python_coverage_badge(output_path):
     create_file(output_path / "python_coverage.svg", badge_svg)
 
 
-def copy_python_coverage_to_html_output():
+def copy_python_coverage_to_html_output() -> None:
     html_output_path = GENERATED_SPHINX_HTML / "python_coverage_html"
     delete(html_output_path)
 

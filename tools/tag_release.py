@@ -31,7 +31,7 @@ from tsfpga.tools.version_number_handler import (
 )
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Make release commits and tag")
     parser.add_argument(
         "release_version", type=str, help="release version number MAJOR.MINOR.PATCH"
@@ -59,7 +59,7 @@ def main():
     make_commit(repo=repo, commit_message="Set pre-release version number")
 
 
-def move_release_notes(repo, version):
+def move_release_notes(repo: Repo, version: str) -> None:
     unreleased_rst = tsfpga.TSFPGA_DOC / "release_notes" / "unreleased.rst"
     version_rst = tsfpga.TSFPGA_DOC / "release_notes" / f"{version}.rst"
 
