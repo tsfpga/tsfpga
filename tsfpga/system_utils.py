@@ -163,8 +163,11 @@ def path_relative_to(path: Path, other: Path) -> Path:
 
 
 def run_command(
-    cmd: list[str], cwd: Optional[Path] = None, env: Optional[dict[str, str]] = None
-) -> None:
+    cmd: list[str],
+    cwd: Optional[Path] = None,
+    env: Optional[dict[str, str]] = None,
+    capture_output: bool = False,
+) -> subprocess.CompletedProcess[str]:
     """
     Will raise ``CalledProcessError`` if the command fails.
 
@@ -172,11 +175,24 @@ def run_command(
         cmd: The command to run.
         cwd: The working directory where the command shall be executed.
         env: Environment variables to set.
+        capture_output: Enable capturing or STDOUT and STDERR.
+
+    Return:
+        Returns the subprocess completed process object, which contains useful information.
+        If ``capture_output`` is set, the ``stdout`` and ``stderr`` members of this object can
+        be inspected.
     """
     if not isinstance(cmd, list):
         raise ValueError("Must be called with a list, not a string")
 
-    subprocess.check_call(cmd, cwd=cwd, env=env)
+    return subprocess.run(
+        args=cmd,
+        cwd=cwd,
+        env=env,
+        check=True,
+        encoding=DEFAULT_FILE_ENCODING,
+        capture_output=capture_output,
+    )
 
 
 def load_python_module(file: Path) -> Any:

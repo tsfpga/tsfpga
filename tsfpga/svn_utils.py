@@ -12,8 +12,8 @@ import subprocess
 from pathlib import Path
 from typing import Iterable, Optional, Union
 
-# First party libraries
-from tsfpga.system_utils import file_is_in_directory
+# Local folder libraries
+from .system_utils import file_is_in_directory, run_command
 
 
 def get_svn_revision_information(cwd: Optional[Path] = None) -> str:
@@ -42,7 +42,7 @@ def svn_commands_are_available(cwd: Optional[Path] = None) -> bool:
         cwd: The directory where SVN commands will be run.
     """
     try:
-        get_svn_revision(cwd)
+        get_svn_revision(cwd=cwd)
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
     return True
@@ -71,9 +71,10 @@ def get_svn_revision(cwd: Optional[Path] = None) -> int:
         cwd: The directory where SVN commands will be run.
     """
     command = ["svn", "info", "--show-item", "revision"]
-    output = subprocess.check_output(command, cwd=cwd, universal_newlines=True)
+    stdout: str = run_command(cmd=command, cwd=cwd, capture_output=True).stdout
+
     # Remove trailing newline
-    return int(output.strip())
+    return int(stdout.strip())
 
 
 def svn_local_changes_are_present(cwd: Optional[Path] = None) -> bool:
@@ -85,10 +86,11 @@ def svn_local_changes_are_present(cwd: Optional[Path] = None) -> bool:
         cwd: The directory where SVN commands will be run.
     """
     command = ["svn", "status"]
-    output = subprocess.check_output(command, cwd=cwd, universal_newlines=True)
+    stdout: str = run_command(cmd=command, cwd=cwd, capture_output=True).stdout
+
     # Status code for file Added, Deleted, Modified, in Conflict or missing
     regexp = re.compile(r"\n[ADMC!] ")
-    return regexp.search(output) is not None
+    return regexp.search(stdout) is not None
 
 
 RE_SVN_STATUS_LINE = re.compile(r"^.+\d+\s+\d+\s+\S+\s+(\S+)$")
@@ -117,8 +119,9 @@ def find_svn_files(
     excludes = [] if excludes is None else [exclude.resolve() for exclude in excludes]
 
     command = ["svn", "status", "-v"]
-    output = subprocess.check_output(command, cwd=directory, universal_newlines=True)
-    for line in output.split("\n"):
+    result = run_command(cmd=command, cwd=directory, capture_output=True)
+
+    for line in result.stdout.split("\n"):
         match = RE_SVN_STATUS_LINE.match(line)
         if not match:
             continue

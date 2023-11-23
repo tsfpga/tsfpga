@@ -17,7 +17,7 @@ import pytest
 # First party libraries
 import tsfpga
 from tsfpga.git_utils import find_git_files
-from tsfpga.system_utils import create_file
+from tsfpga.system_utils import create_file, run_command
 
 THIS_DIR = Path(__file__).parent
 
@@ -38,7 +38,7 @@ def run_pylint(files):
     config = THIS_DIR / "pylintrc"
     command = [sys.executable, "-m", "pylint", f"--rcfile={config}"] + files
 
-    subprocess.check_call(command)
+    run_command(command)
 
 
 def test_pylint():
@@ -47,7 +47,7 @@ def test_pylint():
 
 def run_black(files):
     command = [sys.executable, "-m", "black", "--check", "--diff"] + files
-    subprocess.check_call(command, cwd=tsfpga.REPO_ROOT)
+    run_command(command, cwd=tsfpga.REPO_ROOT)
 
 
 def test_black_formatting():
@@ -64,7 +64,7 @@ def run_isort(files, cwd):
             The ``pyproject.toml`` file should be located here.
     """
     command = [sys.executable, "-m", "isort", "--check", "--diff"] + files
-    subprocess.check_call(command, cwd=cwd)
+    run_command(command, cwd=cwd)
 
 
 def test_isort_formatting():
@@ -73,7 +73,7 @@ def test_isort_formatting():
 
 def run_flake8_lint(files):
     command = [sys.executable, "-m", "flake8"] + files
-    subprocess.check_call(command, cwd=tsfpga.REPO_ROOT)
+    run_command(command, cwd=tsfpga.REPO_ROOT)
 
 
 def test_flake8_lint():
@@ -96,7 +96,7 @@ def test_mypy():
     create_file(Path(vunit.__file__).parent / "py.typed")
 
     env = dict(PYTHONPATH=":".join(sys.path))
-    subprocess.check_call(command, cwd=tsfpga.REPO_ROOT, env=env)
+    run_command(command, cwd=tsfpga.REPO_ROOT, env=env)
 
 
 # pylint: disable=redefined-outer-name

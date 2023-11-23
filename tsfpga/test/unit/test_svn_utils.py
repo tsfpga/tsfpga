@@ -16,22 +16,22 @@ from tsfpga.system_utils import create_file
 # SVN is pretty much impossible to work with. Most of the functions are untested.
 
 
-@mock.patch("subprocess.check_output", autospec=True)
-def test_svn_local_changes_are_present(check_output):
-    check_output.return_value = """
+@mock.patch("tsfpga.svn_utils.run_command", autospec=True)
+def test_svn_local_changes_are_present(run_command):
+    run_command.return_value.stdout = """
 ?       .vscode
 ?       build
 """
     assert not svn_local_changes_are_present()
 
-    check_output.return_value = """
+    run_command.return_value.stdout = """
 ?       .vscode
 M       build.py
 ?       build
 """
     assert svn_local_changes_are_present()
 
-    check_output.return_value = """
+    run_command.return_value.stdout = """
 ?       .vscode
 !       build.py
 ?       build
@@ -39,14 +39,14 @@ M       build.py
     assert svn_local_changes_are_present()
 
 
-@mock.patch("subprocess.check_output", autospec=True)
-def test_find_svn_files(check_output, tmp_path):
+@mock.patch("tsfpga.svn_utils.run_command", autospec=True)
+def test_find_svn_files(run_command, tmp_path):
     apa_txt = create_file(tmp_path / "apa.txt")
     hest_txt = create_file(tmp_path / "stuff" / "hest.txt")
     zebra_vhd = create_file(tmp_path / "stuff" / "zebra.vhd")
     zebra_pdf = create_file(tmp_path / "things" / "zebra.pdf")
 
-    check_output.return_value = """\
+    run_command.return_value.stdout = """
             104134   104134 lukas.vik    .
 ?                                        .pytest_cache
 ?                                        .vscode

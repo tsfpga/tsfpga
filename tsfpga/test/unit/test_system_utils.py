@@ -106,3 +106,22 @@ def test_run_command_called_with_non_list_should_raise_exception():
     with pytest.raises(ValueError) as exception_info:
         run_command(cmd)
     assert str(exception_info.value).startswith("Must be called with a list")
+
+
+def test_run_command_should_capture_output_as_strings():
+    this_dir = Path(__file__).parent.resolve()
+
+    cmd = ["ls", str(this_dir)]
+    result = run_command(cmd, capture_output=True)
+
+    assert isinstance(result.stdout, str)
+    assert isinstance(result.stderr, str)
+
+    assert result.stderr == ""
+
+    print(result.stdout)
+    print(result.stderr)
+
+    # Show that it is regular text with regular newlines.
+    assert "\ntest_system_utils.py\n" in result.stdout
+    assert "\ntest_ip_core_file.py\n" in result.stdout

@@ -32,10 +32,8 @@ def simlib_test(tmp_path):
             self.vivado_simlib = self.get_vivado_simlib()
 
         def get_vivado_simlib(self, ghdl_version_string="GHDL 0.36 ..."):
-            with patch(
-                "tsfpga.vivado.simlib_ghdl.subprocess.check_output", autospec=True
-            ) as check_output:
-                check_output.return_value = ghdl_version_string.encode("UTF-8")
+            with patch("tsfpga.vivado.simlib_ghdl.run_command", autospec=True) as run_command:
+                run_command.return_value.stdout = ghdl_version_string
 
                 simulator_class = MagicMock()
                 simulator_class.name = "ghdl"

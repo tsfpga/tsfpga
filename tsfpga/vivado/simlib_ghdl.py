@@ -8,13 +8,12 @@
 
 # Standard libraries
 import re
-import subprocess
 from pathlib import Path
 from typing import Any, Optional
 
 # First party libraries
 from tsfpga import DEFAULT_FILE_ENCODING
-from tsfpga.system_utils import create_directory, system_is_windows
+from tsfpga.system_utils import create_directory, run_command, system_is_windows
 
 # Local folder libraries
 from .simlib_common import VivadoSimlibCommon
@@ -182,14 +181,14 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
             f"--work={library_name}",
         ] + files
 
-        subprocess.check_call(cmd, cwd=self.output_path)
+        run_command(cmd, cwd=self.output_path)
 
     def _get_simulator_tag(self) -> str:
         """
         Return simulator version tag as a string.
         """
         cmd = [str(self.ghdl_binary), "--version"]
-        output = subprocess.check_output(cmd).decode()
+        output = run_command(cmd, capture_output=True).stdout
 
         regexp_with_tag = re.compile(r"^GHDL (\S+) \((\S+)\).*")
         match = regexp_with_tag.search(output)
