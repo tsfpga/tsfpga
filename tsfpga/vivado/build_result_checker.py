@@ -8,7 +8,6 @@
 
 # Standard libraries
 from abc import ABC, abstractmethod
-from typing import Union
 
 # Local folder libraries
 from .build_result import BuildResult
@@ -88,8 +87,8 @@ class BuildResultChecker(ABC):
             True if check passed, false otherwise.
         """
 
-    def _check_result_value(self, name: str, result_value: Union[int, None]) -> bool:
-        if result_value and self.limit.check(result_value=result_value):
+    def _check_result_value(self, name: str, result_value: int) -> bool:
+        if result_value is not None and self.limit.check(result_value=result_value):
             print(f"Result check passed for {name}: {result_value} ({self.limit})")
             return True
 
@@ -106,9 +105,11 @@ class MaximumLogicLevel(BuildResultChecker):
     name = "Maximum logic level"
 
     def check(self, build_result: BuildResult) -> bool:
-        return self._check_result_value(
-            name="maximum logic level", result_value=build_result.maximum_logic_level
-        )
+        value = build_result.maximum_logic_level
+        if value is None:
+            raise ValueError("Should only call after successful synthesis")
+
+        return self._check_result_value(name="maximum logic level", result_value=value)
 
 
 class SizeChecker(BuildResultChecker):
@@ -126,15 +127,17 @@ class SizeChecker(BuildResultChecker):
     name: str
 
     def check(self, build_result: BuildResult) -> bool:
-        # If handled correctly, this method should only be called for a successful result where
-        # the size is set.
-        # But just to be sure, and to be type-correct, we do this check anyway.
-        if build_result.synthesis_size:
-            value = build_result.synthesis_size[self.name]
-        else:
-            value = None
+        if build_result.synthesis_size is None:
+            raise ValueError("Should only call after successful synthesis")
 
-        return self._check_result_value(name=self.name, result_value=value)
+        if self.name not in build_result.synthesis_size:
+            raise ValueError(
+                f'Synthesis result size does not contain the requested resource: "{self.name}"'
+            )
+
+        return self._check_result_value(
+            name=self.name, result_value=build_result.synthesis_size[self.name]
+        )
 
 
 class TotalLuts(SizeChecker):
@@ -182,14 +185,15 @@ class DspBlocks(SizeChecker):
         """
         Same as super class, but checks for the legacy name as well as the current name.
         """
-        if build_result.synthesis_size:
-            legacy_name = "DSP48 Blocks"
+        assert (
+            build_result.synthesis_size is not None
+        ), "Should only call after successful synthesis"
 
-            if legacy_name in build_result.synthesis_size:
-                value = build_result.synthesis_size[legacy_name]
-            else:
-                value = build_result.synthesis_size[self.name]
+        legacy_name = "DSP48 Blocks"
+
+        if legacy_name in build_result.synthesis_size:
+            value = build_result.synthesis_size[legacy_name]
         else:
-            value = None
+            value = build_result.synthesis_size[self.name]
 
         return self._check_result_value(name=self.name, result_value=value)
