@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, Union
 
 # Third party libraries
 from hdl_registers.generator.vhdl.register_package import VhdlRegisterPackageGenerator
-from hdl_registers.parser import from_toml
+from hdl_registers.parser.toml import from_toml
 from hdl_registers.register import Register
 from hdl_registers.register_list import RegisterList
 
@@ -119,7 +119,9 @@ class BaseModule:
 
         toml_file = self.path / f"regs_{self.name}.toml"
         if toml_file.exists():
-            self._registers = from_toml(self.name, toml_file, self._default_registers)
+            self._registers = from_toml(
+                name=self.name, toml_file=toml_file, default_registers=self._default_registers
+            )
 
         self.registers_hook()
         return self._registers
