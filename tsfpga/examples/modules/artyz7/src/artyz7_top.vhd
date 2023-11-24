@@ -47,8 +47,8 @@ architecture a of artyz7_top is
   signal s_hp0_m2s : axi_m2s_t := axi_m2s_init;
   signal s_hp0_s2m : axi_s2m_t := axi_s2m_init;
 
-  signal regs_m2s : axi_lite_m2s_vec_t(reg_slaves'range) := (others => axi_lite_m2s_init);
-  signal regs_s2m : axi_lite_s2m_vec_t(reg_slaves'range) := (others => axi_lite_s2m_init);
+  signal regs_m2s : axi_lite_m2s_vec_t(regs_base_addresses'range) := (others => axi_lite_m2s_init);
+  signal regs_s2m : axi_lite_s2m_vec_t(regs_base_addresses'range) := (others => axi_lite_s2m_init);
 
 begin
 
@@ -76,14 +76,14 @@ begin
   regs_block : block
     -- Set up some registers to be in same clock domain as AXI port,
     -- and some to be in another clock domain.
-    constant clocks_are_the_same : boolean_vector(reg_slaves'range) :=
+    constant clocks_are_the_same : boolean_vector(regs_base_addresses'range) :=
       (ddr_buffer_regs_idx => false, dummy_reg_slaves => true);
   begin
 
     ------------------------------------------------------------------------------
     axi_to_regs_inst : entity axi.axi_to_axi_lite_vec
       generic map (
-        axi_lite_slaves => reg_slaves,
+        base_addresses => regs_base_addresses,
         clocks_are_the_same => clocks_are_the_same
       )
       port map (

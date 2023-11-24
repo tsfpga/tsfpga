@@ -23,14 +23,13 @@ package artyz7_top_pkg is
   subtype dummy_reg_slaves is integer range 0 to 2;
   constant ddr_buffer_regs_idx : integer := 3;
 
-  constant regs_addr_mask : addr_t := x"0000_f000";
   constant ddr_buffer_regs_base_addr : addr_t := x"0000_3000";
 
-  constant reg_slaves : addr_and_mask_vec_t(0 to 4 - 1) := (
-    0 => (addr => x"0000_0000", mask => regs_addr_mask),
-    1 => (addr => x"0000_1000", mask => regs_addr_mask),
-    2 => (addr => x"0000_2000", mask => regs_addr_mask),
-    ddr_buffer_regs_idx => (addr => ddr_buffer_regs_base_addr, mask => regs_addr_mask)
+  constant regs_base_addresses : addr_vec_t(0 to 4 - 1) := (
+    0 => x"0000_0000",
+    1 => x"0000_1000",
+    2 => x"0000_2000",
+    ddr_buffer_regs_idx => ddr_buffer_regs_base_addr
   );
 
 

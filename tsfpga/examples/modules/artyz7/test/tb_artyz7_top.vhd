@@ -70,15 +70,15 @@ begin
     rnd.InitSeed(rnd'instance_name);
 
     if run("test_register_read_write") then
-      write_reg(net, 0, beef, base_address => reg_slaves(0).addr);
-      check_reg_equal(net, 0, beef, base_address => reg_slaves(0).addr);
+      write_reg(net, 0, beef, base_address => regs_base_addresses(0));
+      check_reg_equal(net, 0, beef, base_address => regs_base_addresses(0));
 
       -- Write different value to same register in another register map.
       -- Should be in another clock domain to verify CDC.
-      write_reg(net, 0, dead, base_address => reg_slaves(ddr_buffer_regs_idx).addr);
-      check_reg_equal(net, 0, dead, base_address => reg_slaves(ddr_buffer_regs_idx).addr);
+      write_reg(net, 0, dead, base_address => regs_base_addresses(ddr_buffer_regs_idx));
+      check_reg_equal(net, 0, dead, base_address => regs_base_addresses(ddr_buffer_regs_idx));
 
-      check_reg_equal(net, 0, beef, base_address => reg_slaves(0).addr);
+      check_reg_equal(net, 0, beef, base_address => regs_base_addresses(0));
 
     elsif run("test_ddr_buffer") then
       run_ddr_buffer_test(net, axi_memory, rnd, ddr_buffer_regs_base_addr);
@@ -92,8 +92,8 @@ begin
 
   ------------------------------------------------------------------------------
   dut : entity work.artyz7_top
-  port map (
-    clk_ext => clk_ext
-  );
+    port map (
+      clk_ext => clk_ext
+    );
 
 end architecture;
