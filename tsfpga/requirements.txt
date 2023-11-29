@@ -1,4 +1,4 @@
 GitPython
 hdl_registers>= 4.0.0, < 5.0.0
-tomlkit
+rtoml
 vunit_hdl

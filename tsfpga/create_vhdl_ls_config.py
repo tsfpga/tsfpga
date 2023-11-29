@@ -11,10 +11,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional
 
 # Third party libraries
-import tomlkit
+import rtoml
 
 # First party libraries
-from tsfpga.system_utils import create_file
 from tsfpga.vivado.ip_cores import VivadoIpCores
 
 if TYPE_CHECKING:
@@ -88,4 +87,4 @@ def create_configuration(
             vhd_file_wildcard = ip_gen_dir / "ip" / "**" / "*.vhd"
             toml_data["libraries"]["xil_defaultlib"]["files"].append(str(vhd_file_wildcard))
 
-    create_file(output_path / "vhdl_ls.toml", tomlkit.dumps(toml_data))
+    rtoml.dump(obj=toml_data, file=output_path / "vhdl_ls.toml", pretty=True)

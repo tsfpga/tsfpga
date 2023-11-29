@@ -37,8 +37,7 @@ RUN python3 -m pip --no-cache-dir install --upgrade \
   pylint \
   pytest \
   pytest-cov \
-  tomli \
-  tomlkit \
+  rtoml \
   # Cleanup
   && rm -rf ~/.cache
 
