@@ -10,7 +10,7 @@
 
 .. |pic_repository| image:: https://tsfpga.com/badges/repository.svg
   :alt: Repository
-  :target: https://gitlab.com/tsfpga/tsfpga
+  :target: https://github.com/tsfpga/tsfpga
 
 .. |pic_chat| image:: https://tsfpga.com/badges/chat.svg
   :alt: Chat

@@ -3,7 +3,7 @@
 #
 # This file is part of the tsfpga project, a project platform for modern FPGA development.
 # https://tsfpga.com
-# https://gitlab.com/tsfpga/tsfpga
+# https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
 # This script is applied as a hook to write_bitstream. For some reason, "[current_run]" and

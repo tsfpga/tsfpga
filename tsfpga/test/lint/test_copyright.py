@@ -3,7 +3,7 @@
 #
 # This file is part of the tsfpga project, a project platform for modern FPGA development.
 # https://tsfpga.com
-# https://gitlab.com/tsfpga/tsfpga
+# https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
 # Standard libraries
@@ -102,7 +102,7 @@ def test_copyright_header_of_all_checked_in_files():
             "This file is part of the tsfpga project, a project platform for modern "
             "FPGA development.",
             "https://tsfpga.com",
-            "https://gitlab.com/tsfpga/tsfpga",
+            "https://github.com/tsfpga/tsfpga",
         ]
         copyright_header_checker = CopyrightHeader(file, "Lukas Vik", copyright_lines)
 

@@ -3,7 +3,7 @@
 #
 # This file is part of the tsfpga project, a project platform for modern FPGA development.
 # https://tsfpga.com
-# https://gitlab.com/tsfpga/tsfpga
+# https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
 # Standard libraries
@@ -54,13 +54,13 @@ def main():
         long_description_content_type="text/x-rst",
         license="BSD 3-Clause License",
         author="Lukas Vik",
-        author_email="2767848-LukasVik@users.noreply.gitlab.com",
+        author_email="10241915+LukasVik@users.noreply.github.com",
         url="https://tsfpga.com",
         project_urls={
             "Documentation": "https://tsfpga.com/",
             "Changelog": "https://tsfpga.com/release_notes.html",
-            "Source": "https://gitlab.com/tsfpga/tsfpga",
-            "Issues": "https://gitlab.com/tsfpga/tsfpga/-/issues",
+            "Source": "https://github.com/tsfpga/tsfpga",
+            "Issues": "https://github.com/tsfpga/tsfpga/issues",
         },
         python_requires=">=3.9",
         install_requires=read_requirements_file(REQUIREMENTS_TXT),

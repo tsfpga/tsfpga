@@ -3,7 +3,7 @@
 #
 # This file is part of the tsfpga project, a project platform for modern FPGA development.
 # https://tsfpga.com
-# https://gitlab.com/tsfpga/tsfpga
+# https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
 create_ip -vlnv xilinx.com:ip:mult_gen:12.0 -module_name mult_u12_u5

@@ -3,7 +3,7 @@
 #
 # This file is part of the tsfpga project, a project platform for modern FPGA development.
 # https://tsfpga.com
-# https://gitlab.com/tsfpga/tsfpga
+# https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
 # Standard libraries
@@ -34,6 +34,12 @@ SPHINX_DOC = tsfpga.TSFPGA_DOC / "sphinx"
 def main() -> None:
     args = arguments()
 
+    logos_path = create_directory(GENERATED_SPHINX_HTML / "logos")
+    shutil.copy2(tsfpga.TSFPGA_DOC / "logos" / "banner.png", logos_path)
+
+    badges_path = create_directory(GENERATED_SPHINX_HTML / "badges")
+    build_information_badges(badges_path)
+
     generate_registers()
 
     rst = generate_release_notes(
@@ -49,13 +55,7 @@ def main() -> None:
 
     generate_sphinx_index()
 
-    logos_path = create_directory(GENERATED_SPHINX_HTML / "logos")
-    shutil.copy2(tsfpga.TSFPGA_DOC / "logos" / "banner.png", logos_path)
-
     build_sphinx(build_path=SPHINX_DOC, output_path=GENERATED_SPHINX_HTML)
-
-    badges_path = create_directory(GENERATED_SPHINX_HTML / "badges")
-    build_information_badges(badges_path)
 
     if args.skip_coverage:
         return
@@ -133,10 +133,10 @@ def generate_sphinx_index() -> None:
     """
     Generate index.rst for sphinx. Also verify that readme.rst in the project root is identical.
 
-    RST file inclusion in readme.rst does not work on gitlab unfortunately, hence this
+    RST file inclusion in readme.rst does not work on github unfortunately, hence this
     cumbersome handling of syncing documentation.
     """
-    rst_to_verify = get_readme_rst(include_extra_for_gitlab=True)
+    rst_to_verify = get_readme_rst(include_extra_for_github=True)
     if read_file(tsfpga.REPO_ROOT / "readme.rst") != rst_to_verify:
         file_path = create_file(tsfpga.TSFPGA_GENERATED / "sphinx" / "readme.rst", rst_to_verify)
         raise ValueError(
@@ -148,18 +148,23 @@ def generate_sphinx_index() -> None:
 
 
 def build_information_badges(output_path: Path) -> None:
-    badge_svg = badge(left_text="pip install", right_text="tsfpga", right_color="blue")
+    badge_svg = badge(
+        left_text="pip install",
+        right_text="tsfpga",
+        right_color="green",
+        logo=str(tsfpga.TSFPGA_DOC / "logos" / "third_party" / "python.svg"),
+        embed_logo=True,
+    )
     create_file(output_path / "pip_install.svg", badge_svg)
 
-    badge_svg = badge(left_text="license", right_text="BSD 3-Clause", right_color="blue")
+    badge_svg = badge(left_text="license", right_text="BSD 3-Clause", right_color="green")
     create_file(output_path / "license.svg", badge_svg)
 
     badge_svg = badge(
-        left_text="",
+        left_text="github",
         right_text="tsfpga/tsfpga",
-        left_color="grey",
-        right_color="grey",
-        logo=str(tsfpga.TSFPGA_DOC / "logos" / "third_party" / "gitlab.svg"),
+        right_color="green",
+        logo=str(tsfpga.TSFPGA_DOC / "logos" / "third_party" / "github.svg"),
         embed_logo=True,
     )
     create_file(output_path / "repository.svg", badge_svg)
@@ -167,19 +172,13 @@ def build_information_badges(output_path: Path) -> None:
     badge_svg = badge(
         left_text="",
         right_text="tsfpga.com",
-        left_color="grey",
-        right_color="grey",
+        right_color="green",
         logo=str(tsfpga.TSFPGA_DOC / "logos" / "third_party" / "firefox.svg"),
         embed_logo=True,
     )
     create_file(output_path / "website.svg", badge_svg)
 
-    badge_svg = badge(
-        left_text="chat",
-        right_text="on gitter",
-        left_color="#5a5a5a",
-        right_color="#41ab8b",
-    )
+    badge_svg = badge(left_text="chat", right_text="on gitter", right_color="green")
     create_file(output_path / "chat.svg", badge_svg)
 
 
@@ -190,13 +189,13 @@ def build_python_coverage_badge(output_path: Path) -> None:
     xml_root = ElementTree.parse(coverage_xml).getroot()
     line_coverage = int(round(float(xml_root.attrib["line-rate"]) * 100))
     assert line_coverage > 50, f"Coverage is way low: {line_coverage}. Something is wrong."
-    color = "red" if line_coverage < 80 else "green"
+    color = "green" if line_coverage > 80 else "red"
 
     badge_svg = badge(
         left_text="line coverage",
         right_text=f"{line_coverage}%",
         right_color=color,
-        logo=str(tsfpga.TSFPGA_DOC / "logos" / "third_party" / "Python-logo-notext.svg"),
+        logo=str(tsfpga.TSFPGA_DOC / "logos" / "third_party" / "python.svg"),
         embed_logo=True,
     )
     create_file(output_path / "python_coverage.svg", badge_svg)

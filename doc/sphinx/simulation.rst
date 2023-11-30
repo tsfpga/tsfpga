@@ -48,8 +48,8 @@ module folder.
 
 .. note::
     If you use a different folder structure within the modules than what is currently supported by
-    tsfpga, feel free to create an `issue <https://gitlab.com/tsfpga/tsfpga/issues>`__
-    or a merge request.
+    tsfpga, feel free to create `issue <https://github.com/tsfpga/tsfpga/issues>`__
+    or a `pull request <https://github.com/tsfpga/tsfpga/pulls>`__..
 
 
 The :meth:`module.get_simulation_files() <.BaseModule.get_simulation_files>` call returns a list of
@@ -69,7 +69,7 @@ Realistic example
 
 If you want to dive into a more realistic example have a look at
 `tsfpga/examples/simulate.py
-<https://gitlab.com/tsfpga/tsfpga/blob/main/tsfpga/examples/simulate.py>`__ in the repo.
+<https://github.com/tsfpga/tsfpga/blob/main/tsfpga/examples/simulate.py>`__ in the repo.
 Or continue reading this document for an explanation of the mechanisms.
 
 This file handles things like
@@ -247,12 +247,12 @@ The reference would be ``origin/main`` most of the time.
 The subset of tests returned by the class can then be used as the ``test_pattern`` argument when
 setting up your VUnit project.
 
-This tools is used in tsfpga CI to make sure that for merge requests only the minimal set of tests
+This tools is used in tsfpga CI to make sure that for pull requests only the minimal set of tests
 is run.
 This saves an immense amount of CI time, especially for commits that do not alter any VHDL code.
 For nightly ``main`` runs the full set of tests shall still be run.
 
 See the :class:`class documentation <.GitSimulationSubset>` for more information, and
 `tsfpga/examples/simulate.py
-<https://gitlab.com/tsfpga/tsfpga/blob/main/tsfpga/examples/simulate.py>`__
+<https://github.com/tsfpga/tsfpga/blob/main/tsfpga/examples/simulate.py>`__
 in the repo for a usage example.

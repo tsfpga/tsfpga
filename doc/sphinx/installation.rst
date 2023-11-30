@@ -10,7 +10,7 @@ The latest release version of tsfpga can be installed from
 
   python3 -m pip install tsfpga
 
-Alternatively, you can clone the `git repository <https://gitlab.com/tsfpga/tsfpga>`__
+Alternatively, you can clone the `git repository <https://github.com/tsfpga/tsfpga>`__
 if you want to use a development version.
 From the repo checkout you can install the Python package by running
 

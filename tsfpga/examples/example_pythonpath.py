@@ -3,7 +3,7 @@
 #
 # This file is part of the tsfpga project, a project platform for modern FPGA development.
 # https://tsfpga.com
-# https://gitlab.com/tsfpga/tsfpga
+# https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
 """
@@ -22,7 +22,7 @@ import tsfpga
 # Paths e.g.
 # repo/tsfpga/tsfpga
 # repo/hdl_registers/hdl_registers
-PATH_TO_HDL_REGISTERS = tsfpga.REPO_ROOT.parent.parent.resolve() / "hdl_registers" / "hdl_registers"
+PATH_TO_HDL_REGISTERS = tsfpga.REPO_ROOT.parent.parent.resolve() / "hdl-registers" / "hdl-registers"
 sys.path.insert(0, str(PATH_TO_HDL_REGISTERS))
 
 # Paths e.g.

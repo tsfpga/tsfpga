@@ -3,7 +3,7 @@
 #
 # This file is part of the tsfpga project, a project platform for modern FPGA development.
 # https://tsfpga.com
-# https://gitlab.com/tsfpga/tsfpga
+# https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 # A set of methods for building sphinx docs. Should be reusable between projects.
 # --------------------------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ def generate_release_notes(
     Arguments:
         repo_root: Git commands will be executed here.
         release_notes_directory: Location of release notes files.
-        project_name: Name of project will be used for the gitlab link.
+        project_name: Name of project will be used for the github link.
 
     Return:
         RST code with release notes.
@@ -49,7 +49,7 @@ def generate_release_notes(
         rst += "\n"
         if previous_release_git_tag is not None:
             diff_url = (
-                f"https://gitlab.com/{project_name}/{project_name}/-/compare/"
+                f"https://github.com/{project_name}/{project_name}/compare/"
                 f"{previous_release_git_tag}...{release.git_tag}"
             )
             rst += f"`Changes since previous release <{diff_url}>`__\n"

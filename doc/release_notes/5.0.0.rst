@@ -41,7 +41,7 @@ Breaking changes
   See the :class:`class documentation <.BuildProjectList>`, the
   :ref:`minimal usage example <example_build_py>` and the
   `build.py example in the repo
-  <https://gitlab.com/tsfpga/tsfpga/-/blob/main/tsfpga/examples/build.py>`__.
+  <https://github.com/tsfpga/tsfpga/blob/main/tsfpga/examples/build.py>`__.
 * Change :class:`.VivadoProject` to catch non-zero exit code exception if Vivado call fails.
   If :meth:`.VivadoProject.create` or :meth:`.VivadoProject.open` fail they will return ``False``.
   If :meth:`.VivadoProject.build` fails, the returned :class:`.build_result.BuildResult` object will
