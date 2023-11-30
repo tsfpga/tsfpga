@@ -16,16 +16,15 @@ import pytest
 import tsfpga
 from tsfpga.git_utils import find_git_files
 from tsfpga.system_utils import create_file, read_file
+from tsfpga.vhdl_file_documentation import SEPARATOR_LINE_LENGTH
 
 
 class CopyrightHeader:
-    separator_line_length = 100
-
     def __init__(self, file, copyright_holder, copyright_text_lines=None):
         self._file = file
         self.comment_character = self._get_comment_character()
         self.separator_line = f"{self.comment_character} " + "-" * (
-            self.separator_line_length - 1 - len(self.comment_character)
+            SEPARATOR_LINE_LENGTH - 1 - len(self.comment_character)
         )
         self.expected_copyright_header = self._get_expected_copyright_header(
             copyright_holder, copyright_text_lines
