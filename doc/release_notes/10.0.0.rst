@@ -1,5 +1,5 @@
 Breaking changes
 
-* Split out the ``modules/`` folder into the standalone ``hdl_modules`` project
-  (https://hdl-modules.com, https://gitlab.com/hdl_modules/hdl_modules).
+* Split out the ``modules/`` folder into the standalone ``hdl-modules`` project
+  (https://hdl-modules.com, https://github.com/hdl-modules/hdl-modules).
   The modules are still bundled with each PyPI release of ``tsfpga``.
