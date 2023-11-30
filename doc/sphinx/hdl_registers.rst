@@ -4,7 +4,7 @@ Integration with hdl_registers
 ==============================
 
 The tsfpga module and source code handling is tightly integrated with its sister project
-``hdl_registers`` (https://hdl-registers.com, https://gitlab.com/hdl_registers/hdl_registers),
+``hdl_registers`` (https://hdl-registers.com, https://github.com/hdl-registers/hdl-registers),
 a register code generator.
 To use it simply create a file ``regs_<name>.toml`` in the root of a module
 (see :ref:`module structure <folder_structure>`).
@@ -22,7 +22,7 @@ Example usage in tsfpga
 -----------------------
 
 The `tsfpga/examples/modules/ddr_buffer
-<https://gitlab.com/tsfpga/tsfpga/-/tree/main/tsfpga/examples/modules/ddr_buffer>`__
+<https://github.com/tsfpga/tsfpga/tree/main/tsfpga/examples/modules/ddr_buffer>`__
 example module is heavily reliant on generated register information, both in the implementation
 and testbench.
 

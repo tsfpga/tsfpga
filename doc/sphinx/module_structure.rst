@@ -71,7 +71,8 @@ for source files in
     If your project uses a different folder structure, and is locked into using it, tsfpga can be
     updated to accommodate that as well.
     This goes for most of the folders within the module, described below.
-    Feel free to create and `issue <https://gitlab.com/tsfpga/tsfpga/issues>`__ or a merge request.
+    Feel free to create an `issue <https://github.com/tsfpga/tsfpga/issues>`__
+    or a `pull request <https://github.com/tsfpga/tsfpga/pulls>`__.
 
 
 

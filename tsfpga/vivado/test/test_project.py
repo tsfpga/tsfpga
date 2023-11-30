@@ -3,7 +3,7 @@
 #
 # This file is part of the tsfpga project, a project platform for modern FPGA development.
 # https://tsfpga.com
-# https://gitlab.com/tsfpga/tsfpga
+# https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
 # Standard libraries
@@ -377,8 +377,6 @@ class TestVivadoProject(unittest.TestCase):
         )
         mocked_pre_build.assert_called_once_with(**arguments)
 
-        # Could be improved by actually checking the build_result object.
-        # See https://gitlab.com/tsfpga/tsfpga/-/issues/39
         arguments.update(build_result=unittest.mock.ANY)
         mocked_post_build.assert_called_once_with(**arguments)
 
