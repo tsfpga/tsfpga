@@ -39,12 +39,15 @@ jobs:
     - name: Install Python packages
       run: |
         python3 -m pip install \
-          pytest
+          GitPython \
+          pytest \
+          rtoml \
+          vunit-hdl
 
-    # - name: Clone dependency repos
-    #   run: |
-    #     git clone --depth 1 --single-branch --branch main \
-    #       https://github.com/hdl-registers/hdl-registers.git ../../hdl-registers/hdl-registers
+    - name: Clone dependency repos
+      run: |
+        git clone --depth 1 --single-branch --branch main \
+          https://github.com/hdl-registers/hdl-registers.git ../../hdl-registers/hdl-registers
 
     # Run only the UNIT tests on most Python versions in the matrix.
     # This is very fast (2-3 s).
@@ -57,10 +60,6 @@ jobs:
 
     # On one Python version however, we run ALL the Python-based tests, which requires a few more
     # dependencies, and then we collect coverage from this run.
-    - name: Setup GHDL
-      if: matrix.py == '3.9'
-      uses: ghdl/setup-ghdl-ci@nightly
-
     - name: Install further Python packages
       if: matrix.py == '3.9'
       run: |
@@ -84,6 +83,8 @@ jobs:
           --cov tsfpga \
           --cov-report xml:generated/python_coverage.xml \
           --cov-report html:generated/python_coverage_html \
+          --ignore tests/functional/vivado \
+          --ignore tests/functional/commercial_simulators \
           tsfpga \
           tests
 
@@ -125,15 +126,16 @@ jobs:
         pip install \
           GitPython \
           pybadges \
-          PyYAML \
           rtoml \
           sphinx \
           sphinx-rtd-theme \
           sphinx_sitemap \
-          sphinx-toolbox
+          vunit-hdl
 
     - name: Clone dependency repos
       run: |
+        git clone --depth 1 --single-branch --branch main \
+          https://gitlab.com/hdl_modules/hdl_modules.git ../../hdl_modules/hdl_modules
         git clone --depth 1 --single-branch --branch main \
           https://github.com/hdl-registers/hdl-registers.git ../../hdl-registers/hdl-registers
 
@@ -167,7 +169,8 @@ jobs:
   deploy_pages:
     name: Deploy website to pages
     if: github.ref == 'refs/heads/main'
-    needs: build_doc
+    # Only do deployment if everything else has passed.
+    needs: [pytest, build_doc, build_pypi]
     permissions:
       pages: write
       id-token: write

@@ -26,9 +26,6 @@ copyright = "Lukas Vik"
 author = "Lukas Vik"
 
 extensions = [
-    "sphinx.ext.autodoc",
-    "sphinx.ext.coverage",
-    "sphinx.ext.graphviz",
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
     "sphinx_rtd_theme",
