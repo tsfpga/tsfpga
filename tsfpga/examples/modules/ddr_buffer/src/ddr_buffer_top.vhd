@@ -34,7 +34,7 @@ entity ddr_buffer_top is
   );
 end entity;
 
-architecture a of ddr_buffer_top is
+architecture a of  ddr_buffer_top is
 
   type ctrl_state_t is (idle, start, wait_for_address_transactions, running);
   signal ctrl_state : ctrl_state_t := idle;
