@@ -6,37 +6,17 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Third party libraries
-import pytest
-
 # First party libraries
-from tsfpga import DEFAULT_FILE_ENCODING, REPO_ROOT, TSFPGA_DOC, TSFPGA_EXAMPLE_MODULES, TSFPGA_TCL
+from tsfpga import REPO_ROOT, TSFPGA_DOC, TSFPGA_EXAMPLE_MODULES, TSFPGA_TCL
 from tsfpga.git_utils import find_git_files
-from tsfpga.system_utils import create_file
-
-
-def open_file_with_encoding(file):
-    """
-    Try to open the ``file`` with ASCII encoding.
-    If that fails, i.e. if it contains non-ASCII characters, print information and raise exception.
-    """
-    try:
-        with open(file, encoding="ascii") as file_handle:
-            file_handle.read()
-
-    except UnicodeDecodeError as exception:
-        print(file)
-        with open(file, encoding="utf8") as file_handle:
-            lines = file_handle.readlines()
-
-        for line_idx, line in enumerate(lines):
-            for character in line:
-                try:
-                    character.encode("ascii")
-                except UnicodeEncodeError:
-                    print(f"Character {character} on line {line_idx + 1} is not ASCII")
-
-        raise exception
+from tsfpga.test.lint.file_format_lint import (
+    check_file_ends_with_newline,
+    check_file_for_carriage_return,
+    check_file_for_line_length,
+    check_file_for_tab_character,
+    check_file_for_trailing_whitespace,
+    open_file_with_encoding,
+)
 
 
 def test_all_checked_in_files_are_properly_encoded():
@@ -50,17 +30,6 @@ def test_all_checked_in_files_are_properly_encoded():
         open_file_with_encoding(file)
 
 
-def check_file_ends_with_newline(file):
-    test_ok = True
-    with open(file, encoding=DEFAULT_FILE_ENCODING) as file_handle:
-        file_data = file_handle.read()
-        if len(file_data) != 0:
-            if file_data[-1] != "\n":
-                print(f"File {file} didn't end with newline")
-                test_ok = False
-    return test_ok
-
-
 def test_all_checked_in_files_end_with_newline():
     """
     All checked in non-empty files should end with a UNIX style line break (\n).
@@ -72,16 +41,6 @@ def test_all_checked_in_files_end_with_newline():
     assert test_ok
 
 
-def check_file_for_tab_character(file):
-    test_ok = True
-    with open(file, encoding=DEFAULT_FILE_ENCODING) as file_handle:
-        for idx, line in enumerate(file_handle.readlines()):
-            if "\t" in line:
-                test_ok = False
-                print(f"TAB charatcher (\\t) on line {idx + 1} in {file}")
-    return test_ok
-
-
 def test_no_checked_in_files_contain_tabs():
     """
     To avoid problems with files looking different in different editors, no checked in files may
@@ -91,15 +50,6 @@ def test_no_checked_in_files_contain_tabs():
     for file in files_to_test():
         test_ok &= check_file_for_tab_character(file)
     assert test_ok
-
-
-def check_file_for_carriage_return(file):
-    test_ok = True
-    with open(file, encoding=DEFAULT_FILE_ENCODING, newline="") as file_handle:
-        if "\r" in file_handle.read():
-            test_ok = False
-            print(f"Windows style line breaks (\\r\\n aka CR/LF) in {file}")
-    return test_ok
 
 
 def test_no_checked_in_files_contain_carriage_return():
@@ -114,16 +64,6 @@ def test_no_checked_in_files_contain_carriage_return():
     assert test_ok
 
 
-def check_file_for_trailing_whitespace(file):
-    test_ok = True
-    with open(file, encoding=DEFAULT_FILE_ENCODING) as file_handle:
-        for idx, line in enumerate(file_handle.readlines()):
-            if " \n" in line:
-                test_ok = False
-                print(f"Trailing whitespace on line {idx + 1} in {file}")
-    return test_ok
-
-
 def test_no_checked_in_files_contain_trailing_whitespace():
     """
     Trailing whitespace is not allowed. Some motivation here:
@@ -133,24 +73,6 @@ def test_no_checked_in_files_contain_trailing_whitespace():
     for file in files_to_test():
         test_ok &= check_file_for_trailing_whitespace(file)
     assert test_ok
-
-
-def check_file_for_line_length(file_path, max_length=100):
-    max_length_with_newline = max_length + 1
-    test_ok = True
-
-    with open(file_path, encoding=DEFAULT_FILE_ENCODING) as file_handle:
-        lines = file_handle.readlines()
-        for line_number, line in enumerate(lines):
-            line_length = len(line)
-            if line_length > max_length_with_newline:
-                print(
-                    f"Line {file_path}:{line_number + 1} is too long "
-                    f"({line_length - 1} > {max_length_with_newline - 1})"
-                )
-                test_ok = False
-
-    return test_ok
 
 
 def test_no_checked_in_files_have_too_long_lines():
@@ -179,67 +101,3 @@ def files_to_test(exclude_directories=None):
         exclude_directories=exclude_directories,
         file_endings_avoid=("png", "svg"),
     )
-
-
-def test_open_file_with_encoding_should_raise_exception_on_bad_file(tmp_path):
-    """
-    Sanity check that the function we use actually triggers on bad files.
-    """
-    file = tmp_path / "temp_file_for_test.txt"
-    with open(file, "w", encoding="utf-8") as file_handle:
-        # Swedish word for island = non-ASCII character
-        data = "\N{LATIN CAPITAL LETTER O WITH DIAERESIS}"
-        file_handle.write(data)
-
-    with pytest.raises(UnicodeDecodeError):
-        open_file_with_encoding(file)
-
-
-def test_check_file_for_tab_character_should_fail_on_bad_file(tmp_path):
-    """
-    Sanity check that the function we use actually triggers on bad files.
-    """
-    data = "Apa\thest"
-    file = create_file(tmp_path / "temp_file_for_test.txt", data)
-    assert not check_file_for_tab_character(file)
-
-
-def test_check_file_for_carriage_return_should_fail_on_bad_file(tmp_path):
-    """
-    Sanity check that the function we use actually triggers on bad files.
-    """
-    file = tmp_path / "temp_file_for_test.txt"
-    data = b"Apa\r\nhest"
-    with file.open("wb") as file_handle:
-        file_handle.write(data)
-    assert not check_file_for_carriage_return(file)
-
-
-def test_check_file_for_trailing_whitespace(tmp_path):
-    """
-    Sanity check that the function we use actually triggers on bad files.
-    """
-    data = "Apa \nhest    \nzebra"
-    file = create_file(tmp_path / "temp_file_for_test.txt", data)
-    assert not check_file_for_trailing_whitespace(file)
-
-
-def test_check_file_for_line_length(tmp_path):
-    """
-    Sanity check that the function we use actually triggers on bad files.
-    """
-    ok_data = """
-asdf
-apa
-hest
-"""
-    ok_file_path = create_file(tmp_path / "ok_data.txt", contents=ok_data)
-    assert check_file_for_line_length(ok_file_path)
-
-    bad_data = """
-asdf
-apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa apa
-hest
-"""
-    bad_file_path = create_file(tmp_path / "bad_data.txt", contents=bad_data)
-    assert not check_file_for_line_length(file_path=bad_file_path, max_length=80)

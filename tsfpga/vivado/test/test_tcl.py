@@ -20,10 +20,10 @@ from tsfpga.build_step_tcl_hook import BuildStepTclHook
 from tsfpga.ip_core_file import IpCoreFile
 from tsfpga.module import BaseModule, get_modules
 from tsfpga.system_utils import create_file
-from tsfpga.test import file_contains_string
 
 # pylint: disable=unused-import
 from tsfpga.test.conftest import fixture_tmp_path  # noqa: F401
+from tsfpga.test.test_utils import file_contains_string
 from tsfpga.vivado.common import to_tcl_path
 from tsfpga.vivado.generics import BitVectorGenericValue, StringGenericValue
 from tsfpga.vivado.tcl import VivadoTcl

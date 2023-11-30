@@ -5,7 +5,3 @@
 # https://tsfpga.com
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
-
-# Local folder libraries
-# pylint: disable=wildcard-import
-from .test_utils import *  # noqa: F401, F403
