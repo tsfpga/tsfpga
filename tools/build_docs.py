@@ -30,6 +30,9 @@ GENERATED_SPHINX = tsfpga.TSFPGA_GENERATED / "sphinx_rst"
 GENERATED_SPHINX_HTML = tsfpga.TSFPGA_GENERATED / "sphinx_html"
 SPHINX_DOC = tsfpga.TSFPGA_DOC / "sphinx"
 
+BADGE_COLOR_LEFT = "#32383f"
+BADGE_COLOR_RIGHT = "#2db84d"
+
 
 def main() -> None:
     args = arguments()
@@ -151,19 +154,26 @@ def build_information_badges(output_path: Path) -> None:
     badge_svg = badge(
         left_text="pip install",
         right_text="tsfpga",
-        right_color="green",
+        left_color=BADGE_COLOR_LEFT,
+        right_color=BADGE_COLOR_RIGHT,
         logo=str(tsfpga.TSFPGA_DOC / "logos" / "third_party" / "python.svg"),
         embed_logo=True,
     )
     create_file(output_path / "pip_install.svg", badge_svg)
 
-    badge_svg = badge(left_text="license", right_text="BSD 3-Clause", right_color="green")
+    badge_svg = badge(
+        left_text="license",
+        right_text="BSD 3-Clause",
+        left_color=BADGE_COLOR_LEFT,
+        right_color=BADGE_COLOR_RIGHT,
+    )
     create_file(output_path / "license.svg", badge_svg)
 
     badge_svg = badge(
         left_text="github",
         right_text="tsfpga/tsfpga",
-        right_color="green",
+        left_color=BADGE_COLOR_LEFT,
+        right_color=BADGE_COLOR_RIGHT,
         logo=str(tsfpga.TSFPGA_DOC / "logos" / "third_party" / "github.svg"),
         embed_logo=True,
     )
@@ -172,13 +182,19 @@ def build_information_badges(output_path: Path) -> None:
     badge_svg = badge(
         left_text="",
         right_text="tsfpga.com",
-        right_color="green",
+        left_color=BADGE_COLOR_LEFT,
+        right_color=BADGE_COLOR_RIGHT,
         logo=str(tsfpga.TSFPGA_DOC / "logos" / "third_party" / "firefox.svg"),
         embed_logo=True,
     )
     create_file(output_path / "website.svg", badge_svg)
 
-    badge_svg = badge(left_text="chat", right_text="on gitter", right_color="green")
+    badge_svg = badge(
+        left_text="chat",
+        right_text="on gitter",
+        left_color=BADGE_COLOR_LEFT,
+        right_color=BADGE_COLOR_RIGHT,
+    )
     create_file(output_path / "chat.svg", badge_svg)
 
 
@@ -189,11 +205,12 @@ def build_python_coverage_badge(output_path: Path) -> None:
     xml_root = ElementTree.parse(coverage_xml).getroot()
     line_coverage = int(round(float(xml_root.attrib["line-rate"]) * 100))
     assert line_coverage > 50, f"Coverage is way low: {line_coverage}. Something is wrong."
-    color = "green" if line_coverage > 80 else "red"
+    color = BADGE_COLOR_RIGHT if line_coverage > 80 else "red"
 
     badge_svg = badge(
         left_text="line coverage",
         right_text=f"{line_coverage}%",
+        left_color=BADGE_COLOR_LEFT,
         right_color=color,
         logo=str(tsfpga.TSFPGA_DOC / "logos" / "third_party" / "python.svg"),
         embed_logo=True,

@@ -24,11 +24,16 @@
   :alt: License
   :target: https://tsfpga.com/license_information.html
 
+.. |pic_ci_status| image:: https://github.com/tsfpga/tsfpga/actions/workflows/ci.yml/badge.svg?branch=main
+  :alt: CI status
+  :target: https://github.com/tsfpga/tsfpga/actions/workflows/ci.yml
+
 .. |pic_python_line_coverage| image:: https://tsfpga.com/badges/python_coverage.svg
   :alt: Python line coverage
   :target: https://tsfpga.com/python_coverage_html
 
-|pic_website| |pic_repository| |pic_chat| |pic_pip_install| |pic_license| |pic_python_line_coverage|
+|pic_website| |pic_repository| |pic_chat| |pic_pip_install| |pic_license| |pic_ci_status|
+|pic_python_line_coverage|
 
 tsfpga is a flexible and scalable development platform for modern FPGA projects.
 With its Python-based build/simulation flow it is perfect for CI/CD and test-driven development.
