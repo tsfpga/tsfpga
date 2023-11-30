@@ -115,12 +115,6 @@ jobs:
         cache: pip
         cache-dependency-path: tsfpga/requirements_develop.txt
 
-    - name: Install system packages
-      uses: awalsh128/cache-apt-pkgs-action@latest
-      with:
-        packages: git
-        version: 1.0
-
     - name: Install Python packages
       run: |
         pip install \
@@ -170,7 +164,7 @@ jobs:
     name: Deploy website to pages
     if: github.ref == 'refs/heads/main'
     # Only do deployment if everything else has passed.
-    needs: [pytest, build_doc, build_pypi]
+    needs: [pytest, build_doc, simulate, build_pypi]
     permissions:
       pages: write
       id-token: write
@@ -184,6 +178,52 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v2
 
+
+  # ------------------------------------------------------------------------------
+  # Simulate some of the example code.
+
+  simulate:
+    name: Simulate
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        cache: pip
+        cache-dependency-path: tsfpga/requirements_develop.txt
+
+    - name: Install Python packages
+      run: |
+        python3 -m pip install \
+          GitPython \
+          rtoml \
+          vunit-hdl
+
+    - name: Setup GHDL
+      uses: ghdl/setup-ghdl-ci@nightly
+
+    - name: Clone dependency repos
+      run: |
+        git clone --depth 1 --single-branch --branch main \
+          https://gitlab.com/hdl_modules/hdl_modules.git ../../hdl_modules/hdl_modules
+        git clone --depth 1 --single-branch --branch main \
+          https://github.com/hdl-registers/hdl-registers.git ../../hdl-registers/hdl-registers
+
+    - name: Run minimal simulation
+      if: github.ref != 'refs/heads/main'
+      run: |
+        git fetch
+        python3 tsfpga/examples/simulate.py --num-threads 2 --vivado-skip --vcs-minimal
+
+    - name: Run full simulation
+      if: github.ref == 'refs/heads/main'
+      run: |
+        python3 tsfpga/examples/simulate.py --num-threads 2 --vivado-skip --minimal
 
   # ------------------------------------------------------------------------------
   # Build the Python release package for PyPI.
