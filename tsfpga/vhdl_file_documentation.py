@@ -13,9 +13,9 @@ from typing import Optional
 
 # First party libraries
 from tsfpga.system_utils import read_file
-from tsfpga.test.lint.test_copyright import CopyrightHeader
 
-VHDL_COMMENT_SEPARATOR = "-- " + ("-" * (CopyrightHeader.separator_line_length - 3))
+SEPARATOR_LINE_LENGTH = 100
+VHDL_COMMENT_SEPARATOR = "-- " + ("-" * (SEPARATOR_LINE_LENGTH - 3))
 
 
 class VhdlFileDocumentation:
