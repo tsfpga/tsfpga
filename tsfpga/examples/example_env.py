@@ -84,10 +84,10 @@ def get_hdl_modules(
     names_include: Optional[set[str]] = None, names_avoid: Optional[set[str]] = None
 ) -> "ModuleList":
     """
-    Wrapper of :func:`.get_modules` which returns the ``hdl_modules`` module objects
+    Wrapper of :func:`.get_modules` which returns the ``hdl-modules`` module objects
     (https://hdl-modules.com), if available.
 
-    If ``hdl_modules`` can not be found in the default repo checkout location,
+    If ``hdl-modules`` can not be found in the default repo checkout location,
     the function will assert False.
 
     Arguments will be passed on to :func:`.get_modules`.
@@ -95,8 +95,8 @@ def get_hdl_modules(
     Return:
         :class:`.ModuleList`: The module objects.
     """
-    # Presumed location of the hdl_modules repo
-    hdl_modules_repo_root = tsfpga.REPO_ROOT.parent.parent.resolve() / "hdl_modules" / "hdl_modules"
+    # Presumed location of the hdl-modules repo
+    hdl_modules_repo_root = tsfpga.REPO_ROOT.parent.parent.resolve() / "hdl-modules" / "hdl-modules"
     if (hdl_modules_repo_root / "modules").exists():
         return get_modules(
             modules_folders=[hdl_modules_repo_root / "modules"],
@@ -106,5 +106,5 @@ def get_hdl_modules(
         )
 
     raise FileNotFoundError(
-        f"The hdl_modules modules could not be found. Searched in {hdl_modules_repo_root}"
+        f"The hdl-modules modules could not be found. Searched in {hdl_modules_repo_root}"
     )

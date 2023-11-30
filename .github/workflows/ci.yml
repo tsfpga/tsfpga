@@ -129,7 +129,7 @@ jobs:
     - name: Clone dependency repos
       run: |
         git clone --depth 1 --single-branch --branch main \
-          https://gitlab.com/hdl_modules/hdl_modules.git ../../hdl_modules/hdl_modules
+          https://github.com/hdl-modules/hdl-modules.git ../../hdl-modules/hdl-modules
         git clone --depth 1 --single-branch --branch main \
           https://github.com/hdl-registers/hdl-registers.git ../../hdl-registers/hdl-registers
 
@@ -210,7 +210,7 @@ jobs:
     - name: Clone dependency repos
       run: |
         git clone --depth 1 --single-branch --branch main \
-          https://gitlab.com/hdl_modules/hdl_modules.git ../../hdl_modules/hdl_modules
+          https://github.com/hdl-modules/hdl-modules.git ../../hdl-modules/hdl-modules
         git clone --depth 1 --single-branch --branch main \
           https://github.com/hdl-registers/hdl-registers.git ../../hdl-registers/hdl-registers
 
