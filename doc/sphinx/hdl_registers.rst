@@ -1,10 +1,10 @@
 .. _integration_hdl_registers:
 
-Integration with hdl_registers
+Integration with hdl-registers
 ==============================
 
 The tsfpga module and source code handling is tightly integrated with its sister project
-``hdl_registers`` (https://hdl-registers.com, https://github.com/hdl-registers/hdl-registers),
+``registers`` (https://hdl-registers.com, https://github.com/hdl-registers/hdl-registers),
 a register code generator.
 To use it simply create a file ``regs_<name>.toml`` in the root of a module
 (see :ref:`module structure <folder_structure>`).
@@ -14,7 +14,7 @@ Creating documentation and headers, which are typically distributed as part of F
 artifacts, is simple and easy to integrate in a build script.
 
 Releases to `PyPI <https://pypi.org/project/tsfpga/>`__ of tsfpga list
-`hdl_registers <https://pypi.org/project/hdl-registers/>`__ as a dependency, so it will be
+`hdl-registers <https://pypi.org/project/hdl-registers/>`__ as a dependency, so it will be
 installed as well.
 
 

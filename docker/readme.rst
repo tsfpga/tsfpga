@@ -5,7 +5,7 @@ There is a set of images defined in ``ci/`` that are used for CI (pytest, simula
 That Dockerfile has one stage that includes everything needed for pytest and GHDL/VUnit simulation.
 On top of that is another stage that adds everything needed to build sphinx documentation.
 
-Note that the images are used for CI of sister projects as well (``hdl_modules``).
+Note that the images are used for CI of sister projects as well (``hdl-modules``).
 
 The images are available in the ``tsfpga`` organization on dockerhub:
 

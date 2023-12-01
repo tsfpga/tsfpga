@@ -15,7 +15,7 @@ LABEL description="Includes everything that is needed for CI simulation/pytest o
 RUN apt-get update && \
   apt-get install --yes --no-install-recommends \
   git \
-  # Functional tests in hdl_registers uses GCC to compile
+  # Functional tests in hdl-registers uses GCC to compile
   g++ \
   # Cleanup
   && apt-get autoremove --yes \
