@@ -19,9 +19,6 @@ from tsfpga.build_step_tcl_hook import BuildStepTclHook
 from tsfpga.constraint import Constraint
 from tsfpga.module import BaseModule
 from tsfpga.system_utils import create_directory, create_file
-
-# pylint: disable=unused-import
-from tsfpga.test.conftest import fixture_tmp_path  # noqa: F401
 from tsfpga.vivado.generics import StringGenericValue
 from tsfpga.vivado.project import VivadoNetlistProject, VivadoProject, copy_and_combine_dicts
 
@@ -230,348 +227,377 @@ def test_copy_and_combine_dict_with_both_arguments_valid_and_same_key():
     assert result == dict(first=1, second=2, common=4)
 
 
-# pylint: disable=too-many-instance-attributes
-@pytest.mark.usefixtures("fixture_tmp_path")
-class TestVivadoProject(unittest.TestCase):
-    tmp_path = None
+@pytest.fixture
+def vivado_project_test(tmp_path):
+    class VivadoProjectTest:  # pylint: disable=too-many-instance-attributes
+        def __init__(self):
+            self.project_path = tmp_path / "projects" / "apa" / "project"
+            self.output_path = tmp_path / "projects" / "apa"
+            self.ip_cache_path = MagicMock()
+            self.build_time_generics = dict(enable=True)
+            self.num_threads = 4
+            self.run_index = 3
+            self.synth_only = False
+            self.from_impl = False
 
-    def setUp(self):
-        self.project_path = self.tmp_path / "projects" / "apa" / "project"
-        self.output_path = self.tmp_path / "projects" / "apa"
-        self.ip_cache_path = MagicMock()
-        self.build_time_generics = dict(enable=True)
-        self.num_threads = 4
-        self.run_index = 3
-        self.synth_only = False
-        self.from_impl = False
+            self.mocked_run_vivado_tcl = None
 
-        self.mocked_run_vivado_tcl = None
-
-    def _create(self, project, **other_arguments):
-        with patch(
-            "tsfpga.vivado.project.run_vivado_tcl", autospec=True
-        ) as self.mocked_run_vivado_tcl:
-            return project.create(
-                project_path=self.project_path, ip_cache_path=self.ip_cache_path, **other_arguments
-            )
-
-    def test_default_pre_create_hook_should_pass(self):
-        class CustomVivadoProject(VivadoProject):
-            pass
-
-        project = CustomVivadoProject(name="apa", modules=[], part="")
-        self._create(project)
-        self.mocked_run_vivado_tcl.assert_called_once()
-
-    def test_project_pre_create_hook_returning_false_should_fail_and_not_call_vivado_run(self):
-        class CustomVivadoProject(VivadoProject):
-            def pre_create(self, **kwargs):  # pylint: disable=unused-argument
-                return False
-
-        assert not self._create(CustomVivadoProject(name="apa", modules=[], part=""))
-        self.mocked_run_vivado_tcl.assert_not_called()
-
-    def test_create_should_call_pre_create_with_correct_parameters(self):
-        project = VivadoProject(name="apa", modules=[], part="", generics=dict(apa=123), hest=456)
-        with patch("tsfpga.vivado.project.VivadoProject.pre_create") as mocked_pre_create:
-            self._create(project, zebra=789)
-        mocked_pre_create.assert_called_once_with(
-            project_path=self.project_path,
-            ip_cache_path=self.ip_cache_path,
-            part="",
-            generics=dict(apa=123),
-            hest=456,
-            zebra=789,
-        )
-        self.mocked_run_vivado_tcl.assert_called_once()
-
-    def _build(self, project):
-        with patch(
-            "tsfpga.vivado.project.run_vivado_tcl", autospec=True
-        ) as self.mocked_run_vivado_tcl, patch(
-            "tsfpga.vivado.project.VivadoProject._get_size", autospec=True
-        ) as _, patch(
-            "tsfpga.vivado.project.shutil.copy2", autospec=True
-        ) as _:
-            create_file(self.project_path / "apa.xpr")
-            return project.build(
-                project_path=self.project_path,
-                output_path=self.output_path,
-                run_index=self.run_index,
-                generics=self.build_time_generics,
-                synth_only=self.synth_only,
-                num_threads=self.num_threads,
-                other_parameter="hest",
-            )
-
-    def test_build_module_pre_build_hook_and_create_regs_are_called(self):
-        project = VivadoProject(
-            name="apa",
-            modules=[MagicMock(spec=BaseModule), MagicMock(spec=BaseModule)],
-            part="",
-            apa=123,
-        )
-        build_result = self._build(project)
-        assert build_result.success
-
-        for module in project.modules:
-            module.pre_build.assert_called_once_with(
-                project=project,
-                other_parameter="hest",
-                apa=123,
-                project_path=self.project_path,
-                output_path=self.output_path,
-                run_index=self.run_index,
-                generics=self.build_time_generics,
-                synth_only=self.synth_only,
-                from_impl=self.from_impl,
-                num_threads=self.num_threads,
-            )
-            module.create_regs_vhdl_package.assert_called_once()
-
-    def test_default_pre_and_post_build_hooks_should_pass(self):
-        class CustomVivadoProject(VivadoProject):
-            pass
-
-        build_result = self._build(CustomVivadoProject(name="apa", modules=[], part=""))
-        assert build_result.success
-        self.mocked_run_vivado_tcl.assert_called_once()
-
-    def test_project_pre_build_hook_returning_false_should_fail_and_not_call_vivado_run(self):
-        class CustomVivadoProject(VivadoProject):
-            def pre_build(self, **kwargs):  # pylint: disable=unused-argument
-                return False
-
-        build_result = self._build(CustomVivadoProject(name="apa", modules=[], part=""))
-        assert not build_result.success
-        self.mocked_run_vivado_tcl.assert_not_called()
-
-    def test_project_post_build_hook_returning_false_should_fail(self):
-        class CustomVivadoProject(VivadoProject):
-            def post_build(self, **kwargs):  # pylint: disable=unused-argument
-                return False
-
-        build_result = self._build(CustomVivadoProject(name="apa", modules=[], part=""))
-        assert not build_result.success
-        self.mocked_run_vivado_tcl.assert_called_once()
-
-    def test_project_build_hooks_should_be_called_with_correct_parameters(self):
-        project = VivadoProject(
-            name="apa", modules=[], part="", generics=dict(static_generic=2), apa=123
-        )
-        with patch("tsfpga.vivado.project.VivadoProject.pre_build") as mocked_pre_build, patch(
-            "tsfpga.vivado.project.VivadoProject.post_build"
-        ) as mocked_post_build:
-            self._build(project)
-
-        arguments = dict(
-            project_path=self.project_path,
-            output_path=self.output_path,
-            run_index=self.run_index,
-            generics=copy_and_combine_dicts(dict(static_generic=2), self.build_time_generics),
-            synth_only=self.synth_only,
-            from_impl=self.from_impl,
-            num_threads=self.num_threads,
-            other_parameter="hest",
-            apa=123,
-        )
-        mocked_pre_build.assert_called_once_with(**arguments)
-
-        arguments.update(build_result=unittest.mock.ANY)
-        mocked_post_build.assert_called_once_with(**arguments)
-
-    def test_module_pre_build_hook_returning_false_should_fail_and_not_call_vivado(self):
-        module = MagicMock(spec=BaseModule)
-        module.name = "whatever"
-        project = VivadoProject(name="apa", modules=[module], part="")
-
-        project.modules[0].pre_build.return_value = True
-        build_result = self._build(project)
-        assert build_result.success
-        self.mocked_run_vivado_tcl.assert_called_once()
-
-        project.modules[0].pre_build.return_value = False
-        build_result = self._build(project)
-        assert not build_result.success
-        self.mocked_run_vivado_tcl.assert_not_called()
-
-    @patch("tsfpga.vivado.project.VivadoTcl", autospec=True)
-    def test_different_generic_combinations(self, mocked_vivado_tcl):
-        mocked_vivado_tcl.return_value.build.return_value = ""
-
-        # No generics
-        self.build_time_generics = None
-        build_result = self._build(VivadoProject(name="apa", modules=[], part=""))
-        assert build_result.success
-        # Note: In python 3.8 we can use call_args.kwargs straight away
-        _, kwargs = mocked_vivado_tcl.return_value.build.call_args
-        assert kwargs["generics"] == {}
-
-        # Only build time generics
-        self.build_time_generics = dict(runtime="value")
-        build_result = self._build(VivadoProject(name="apa", modules=[], part=""))
-        assert build_result.success
-        _, kwargs = mocked_vivado_tcl.return_value.build.call_args
-        assert kwargs["generics"] == dict(runtime="value")
-
-        # Static and build time generics
-        self.build_time_generics = dict(runtime="value")
-        build_result = self._build(
-            VivadoProject(name="apa", modules=[], part="", generics=dict(static="a value"))
-        )
-        assert build_result.success
-        _, kwargs = mocked_vivado_tcl.return_value.build.call_args
-        assert kwargs["generics"] == dict(runtime="value", static="a value")
-
-        # Same key in both static and build time generic. Should prefer build time.
-        self.build_time_generics = dict(static_and_runtime="build value")
-        build_result = self._build(
-            VivadoProject(
-                name="apa", modules=[], part="", generics=dict(static_and_runtime="static value")
-            )
-        )
-        assert build_result.success
-        _, kwargs = mocked_vivado_tcl.return_value.build.call_args
-        assert kwargs["generics"] == dict(static_and_runtime="build value")
-
-        # Only static generics
-        self.build_time_generics = None
-        build_result = self._build(
-            VivadoProject(name="apa", modules=[], part="", generics=dict(runtime="a value"))
-        )
-        assert build_result.success
-        _, kwargs = mocked_vivado_tcl.return_value.build.call_args
-        assert kwargs["generics"] == dict(runtime="a value")
-
-    @patch("tsfpga.vivado.project.VivadoTcl", autospec=True)
-    def test_build_time_generics_are_copied(self, mocked_vivado_tcl):
-        mocked_vivado_tcl.return_value.build.return_value = ""
-
-        self.build_time_generics = dict(runtime="value")
-        build_result = self._build(
-            VivadoProject(name="apa", modules=[], part="", generics=dict(static="a value"))
-        )
-        assert build_result.success
-        assert self.build_time_generics == dict(runtime="value")
-
-    def test_modules_are_deep_copied_before_pre_create_hook(self):
-        class CustomVivadoProject(VivadoProject):
-            def pre_create(self, **kwargs):
-                self.modules[0].registers = "Some other value"
-                return True
-
-        module = MagicMock(spec=BaseModule)
-        module.registers = "Some value"
-
-        project = CustomVivadoProject(name="apa", modules=[module], part="")
-        assert self._create(project)
-
-        assert module.registers == "Some value"
-
-    def test_modules_are_deep_copied_before_pre_build_hook(self):
-        class CustomVivadoProject(VivadoProject):
-            def pre_build(self, **kwargs):
-                self.modules[0].registers = "Some other value"
-                return True
-
-        module = MagicMock(spec=BaseModule)
-        module.registers = "Some value"
-
-        project = CustomVivadoProject(name="apa", modules=[module], part="")
-        assert self._build(project).success
-
-        assert module.registers == "Some value"
-
-    def test_get_size_is_called_correctly(self):
-        project = VivadoProject(name="apa", modules=[], part="")
-
-        def _build_with_size(synth_only):
-            """
-            The project.build() call is very similar to _build() method in this class, but it mocks
-            the _get_size() method in a different way.
-            """
+        def create(self, project, **other_arguments):
             with patch(
                 "tsfpga.vivado.project.run_vivado_tcl", autospec=True
-            ) as self.mocked_run_vivado_tcl, patch(
-                "tsfpga.vivado.project.HierarchicalUtilizationParser.get_size", autospec=True
-            ) as mocked_get_size, patch(
-                "tsfpga.vivado.project.shutil.copy2", autospec=True
-            ) as _:
-                # Only the first return value will be used if we are in synth_only
-                mocked_get_size.side_effect = ["synth_size", "impl_size"]
-
-                build_result = project.build(
+            ) as self.mocked_run_vivado_tcl:
+                return project.create(
                     project_path=self.project_path,
-                    output_path=self.output_path,
-                    run_index=self.run_index,
-                    synth_only=synth_only,
+                    ip_cache_path=self.ip_cache_path,
+                    **other_arguments,
                 )
 
-                assert build_result.synthesis_size == "synth_size"
-
-                if synth_only:
-                    mocked_get_size.assert_called_once_with("synth_file")
-                    assert build_result.implementation_size is None
-                else:
-                    assert mocked_get_size.call_count == 2
-                    mocked_get_size.assert_any_call("synth_file")
-                    mocked_get_size.assert_any_call("impl_file")
-
-                    assert build_result.implementation_size == "impl_size"
-
-        create_file(self.project_path / "apa.xpr")
-
-        create_file(
-            self.project_path / "apa.runs" / "synth_3" / "hierarchical_utilization.rpt",
-            contents="synth_file",
-        )
-        create_file(
-            self.project_path / "apa.runs" / "impl_3" / "hierarchical_utilization.rpt",
-            contents="impl_file",
-        )
-
-        _build_with_size(synth_only=True)
-        _build_with_size(synth_only=False)
-
-    def test_netlist_build_should_set_logic_level_distribution(self):
-        def _build_with_logic_level_distribution(project):
-            """
-            The project.build() call is very similar to _build() method in this class, except it
-            also mocks the _get_logic_level_distribution() method.
-            """
+        def build(self, project):
             with patch(
                 "tsfpga.vivado.project.run_vivado_tcl", autospec=True
             ) as self.mocked_run_vivado_tcl, patch(
                 "tsfpga.vivado.project.VivadoProject._get_size", autospec=True
             ) as _, patch(
                 "tsfpga.vivado.project.shutil.copy2", autospec=True
-            ) as _, patch(
-                "tsfpga.vivado.project.LogicLevelDistributionParser.get_table", autospec=True
-            ) as mocked_get_table:
-                mocked_get_table.return_value = "logic_table"
-
-                build_result = project.build(
+            ) as _:
+                create_file(self.project_path / "apa.xpr")
+                return project.build(
                     project_path=self.project_path,
                     output_path=self.output_path,
                     run_index=self.run_index,
+                    generics=self.build_time_generics,
+                    synth_only=self.synth_only,
+                    num_threads=self.num_threads,
+                    other_parameter="hest",
                 )
 
-                if project.is_netlist_build:
-                    mocked_get_table.assert_called_once_with("logic_file")
-                    assert build_result.logic_level_distribution == "logic_table"
-                else:
-                    mocked_get_table.assert_not_called()
-                    assert build_result.logic_level_distribution is None
-                    assert build_result.maximum_logic_level is None
+    return VivadoProjectTest()
 
-        create_file(self.project_path / "apa.xpr")
-        create_file(
-            self.project_path / "apa.runs" / "synth_3" / "logical_level_distribution.rpt",
-            contents="logic_file",
+
+# False positive for pytest fixtures
+# pylint: disable=redefined-outer-name
+
+
+def test_default_pre_create_hook_should_pass(vivado_project_test):
+    class CustomVivadoProject(VivadoProject):
+        pass
+
+    project = CustomVivadoProject(name="apa", modules=[], part="")
+    vivado_project_test.create(project)
+    vivado_project_test.mocked_run_vivado_tcl.assert_called_once()
+
+
+def test_project_pre_create_hook_returning_false_should_fail_and_not_call_vivado_run(
+    vivado_project_test,
+):
+    class CustomVivadoProject(VivadoProject):
+        def pre_create(self, **kwargs):  # pylint: disable=unused-argument
+            return False
+
+    assert not vivado_project_test.create(CustomVivadoProject(name="apa", modules=[], part=""))
+    vivado_project_test.mocked_run_vivado_tcl.assert_not_called()
+
+
+def test_create_should_call_pre_create_with_correct_parameters(vivado_project_test):
+    project = VivadoProject(name="apa", modules=[], part="", generics=dict(apa=123), hest=456)
+    with patch("tsfpga.vivado.project.VivadoProject.pre_create") as mocked_pre_create:
+        vivado_project_test.create(project, zebra=789)
+    mocked_pre_create.assert_called_once_with(
+        project_path=vivado_project_test.project_path,
+        ip_cache_path=vivado_project_test.ip_cache_path,
+        part="",
+        generics=dict(apa=123),
+        hest=456,
+        zebra=789,
+    )
+    vivado_project_test.mocked_run_vivado_tcl.assert_called_once()
+
+
+def test_build_module_pre_build_hook_and_create_regs_are_called(vivado_project_test):
+    project = VivadoProject(
+        name="apa",
+        modules=[MagicMock(spec=BaseModule), MagicMock(spec=BaseModule)],
+        part="",
+        apa=123,
+    )
+    build_result = vivado_project_test.build(project)
+    assert build_result.success
+
+    for module in project.modules:
+        module.pre_build.assert_called_once_with(
+            project=project,
+            other_parameter="hest",
+            apa=123,
+            project_path=vivado_project_test.project_path,
+            output_path=vivado_project_test.output_path,
+            run_index=vivado_project_test.run_index,
+            generics=vivado_project_test.build_time_generics,
+            synth_only=vivado_project_test.synth_only,
+            from_impl=vivado_project_test.from_impl,
+            num_threads=vivado_project_test.num_threads,
         )
+        module.create_regs_vhdl_package.assert_called_once()
 
-        project = VivadoNetlistProject(name="apa", modules=[], part="")
-        _build_with_logic_level_distribution(project=project)
 
-        project = VivadoProject(name="apa", modules=[], part="")
-        _build_with_logic_level_distribution(project=project)
+def test_default_pre_and_post_build_hooks_should_pass(vivado_project_test):
+    class CustomVivadoProject(VivadoProject):
+        pass
+
+    build_result = vivado_project_test.build(CustomVivadoProject(name="apa", modules=[], part=""))
+    assert build_result.success
+    vivado_project_test.mocked_run_vivado_tcl.assert_called_once()
+
+
+def test_project_pre_build_hook_returning_false_should_fail_and_not_call_vivado_run(
+    vivado_project_test,
+):
+    class CustomVivadoProject(VivadoProject):
+        def pre_build(self, **kwargs):  # pylint: disable=unused-argument
+            return False
+
+    build_result = vivado_project_test.build(CustomVivadoProject(name="apa", modules=[], part=""))
+    assert not build_result.success
+    vivado_project_test.mocked_run_vivado_tcl.assert_not_called()
+
+
+def test_project_post_build_hook_returning_false_should_fail(vivado_project_test):
+    class CustomVivadoProject(VivadoProject):
+        def post_build(self, **kwargs):  # pylint: disable=unused-argument
+            return False
+
+    build_result = vivado_project_test.build(CustomVivadoProject(name="apa", modules=[], part=""))
+    assert not build_result.success
+    vivado_project_test.mocked_run_vivado_tcl.assert_called_once()
+
+
+def test_project_build_hooks_should_be_called_with_correct_parameters(vivado_project_test):
+    project = VivadoProject(
+        name="apa", modules=[], part="", generics=dict(static_generic=2), apa=123
+    )
+    with patch("tsfpga.vivado.project.VivadoProject.pre_build") as mocked_pre_build, patch(
+        "tsfpga.vivado.project.VivadoProject.post_build"
+    ) as mocked_post_build:
+        vivado_project_test.build(project)
+
+    arguments = dict(
+        project_path=vivado_project_test.project_path,
+        output_path=vivado_project_test.output_path,
+        run_index=vivado_project_test.run_index,
+        generics=copy_and_combine_dicts(
+            dict(static_generic=2), vivado_project_test.build_time_generics
+        ),
+        synth_only=vivado_project_test.synth_only,
+        from_impl=vivado_project_test.from_impl,
+        num_threads=vivado_project_test.num_threads,
+        other_parameter="hest",
+        apa=123,
+    )
+    mocked_pre_build.assert_called_once_with(**arguments)
+
+    arguments.update(build_result=unittest.mock.ANY)
+    mocked_post_build.assert_called_once_with(**arguments)
+
+
+def test_module_pre_build_hook_returning_false_should_fail_and_not_call_vivado(vivado_project_test):
+    module = MagicMock(spec=BaseModule)
+    module.name = "whatever"
+    project = VivadoProject(name="apa", modules=[module], part="")
+
+    project.modules[0].pre_build.return_value = True
+    build_result = vivado_project_test.build(project)
+    assert build_result.success
+    vivado_project_test.mocked_run_vivado_tcl.assert_called_once()
+
+    project.modules[0].pre_build.return_value = False
+    build_result = vivado_project_test.build(project)
+    assert not build_result.success
+    vivado_project_test.mocked_run_vivado_tcl.assert_not_called()
+
+
+@patch("tsfpga.vivado.project.VivadoTcl", autospec=True)
+def test_different_generic_combinations(mocked_vivado_tcl, vivado_project_test):
+    mocked_vivado_tcl.return_value.build.return_value = ""
+
+    # No generics
+    vivado_project_test.build_time_generics = None
+    build_result = vivado_project_test.build(VivadoProject(name="apa", modules=[], part=""))
+    assert build_result.success
+    # Note: In python 3.8 we can use call_args.kwargs straight away
+    _, kwargs = mocked_vivado_tcl.return_value.build.call_args
+    assert kwargs["generics"] == {}
+
+    # Only build time generics
+    vivado_project_test.build_time_generics = dict(runtime="value")
+    build_result = vivado_project_test.build(VivadoProject(name="apa", modules=[], part=""))
+    assert build_result.success
+    _, kwargs = mocked_vivado_tcl.return_value.build.call_args
+    assert kwargs["generics"] == dict(runtime="value")
+
+    # Static and build time generics
+    vivado_project_test.build_time_generics = dict(runtime="value")
+    build_result = vivado_project_test.build(
+        VivadoProject(name="apa", modules=[], part="", generics=dict(static="a value"))
+    )
+    assert build_result.success
+    _, kwargs = mocked_vivado_tcl.return_value.build.call_args
+    assert kwargs["generics"] == dict(runtime="value", static="a value")
+
+    # Same key in both static and build time generic. Should prefer build time.
+    vivado_project_test.build_time_generics = dict(static_and_runtime="build value")
+    build_result = vivado_project_test.build(
+        VivadoProject(
+            name="apa", modules=[], part="", generics=dict(static_and_runtime="static value")
+        )
+    )
+    assert build_result.success
+    _, kwargs = mocked_vivado_tcl.return_value.build.call_args
+    assert kwargs["generics"] == dict(static_and_runtime="build value")
+
+    # Only static generics
+    vivado_project_test.build_time_generics = None
+    build_result = vivado_project_test.build(
+        VivadoProject(name="apa", modules=[], part="", generics=dict(runtime="a value"))
+    )
+    assert build_result.success
+    _, kwargs = mocked_vivado_tcl.return_value.build.call_args
+    assert kwargs["generics"] == dict(runtime="a value")
+
+
+def test_build_time_generics_are_copied(vivado_project_test):
+    vivado_project_test.build_time_generics = dict(runtime="value")
+    with patch("tsfpga.vivado.project.VivadoTcl", autospec=True) as mocked_vivado_tcl:
+        mocked_vivado_tcl.return_value.build.return_value = ""
+        build_result = vivado_project_test.build(
+            VivadoProject(name="apa", modules=[], part="", generics=dict(static="a value"))
+        )
+    assert build_result.success
+    assert vivado_project_test.build_time_generics == dict(runtime="value")
+
+
+def test_modules_are_deep_copied_before_pre_create_hook(vivado_project_test):
+    class CustomVivadoProject(VivadoProject):
+        def pre_create(self, **kwargs):
+            self.modules[0].registers = "Some other value"
+            return True
+
+    module = MagicMock(spec=BaseModule)
+    module.registers = "Some value"
+
+    project = CustomVivadoProject(name="apa", modules=[module], part="")
+    assert vivado_project_test.create(project)
+
+    assert module.registers == "Some value"
+
+
+def test_modules_are_deep_copied_before_pre_build_hook(vivado_project_test):
+    class CustomVivadoProject(VivadoProject):
+        def pre_build(self, **kwargs):
+            self.modules[0].registers = "Some other value"
+            return True
+
+    module = MagicMock(spec=BaseModule)
+    module.registers = "Some value"
+
+    project = CustomVivadoProject(name="apa", modules=[module], part="")
+    assert vivado_project_test.build(project).success
+
+    assert module.registers == "Some value"
+
+
+def test_get_size_is_called_correctly(vivado_project_test):
+    project = VivadoProject(name="apa", modules=[], part="")
+
+    def _build_with_size(synth_only):
+        """
+        The project.build() call is very similar to _build() method in this class, but it mocks
+        the _get_size() method in a different way.
+        """
+        with patch(
+            "tsfpga.vivado.project.run_vivado_tcl", autospec=True
+        ) as vivado_project_test.mocked_run_vivado_tcl, patch(
+            "tsfpga.vivado.project.HierarchicalUtilizationParser.get_size", autospec=True
+        ) as mocked_get_size, patch(
+            "tsfpga.vivado.project.shutil.copy2", autospec=True
+        ) as _:
+            # Only the first return value will be used if we are in synth_only
+            mocked_get_size.side_effect = ["synth_size", "impl_size"]
+
+            build_result = project.build(
+                project_path=vivado_project_test.project_path,
+                output_path=vivado_project_test.output_path,
+                run_index=vivado_project_test.run_index,
+                synth_only=synth_only,
+            )
+
+            assert build_result.synthesis_size == "synth_size"
+
+            if synth_only:
+                mocked_get_size.assert_called_once_with("synth_file")
+                assert build_result.implementation_size is None
+            else:
+                assert mocked_get_size.call_count == 2
+                mocked_get_size.assert_any_call("synth_file")
+                mocked_get_size.assert_any_call("impl_file")
+
+                assert build_result.implementation_size == "impl_size"
+
+    create_file(vivado_project_test.project_path / "apa.xpr")
+
+    create_file(
+        vivado_project_test.project_path / "apa.runs" / "synth_3" / "hierarchical_utilization.rpt",
+        contents="synth_file",
+    )
+    create_file(
+        vivado_project_test.project_path / "apa.runs" / "impl_3" / "hierarchical_utilization.rpt",
+        contents="impl_file",
+    )
+
+    _build_with_size(synth_only=True)
+    _build_with_size(synth_only=False)
+
+
+def test_netlist_build_should_set_logic_level_distribution(vivado_project_test):
+    def _build_with_logic_level_distribution(project):
+        """
+        The project.build() call is very similar to _build() method in this class, except it
+        also mocks the _get_logic_level_distribution() method.
+        """
+        with patch(
+            "tsfpga.vivado.project.run_vivado_tcl", autospec=True
+        ) as vivado_project_test.mocked_run_vivado_tcl, patch(
+            "tsfpga.vivado.project.VivadoProject._get_size", autospec=True
+        ) as _, patch(
+            "tsfpga.vivado.project.shutil.copy2", autospec=True
+        ) as _, patch(
+            "tsfpga.vivado.project.LogicLevelDistributionParser.get_table", autospec=True
+        ) as mocked_get_table:
+            mocked_get_table.return_value = "logic_table"
+
+            build_result = project.build(
+                project_path=vivado_project_test.project_path,
+                output_path=vivado_project_test.output_path,
+                run_index=vivado_project_test.run_index,
+            )
+
+            if project.is_netlist_build:
+                mocked_get_table.assert_called_once_with("logic_file")
+                assert build_result.logic_level_distribution == "logic_table"
+            else:
+                mocked_get_table.assert_not_called()
+                assert build_result.logic_level_distribution is None
+                assert build_result.maximum_logic_level is None
+
+    create_file(vivado_project_test.project_path / "apa.xpr")
+    create_file(
+        vivado_project_test.project_path
+        / "apa.runs"
+        / "synth_3"
+        / "logical_level_distribution.rpt",
+        contents="logic_file",
+    )
+
+    project = VivadoNetlistProject(name="apa", modules=[], part="")
+    _build_with_logic_level_distribution(project=project)
+
+    project = VivadoProject(name="apa", modules=[], part="")
+    _build_with_logic_level_distribution(project=project)

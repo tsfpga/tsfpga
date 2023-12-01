@@ -8,7 +8,6 @@
 
 # Standard libraries
 import os
-import unittest
 from pathlib import Path
 
 # Third party libraries
@@ -82,48 +81,65 @@ def test_git_commands_are_available_with_invalid_directory_should_fail():
     assert not git_commands_are_available(directory=path_outside_of_repo)
 
 
-@pytest.mark.usefixtures("fixture_tmp_path")
-class TestGitCommitWithLocalChanges(unittest.TestCase):
-    tmp_path = None
+@pytest.fixture
+def git_commit_with_local_changes_test(tmp_path):
+    class TestGitCommitWithLocalChanges:
+        def __init__(self):
+            self.repo_path = tmp_path / "my_repo"
+            self.repo = Repo.init(self.repo_path)
+            self.actor = Actor("A name", "an@email.com")
 
-    _local_changes_present = " (local changes present)"
+            initial_file = create_file(self.repo_path / "initial_commit_file.txt")
+            self.repo.index.add(str(initial_file))
+            self.repo.index.commit("Initial commit", author=self.actor, committer=self.actor)
 
-    def setUp(self):
-        self.repo_path = self.tmp_path / "my_repo"
-        self.repo = Repo.init(self.repo_path)
-        self.actor = Actor("A name", "an@email.com")
+            trash_file = create_file(self.repo_path / "local_file_for_git_test.apa")
+            self.repo.index.add(str(trash_file))
 
-        initial_file = create_file(self.repo_path / "initial_commit_file.txt")
-        self.repo.index.add(str(initial_file))
-        self.repo.index.commit("Initial commit", author=self.actor, committer=self.actor)
+    return TestGitCommitWithLocalChanges()
 
-        trash_file = create_file(self.repo_path / "local_file_for_git_test.apa")
-        self.repo.index.add(str(trash_file))
 
-    def test_get_git_commit_with_local_changes(self):
-        assert get_git_commit(directory=self.repo_path).endswith(self._local_changes_present)
+# False positive for pytest fixtures
+# pylint: disable=redefined-outer-name
 
-    def test_get_git_commit_with_env_variable_and_local_changes(self):
-        if "GIT_COMMIT" in os.environ:
-            old_env = os.environ["GIT_COMMIT"]
-        else:
-            old_env = None
 
-        os.environ["GIT_COMMIT"] = "54849b5a8152b07e0809b8f90fc24d54262cb4d6"
-        assert (
-            get_git_commit(directory=self.repo_path)
-            == f"{os.environ['GIT_COMMIT'][0:16]}{self._local_changes_present}"
-        )
+def test_get_git_commit_with_local_changes(git_commit_with_local_changes_test):
+    assert get_git_commit(directory=git_commit_with_local_changes_test.repo_path).endswith(
+        " (local changes present)"
+    )
 
-        if old_env is None:
-            del os.environ["GIT_COMMIT"]
-        else:
-            os.environ["GIT_COMMIT"] = old_env
 
-    def test_get_git_commit_without_local_changes(self):
-        self.repo.index.commit("Trash commit", author=self.actor, committer=self.actor)
-        assert not get_git_commit(directory=self.repo_path).endswith(self._local_changes_present)
+def test_get_git_commit_with_env_variable_and_local_changes(git_commit_with_local_changes_test):
+    if "GIT_COMMIT" in os.environ:
+        old_env = os.environ["GIT_COMMIT"]
+    else:
+        old_env = None
 
-    def test_get_git_commit_from_child_directory(self):
-        child_directory = create_directory(self.repo_path / "child_directory")
-        assert get_git_commit(directory=child_directory).endswith(self._local_changes_present)
+    os.environ["GIT_COMMIT"] = "54849b5a8152b07e0809b8f90fc24d54262cb4d6"
+    assert (
+        get_git_commit(directory=git_commit_with_local_changes_test.repo_path)
+        == f"{os.environ['GIT_COMMIT'][0:16]} (local changes present)"
+    )
+
+    if old_env is None:
+        del os.environ["GIT_COMMIT"]
+    else:
+        os.environ["GIT_COMMIT"] = old_env
+
+
+def test_get_git_commit_without_local_changes(git_commit_with_local_changes_test):
+    git_commit_with_local_changes_test.repo.index.commit(
+        "Trash commit",
+        author=git_commit_with_local_changes_test.actor,
+        committer=git_commit_with_local_changes_test.actor,
+    )
+    assert not get_git_commit(directory=git_commit_with_local_changes_test.repo_path).endswith(
+        " (local changes present)"
+    )
+
+
+def test_get_git_commit_from_child_directory(git_commit_with_local_changes_test):
+    child_directory = create_directory(
+        git_commit_with_local_changes_test.repo_path / "child_directory"
+    )
+    assert get_git_commit(directory=child_directory).endswith(" (local changes present)")

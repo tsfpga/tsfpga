@@ -8,7 +8,6 @@
 
 # Standard libraries
 from pathlib import Path
-from unittest import TestCase
 from unittest.mock import ANY, MagicMock, patch
 
 # Third party libraries
@@ -224,67 +223,80 @@ def test_getting_registers_calls_registers_hook(tmp_path):
         assert registers is None
 
 
-@pytest.mark.usefixtures("fixture_tmp_path")
-class TestGetModules(TestCase):
-    tmp_path = None
+@pytest.fixture
+def get_modules_test(tmp_path):
+    class GetModulesTest:
+        def __init__(self):
+            create_directory(tmp_path / "a")
+            create_directory(tmp_path / "b")
+            create_directory(tmp_path / "c")
 
-    def setUp(self):
-        create_directory(self.tmp_path / "a")
-        create_directory(self.tmp_path / "b")
-        create_directory(self.tmp_path / "c")
+            self.modules_folder = tmp_path
+            self.modules_folders = [self.modules_folder]
 
-        self.modules_folders = [self.tmp_path]
+    return GetModulesTest()
 
-    def test_name_filtering_include(self):
-        modules = get_modules(self.modules_folders, names_include=["a", "b"])
-        assert set(module.name for module in modules) == set(["a", "b"])
 
-    def test_name_filtering_avoid(self):
-        modules = get_modules(self.modules_folders, names_avoid=["a", "b"])
-        assert set(module.name for module in modules) == set(["c"])
+# False positive for pytest fixtures
+# pylint: disable=redefined-outer-name
 
-    def test_name_filtering_include_and_avoid(self):
-        modules = get_modules(
-            self.modules_folders, names_include=["a", "c"], names_avoid=["b", "c"]
-        )
-        assert set(module.name for module in modules) == set(["a"])
 
-    def test_library_name_does_not_have_lib_suffix(self):
-        modules = get_modules(self.modules_folders)
-        assert set(module.library_name for module in modules) == set(["a", "b", "c"])
+def test_name_filtering_include(get_modules_test):
+    modules = get_modules(get_modules_test.modules_folders, names_include=["a", "b"])
+    assert set(module.name for module in modules) == set(["a", "b"])
 
-    def test_library_name_has_lib_suffix(self):
-        modules = get_modules(self.modules_folders, library_name_has_lib_suffix=True)
-        assert set(module.library_name for module in modules) == set(["a_lib", "b_lib", "c_lib"])
 
-    def test_stray_file_can_exist_in_modules_folder_without_error(self):
-        create_file(self.tmp_path / "text_file.txt")
-        modules = get_modules(self.modules_folders)
-        assert len(modules) == 3
+def test_name_filtering_avoid(get_modules_test):
+    modules = get_modules(get_modules_test.modules_folders, names_avoid=["a", "b"])
+    assert set(module.name for module in modules) == set(["c"])
 
-    def test_local_override_of_module_type(self):
-        module_file_content = """
+
+def test_name_filtering_include_and_avoid(get_modules_test):
+    modules = get_modules(
+        get_modules_test.modules_folders, names_include=["a", "c"], names_avoid=["b", "c"]
+    )
+    assert set(module.name for module in modules) == set(["a"])
+
+
+def test_library_name_does_not_have_lib_suffix(get_modules_test):
+    modules = get_modules(get_modules_test.modules_folders)
+    assert set(module.library_name for module in modules) == set(["a", "b", "c"])
+
+
+def test_library_name_has_lib_suffix(get_modules_test):
+    modules = get_modules(get_modules_test.modules_folders, library_name_has_lib_suffix=True)
+    assert set(module.library_name for module in modules) == set(["a_lib", "b_lib", "c_lib"])
+
+
+def test_stray_file_can_exist_in_modules_folder_without_error(get_modules_test):
+    create_file(get_modules_test.modules_folder / "text_file.txt")
+    modules = get_modules(get_modules_test.modules_folders)
+    assert len(modules) == 3
+
+
+def test_local_override_of_module_type(get_modules_test):
+    module_file_content = """
 from tsfpga.module import BaseModule
 
 class Module(BaseModule):
     def id(self):
         return """
 
-        create_file(self.tmp_path / "a" / "module_a.py", module_file_content + '"a"')
-        create_file(self.tmp_path / "b" / "module_b.py", module_file_content + '"b"')
+    create_file(get_modules_test.modules_folder / "a" / "module_a.py", module_file_content + '"a"')
+    create_file(get_modules_test.modules_folder / "b" / "module_b.py", module_file_content + '"b"')
 
-        modules = get_modules(self.modules_folders)
+    modules = get_modules(get_modules_test.modules_folders)
 
-        assert len(modules) == 3
-        for module in modules:
-            if module.name == "a":
-                assert module.id() == "a"
-            elif module.name == "b":
-                assert module.id() == "b"
-            elif module.name == "c":
-                assert isinstance(module, BaseModule)
-            else:
-                assert False
+    assert len(modules) == 3
+    for module in modules:
+        if module.name == "a":
+            assert module.id() == "a"
+        elif module.name == "b":
+            assert module.id() == "b"
+        elif module.name == "c":
+            assert isinstance(module, BaseModule)
+        else:
+            assert False
 
 
 @patch("tsfpga.module.from_toml", autospec=True)
