@@ -7,7 +7,6 @@
 # --------------------------------------------------------------------------------------------------
 
 # Standard libraries
-import unittest
 from collections import OrderedDict
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -22,7 +21,6 @@ from tsfpga.module import BaseModule, get_modules
 from tsfpga.system_utils import create_file
 
 # pylint: disable=unused-import
-from tsfpga.test.conftest import fixture_tmp_path  # noqa: F401
 from tsfpga.test.test_utils import file_contains_string
 from tsfpga.vivado.common import to_tcl_path
 from tsfpga.vivado.generics import BitVectorGenericValue, StringGenericValue
@@ -197,91 +195,109 @@ def test_module_getters_are_called_with_correct_arguments():
     modules[0].get_ip_core_files.assert_called_once_with(apa=123, hest=456)
 
 
-# pylint: disable=too-many-instance-attributes
-@pytest.mark.usefixtures("fixture_tmp_path")
-class TestVivadoTcl(unittest.TestCase):
-    tmp_path = None
+@pytest.fixture
+def vivado_tcl_test(tmp_path):
+    class VivadoTclTest:  # pylint: disable=too-many-instance-attributes
+        def __init__(self):
+            self.modules_folder = tmp_path / "modules"
 
-    def setUp(self):
-        self.modules_folder = self.tmp_path / "modules"
+            # A library with some synth files and some test files
+            self.a_vhd = to_tcl_path(create_file(self.modules_folder / "apa" / "a.vhd"))
+            self.b_vhd = to_tcl_path(create_file(self.modules_folder / "apa" / "b.vhd"))
+            self.tb_a_vhd = to_tcl_path(
+                create_file(self.modules_folder / "apa" / "test" / "tb_a.vhd")
+            )
+            self.a_xdc = to_tcl_path(
+                create_file(self.modules_folder / "apa" / "scoped_constraints" / "a.xdc")
+            )
 
-        # A library with some synth files and some test files
-        self.a_vhd = to_tcl_path(create_file(self.modules_folder / "apa" / "a.vhd"))
-        self.b_vhd = to_tcl_path(create_file(self.modules_folder / "apa" / "b.vhd"))
-        self.tb_a_vhd = to_tcl_path(create_file(self.modules_folder / "apa" / "test" / "tb_a.vhd"))
-        self.a_xdc = to_tcl_path(
-            create_file(self.modules_folder / "apa" / "scoped_constraints" / "a.xdc")
-        )
+            self.c_v = to_tcl_path(create_file(self.modules_folder / "apa" / "c.v"))
+            self.b_tcl = to_tcl_path(
+                create_file(self.modules_folder / "apa" / "scoped_constraints" / "b.tcl")
+            )
 
-        self.c_v = to_tcl_path(create_file(self.modules_folder / "apa" / "c.v"))
-        self.b_tcl = to_tcl_path(
-            create_file(self.modules_folder / "apa" / "scoped_constraints" / "b.tcl")
-        )
+            self.c_tcl = to_tcl_path(
+                create_file(self.modules_folder / "apa" / "ip_cores" / "c.tcl")
+            )
 
-        self.c_tcl = to_tcl_path(create_file(self.modules_folder / "apa" / "ip_cores" / "c.tcl"))
+            # A library with only test files
+            self.d_vhd = to_tcl_path(create_file(self.modules_folder / "zebra" / "test" / "d.vhd"))
 
-        # A library with only test files
-        self.d_vhd = to_tcl_path(create_file(self.modules_folder / "zebra" / "test" / "d.vhd"))
+            self.modules = get_modules([self.modules_folder])
 
-        self.modules = get_modules([self.modules_folder])
+            self.tcl = VivadoTcl(name="name")
 
-        self.tcl = VivadoTcl(name="name")
+    return VivadoTclTest()
 
-    def test_source_file_list_is_correctly_formatted(self):
-        tcl = self.tcl.create(
-            project_folder=Path(), modules=self.modules, part="", top="", run_index=1
-        )
 
-        # Order of files is not really deterministic
-        expected_1 = f"\nread_vhdl -library apa -vhdl2008 {{{{{self.b_vhd}}} {{{self.a_vhd}}}}}\n"
-        expected_2 = f"\nread_vhdl -library apa -vhdl2008 {{{{{self.a_vhd}}} {{{self.b_vhd}}}}}\n"
-        assert expected_1 in tcl or expected_2 in tcl
+# False positive for pytest fixtures
+# pylint: disable=redefined-outer-name
 
-        expected = f"\nread_verilog {{{self.c_v}}}\n"
-        assert expected in tcl
 
-    def test_only_synthesis_files_added_to_create_project_tcl(self):
-        tcl = self.tcl.create(
-            project_folder=Path(), modules=self.modules, part="", top="", run_index=1
-        )
-        assert self.a_vhd in tcl and self.c_v in tcl
-        assert self.tb_a_vhd not in tcl and "tb_a.vhd" not in tcl
+def test_source_file_list_is_correctly_formatted(vivado_tcl_test):
+    tcl = vivado_tcl_test.tcl.create(
+        project_folder=Path(), modules=vivado_tcl_test.modules, part="", top="", run_index=1
+    )
 
-    def test_constraints(self):
-        tcl = self.tcl.create(
-            project_folder=Path(), modules=self.modules, part="part", top="", run_index=1
-        )
+    # Order of files is not really deterministic
+    expected_1 = (
+        "\nread_vhdl -library apa -vhdl2008 "
+        f"{{{{{vivado_tcl_test.b_vhd}}} {{{vivado_tcl_test.a_vhd}}}}}\n"
+    )
+    expected_2 = (
+        "\nread_vhdl -library apa -vhdl2008 "
+        f"{{{{{vivado_tcl_test.a_vhd}}} {{{vivado_tcl_test.b_vhd}}}}}\n"
+    )
+    assert expected_1 in tcl or expected_2 in tcl
 
-        expected = f"\nread_xdc -ref a {{{self.a_xdc}}}\n"
-        assert expected in tcl
-        expected = f"\nread_xdc -ref b -unmanaged {{{self.b_tcl}}}\n"
-        assert expected in tcl
+    expected = f"\nread_verilog {{{vivado_tcl_test.c_v}}}\n"
+    assert expected in tcl
 
-    def test_ip_core_files(self):
-        ip_core_file_path = self.tmp_path / "my_name.tcl"
-        module = MagicMock(spec=BaseModule)
-        module.get_ip_core_files.return_value = [
-            IpCoreFile(path=ip_core_file_path, apa="hest", zebra=123)
-        ]
 
-        self.modules.append(module)
+def test_only_synthesis_files_added_to_create_project_tcl(vivado_tcl_test):
+    tcl = vivado_tcl_test.tcl.create(
+        project_folder=Path(), modules=vivado_tcl_test.modules, part="", top="", run_index=1
+    )
+    assert vivado_tcl_test.a_vhd in tcl and vivado_tcl_test.c_v in tcl
+    assert vivado_tcl_test.tb_a_vhd not in tcl and "tb_a.vhd" not in tcl
 
-        tcl = self.tcl.create(
-            project_folder=Path(), modules=self.modules, part="part", top="", run_index=1
-        )
 
-        assert (
-            f"""
+def test_constraints(vivado_tcl_test):
+    tcl = vivado_tcl_test.tcl.create(
+        project_folder=Path(), modules=vivado_tcl_test.modules, part="part", top="", run_index=1
+    )
+
+    expected = f"\nread_xdc -ref a {{{vivado_tcl_test.a_xdc}}}\n"
+    assert expected in tcl
+    expected = f"\nread_xdc -ref b -unmanaged {{{vivado_tcl_test.b_tcl}}}\n"
+    assert expected in tcl
+
+
+def test_ip_core_files(vivado_tcl_test):
+    ip_core_file_path = vivado_tcl_test.modules_folder.parent / "my_name.tcl"
+    module = MagicMock(spec=BaseModule)
+    module.get_ip_core_files.return_value = [
+        IpCoreFile(path=ip_core_file_path, apa="hest", zebra=123)
+    ]
+
+    vivado_tcl_test.modules.append(module)
+
+    tcl = vivado_tcl_test.tcl.create(
+        project_folder=Path(), modules=vivado_tcl_test.modules, part="part", top="", run_index=1
+    )
+
+    assert (
+        f"""
 proc create_ip_core_c {{}} {{
-  source -notrace {{{self.c_tcl}}}
+  source -notrace {{{vivado_tcl_test.c_tcl}}}
 }}
 create_ip_core_c
 """
-            in tcl
-        )
+        in tcl
+    )
 
-        assert (
-            f"""
+    assert (
+        f"""
 proc create_ip_core_my_name {{}} {{
   set apa "hest"
   set zebra "123"
@@ -289,106 +305,109 @@ proc create_ip_core_my_name {{}} {{
 }}
 create_ip_core_my_name
 """
-            in tcl
-        )
+        in tcl
+    )
 
-    def test_create_with_ip_cores_only(self):
-        tcl = self.tcl.create(
-            project_folder=Path(),
-            modules=self.modules,
-            part="part",
-            top="",
-            run_index=1,
-            ip_cores_only=True,
-        )
-        assert self.c_tcl in tcl
-        assert self.a_vhd not in tcl
 
-    def test_empty_library_not_in_create_project_tcl(self):
-        tcl = self.tcl.create(
-            project_folder=Path(), modules=self.modules, part="part", top="", run_index=1
-        )
-        assert "zebra" not in tcl
+def test_create_with_ip_cores_only(vivado_tcl_test):
+    tcl = vivado_tcl_test.tcl.create(
+        project_folder=Path(),
+        modules=vivado_tcl_test.modules,
+        part="part",
+        top="",
+        run_index=1,
+        ip_cores_only=True,
+    )
+    assert vivado_tcl_test.c_tcl in tcl
+    assert vivado_tcl_test.a_vhd not in tcl
 
-    def test_multiple_tcl_sources(self):
-        extra_tcl_sources = [Path("dummy.tcl"), Path("files.tcl")]
-        tcl = self.tcl.create(
-            project_folder=Path(),
-            modules=self.modules,
-            part="part",
-            top="",
-            run_index=1,
-            tcl_sources=extra_tcl_sources,
-        )
 
-        for filename in extra_tcl_sources:
-            assert f"\nsource -notrace {{{to_tcl_path(filename)}}}\n" in tcl
+def test_empty_library_not_in_create_project_tcl(vivado_tcl_test):
+    tcl = vivado_tcl_test.tcl.create(
+        project_folder=Path(), modules=vivado_tcl_test.modules, part="part", top="", run_index=1
+    )
+    assert "zebra" not in tcl
 
-    def test_io_buffer_setting(self):
-        tcl = self.tcl.create(
-            project_folder=Path(),
-            modules=self.modules,
-            part="part",
-            top="",
-            run_index=1,
-            disable_io_buffers=True,
-        )
 
-        no_io_buffers_tcl = (
-            "\nset_property -name {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} "
-            "-value -no_iobuf -objects [get_runs synth_1]\n"
-        )
-        assert no_io_buffers_tcl in tcl
+def test_multiple_tcl_sources(vivado_tcl_test):
+    extra_tcl_sources = [Path("dummy.tcl"), Path("files.tcl")]
+    tcl = vivado_tcl_test.tcl.create(
+        project_folder=Path(),
+        modules=vivado_tcl_test.modules,
+        part="part",
+        top="",
+        run_index=1,
+        tcl_sources=extra_tcl_sources,
+    )
 
-        tcl = self.tcl.create(
-            project_folder=Path(),
-            modules=self.modules,
-            part="part",
-            top="",
-            run_index=1,
-            disable_io_buffers=False,
-        )
+    for filename in extra_tcl_sources:
+        assert f"\nsource -notrace {{{to_tcl_path(filename)}}}\n" in tcl
 
-        assert no_io_buffers_tcl not in tcl
 
-    def test_analyze_synthesis_settings_on_and_off(self):
-        tcl = self.tcl.build(
-            project_file=Path(),
-            output_path=Path(),
-            num_threads=1,
-            run_index=1,
-            analyze_synthesis_timing=True,
-        )
-        assert "open_run" in tcl
-        assert "report_clock_interaction" in tcl
+def test_io_buffer_setting(vivado_tcl_test):
+    tcl = vivado_tcl_test.tcl.create(
+        project_folder=Path(),
+        modules=vivado_tcl_test.modules,
+        part="part",
+        top="",
+        run_index=1,
+        disable_io_buffers=True,
+    )
 
-        tcl = self.tcl.build(
-            project_file=Path(),
-            output_path=Path(),
-            num_threads=1,
-            run_index=1,
-            analyze_synthesis_timing=False,
-        )
-        # When disabled, the run should not even be opened, which saves time
-        assert "open_run" not in tcl
-        assert "report_clock_interaction" not in tcl
+    no_io_buffers_tcl = (
+        "\nset_property -name {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} "
+        "-value -no_iobuf -objects [get_runs synth_1]\n"
+    )
+    assert no_io_buffers_tcl in tcl
 
-    def test_impl_explore(self):
-        num_runs = 4
+    tcl = vivado_tcl_test.tcl.create(
+        project_folder=Path(),
+        modules=vivado_tcl_test.modules,
+        part="part",
+        top="",
+        run_index=1,
+        disable_io_buffers=False,
+    )
 
-        tcl = self.tcl.build(
-            project_file=Path(),
-            output_path=Path(),
-            num_threads=num_runs,
-            run_index=1,
-            impl_explore=True,
-        )
+    assert no_io_buffers_tcl not in tcl
 
-        assert (
-            f"launch_runs -jobs {num_runs} [get_runs impl_explore_*] -to_step write_bitstream"
-            in tcl
-        )
-        assert "wait_on_runs -exit_condition ANY_ONE_MET_TIMING [get_runs impl_explore_*]" in tcl
-        assert 'reset_runs [get_runs -filter {STATUS == "Queued..."}]' in tcl
-        assert 'wait_on_runs [get_runs -filter {STATUS != "Not started"} impl_explore_*]' in tcl
-        assert 'foreach run [get_runs -filter {PROGRESS == "100%"} impl_explore_*]' in tcl
+
+def test_analyze_synthesis_settings_on_and_off(vivado_tcl_test):
+    tcl = vivado_tcl_test.tcl.build(
+        project_file=Path(),
+        output_path=Path(),
+        num_threads=1,
+        run_index=1,
+        analyze_synthesis_timing=True,
+    )
+    assert "open_run" in tcl
+    assert "report_clock_interaction" in tcl
+
+    tcl = vivado_tcl_test.tcl.build(
+        project_file=Path(),
+        output_path=Path(),
+        num_threads=1,
+        run_index=1,
+        analyze_synthesis_timing=False,
+    )
+    # When disabled, the run should not even be opened, which saves time
+    assert "open_run" not in tcl
+    assert "report_clock_interaction" not in tcl
+
+
+def test_impl_explore(vivado_tcl_test):
+    num_runs = 4
+
+    tcl = vivado_tcl_test.tcl.build(
+        project_file=Path(),
+        output_path=Path(),
+        num_threads=num_runs,
+        run_index=1,
+        impl_explore=True,
+    )
+
+    assert f"launch_runs -jobs {num_runs} [get_runs impl_explore_*] -to_step write_bitstream" in tcl
+    assert "wait_on_runs -exit_condition ANY_ONE_MET_TIMING [get_runs impl_explore_*]" in tcl
+    assert 'reset_runs [get_runs -filter {STATUS == "Queued..."}]' in tcl
+    assert 'wait_on_runs [get_runs -filter {STATUS != "Not started"} impl_explore_*]' in tcl
+    assert 'foreach run [get_runs -filter {PROGRESS == "100%"} impl_explore_*]' in tcl
