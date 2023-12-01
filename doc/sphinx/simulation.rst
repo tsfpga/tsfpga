@@ -76,7 +76,7 @@ This file handles things like
 
 * Only a subset of sources available when using a non-commercial simulator
 * Compile :ref:`Vivado simlib <vivado_simlib>` and :ref:`Vivado IP cores <vivado_ip_cores>`
-* Adding ``hdl_modules`` as modules that shall be compiled, but who's tests shall not be run.
+* Adding ``hdl-modules`` as modules that shall be compiled, but who's tests shall not be run.
 
 
 

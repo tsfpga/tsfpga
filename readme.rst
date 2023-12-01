@@ -61,7 +61,7 @@ Key features
   for your simulation project, with automatic re-compile when needed.
 * Python-based `Vivado build system <https://tsfpga.com/fpga_build.html>`__ where many builds can
   be run in parallel.
-* Tightly integrated with `hdl_registers <https://hdl-registers.com>`__.
+* Tightly integrated with `hdl-registers <https://hdl-registers.com>`__.
   Register code generation is performed before each simulation and each build.
 * Released under the very permissive BSD 3-Clause License.
 

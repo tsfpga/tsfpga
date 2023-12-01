@@ -105,7 +105,7 @@ regs_foo.toml
 -------------
 
 The file ``regs_<module_name>.toml``, if it exists, will be parsed with the
-:ref:`hdl_registers register generator <integration_hdl_registers>`.
+:ref:`hdl-registers register generator <integration_hdl_registers>`.
 It contains the registers that the module uses and the fields within those registers.
 
 

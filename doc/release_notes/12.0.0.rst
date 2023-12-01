@@ -21,7 +21,7 @@ Added
 
 Breaking changes
 
-* Remove bundling of `hdl_modules <https://hdl-modules.com>`_ with PyPI release.
+* Remove bundling of `hdl-modules <https://hdl-modules.com>`_ with PyPI release.
   This also removes the constants/functions ``tsfpga.HDL_MODULES_LOCATION``,
   ``tsfpga.HDL_MODULES_TAG``, ``tsfpga.HDL_MODULES_SHA`` and
   ``tsfpga.module.get_hdl_modules()``.
