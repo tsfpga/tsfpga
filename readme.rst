@@ -14,7 +14,7 @@
 
 .. |pic_chat| image:: https://tsfpga.com/badges/chat.svg
   :alt: Chat
-  :target: https://app.gitter.im/#/room/#60a276916da03739847cca54:gitter.im
+  :target: https://github.com/tsfpga/tsfpga/discussions
 
 .. |pic_pip_install| image:: https://tsfpga.com/badges/pip_install.svg
   :alt: pypi
@@ -32,7 +32,7 @@
   :alt: Python line coverage
   :target: https://tsfpga.com/python_coverage_html
 
-|pic_website| |pic_repository| |pic_chat| |pic_pip_install| |pic_license| |pic_ci_status|
+|pic_website| |pic_repository| |pic_pip_install| |pic_license| |pic_chat| |pic_ci_status|
 |pic_python_line_coverage|
 
 tsfpga is a flexible and scalable development platform for modern FPGA projects.
