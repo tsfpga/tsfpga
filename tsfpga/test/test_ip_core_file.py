@@ -26,7 +26,8 @@ def test_name():
 
 
 def test_name_with_spaces_should_raise_exception():
+    path = Path("/apa/my core.tcl")
     with pytest.raises(ValueError) as exception_info:
         # pylint: disable=expression-not-assigned
-        IpCoreFile(Path("/apa/my core.tcl")).name
-    assert str(exception_info.value) == "File name may not contain spaces: /apa/my core.tcl"
+        IpCoreFile(path).name
+    assert str(exception_info.value) == f"File name may not contain spaces: {path}"

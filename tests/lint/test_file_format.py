@@ -78,6 +78,8 @@ def test_no_checked_in_files_contain_trailing_whitespace():
 def test_no_checked_in_files_have_too_long_lines():
     test_ok = True
     excludes = [
+        # Can not break long commands on Windows.
+        REPO_ROOT / ".github" / "workflows" / "ci.yml",
         # RST syntax hard to break.
         REPO_ROOT / "readme.rst",
         # We list the license text exactly as the original, with no line breaks
