@@ -9,10 +9,10 @@ description = """'1' when the module is inactive and a new run can be launched.
 '0' when the module is working."""
 
 
-[register.status.bit_vector.counter]
+[register.status.integer.counter]
 
 description = "Number of AXI bursts that have finished."
-width = 8
+max_value = 255
 
 
 ################################################################################
@@ -29,10 +29,10 @@ description = "Start a read and write cycle."
 mode = "r"
 description = "Version number for this module"
 
-[register.version.bit_vector.version]
+[register.version.integer.version]
 
-width = 8
 description = "Version field."
+max_value = 255
 
 
 ################################################################################

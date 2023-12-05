@@ -46,11 +46,11 @@ begin
         clk_m_gp0 => clk_m_gp0,
         m_gp0_m2s => m_gp0_m2s,
         m_gp0_s2m => m_gp0_s2m,
-
+        --
         clk_s_hp0 => clk_s_hp0,
         s_hp0_m2s => s_hp0_m2s,
         s_hp0_s2m => s_hp0_s2m,
-
+        --
         pl_clk0 => pl_clk0,
         pl_clk1 => pl_clk1
       );

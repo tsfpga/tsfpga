@@ -28,6 +28,7 @@ use reg_file.reg_file_pkg.all;
 use reg_file.reg_operations_pkg.all;
 
 use work.ddr_buffer_regs_pkg.all;
+use work.ddr_buffer_register_simulation_pkg.all;
 use work.ddr_buffer_sim_pkg.all;
 
 
@@ -50,8 +51,6 @@ architecture tb of tb_ddr_buffer is
   signal regs_s2m : axi_lite_s2m_t := axi_lite_s2m_init;
 
   constant axi_width : integer := 64;
-  constant burst_length : integer := 16;
-  constant burst_size_bytes : integer := burst_length * axi_width / 8;
 
   constant memory : memory_t := new_memory;
   constant axi_read_slave, axi_write_slave : axi_slave_t := new_axi_slave(
@@ -70,14 +69,13 @@ begin
     variable rnd : RandomPType;
 
     procedure check_counter(expected : natural) is
-      variable reg_value : reg_t := (others => '0');
+      variable counter : integer := 0;
     begin
-      read_reg(net, ddr_buffer_status, reg_value);
-      check_equal(
-        unsigned(reg_value(ddr_buffer_status_counter)),
-        expected
-      );
+      read_ddr_buffer_status_counter(net=>net, value=>counter);
+      check_equal(counter, expected);
     end procedure;
+
+    variable version : integer := 0;
 
   begin
     test_runner_setup(runner, runner_cfg);
@@ -93,11 +91,13 @@ begin
       check_counter(2 * ddr_buffer_addrs_array_length);
 
     elsif run("test_version") then
-      check_reg_equal(net, ddr_buffer_version, ddr_buffer_constant_version);
+      read_ddr_buffer_version_version(net=>net, value=>version);
+      check_equal(version, ddr_buffer_constant_version);
 
     end if;
 
     check_expected_was_written(memory);
+
     test_runner_cleanup(runner);
   end process;
 
@@ -106,7 +106,7 @@ begin
   axi_lite_master_inst : entity bfm.axi_lite_master
     port map (
       clk => clk,
-
+      --
       axi_lite_m2s => regs_m2s,
       axi_lite_s2m => regs_s2m
     );
@@ -122,10 +122,10 @@ begin
     )
     port map (
       clk => clk,
-
+      --
       axi_read_m2s => axi_read_m2s,
       axi_read_s2m => axi_read_s2m,
-
+      --
       axi_write_m2s => axi_write_m2s,
       axi_write_s2m => axi_write_s2m
     );
@@ -135,13 +135,13 @@ begin
   dut : entity work.ddr_buffer_top
     port map (
       clk => clk,
-
+      --
       axi_read_m2s => axi_read_m2s,
       axi_read_s2m => axi_read_s2m,
-
+      --
       axi_write_m2s => axi_write_m2s,
       axi_write_s2m => axi_write_s2m,
-
+      --
       regs_m2s => regs_m2s,
       regs_s2m => regs_s2m
     );

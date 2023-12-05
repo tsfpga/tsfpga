@@ -45,7 +45,6 @@ begin
 
   ------------------------------------------------------------------------------
   main : process
-
     constant beef : reg_t := x"beef_beef";
     constant dead : reg_t := x"dead_dead";
 
@@ -67,9 +66,10 @@ begin
 
     elsif run("test_ddr_buffer") then
       run_ddr_buffer_test(net, axi_memory, rnd, ddr_buffer_regs_base_addr);
-      check_expected_was_written(axi_memory);
 
     end if;
+
+    check_expected_was_written(axi_memory);
 
     test_runner_cleanup(runner);
   end process;

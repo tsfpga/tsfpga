@@ -30,11 +30,11 @@ entity block_design_mock is
     clk_m_gp0 : in std_ulogic;
     m_gp0_m2s : out axi_m2s_t;
     m_gp0_s2m : in axi_s2m_t;
-
+    --
     clk_s_hp0 : in std_ulogic;
     s_hp0_m2s : in axi_m2s_t;
     s_hp0_s2m : out axi_s2m_t;
-
+    --
     pl_clk0 : out std_ulogic := '0';
     pl_clk1 : out std_ulogic := '0'
   );
@@ -57,24 +57,24 @@ begin
 
 
   ------------------------------------------------------------------------------
+  axi_master_inst : entity bfm.axi_master
+    generic map (
+      bus_handle => regs_bus_master
+    )
+    port map (
+      clk => clk_m_gp0,
+      --
+      axi_read_m2s => m_gp0_m2s.read,
+      axi_read_s2m =>  m_gp0_s2m.read,
+      --
+      axi_write_m2s => m_gp0_m2s.write,
+      axi_write_s2m =>  m_gp0_s2m.write
+    );
+
   -- If our register AXI master port used different dimensions than these
   -- we would need to create another bus master, probably in top_level_sim_pkg.
   assert m_gp0_data_width = data_length(regs_bus_master);
   assert m_gp0_addr_width = address_length(regs_bus_master);
-
-  axi_master_inst : entity bfm.axi_master
-  generic map (
-    bus_handle => regs_bus_master
-  )
-  port map (
-    clk => clk_m_gp0,
-
-    axi_read_m2s => m_gp0_m2s.read,
-    axi_read_s2m =>  m_gp0_s2m.read,
-
-    axi_write_m2s => m_gp0_m2s.write,
-    axi_write_s2m =>  m_gp0_s2m.write
-  );
 
 
   ------------------------------------------------------------------------------
@@ -87,10 +87,10 @@ begin
     )
     port map (
       clk => clk_s_hp0,
-
+      --
       axi_read_m2s => s_hp0_m2s.read,
       axi_read_s2m => s_hp0_s2m.read,
-
+      --
       axi_write_m2s => s_hp0_m2s.write,
       axi_write_s2m => s_hp0_s2m.write
     );
