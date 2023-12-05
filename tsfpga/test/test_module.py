@@ -301,7 +301,12 @@ class Module(BaseModule):
 
 @patch("tsfpga.module.from_toml", autospec=True)
 @patch("tsfpga.module.VhdlRegisterPackageGenerator.create", autospec=True)
-def test_register_toml_file_parsed_only_once_when_getting_synthesis_files(_, from_toml, tmp_path):
+@patch("tsfpga.module.VhdlRecordPackageGenerator.create", autospec=True)
+@patch("tsfpga.module.VhdlSimulationPackageGenerator.create", autospec=True)
+@patch("tsfpga.module.VhdlAxiLiteWrapperGenerator.create", autospec=True)
+def test_register_toml_file_parsed_only_once_when_getting_synthesis_files(
+    _, __, ___, ____, from_toml, tmp_path
+):
     toml_file = create_file(tmp_path / "a" / "regs_a.toml")
 
     module = get_modules([tmp_path]).get("a")
@@ -313,7 +318,12 @@ def test_register_toml_file_parsed_only_once_when_getting_synthesis_files(_, fro
 
 @patch("tsfpga.module.from_toml", autospec=True)
 @patch("tsfpga.module.VhdlRegisterPackageGenerator.create", autospec=True)
-def test_register_toml_file_parsed_only_once_when_getting_simulation_files(_, from_toml, tmp_path):
+@patch("tsfpga.module.VhdlRecordPackageGenerator.create", autospec=True)
+@patch("tsfpga.module.VhdlSimulationPackageGenerator.create", autospec=True)
+@patch("tsfpga.module.VhdlAxiLiteWrapperGenerator.create", autospec=True)
+def test_register_toml_file_parsed_only_once_when_getting_simulation_files(
+    _, __, ___, ____, from_toml, tmp_path
+):
     toml_file = create_file(tmp_path / "a" / "regs_a.toml")
 
     module = get_modules([tmp_path]).get("a")
@@ -325,7 +335,12 @@ def test_register_toml_file_parsed_only_once_when_getting_simulation_files(_, fr
 
 @patch("tsfpga.module.from_toml", autospec=True)
 @patch("tsfpga.module.VhdlRegisterPackageGenerator.create", autospec=True)
-def test_register_toml_file_parsed_only_once_when_getting_mixed_files(_, from_toml, tmp_path):
+@patch("tsfpga.module.VhdlRecordPackageGenerator.create", autospec=True)
+@patch("tsfpga.module.VhdlSimulationPackageGenerator.create", autospec=True)
+@patch("tsfpga.module.VhdlAxiLiteWrapperGenerator.create", autospec=True)
+def test_register_toml_file_parsed_only_once_when_getting_mixed_files(
+    _, __, ___, ____, from_toml, tmp_path
+):
     toml_file = create_file(tmp_path / "a" / "regs_a.toml")
 
     module = get_modules([tmp_path]).get("a")
