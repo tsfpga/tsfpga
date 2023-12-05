@@ -49,9 +49,16 @@ def test_delete_files_and_folders(tmp_path):
 
 
 def test_path_relative_to():
-    assert path_relative_to(Path("/etc/fstab"), Path("/etc")) == Path("fstab")
-    assert path_relative_to(Path("/etc/fstab"), Path("/")) == Path("etc/fstab")
-    assert path_relative_to(Path("/etc/fstab"), Path("/home")) == Path("../etc/fstab")
+    this_file = Path(__file__)
+    this_dir = this_file.parent
+    parent = this_dir.parent
+
+    assert path_relative_to(this_file, this_dir) == Path(this_file.name)
+    assert path_relative_to(this_file, parent) == Path(this_dir.name) / this_file.name
+    assert (
+        path_relative_to(this_file, parent / "whatever")
+        == Path("..") / this_dir.name / this_file.name
+    )
 
 
 def test_read_last_lines_of_file_with_short_file(tmp_path):
