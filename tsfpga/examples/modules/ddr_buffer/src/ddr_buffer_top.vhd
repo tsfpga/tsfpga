@@ -14,21 +14,20 @@ library axi;
 use axi.axi_pkg.all;
 use axi.axi_lite_pkg.all;
 
-library reg_file;
-
 use work.ddr_buffer_regs_pkg.all;
+use work.ddr_buffer_register_record_pkg.all;
 
 
 entity ddr_buffer_top is
   port (
     clk : in std_ulogic;
-
+    --
     axi_read_m2s : out axi_read_m2s_t := axi_read_m2s_init;
     axi_read_s2m : in axi_read_s2m_t;
-
+    --
     axi_write_m2s : out axi_write_m2s_t := axi_write_m2s_init;
     axi_write_s2m : in axi_write_s2m_t;
-
+    --
     regs_m2s : in axi_lite_m2s_t;
     regs_s2m : out axi_lite_s2m_t := axi_lite_s2m_init
   );
@@ -41,26 +40,22 @@ architecture a of ddr_buffer_top is
 
   signal current_addr_index : integer range 0 to ddr_buffer_addrs_array_length - 1 := 0;
 
-  signal regs_up, regs_down : ddr_buffer_regs_t := ddr_buffer_regs_init;
-
-  signal counter : u_unsigned(ddr_buffer_status_counter) := (others => '0');
+  signal regs_up : ddr_buffer_regs_up_t := ddr_buffer_regs_up_init;
+  signal regs_down : ddr_buffer_regs_down_t := ddr_buffer_regs_down_init;
 
 begin
 
-  regs_up(ddr_buffer_status)(ddr_buffer_status_counter) <= std_logic_vector(counter);
-
-
   ------------------------------------------------------------------------------
-  axi_read_m2s.ar.addr(regs_down(0)'range) <=
-    unsigned(regs_down(ddr_buffer_addrs_read_addr(current_addr_index)));
+  axi_read_m2s.ar.addr(regs_down.addrs(0).read_addr'range) <=
+    unsigned(regs_down.addrs(current_addr_index).read_addr);
   axi_read_m2s.ar.len <= to_len(ddr_buffer_constant_burst_length_beats);
   axi_read_m2s.ar.size <= to_size(ddr_buffer_constant_axi_data_width);
   axi_read_m2s.ar.burst <= axi_a_burst_incr;
 
 
   ------------------------------------------------------------------------------
-  axi_write_m2s.aw.addr(regs_down(0)'range) <=
-    unsigned(regs_down(ddr_buffer_addrs_write_addr(current_addr_index)));
+  axi_write_m2s.aw.addr(regs_down.addrs(0).write_addr'range) <=
+    unsigned(regs_down.addrs(current_addr_index).write_addr);
   axi_write_m2s.aw.len <= to_len(ddr_buffer_constant_burst_length_beats);
   axi_write_m2s.aw.size <= to_size(ddr_buffer_constant_axi_data_width);
   axi_write_m2s.aw.burst <= axi_a_burst_incr;
@@ -86,13 +81,13 @@ begin
 
     case ctrl_state is
       when idle =>
-        regs_up(ddr_buffer_status)(ddr_buffer_status_idle) <= '1';
+        regs_up.status.idle <= '1';
         ar_done := false;
         aw_done := false;
 
-        if regs_down(ddr_buffer_command)(ddr_buffer_command_start) then
+        if regs_down.command.start then
           ctrl_state <= start;
-          regs_up(ddr_buffer_status)(ddr_buffer_status_idle) <= '0';
+          regs_up.status.idle <= '0';
         end if;
 
       when start =>
@@ -116,7 +111,7 @@ begin
 
       when running =>
         if axi_write_m2s.w.valid and axi_write_s2m.w.ready and axi_write_m2s.w.last then
-          counter <= counter + 1;
+          regs_up.status.counter <= regs_up.status.counter + 1;
 
           if current_addr_index = ddr_buffer_addrs_array_length - 1 then
             current_addr_index <= 0;
@@ -131,17 +126,13 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axi_lite_reg_file_inst : entity reg_file.axi_lite_reg_file
-    generic map (
-      regs => ddr_buffer_reg_map,
-      default_values => ddr_buffer_regs_init
-    )
+  ddr_buffer_reg_file_inst : entity work.ddr_buffer_reg_file
     port map (
       clk => clk,
-
+      --
       axi_lite_m2s => regs_m2s,
       axi_lite_s2m => regs_s2m,
-
+      --
       regs_up => regs_up,
       regs_down => regs_down
     );

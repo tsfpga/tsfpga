@@ -142,18 +142,19 @@ begin
 
     ------------------------------------------------------------------------------
     block_design_inst : entity work.block_design_wrapper
-    port map (
-      clk_m_gp0 => clk_m_gp0,
-      m_gp0_m2s => m_gp0_m2s,
-      m_gp0_s2m => m_gp0_s2m,
-      --
-      clk_s_hp0 => clk_s_hp0,
-      s_hp0_m2s => s_hp0_m2s,
-      s_hp0_s2m => s_hp0_s2m,
-      --
-      pl_clk0 => pl_clk0,
-      pl_clk1 => pl_clk1
-    );
+      port map (
+        clk_m_gp0 => clk_m_gp0,
+        m_gp0_m2s => m_gp0_m2s,
+        m_gp0_s2m => m_gp0_s2m,
+        --
+        clk_s_hp0 => clk_s_hp0,
+        s_hp0_m2s => s_hp0_m2s,
+        s_hp0_s2m => s_hp0_s2m,
+        --
+        pl_clk0 => pl_clk0,
+        pl_clk1 => pl_clk1
+      );
+
   end block;
 
 
@@ -406,16 +407,17 @@ begin
     ------------------------------------------------------------------------------
     axi_stream_protocol_checker_inst : entity common.axi_stream_protocol_checker
       generic map (
-        data_width => m_gp0_data_width
+        data_width => s_hp0_m2s.write.w.data'length,
+        logger_name_suffix => "_artyz7_top"
       )
       port map (
-        clk => clk_m_gp0,
+        clk => clk_s_hp0,
         --
-        ready => m_gp0_s2m.write.w.ready,
-        valid => m_gp0_m2s.write.w.valid,
-        last => m_gp0_m2s.write.w.last,
-        data => m_gp0_m2s.write.w.data(m_gp0_data_width - 1 downto 0),
-        strobe => m_gp0_m2s.write.w.strb(m_gp0_data_width / 8 - 1 downto 0)
+        ready => s_hp0_s2m.write.w.ready,
+        valid => s_hp0_m2s.write.w.valid,
+        last => s_hp0_m2s.write.w.last,
+        data => s_hp0_m2s.write.w.data,
+        strobe => s_hp0_m2s.write.w.strb
       );
 
   end generate;
