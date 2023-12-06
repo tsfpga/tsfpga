@@ -23,7 +23,8 @@ use common.addr_pkg.all;
 library reg_file;
 use reg_file.reg_operations_pkg.all;
 
-use work.ddr_buffer_register_simulation_pkg.all;
+use work.ddr_buffer_register_read_write_pkg.all;
+use work.ddr_buffer_register_wait_until_pkg.all;
 use work.ddr_buffer_regs_pkg.all;
 
 

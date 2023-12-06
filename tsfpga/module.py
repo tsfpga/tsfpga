@@ -15,7 +15,12 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, Union
 from hdl_registers.generator.vhdl.axi_lite_wrapper import VhdlAxiLiteWrapperGenerator
 from hdl_registers.generator.vhdl.record_package import VhdlRecordPackageGenerator
 from hdl_registers.generator.vhdl.register_package import VhdlRegisterPackageGenerator
-from hdl_registers.generator.vhdl.simulation_package import VhdlSimulationPackageGenerator
+from hdl_registers.generator.vhdl.simulation.read_write_package import (
+    VhdlSimulationReadWritePackageGenerator,
+)
+from hdl_registers.generator.vhdl.simulation.wait_until_package import (
+    VhdlSimulationWaitUntilPackageGenerator,
+)
 from hdl_registers.parser.toml import from_toml
 from hdl_registers.register import Register
 from hdl_registers.register_list import RegisterList
@@ -156,7 +161,11 @@ class BaseModule:
                 register_list=self.registers, output_folder=self.path
             ).create_if_needed()
 
-            VhdlSimulationPackageGenerator(
+            VhdlSimulationReadWritePackageGenerator(
+                register_list=self.registers, output_folder=self.path
+            ).create_if_needed()
+
+            VhdlSimulationWaitUntilPackageGenerator(
                 register_list=self.registers, output_folder=self.path
             ).create_if_needed()
 

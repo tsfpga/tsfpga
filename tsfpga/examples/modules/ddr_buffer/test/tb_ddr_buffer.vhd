@@ -28,7 +28,7 @@ use reg_file.reg_file_pkg.all;
 use reg_file.reg_operations_pkg.all;
 
 use work.ddr_buffer_regs_pkg.all;
-use work.ddr_buffer_register_simulation_pkg.all;
+use work.ddr_buffer_register_read_write_pkg.all;
 use work.ddr_buffer_sim_pkg.all;
 
 
