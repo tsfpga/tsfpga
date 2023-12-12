@@ -36,23 +36,29 @@ max_value = 255
 
 
 ################################################################################
-[register_array.addrs]
+[register_array.base_addresses]
 
 array_length = 2
 
 
 # ------------------------------------------------------------------------------
-[register_array.addrs.register.read_addr]
+[register_array.base_addresses.register.read]
 
 mode = "r_w"
 description = "Where to read data from."
 
+bit_vector.value.width = 28
+bit_vector.value.description = "Address for a 256 MiB memory space."
+
 
 # ------------------------------------------------------------------------------
-[register_array.addrs.register.write_addr]
+[register_array.base_addresses.register.write]
 
 mode = "r_w"
 description = "Where to write data."
+
+bit_vector.value.width = 28
+bit_vector.value.description = "Address for a 256 MiB memory space."
 
 
 ################################################################################

@@ -20,9 +20,6 @@ use osvvm.RandomPkg.all;
 library common;
 use common.addr_pkg.all;
 
-library reg_file;
-use reg_file.reg_operations_pkg.all;
-
 use work.ddr_buffer_register_read_write_pkg.all;
 use work.ddr_buffer_register_wait_until_pkg.all;
 use work.ddr_buffer_regs_pkg.all;
@@ -53,23 +50,27 @@ package body ddr_buffer_sim_pkg is
     variable memory_data : integer_array_t := null_integer_array;
     variable buf : buffer_t;
   begin
-    for current_addr_index in 0 to ddr_buffer_addrs_array_length - 1 loop
+    for current_addr_index in 0 to ddr_buffer_base_addresses_array_length - 1 loop
       random_integer_array(rnd, memory_data, width=>burst_length_bytes, bits_per_word=>8);
 
-      buf := write_integer_array(memory, memory_data, "read data", permissions=>read_only);
-      write_reg(
-        net,
-        ddr_buffer_addrs_read_addr(current_addr_index),
-        base_address(buf),
-        regs_base_address
+      buf := write_integer_array(
+        memory, memory_data, "read_data_" & to_string(current_addr_index), permissions=>read_only
+      );
+      write_ddr_buffer_base_addresses_read_value(
+        net=>net,
+        array_index=>current_addr_index,
+        value=>base_address(buf),
+        base_address=>regs_base_address
       );
 
-      buf := set_expected_integer_array(memory, memory_data, "write data", permissions=>write_only);
-      write_reg(
-        net,
-        ddr_buffer_addrs_write_addr(current_addr_index),
-        base_address(buf),
-        regs_base_address
+      buf := set_expected_integer_array(
+        memory, memory_data, "write_data_" & to_string(current_addr_index), permissions=>write_only
+      );
+      write_ddr_buffer_base_addresses_write_value(
+        net=>net,
+        array_index=>current_addr_index,
+        value=>base_address(buf),
+        base_address=>regs_base_address
       );
     end loop;
 

@@ -40,7 +40,10 @@ end entity;
 
 architecture tb of tb_ddr_buffer is
 
+  -- ---------------------------------------------------------------------------
+  -- DUT connections
   signal clk : std_ulogic := '0';
+
   signal axi_read_m2s : axi_read_m2s_t := axi_read_m2s_init;
   signal axi_read_s2m : axi_read_s2m_t := axi_read_s2m_init;
 
@@ -50,8 +53,8 @@ architecture tb of tb_ddr_buffer is
   signal regs_m2s : axi_lite_m2s_t := axi_lite_m2s_init;
   signal regs_s2m : axi_lite_s2m_t := axi_lite_s2m_init;
 
-  constant axi_width : integer := 64;
-
+  -- ---------------------------------------------------------------------------
+  -- Testbench stuff
   constant memory : memory_t := new_memory;
   constant axi_read_slave, axi_write_slave : axi_slave_t := new_axi_slave(
     address_fifo_depth => 1,
@@ -85,10 +88,10 @@ begin
       check_counter(0);
 
       run_ddr_buffer_test(net, memory, rnd);
-      check_counter(ddr_buffer_addrs_array_length);
+      check_counter(ddr_buffer_base_addresses_array_length);
 
       run_ddr_buffer_test(net, memory, rnd);
-      check_counter(2 * ddr_buffer_addrs_array_length);
+      check_counter(2 * ddr_buffer_base_addresses_array_length);
 
     elsif run("test_version") then
       read_ddr_buffer_version_version(net=>net, value=>version);
@@ -117,7 +120,7 @@ begin
     generic map (
       axi_read_slave => axi_read_slave,
       axi_write_slave => axi_write_slave,
-      data_width => axi_width,
+      data_width => ddr_buffer_constant_axi_data_width,
       id_width => 0
     )
     port map (

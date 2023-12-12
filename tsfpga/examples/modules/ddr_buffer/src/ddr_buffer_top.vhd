@@ -38,7 +38,7 @@ architecture a of ddr_buffer_top is
   type ctrl_state_t is (idle, start, wait_for_address_transactions, running);
   signal ctrl_state : ctrl_state_t := idle;
 
-  signal current_addr_index : integer range 0 to ddr_buffer_addrs_array_length - 1 := 0;
+  signal current_addr_index : integer range 0 to ddr_buffer_base_addresses_array_length - 1 := 0;
 
   signal regs_up : ddr_buffer_regs_up_t := ddr_buffer_regs_up_init;
   signal regs_down : ddr_buffer_regs_down_t := ddr_buffer_regs_down_init;
@@ -46,16 +46,16 @@ architecture a of ddr_buffer_top is
 begin
 
   ------------------------------------------------------------------------------
-  axi_read_m2s.ar.addr(regs_down.addrs(0).read_addr'range) <=
-    unsigned(regs_down.addrs(current_addr_index).read_addr);
+  axi_read_m2s.ar.addr(regs_down.base_addresses(0).read.value'range) <=
+    regs_down.base_addresses(current_addr_index).read.value;
   axi_read_m2s.ar.len <= to_len(ddr_buffer_constant_burst_length_beats);
   axi_read_m2s.ar.size <= to_size(ddr_buffer_constant_axi_data_width);
   axi_read_m2s.ar.burst <= axi_a_burst_incr;
 
 
   ------------------------------------------------------------------------------
-  axi_write_m2s.aw.addr(regs_down.addrs(0).write_addr'range) <=
-    unsigned(regs_down.addrs(current_addr_index).write_addr);
+  axi_write_m2s.aw.addr(regs_down.base_addresses(0).write.value'range) <=
+    regs_down.base_addresses(current_addr_index).write.value;
   axi_write_m2s.aw.len <= to_len(ddr_buffer_constant_burst_length_beats);
   axi_write_m2s.aw.size <= to_size(ddr_buffer_constant_axi_data_width);
   axi_write_m2s.aw.burst <= axi_a_burst_incr;
@@ -113,7 +113,7 @@ begin
         if axi_write_m2s.w.valid and axi_write_s2m.w.ready and axi_write_m2s.w.last then
           regs_up.status.counter <= regs_up.status.counter + 1;
 
-          if current_addr_index = ddr_buffer_addrs_array_length - 1 then
+          if current_addr_index = ddr_buffer_base_addresses_array_length - 1 then
             current_addr_index <= 0;
             ctrl_state <= idle;
           else
