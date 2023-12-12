@@ -223,6 +223,32 @@ def test_getting_registers_calls_registers_hook(tmp_path):
         assert registers is None
 
 
+def test_creating_synthesis_files_does_not_create_simulation_files(tmp_path):
+    create_file(tmp_path / "a" / "regs_a.toml", "register.apa.mode = 'r_w'")
+    module = BaseModule(path=tmp_path / "a", library_name="a")
+
+    synthesis_file = module.register_synthesis_folder / "a_regs_pkg.vhd"
+    simulation_file = module.register_simulation_folder / "a_register_read_write_pkg.vhd"
+
+    module.get_synthesis_files()
+    assert synthesis_file.exists()
+    assert not simulation_file.exists()
+    assert not module.register_simulation_folder.exists()
+
+    module.get_simulation_files()
+    assert simulation_file.exists()
+
+
+def test_old_register_package_should_be_deleted(tmp_path):
+    create_file(tmp_path / "a" / "regs_a.toml", "register.apa.mode = 'r_w'")
+    regs_pkg = create_file(tmp_path / "a" / "a_regs_pkg.vhd")
+
+    module = BaseModule(path=tmp_path / "a", library_name="a")
+    module.get_synthesis_files()
+
+    assert not regs_pkg.exists()
+
+
 @pytest.fixture
 def get_modules_test(tmp_path):
     class GetModulesTest:

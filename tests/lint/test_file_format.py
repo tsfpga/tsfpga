@@ -82,6 +82,7 @@ def test_no_checked_in_files_have_too_long_lines():
         REPO_ROOT / ".github" / "workflows" / "ci.yml",
         # RST syntax hard to break.
         REPO_ROOT / "readme.rst",
+        TSFPGA_DOC / "sphinx" / "hdl_registers.rst",
         # We list the license text exactly as the original, with no line breaks
         REPO_ROOT / "license.txt",
         # Impossible dockerfile syntax to break

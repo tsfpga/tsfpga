@@ -90,7 +90,7 @@ Methods from :class:`.BaseModule` can then be overridden to achieve the desired 
 
 
 Extra files
-+++++++++++
+___________
 
 An FPGA build project might need a lot extra files, such as TCL scripts for pinning,
 block design, etc.
@@ -107,6 +107,11 @@ regs_foo.toml
 The file ``regs_<module_name>.toml``, if it exists, will be parsed with the
 :ref:`hdl-registers register generator <integration_hdl_registers>`.
 It contains the registers that the module uses and the fields within those registers.
+
+Per default, the module will generate all register VHDL artifacts.
+Which includes register packages, AXI-Lite register file wrapper, and simulation support packages.
+If want only a subset of these to be created, you can achieve that by creating a
+:ref:`folder_structure_project`, see :ref:`register_artifacts_to_generate` for details.
 
 
 

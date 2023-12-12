@@ -18,12 +18,15 @@ from tsfpga.test.lint.python_lint import run_black, run_flake8_lint, run_isort, 
 
 
 def _files_to_check():
-    # Exclude doc folder, since conf.py used by sphinx does not conform
+    # The conf.py used by sphinx does not conform.
     return [
         str(path)
         for path in find_git_files(
             directory=tsfpga.REPO_ROOT,
-            exclude_directories=[tsfpga.TSFPGA_DOC],
+            exclude_directories=[
+                tsfpga.TSFPGA_DOC / "sphinx" / "conf.py",
+                tsfpga.TSFPGA_EXAMPLES / "conf.py",
+            ],
             file_endings_include="py",
         )
     ]

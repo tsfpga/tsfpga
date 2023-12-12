@@ -495,7 +495,7 @@ class VivadoProject:
                 return result
 
             # Make sure register packages are up to date
-            module.create_regs_vhdl_package()
+            module.create_register_synthesis_files()
 
         if not self.pre_build(**all_parameters):
             print("ERROR: Project pre-build hook returned False. Failing the build.")

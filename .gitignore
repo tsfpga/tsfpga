@@ -18,14 +18,14 @@ hdl-prj.json
 
 .coverage
 
-tsfpga/examples/modules/artyz7/artyz7_regs_pkg.vhd
-tsfpga/examples/modules/artyz7/artyz7_reg_file.vhd
-tsfpga/examples/modules/artyz7/artyz7_register_record_pkg.vhd
-tsfpga/examples/modules/artyz7/artyz7_register_read_write_pkg.vhd
-tsfpga/examples/modules/artyz7/artyz7_register_wait_until_pkg.vhd
+tsfpga/examples/modules/artyz7/regs_sim/artyz7_register_read_write_pkg.vhd
+tsfpga/examples/modules/artyz7/regs_sim/artyz7_register_wait_until_pkg.vhd
+tsfpga/examples/modules/artyz7/regs_src/artyz7_reg_file.vhd
+tsfpga/examples/modules/artyz7/regs_src/artyz7_register_record_pkg.vhd
+tsfpga/examples/modules/artyz7/regs_src/artyz7_regs_pkg.vhd
 
-tsfpga/examples/modules/ddr_buffer/ddr_buffer_regs_pkg.vhd
-tsfpga/examples/modules/ddr_buffer/ddr_buffer_reg_file.vhd
-tsfpga/examples/modules/ddr_buffer/ddr_buffer_register_record_pkg.vhd
-tsfpga/examples/modules/ddr_buffer/ddr_buffer_register_read_write_pkg.vhd
-tsfpga/examples/modules/ddr_buffer/ddr_buffer_register_wait_until_pkg.vhd
+tsfpga/examples/modules/ddr_buffer/regs_sim/ddr_buffer_register_read_write_pkg.vhd
+tsfpga/examples/modules/ddr_buffer/regs_sim/ddr_buffer_register_wait_until_pkg.vhd
+tsfpga/examples/modules/ddr_buffer/regs_src/ddr_buffer_reg_file.vhd
+tsfpga/examples/modules/ddr_buffer/regs_src/ddr_buffer_register_record_pkg.vhd
+tsfpga/examples/modules/ddr_buffer/regs_src/ddr_buffer_regs_pkg.vhd

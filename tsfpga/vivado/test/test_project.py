@@ -336,7 +336,8 @@ def test_build_module_pre_build_hook_and_create_regs_are_called(vivado_project_t
             from_impl=vivado_project_test.from_impl,
             num_threads=vivado_project_test.num_threads,
         )
-        module.create_regs_vhdl_package.assert_called_once()
+        module.create_register_synthesis_files.assert_called_once()
+        module.create_register_simulation_files.assert_not_called()
 
 
 def test_default_pre_and_post_build_hooks_should_pass(vivado_project_test):
