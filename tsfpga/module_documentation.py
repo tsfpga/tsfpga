@@ -214,16 +214,11 @@ This document contains technical documentation for the ``{self._module.name}`` m
         """
         hdl_files = self._module.get_documentation_files(files_avoid=exclude_files)
 
-        module_regs_pkg = self._module.path / f"{self._module.name}_regs_pkg.vhd"
-
         def file_should_be_included(hdl_file: "HdlFile") -> bool:
             if file_is_in_directory(hdl_file.path, exclude_folders):
                 return False
 
             if not hdl_file.is_vhdl:
-                return False
-
-            if hdl_file.path == module_regs_pkg:
                 return False
 
             return True

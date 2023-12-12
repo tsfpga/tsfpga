@@ -45,6 +45,15 @@ class BaseModule:
     different catalog structure.
     """
 
+    # Set to False if you do not want to create these register artifacts for this module.
+    # Can be done in a child class or on an object instance.
+    # Note that artifacts will only be created if the module actually has any registers.
+    create_register_package = True
+    create_record_package = True
+    create_axi_lite_wrapper = True
+    create_simulation_read_write_package = True
+    create_simulation_wait_until_package = True
+
     def __init__(
         self, path: Path, library_name: str, default_registers: Optional[list[Register]] = None
     ):
@@ -116,13 +125,14 @@ class BaseModule:
         ]
 
     @property
-    def registers(self) -> Union[RegisterList, None]:
+    def registers(self) -> Optional[RegisterList]:
         """
         Get the registers for this module.
-        Can be ``None`` if no TOML file exists and no hook creates registers.
+        Will be ``None`` if the module doesn't have any registers.
+        I.e. if no TOML file exists and no hook creates registers.
         """
         if self._registers:
-            # Only create object once
+            # Only create object from TOML once.
             return self._registers
 
         toml_file = self.path / f"regs_{self.name}.toml"
@@ -137,41 +147,65 @@ class BaseModule:
     def registers_hook(self) -> None:
         """
         This function will be called directly after creating this module's registers from
-        the TOML definition file. If the TOML file does not exist this hook will still be called,
-        but the module's registers will be ``None``.
+        the TOML definition file.
+        If the TOML file does not exist this hook will still be called, but the module's registers
+        will be ``None``.
 
         This is a good place if you want to add or modify some registers from Python.
         Override this method and implement the desired behavior in a subclass.
 
         .. Note::
-            This default method does nothing. Shall be overridden by modules that utilize
-            this mechanism.
+            This default method does nothing.
+            Shall be overridden by modules that utilize this mechanism.
         """
 
-    def create_regs_vhdl_package(self) -> None:
+    def create_register_synthesis_files(self) -> None:
         """
-        Create a VHDL package in this module with register definitions.
+        Create the register artifacts that are needed for synthesis.
+        If this module does not have registers, this method does nothing.
         """
         if self.registers is not None:
-            VhdlRegisterPackageGenerator(
-                register_list=self.registers, output_folder=self.path
-            ).create_if_needed()
+            # Delete any old file that might exist so we don't have multiple and
+            # outdated definitions.
+            # This package location was used before the separate register folders were introduced,
+            # back when we only created one register artifact.
+            old_regs_pkg = self.path / f"{self.name}_regs_pkg.vhd"
+            if old_regs_pkg.exists():
+                old_regs_pkg.unlink()
 
-            VhdlRecordPackageGenerator(
-                register_list=self.registers, output_folder=self.path
-            ).create_if_needed()
+            if self.create_register_package:
+                VhdlRegisterPackageGenerator(
+                    register_list=self.registers, output_folder=self.register_synthesis_folder
+                ).create_if_needed()
 
-            VhdlSimulationReadWritePackageGenerator(
-                register_list=self.registers, output_folder=self.path
-            ).create_if_needed()
+            if self.create_record_package:
+                VhdlRecordPackageGenerator(
+                    register_list=self.registers, output_folder=self.register_synthesis_folder
+                ).create_if_needed()
 
-            VhdlSimulationWaitUntilPackageGenerator(
-                register_list=self.registers, output_folder=self.path
-            ).create_if_needed()
+            if self.create_axi_lite_wrapper:
+                VhdlAxiLiteWrapperGenerator(
+                    register_list=self.registers, output_folder=self.register_synthesis_folder
+                ).create_if_needed()
 
-            VhdlAxiLiteWrapperGenerator(
-                register_list=self.registers, output_folder=self.path
-            ).create_if_needed()
+    def create_register_simulation_files(self) -> None:
+        """
+        Create the register artifacts that are needed for simulation.
+        Does not create the implementation files, which are also technically needed for simulation.
+        So a call to :meth:`.create_register_synthesis_files` must also be done.
+
+        If this module does not have registers, this method does nothing.
+        """
+        if self.registers is not None:
+            if self.create_simulation_read_write_package:
+                VhdlSimulationReadWritePackageGenerator(
+                    register_list=self.registers, output_folder=self.register_simulation_folder
+                ).create_if_needed()
+
+            if self.create_simulation_wait_until_package:
+                VhdlSimulationWaitUntilPackageGenerator(
+                    register_list=self.registers, output_folder=self.register_simulation_folder
+                ).create_if_needed()
 
     @property
     def synthesis_folders(self) -> list[Path]:
@@ -184,7 +218,16 @@ class BaseModule:
             self.path / "rtl",
             self.path / "hdl" / "rtl",
             self.path / "hdl" / "package",
+            self.register_synthesis_folder,
         ]
+
+    @property
+    def register_synthesis_folder(self) -> Path:
+        """
+        Generated register artifacts that are needed for synthesis/implementation will be
+        placed in this folder.
+        """
+        return self.path / "regs_src"
 
     @property
     def sim_folders(self) -> list[Path]:
@@ -193,7 +236,15 @@ class BaseModule:
         """
         return [
             self.path / "sim",
+            self.register_simulation_folder,
         ]
+
+    @property
+    def register_simulation_folder(self) -> Path:
+        """
+        Generated register artifacts that are needed for simulation will be placed in this folder.
+        """
+        return self.path / "regs_sim"
 
     @property
     def test_folders(self) -> list[Path]:
@@ -230,7 +281,7 @@ class BaseModule:
         Return:
             Files that should be included in a synthesis project.
         """
-        self.create_regs_vhdl_package()
+        self.create_register_synthesis_files()
 
         return self._get_hdl_file_list(
             folders=self.synthesis_folders, files_include=files_include, files_avoid=files_avoid
@@ -258,13 +309,16 @@ class BaseModule:
         Return:
             Files that should be included in a simulation project.
         """
-        test_folders = self.sim_folders.copy()
+        # Shallow copy the list since we might append to it.
+        sim_and_test_folders = self.sim_folders.copy()
 
         if include_tests:
-            test_folders += self.test_folders
+            sim_and_test_folders += self.test_folders
+
+        self.create_register_simulation_files()
 
         test_files = self._get_hdl_file_list(
-            folders=test_folders, files_include=files_include, files_avoid=files_avoid
+            folders=sim_and_test_folders, files_include=files_include, files_avoid=files_avoid
         )
 
         synthesis_files = self.get_synthesis_files(
@@ -289,10 +343,20 @@ class BaseModule:
         Return:
             Files that should be included in documentation.
         """
+        # Do not include generated register code in the documentation.
+        files_to_avoid = set(
+            self._get_file_list(
+                folders=[self.register_synthesis_folder, self.register_simulation_folder],
+                file_endings="vhd",
+            )
+        )
+        if files_avoid:
+            files_to_avoid |= files_avoid
+
         return self._get_hdl_file_list(
             folders=self.synthesis_folders + self.sim_folders,
             files_include=files_include,
-            files_avoid=files_avoid,
+            files_avoid=files_to_avoid,
         )
 
     # pylint: disable=unused-argument
@@ -377,6 +441,7 @@ class BaseModule:
                 )
                 constraint.validate_scoped_entity(synthesis_files)
                 constraints.append(constraint)
+
         return constraints
 
     def setup_vunit(self, vunit_proj: Any, **kwargs: Any) -> None:

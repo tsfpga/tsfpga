@@ -8,8 +8,8 @@ The tsfpga module and source code handling is tightly integrated with its sister
 a register code generator.
 To use it simply create a file ``regs_<name>.toml`` in the root of a module
 (see :ref:`module structure <folder_structure>`).
-It is fast enough that before each build and each simulation run the modules will re-generate their
-VHDL register package making it always up-to-date.
+It is fast enough that before each build and each simulation run, the modules will re-generate their
+VHDL register artifacts making them always up-to-date.
 Creating documentation and headers, which are typically distributed as part of FPGA release
 artifacts, is simple and easy to integrate in a build script.
 
@@ -62,3 +62,32 @@ The idea behind this example is that a software that uses this module will read 
 register and compare to the static constant that shows up in the header.
 This will make sure that the software is running against the correct FPGA with expected
 module version.
+
+
+
+.. _register_artifacts_to_generate:
+
+Choosing what artifacts to generate
+-----------------------------------
+
+Per default, the module will generate all register VHDL artifacts.
+Which includes register packages, AXI-Lite register file wrapper, and simulation support packages.
+The easiest way to disable either of these is to set up a :ref:`folder_structure_project` in the
+root of your module and disable either of the class variables below.
+They all have default value ``True`` in :class:`.BaseModule`.
+
+* ``create_register_package``, controls whether
+  :class:`VhdlRegisterPackageGenerator <hdl_registers.generator.vhdl.register_package.VhdlRegisterPackageGenerator>`
+  is generated into the register source folder of the module.
+* ``create_record_package``, controls whether
+  :class:`VhdlRecordPackageGenerator <hdl_registers.generator.vhdl.record_package.VhdlRecordPackageGenerator>`
+  is generated into the register source folder of the module.
+* ``create_axi_lite_wrapper``, controls whether
+  :class:`VhdlAxiLiteWrapperGenerator <hdl_registers.generator.vhdl.axi_lite_wrapper.VhdlAxiLiteWrapperGenerator>`
+  is generated into the register source folder of the module.
+* ``create_simulation_read_write_package``, controls whether
+  :class:`VhdlSimulationReadWritePackageGenerator <hdl_registers.generator.vhdl.simulation.read_write_package.VhdlSimulationReadWritePackageGenerator>`
+  is generated into the register simulation folder of the module.
+* ``create_simulation_wait_until_package``, controls whether
+  :class:`VhdlSimulationWaitUntilPackageGenerator <hdl_registers.generator.vhdl.simulation.wait_until_package.VhdlSimulationWaitUntilPackageGenerator>`
+  is generated into the register simulation folder of the module.
