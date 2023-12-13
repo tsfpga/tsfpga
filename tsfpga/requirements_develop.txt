@@ -7,8 +7,9 @@ pylint
 pytest
 pytest-cov
 pytest-xdist
-sphinx
-sphinx-rtd-theme
-sphinx_sitemap
 rtoml
+setuptools
+sphinx
+sphinx_sitemap
+sphinx-rtd-theme
 twine
