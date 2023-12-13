@@ -30,11 +30,3 @@ sys.path.insert(0, str(PATH_TO_HDL_REGISTERS))
 # repo/vunit/vunit
 PATH_TO_VUNIT = tsfpga.REPO_ROOT.parent.parent.resolve() / "vunit" / "vunit"
 sys.path.insert(0, str(PATH_TO_VUNIT))
-
-# Alternative repo layout where tsfpga and hdl-registers are git submodules in a development repo,
-# and VUnit is outside of this structure.
-# Paths e.g.
-# repo/path_a/path_b/external/tsfpga/tsfpga
-# repo/vunit/vunit
-PATH_TO_VUNIT = tsfpga.REPO_ROOT.parent.parent.parent.parent.parent.resolve() / "vunit" / "vunit"
-sys.path.insert(0, str(PATH_TO_VUNIT))
