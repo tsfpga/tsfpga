@@ -31,7 +31,7 @@ from hdl_registers.generator.cpp.header import CppHeaderGenerator
 from hdl_registers.generator.cpp.implementation import CppImplementationGenerator
 from hdl_registers.generator.cpp.interface import CppInterfaceGenerator
 from hdl_registers.generator.html.page import HtmlPageGenerator
-from hdl_registers.generator.python.python_class_generator import PythonClassGenerator
+from hdl_registers.generator.python.python_class import PythonClassGenerator
 
 # First party libraries
 from tsfpga.build_project_list import BuildProjectList
