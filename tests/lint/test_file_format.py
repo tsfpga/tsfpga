@@ -85,8 +85,6 @@ def test_no_checked_in_files_have_too_long_lines():
         TSFPGA_DOC / "sphinx" / "hdl_registers.rst",
         # We list the license text exactly as the original, with no line breaks
         REPO_ROOT / "license.txt",
-        # Impossible dockerfile syntax to break
-        REPO_ROOT / "docker" / "ci" / "Dockerfile",
         # Impossible TCL syntax to break
         TSFPGA_TCL / "check_timing.tcl",
         TSFPGA_TCL / "vivado_strategies.tcl",
