@@ -535,8 +535,8 @@ class BaseModule:
         post_check: Optional[Callable[..., bool]] = None,
     ) -> None:
         """
-        Add config for VUnit test case. Wrapper that sets a suitable name and can set a random
-        seed generic.
+        Add config for VUnit test case.
+        Wrapper that sets a suitable name and can set a random seed generic.
 
         Arguments:
             test: VUnit test object. Can be testbench or test case.
@@ -555,8 +555,10 @@ class BaseModule:
 
                 If the generic is to be set it must exist in the testbench entity, and should have
                 VHDL type ``natural``.
-            pre_config: Function to be run before the test. See VUnit documentation for details.
-            post_check: Function to be run after the test. See VUnit documentation for details.
+            pre_config: Function to be run before the test.
+                See `VUnit documentation <https://vunit.github.io/py/ui.html>`_ for details.
+            post_check: Function to be run after the test.
+                See `VUnit documentation <https://vunit.github.io/py/ui.html>`_ for details.
         """
         generics = {} if generics is None else generics
 
