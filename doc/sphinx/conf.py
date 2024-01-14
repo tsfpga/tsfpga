@@ -48,7 +48,7 @@ intersphinx_mapping = {
 }
 
 # Base URL for generated sitemap.xml.
-html_baseurl = "https://tsfpga.com"
+html_baseurl = "https://tsfpga.com/"
 
 # To avoid "en" in the sitemap.xml URL.
 # https://sphinx-sitemap.readthedocs.io/en/latest/advanced-configuration.html
