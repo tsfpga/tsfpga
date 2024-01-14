@@ -20,6 +20,7 @@ from tsfpga.vivado.build_result_checker import (
     EqualTo,
     LessThan,
     MaximumLogicLevel,
+    Ramb,
     Ramb36,
     TotalLuts,
 )
@@ -75,6 +76,20 @@ def test_size_checker_dsp_blocks_has_two_names():
     build_result.synthesis_size = {"DSP48 Blocks": 7}
     assert DspBlocks(EqualTo(7)).check(build_result)
     assert not DspBlocks(EqualTo(2)).check(build_result)
+
+
+def test_size_checker_aggregated_ramb():
+    build_result = BuildResult(name="")
+
+    build_result.synthesis_size = {"RAMB18": 5, "RAMB36": 20}
+    assert Ramb(EqualTo(22.5)).check(build_result)
+    assert not Ramb(EqualTo(22)).check(build_result)
+
+    build_result.synthesis_size = {"RAMB18": 5, "RAMB36": 0}
+    assert Ramb(EqualTo(2.5)).check(build_result)
+
+    build_result.synthesis_size = {"RAMB18": 0, "RAMB36": 20}
+    assert Ramb(EqualTo(20)).check(build_result)
 
 
 def test_size_checker_raises_exception_if_synthesis_size_is_not_set():
