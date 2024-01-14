@@ -8,6 +8,7 @@
 
 # Standard libraries
 from abc import ABC, abstractmethod
+from typing import Union
 
 # Local folder libraries
 from .build_result import BuildResult
@@ -27,7 +28,7 @@ class Limit(ABC):
         self.value = value
 
     @abstractmethod
-    def check(self, result_value: int) -> bool:
+    def check(self, result_value: Union[int, float]) -> bool:
         pass
 
     @abstractmethod
@@ -41,7 +42,7 @@ class LessThan(Limit):
     Limit to be used with a checker to see that a figure is less than the specified value.
     """
 
-    def check(self, result_value: int) -> bool:
+    def check(self, result_value: Union[int, float]) -> bool:
         return result_value < self.value
 
     def __str__(self) -> str:
@@ -54,7 +55,7 @@ class EqualTo(Limit):
     Limit to be used with a checker to see that a figure is equal to the specified value.
     """
 
-    def check(self, result_value: int) -> bool:
+    def check(self, result_value: Union[int, float]) -> bool:
         return result_value == self.value
 
     def __str__(self) -> str:
@@ -87,7 +88,7 @@ class BuildResultChecker(ABC):
             True if check passed, false otherwise.
         """
 
-    def _check_result_value(self, name: str, result_value: int) -> bool:
+    def _check_result_value(self, name: str, result_value: Union[int, float]) -> bool:
         if result_value is not None and self.limit.check(result_value=result_value):
             print(f"Result check passed for {name}: {result_value} ({self.limit})")
             return True
@@ -168,6 +169,40 @@ class Ramb18(SizeChecker):
     name = "RAMB18"
 
 
+class Ramb(SizeChecker):
+
+    """
+    Combined checker for RAMB36 and RAMB18 count.
+    Each RAMB18 counts as half a RAMB36.
+    """
+
+    name = "RAMB"
+
+    def check(self, build_result: BuildResult) -> bool:
+        """
+        Similar to super class, but takes out two result values.
+        """
+        ramb36_value = self._get_result_value(build_result=build_result, name=Ramb36.name)
+        ramb18_value = self._get_result_value(build_result=build_result, name=Ramb18.name)
+
+        value = ramb36_value + ramb18_value / 2
+
+        return self._check_result_value(name=self.name, result_value=value)
+
+    @staticmethod
+    def _get_result_value(build_result: BuildResult, name: str) -> int:
+        assert (
+            build_result.synthesis_size is not None
+        ), "Should only call after successful synthesis"
+
+        if name not in build_result.synthesis_size:
+            raise ValueError(
+                f'Synthesis result size does not contain the requested resource: "{name}"'
+            )
+
+        return build_result.synthesis_size[name]
+
+
 class Uram(SizeChecker):
     name = "URAM"
 
@@ -185,9 +220,8 @@ class DspBlocks(SizeChecker):
         """
         Same as super class, but checks for the legacy name as well as the current name.
         """
-        assert (
-            build_result.synthesis_size is not None
-        ), "Should only call after successful synthesis"
+        if build_result.synthesis_size is None:
+            raise ValueError("Should only call after successful synthesis")
 
         legacy_name = "DSP48 Blocks"
 
