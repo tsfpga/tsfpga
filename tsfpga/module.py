@@ -568,10 +568,11 @@ class BaseModule:
             if set_random_seed:
                 # Use the maximum range for a natural in VHDL-2008
                 generics["seed"] = random.randint(0, 2**31 - 1)
+
         elif isinstance(set_random_seed, int):
             generics["seed"] = set_random_seed
 
-        name = self.test_case_name(name, generics)
+        name = self.test_case_name(name=name, generics=generics)
         # VUnit does not allow an empty name, which can happen if both 'name' and 'generics' to
         # this method are None, but the user sets for example a 'pre_config'.
         # Avoid this error mode by setting a default name when it happens.
