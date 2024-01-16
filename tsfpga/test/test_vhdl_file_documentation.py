@@ -144,10 +144,9 @@ end a;
     # entity->component, no ranges, and no default values.
     expected = """\
 component test_entity is
-  generic(
+  generic (
     buffer_segment_length_bytes : positive;
     dummy : positive;
-    -- comment
     silly : positive_vec_t
   );
   port (
@@ -232,6 +231,87 @@ component test_entity is
   );
   port (
     dummy_signal : out std_ulogic_vector
+  );
+end component;"""
+
+    run_get_symbolator_component_test(tmp_path=tmp_path, vhdl_code=data, expected=expected)
+
+
+def test_get_symbolator_component_with_comments(tmp_path):
+    data = """
+entity test_entity is -- hello
+  generic ( -- test ); end entity; -- Comment --in a --       comment
+    apa : natural := 1-- ;
+-- hest : natural
+  );
+  port (
+    dummy : std_ulogic -- ); end entity;
+    -- := 0
+  );
+end entity;
+"""
+
+    expected = """\
+component test_entity is
+  generic (
+    apa : natural
+  );
+  port (
+    dummy : std_ulogic
+  );
+end component;"""
+
+    run_get_symbolator_component_test(tmp_path=tmp_path, vhdl_code=data, expected=expected)
+
+
+def test_get_symbolator_component_with_separator_comments(tmp_path):
+    data = """
+entity test_entity is
+  port (
+    apa : out std_ulogic; -- trailing comment that shall be removed
+    --# {{}}
+    hest : out std_ulogic;
+-- Out of place comment that shall be removed
+-- foo : in std_ulogic;
+    --# {{test 123}}
+    zebra : out std_ulogic;
+  );
+end entity;
+"""
+
+    # entity->component, no ranges, and no default values.
+    expected = """\
+component test_entity is
+  port (
+    apa : out std_ulogic;
+    --# {{}}
+    hest : out std_ulogic;
+    --# {{test 123}}
+    zebra : out std_ulogic;
+  );
+end component;"""
+
+    run_get_symbolator_component_test(tmp_path=tmp_path, vhdl_code=data, expected=expected)
+
+
+def test_get_symbolator_component_with_complex_array_width(tmp_path):
+    data = """
+entity test_entity is
+  port (
+    dummy : out std_ulogic_vector(
+      my_function(
+        value=>generic_value
+      ) - 1
+      downto 0
+    ) := (others => '0')
+  );
+end entity;
+"""
+
+    expected = """\
+component test_entity is
+  port (
+    dummy : out std_ulogic_vector
   );
 end component;"""
 
