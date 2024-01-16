@@ -66,7 +66,9 @@ class VhdlFileDocumentation:
 
         return text
 
-    def get_symbolator_component(self) -> Optional[str]:
+    def get_symbolator_component(  # pylint: disable=too-many-locals,too-many-statements
+        self,
+    ) -> Optional[str]:
         """
         Return a string with a ``component`` declaration equivalent to the ``entity`` declaration
         within the file. (We use entity's but symbolator requires component's).
@@ -86,43 +88,86 @@ class VhdlFileDocumentation:
         The real solution would be to fix upstream in symbolator and hdlparse.
 
         Return:
-            VHDL ``component`` declaration. ``None`` if file is a package, and hence contains
-            no ``entity``.
+            VHDL ``component`` declaration.
+            ``None`` if file is a package, and hence contains no ``entity``.
+            ``None`` if no ``entity`` is found in the file.
         """
         if self._vhd_file_path.name.endswith("_pkg.vhd"):
             # File is a package, hence contains no entity
             return None
 
+        vhdl = read_file(self._vhd_file_path)
+
+        def replace_comment(match):  # type: ignore
+            match_group = match.group(1)
+            if (
+                match_group
+                and match_group.startswith("# {{")
+                and match_group.endswith("}}")
+                and ";" not in match_group
+            ):
+                # This is a valid symbolator comment, leave it as is.
+                # I.e. "--# {{}}" or "--# {{some text}}
+                return f"--{match_group}"
+
+            # Strip comment
+            return ""
+
+        # Remove comments so that the remaining VHDL is easier to parse.
+        vhdl = re.sub(pattern=r"--(.*)$", repl=replace_comment, string=vhdl, flags=re.MULTILINE)
+
+        # Strip trailing whitespace and empty lines.
+        vhdl = re.sub(pattern=r"\s*$", repl="", string=vhdl, flags=re.MULTILINE)
+
+        # Split out the entity declaration from the VHDL file.
         entity_name = self._vhd_file_path.stem
         entity_regexp = re.compile(
-            rf"entity\s+{entity_name}\s+is"
+            rf"entity\s+{entity_name}\s+is\s+"
             # Match all the code for generics and ports.
             # Is non-greedy, so it will only match up until the "end" declaration below.
-            # Generic block optionally
-            r"\s*(.+?)\s*(\)\s*;\s*)?"
-            # Port block
-            r"port\s*\(\s*(.+?)\s*"
-            #
-            r"\)\s*;\s*"
+            r"(.*?)"
             # Shall be able to handle
             #   end entity;
             #   end entity <name>;
             #   end <name>;
             #   end;
             # with different whitespace around.
-            rf"end(\s+entity|\s+entity\s+{entity_name}|\s+{entity_name}|)\s*;",
+            rf"\s*end(\s+entity|\s+entity\s+{entity_name}|\s+{entity_name}|)\s*;",
             re.IGNORECASE | re.DOTALL,
         )
 
-        file_contents = read_file(self._vhd_file_path)
+        match = entity_regexp.search(vhdl)
+        if match is None or not match.group(1):
+            print(f"Found no entity in {self._vhd_file_path}")
+            return None
 
-        match = entity_regexp.search(file_contents)
+        ports_and_generics = match.group(1)
+
+        # Slit out the generic part and the port part from the entity declaration.
+        ports_and_generics_regexp = re.compile(
+            # Match all the code for generics and ports.
+            # Is non-greedy, so it will only match up until the "end" declaration below.
+            # Generic block optionally
+            r"\s*(.+?)?\s*(\)\s*;\s*)?"
+            # Port block
+            r"port\s*\(\s*(.+?)\s*"
+            #
+            r"\)\s*;\s*$",
+            re.IGNORECASE | re.DOTALL,
+        )
+
+        match = ports_and_generics_regexp.search(ports_and_generics)
         if match is None:
+            print(f"Found no ports or generics in {self._vhd_file_path}")
             return None
 
         if match.group(2) and match.group(3):
             # Entity declaration contains both generics and ports
             generics = match.group(1)
+            assert generics.lower().startswith("generic")
+
+            strip_generics_open = re.compile(r"generic\s*\(", re.IGNORECASE)
+            generics = strip_generics_open.sub(repl="", string=generics)
         else:
             # Only one match, which we assume is ports (generics only is not supported)
             generics = None
@@ -131,25 +176,33 @@ class VhdlFileDocumentation:
 
         # Remove default values.
         # Symbolator stops parsing if it encounters vector default values (others => ...).
-        default_value_regexp = re.compile(r"\s*:=.+?(;|$)", re.IGNORECASE | re.DOTALL)
+        default_value_regexp = re.compile(r"\s*:=.+$", re.IGNORECASE | re.DOTALL)
 
-        # Replace the assignment with only the ending character (";" or "")
-        def default_value_replace(match):  # type: ignore
-            return match.group(1)
-
-        # Remove any vector range declarations in port list.
+        # Remove any vector range declarations in port/generic list.
         # The lines become too long so they don't fit in the image.
-        vector_regexp = re.compile(r"\([^;\n]+\)", re.IGNORECASE)
+        vector_regexp = re.compile(r"\(.*$", re.IGNORECASE | re.DOTALL)
+
+        def clean_up_declarations(declarations: str) -> str:
+            clean_declarations = []
+
+            # Split the list of declarations string into individual.
+            # Note that this fails if there are any ";" in comments, so its import that we
+            # strip comments before this.
+            for declaration in declarations.split(";"):
+                cleaned = default_value_regexp.sub(repl="", string=declaration)
+                cleaned = vector_regexp.sub(repl="", string=cleaned)
+
+                clean_declarations.append(cleaned)
+
+            return ";".join(clean_declarations)
 
         if generics:
-            generics = default_value_regexp.sub(repl=default_value_replace, string=generics)
-            generics = vector_regexp.sub(repl="", string=generics)
+            generics = clean_up_declarations(generics)
 
-        ports = default_value_regexp.sub(repl=default_value_replace, string=ports)
-        ports = vector_regexp.sub(repl="", string=ports)
+        ports = clean_up_declarations(ports)
 
         if generics:
-            generics_code = f"  {generics}\n  );\n"
+            generics_code = f"  generic ({generics}\n  );\n"
         else:
             generics_code = ""
 
