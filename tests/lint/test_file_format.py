@@ -102,5 +102,5 @@ def files_to_test(exclude_directories=None):
     return find_git_files(
         directory=REPO_ROOT,
         exclude_directories=exclude_directories,
-        file_endings_avoid=("png", "svg"),
+        file_endings_avoid=("png", "svg", "xcf"),
     )
