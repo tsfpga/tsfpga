@@ -400,26 +400,23 @@ begin
 
 
   ------------------------------------------------------------------------------
-  -- Instantiate protocol checker within a simulation guard. To show that it is indeed possible to
+  -- Instantiate protocol checker to show that it is indeed possible to
   -- synthesize code with this instance.
-  protocol_checker_test_gen : if in_simulation generate
 
-    ------------------------------------------------------------------------------
-    axi_stream_protocol_checker_inst : entity common.axi_stream_protocol_checker
-      generic map (
-        data_width => s_hp0_m2s.write.w.data'length,
-        logger_name_suffix => "_artyz7_top"
-      )
-      port map (
-        clk => clk_s_hp0,
-        --
-        ready => s_hp0_s2m.write.w.ready,
-        valid => s_hp0_m2s.write.w.valid,
-        last => s_hp0_m2s.write.w.last,
-        data => s_hp0_m2s.write.w.data,
-        strobe => s_hp0_m2s.write.w.strb
-      );
-
-  end generate;
+  ------------------------------------------------------------------------------
+  axi_stream_protocol_checker_inst : entity common.axi_stream_protocol_checker
+    generic map (
+      data_width => s_hp0_m2s.write.w.data'length,
+      logger_name_suffix => " - artyz7_top"
+    )
+    port map (
+      clk => clk_s_hp0,
+      --
+      ready => s_hp0_s2m.write.w.ready,
+      valid => s_hp0_m2s.write.w.valid,
+      last => s_hp0_m2s.write.w.last,
+      data => s_hp0_m2s.write.w.data,
+      strobe => s_hp0_m2s.write.w.strb
+    );
 
 end architecture;
