@@ -10,9 +10,6 @@ library vunit_lib;
 use vunit_lib.bus_master_pkg.all;
 use vunit_lib.memory_pkg.all;
 
-library axi;
-use axi.axi_lite_pkg.all;
-
 use work.artyz7_top_pkg.all;
 
 

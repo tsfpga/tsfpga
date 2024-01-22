@@ -12,7 +12,9 @@ use ieee.numeric_std.all;
 
 library axi;
 use axi.axi_pkg.all;
-use axi.axi_lite_pkg.all;
+
+library axi_lite;
+use axi_lite.axi_lite_pkg.all;
 
 use work.ddr_buffer_regs_pkg.all;
 use work.ddr_buffer_register_record_pkg.all;
