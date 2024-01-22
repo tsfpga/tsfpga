@@ -30,11 +30,11 @@ entity block_design_mock is
     clk_m_gp0 : in std_ulogic;
     m_gp0_m2s : out axi_m2s_t;
     m_gp0_s2m : in axi_s2m_t;
-    --
+    --# {{}}
     clk_s_hp0 : in std_ulogic;
     s_hp0_m2s : in axi_m2s_t;
     s_hp0_s2m : out axi_s2m_t;
-    --
+    --# {{}}
     pl_clk0 : out std_ulogic := '0';
     pl_clk1 : out std_ulogic := '0'
   );
@@ -75,6 +75,40 @@ begin
   -- we would need to create another bus master, probably in top_level_sim_pkg.
   assert m_gp0_data_width = data_length(regs_bus_master);
   assert m_gp0_addr_width = address_length(regs_bus_master);
+
+
+  ------------------------------------------------------------------------------
+  axi_read_range_checker_inst : entity axi.axi_read_range_checker
+    generic map (
+      address_width => s_hp0_addr_width,
+      id_width => s_hp0_id_width,
+      data_width => s_hp0_data_width,
+      enable_axi3 => true,
+      supports_narrow_burst => false
+    )
+    port map (
+      clk => clk_s_hp0,
+      --
+      read_m2s => s_hp0_m2s.read,
+      read_s2m => s_hp0_s2m.read
+    );
+
+
+  ------------------------------------------------------------------------------
+  axi_write_range_checker_inst : entity axi.axi_write_range_checker
+    generic map (
+      address_width => s_hp0_addr_width,
+      id_width => s_hp0_id_width,
+      data_width => s_hp0_data_width,
+      enable_axi3 => true,
+      supports_narrow_burst => false
+    )
+    port map (
+      clk => clk_s_hp0,
+      --
+      write_m2s => s_hp0_m2s.write,
+      write_s2m => s_hp0_s2m.write
+    );
 
 
   ------------------------------------------------------------------------------

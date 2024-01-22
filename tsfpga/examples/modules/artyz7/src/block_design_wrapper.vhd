@@ -25,11 +25,11 @@ entity block_design_wrapper is
     clk_m_gp0 : in std_ulogic;
     m_gp0_m2s : out axi_m2s_t := axi_m2s_init;
     m_gp0_s2m : in axi_s2m_t;
-
+    --# {{}}
     clk_s_hp0 : in std_ulogic;
     s_hp0_m2s : in axi_m2s_t;
     s_hp0_s2m : out axi_s2m_t := axi_s2m_init;
-
+    --# {{}}
     pl_clk0 : out std_ulogic := '0';
     pl_clk1 : out std_ulogic := '0'
   );
@@ -41,6 +41,7 @@ begin
   ------------------------------------------------------------------------------
   block_design_gen : if in_simulation generate
 
+    ------------------------------------------------------------------------------
     block_design_mock_inst : entity work.block_design_mock
       port map (
         clk_m_gp0 => clk_m_gp0,
