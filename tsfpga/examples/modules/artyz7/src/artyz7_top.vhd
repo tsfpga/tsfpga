@@ -12,7 +12,9 @@ use ieee.std_logic_1164.all;
 
 library axi;
 use axi.axi_pkg.all;
-use axi.axi_lite_pkg.all;
+
+library axi_lite;
+use axi_lite.axi_lite_pkg.all;
 
 library common;
 use common.common_pkg.all;
@@ -81,7 +83,7 @@ begin
   begin
 
     ------------------------------------------------------------------------------
-    axi_to_regs_inst : entity axi.axi_to_axi_lite_vec
+    axi_to_regs_inst : entity axi_lite.axi_to_axi_lite_vec
       generic map (
         base_addresses => regs_base_addresses,
         clocks_are_the_same => clocks_are_the_same
