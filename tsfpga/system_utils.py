@@ -175,7 +175,7 @@ def run_command(
         cmd: The command to run.
         cwd: The working directory where the command shall be executed.
         env: Environment variables to set.
-        capture_output: Enable capturing or STDOUT and STDERR.
+        capture_output: Enable capturing of STDOUT and STDERR.
 
     Return:
         Returns the subprocess completed process object, which contains useful information.
