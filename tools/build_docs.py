@@ -136,7 +136,7 @@ def generate_sphinx_index() -> None:
     """
     Generate index.rst for sphinx. Also verify that readme.rst in the project root is identical.
 
-    RST file inclusion in readme.rst does not work on github unfortunately, hence this
+    RST file inclusion in readme.rst does not work on GitHub unfortunately, hence this
     cumbersome handling of syncing documentation.
     """
     rst_to_verify = get_readme_rst(include_extra_for_github=True)
