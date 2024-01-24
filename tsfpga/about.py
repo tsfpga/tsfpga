@@ -29,11 +29,11 @@ def get_readme_rst(
     Get the complete README.rst for tsfpga (to be used on website and in PyPI release).
 
     The arguments control some extra text that is included. This is mainly links to the
-    other places where you can find information on the project (website, github, PyPI).
+    other places where you can find information on the project (website, GitHub, PyPI).
 
     Arguments:
         include_extra_for_github (bool): Include the extra text that shall be included in the
-            github README.
+            GitHub README.
         include_extra_for_website (bool): Include the extra text that shall be included in the
             website main page.
       include_extra_for_pypi (bool): Include the extra text that shall be included in the
@@ -49,7 +49,7 @@ def get_readme_rst(
     elif include_extra_for_website:
         # The website needs the initial heading, in order for the landing page to get
         # the correct title.
-        # The others do not need this initial heading, it just makes the github/pypi page
+        # The others do not need this initial heading, it just makes the GitHub/PyPI page
         # more clunky.
         readme_rst = """\
 About tsfpga

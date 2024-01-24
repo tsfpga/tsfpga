@@ -33,7 +33,7 @@ def generate_release_notes(
     Arguments:
         repo_root: Git commands will be executed here.
         release_notes_directory: Location of release notes files.
-        project_name: Name of project will be used for the github link.
+        project_name: Name of project will be used for the GitHub link.
 
     Return:
         RST code with release notes.
