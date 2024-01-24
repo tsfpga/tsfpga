@@ -119,9 +119,9 @@ def find_svn_files(
     excludes = [] if excludes is None else [exclude.resolve() for exclude in excludes]
 
     command = ["svn", "status", "-v"]
-    result = run_command(cmd=command, cwd=directory, capture_output=True)
+    stdout = run_command(cmd=command, cwd=directory, capture_output=True).stdout
 
-    for line in result.stdout.split("\n"):
+    for line in stdout.split("\n"):
         match = RE_SVN_STATUS_LINE.match(line)
         if not match:
             continue
