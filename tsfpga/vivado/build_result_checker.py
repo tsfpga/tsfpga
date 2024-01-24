@@ -191,9 +191,8 @@ class Ramb(SizeChecker):
 
     @staticmethod
     def _get_result_value(build_result: BuildResult, name: str) -> int:
-        assert (
-            build_result.synthesis_size is not None
-        ), "Should only call after successful synthesis"
+        if build_result.synthesis_size is None:
+            raise ValueError("Should only call after successful synthesis")
 
         if name not in build_result.synthesis_size:
             raise ValueError(
