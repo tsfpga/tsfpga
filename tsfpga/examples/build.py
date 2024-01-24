@@ -31,7 +31,7 @@ from hdl_registers.generator.cpp.header import CppHeaderGenerator
 from hdl_registers.generator.cpp.implementation import CppImplementationGenerator
 from hdl_registers.generator.cpp.interface import CppInterfaceGenerator
 from hdl_registers.generator.html.page import HtmlPageGenerator
-from hdl_registers.generator.python.python_class import PythonClassGenerator
+from hdl_registers.generator.python.pickle import PythonPickleGenerator
 
 # First party libraries
 from tsfpga.build_project_list import BuildProjectList
@@ -279,7 +279,7 @@ def generate_registers(modules: "ModuleList", output_path: Path) -> None:
 
             HtmlPageGenerator(module.registers, output_path / "html").create()
 
-            PythonClassGenerator(module.registers, output_path / "python").create()
+            PythonPickleGenerator(module.registers, output_path / "python").create()
 
 
 if __name__ == "__main__":
