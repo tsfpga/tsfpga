@@ -48,7 +48,7 @@ The API is simple and easy to use
 Key features
 ------------
 
-* Source code centric `project structure <https://tsfpga.com/module_structure.html>`__
+* Source code-centric `project structure <https://tsfpga.com/module_structure.html>`__
   for scalability.
   Build projects, test configurations, constraints, IP cores, etc. are handled close to the
   source code, not in a central monolithic script.
