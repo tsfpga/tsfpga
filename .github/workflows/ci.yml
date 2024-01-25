@@ -7,8 +7,11 @@ on:
   pull_request:
   # Add possibility of running manually from webpage.
   workflow_dispatch:
-  # Run from main when a pull request is merged.
   push:
+    # Run when a version tag is pushed.
+    tags:
+      - 'v*'
+    # Run from main when a pull request is merged.
     branches:
       - main
   # Run nightly at 20:45 UTC.
