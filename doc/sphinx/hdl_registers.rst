@@ -83,7 +83,7 @@ They all have default value ``True`` in :class:`.BaseModule`.
   :class:`VhdlRecordPackageGenerator <hdl_registers.generator.vhdl.record_package.VhdlRecordPackageGenerator>`
   is generated into the register source folder of the module.
 * ``create_axi_lite_wrapper``, controls whether
-  :class:`VhdlAxiLiteWrapperGenerator <hdl_registers.generator.vhdl.axi_lite_wrapper.VhdlAxiLiteWrapperGenerator>`
+  :class:`VhdlAxiLiteWrapperGenerator <hdl_registers.generator.vhdl.axi_lite.wrapper.VhdlAxiLiteWrapperGenerator>`
   is generated into the register source folder of the module.
 * ``create_simulation_read_write_package``, controls whether
   :class:`VhdlSimulationReadWritePackageGenerator <hdl_registers.generator.vhdl.simulation.read_write_package.VhdlSimulationReadWritePackageGenerator>`
