@@ -172,7 +172,7 @@ jobs:
     name: Deploy website to pages
     if: github.ref == 'refs/heads/main'
     # Only do deployment if everything else has passed.
-    needs: [pytest, build_doc, simulate, build_pypi]
+    needs: [pytest, build_doc, simulate]
     permissions:
       pages: write
       id-token: write
@@ -235,10 +235,14 @@ jobs:
 
 
   # ------------------------------------------------------------------------------
-  # Build the Python release package for PyPI.
+  # Python release package to PyPI.
 
-  build_pypi:
-    name: Build PyPI release
+  release_pypi:
+    name: PyPI release
+    # Deploy new version when a version tag is pushed.
+    if: github.ref_type == 'tag' && contains(github.ref_name, 'v')
+    # Only do deployment if everything else has passed.
+    needs: [pytest, build_doc, simulate]
     runs-on: ubuntu-latest
     steps:
 
@@ -256,11 +260,10 @@ jobs:
         run: |
           python3 -m pip install build
 
-      - name: Run job
+      - name: Build artifact
         run: python3 -m build
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
+      - name: Deploy artifact
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          name: pypi_dist
-          path: dist
+          password: ${{ secrets.PYPI_API_TOKEN }}
