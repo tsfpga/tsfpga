@@ -1,8 +1,12 @@
+# ------------------------------------------------------------------------------
 [tool.black]
+
 line-length = 100
 
 
+# ------------------------------------------------------------------------------
 [tool.isort]
+
 # Make base formatting compatible with black settings
 profile = "black"
 line_length = 100
@@ -26,7 +30,9 @@ known_example_pythonpath = "tsfpga.examples.example_pythonpath"
 sections = "FUTURE,STDLIB,EXAMPLE_PYTHONPATH,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
 
 
+# ------------------------------------------------------------------------------
 [tool.mypy]
+
 exclude = ['/test_.*\.py$']
 
 # Use strict as a base, and explicitly remove the checks that we do not want.
@@ -37,11 +43,20 @@ disallow_untyped_calls = false
 
 
 [[tool.mypy.overrides]]
+
 module = "tsfpga.examples.modules.*"
 strict = false
 disallow_untyped_defs = false
 
 [[tool.mypy.overrides]]
+
 module = "tools.*"
 strict = false
 disallow_untyped_defs = false
+
+
+# ------------------------------------------------------------------------------
+[build-system]
+
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
