@@ -128,7 +128,7 @@ If anything goes wrong in the CI run, you can delete the tag and start over.
     git tag --delete vX.Y.Z
     git push origin --delete  vX.Y.Z
 
-However, be extremely careful with this command.
+**WARNING:** Be extremely careful with this command.
 Do not delete any other tags.
 
 
@@ -150,5 +150,5 @@ complete privileges to the repository.
 
     git push origin HEAD:main
 
-Be very careful with this command and inspect locally that you do not push anything else
-than intended.
+**WARNING:** Be very careful with this command and inspect locally that you do not push anything
+else than intended.
