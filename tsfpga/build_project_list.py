@@ -167,18 +167,18 @@ class BuildProjectList:
         Build all the projects in the list.
 
         Arguments:
-            projects_path: The projects will be placed here.
+            projects_path: The projects are placed here.
             num_parallel_builds: The number of projects that will be built in parallel.
             num_threads_per_build: The number threads that will be used for each
                 parallel build process.
             output_path: Where the artifacts should be placed.
+                Will default to within the ``projects_path`` if not set.
             collect_artifacts: Callback to collect artifacts.
                 Takes two named arguments:
 
                 |  **project** (:class:`.VivadoProject`): The project that is being built.
 
-                |  **output_path** (pathlib.Path): Where the artifacts should be placed.
-
+                |  **output_path** (pathlib.Path): Where the build artifacts should be placed.
 
                 | Must return True.
             kwargs: Other arguments as accepted by :meth:`.VivadoProject.build`.
@@ -190,7 +190,6 @@ class BuildProjectList:
                     Argument ``num_threads`` is set by the ``num_threads_per_build``
                     argument to this function. This naming difference is done to avoid
                     confusion with regards to ``num_parallel_builds``.
-
 
         Return:
             True if everything went well.
@@ -204,15 +203,14 @@ class BuildProjectList:
 
         build_wrappers = []
         for project in self.projects:
-            if output_path:
-                this_projects_output_path = output_path.resolve() / project.name
-            else:
-                this_projects_output_path = projects_path / project.name
+            project_output_path = self.get_build_project_output_path(
+                project=project, projects_path=projects_path, output_path=output_path
+            )
 
             build_wrapper = BuildProjectBuildWrapper(
-                project,
-                output_path=this_projects_output_path,
+                project=project,
                 collect_artifacts=thread_safe_collect_artifacts,
+                output_path=project_output_path,
                 num_threads=num_threads_per_build,
                 **kwargs,
             )
@@ -223,6 +221,19 @@ class BuildProjectList:
             build_wrappers=build_wrappers,
             num_parallel_builds=num_parallel_builds,
         )
+
+    @staticmethod
+    def get_build_project_output_path(
+        project: "VivadoProject", projects_path: Path, output_path: Optional[Path] = None
+    ) -> Path:
+        """
+        Find where build artifacts will be placed for a project.
+        Arguments are the same as for :meth:`.build`.
+        """
+        if output_path:
+            return output_path.resolve() / project.name
+
+        return projects_path / project.name
 
     def open(self, projects_path: Path) -> bool:
         """

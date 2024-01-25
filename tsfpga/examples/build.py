@@ -73,6 +73,12 @@ def arguments(default_temp_dir: Path = TSFPGA_EXAMPLES_TEMP_DIR) -> argparse.Nam
 
     group.add_argument("--open", action="store_true", help="open existing projects in the GUI")
 
+    group.add_argument(
+        "--collect-artifacts-only",
+        action="store_true",
+        help="collect artifacts of previously successful builds",
+    )
+
     parser.add_argument(
         "--use-existing-project",
         action="store_true",
@@ -148,7 +154,7 @@ def main() -> None:
         no_color=args.no_color,
     )
 
-    sys.exit(setup_and_run(modules, projects, args))
+    sys.exit(setup_and_run(modules=modules, projects=projects, args=args))
 
 
 def collect_artifacts(project: "VivadoProject", output_path: Path) -> bool:
@@ -167,7 +173,7 @@ def collect_artifacts(project: "VivadoProject", output_path: Path) -> bool:
     release_dir = create_directory(output_path / f"{project.name}-{version}", empty=True)
     print(f"Creating release in {release_dir.resolve()}.zip")
 
-    generate_registers(project.modules, release_dir / "registers")
+    generate_registers(modules=project.modules, output_path=release_dir / "registers")
     copy2(output_path / f"{project.name }.bit", release_dir)
     copy2(output_path / f"{project.name}.bin", release_dir)
     if (output_path / f"{project.name}.xsa").exists():
@@ -181,7 +187,7 @@ def collect_artifacts(project: "VivadoProject", output_path: Path) -> bool:
     return True
 
 
-def setup_and_run(
+def setup_and_run(  # pylint: disable=too-many-return-statements
     modules: "ModuleList",
     projects: BuildProjectList,
     args: argparse.Namespace,
@@ -219,12 +225,18 @@ def setup_and_run(
         projects.open(projects_path=args.projects_path)
         return 0
 
-    if args.use_existing_project:
+    if args.collect_artifacts_only:
+        # We have to assume that the project exists if the user sent this argument.
+        # The 'collect_artifacts_function' call below will probably fail if it does not.
+        create_ok = True
+
+    elif args.use_existing_project:
         create_ok = projects.create_unless_exists(
             projects_path=args.projects_path,
             num_parallel_builds=args.num_parallel_builds,
             ip_cache_path=args.ip_cache_path,
         )
+
     else:
         create_ok = projects.create(
             projects_path=args.projects_path,
@@ -238,19 +250,33 @@ def setup_and_run(
     if args.create_only:
         return 0
 
-    # If doing only synthesis there are no artifacts to collect
+    # If doing only synthesis, there are no artifacts to collect.
     collect_artifacts_function = (
         None if (args.synth_only or args.netlist_builds) else collect_artifacts_function
     )
 
+    if args.collect_artifacts_only:
+        assert collect_artifacts_function is not None, "No artifact collection available"
+
+        for project in projects.projects:
+            # Assign the arguments in the exact same way as the call to 'projects.build()' below.
+            # Ensures that the correct output path is used in all scenarios.
+            project_build_output_path = projects.get_build_project_output_path(
+                project=project, projects_path=args.projects_path, output_path=args.output_path
+            )
+            # Collect artifacts function must return True.
+            assert collect_artifacts_function(project, project_build_output_path)
+
+        return 0
+
     build_ok = projects.build(
         projects_path=args.projects_path,
-        collect_artifacts=collect_artifacts_function,
         num_parallel_builds=args.num_parallel_builds,
+        num_threads_per_build=args.num_threads_per_build,
         output_path=args.output_path,
+        collect_artifacts=collect_artifacts_function,
         synth_only=args.synth_only,
         from_impl=args.from_impl,
-        num_threads_per_build=args.num_threads_per_build,
     )
 
     if build_ok:
