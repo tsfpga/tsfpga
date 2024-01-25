@@ -28,24 +28,34 @@ REQUIREMENTS_DEVELOP_TXT = tsfpga.TSFPGA_PATH / "requirements_develop.txt"
 
 def main():
     """
-    Be extremely careful when making changes to this setup script. It is hard to see what is
-    actually included and what is missing. Also the package data, and where it gets placed in the
-    release tree, is very messy.
+    Be extremely careful when making changes to this setup script.
+    It is hard to see what is actually included and what is missing.
+    Also the package data, and where it gets placed in the release tree, is very messy.
 
     When making changes it is recommended to try the release locally before committing to main.
     To test in a docker image do, e.g:
 
     python3 setup.py sdist
     docker run --rm --interactive --tty --volume $(pwd)/dist:/dist:ro --workdir /dist \
-        python:3.8-slim-buster /bin/bash
+        python:3.11-slim-buster /bin/bash
     python -m pip install tsfpga-*.tar.gz
 
     The install should pass and you should be able to run python and "import tsfpga".
-    You should see all the files in "/usr/local/lib/python3.8/site-packages/tsfpga". Check that
-    e.g. pylintrc, vivado_settings.tcl, module_fifo.py, etc. are there.
-    Test to run "python -m pip uninstall tsfpga" and see that it passes. Check the output to see
-    that there are not package files installed in weird locations (such as /usr/local/lib/).
+    You should see all the files in "/usr/local/lib/python3.11/site-packages/tsfpga".
+    Check that e.g. pylintrc, vivado_settings.tcl, module_fifo.py, etc. are there.
+    Test to run "python -m pip uninstall tsfpga" and see that it passes.
+    Check the output to see that there are not package files installed in weird locations
+    (such as /usr/local/lib/).
+
+    Can also try to run unit tests and simulation/build in the hdl-registers and hdl-modules
+    repositories with the newly created release dist installed.
+    If that passes, then everything that is needed is probably included.
     """
+    # Make sure the "tests" folder does not get included in the release.
+    packages = find_packages(include=["tsfpga", "tsfpga.*"])
+    for package_name in packages:
+        assert package_name.startswith("tsfpga"), package_name
+
     setup(
         name="tsfpga",
         version=tsfpga.__version__,
@@ -65,7 +75,7 @@ def main():
         python_requires=">=3.9",
         install_requires=read_requirements_file(REQUIREMENTS_TXT),
         extras_require=dict(dev=read_requirements_file(REQUIREMENTS_DEVELOP_TXT)),
-        packages=find_packages(),
+        packages=packages,
         package_data={"tsfpga": get_package_data()},
         classifiers=[
             "Development Status :: 5 - Production/Stable",
