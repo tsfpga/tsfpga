@@ -24,7 +24,7 @@ from tsfpga.vivado.project import VivadoNetlistProject, VivadoProject
 
 
 def test_building_artyz7_project(tmp_path):
-    build_py = tsfpga.TSFPGA_EXAMPLES / "build.py"
+    build_py = tsfpga.TSFPGA_EXAMPLES / "build_fpga.py"
     cmd = [
         sys.executable,
         build_py,

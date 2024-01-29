@@ -8,22 +8,8 @@
 
 # Standard libraries
 import argparse
-import sys
 from pathlib import Path
-from shutil import copy2, make_archive
 from typing import TYPE_CHECKING, Callable, Optional
-
-if TYPE_CHECKING:
-    # First party libraries
-    from tsfpga.module_list import ModuleList
-    from tsfpga.vivado.project import VivadoProject
-
-# Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
-REPO_ROOT = Path(__file__).parent.parent.parent.resolve()
-sys.path.insert(0, str(REPO_ROOT))
-
-# Import before others since it modifies PYTHONPATH. pylint: disable=unused-import
-import tsfpga.examples.example_pythonpath  # noqa: F401
 
 # Third party libraries
 from hdl_registers.generator.c.header import CHeaderGenerator
@@ -35,11 +21,15 @@ from hdl_registers.generator.python.pickle import PythonPickleGenerator
 
 # First party libraries
 from tsfpga.build_project_list import BuildProjectList
-from tsfpga.examples.example_env import TSFPGA_EXAMPLES_TEMP_DIR, get_tsfpga_example_modules
-from tsfpga.system_utils import create_directory, delete
+from tsfpga.system_utils import create_directory
+
+if TYPE_CHECKING:
+    # First party libraries
+    from tsfpga.module_list import ModuleList
+    from tsfpga.vivado.project import VivadoProject
 
 
-def arguments(default_temp_dir: Path = TSFPGA_EXAMPLES_TEMP_DIR) -> argparse.Namespace:
+def arguments(default_temp_dir: Path) -> argparse.Namespace:
     """
     Setup of arguments for the example build flow.
 
@@ -140,63 +130,15 @@ def arguments(default_temp_dir: Path = TSFPGA_EXAMPLES_TEMP_DIR) -> argparse.Nam
     return args
 
 
-def main() -> None:
-    """
-    Main function for building FPGA projects. If you are setting up a new build flow from scratch,
-    you probably want to copy and modify this function, and reuse the others.
-    """
-    args = arguments()
-    modules = get_tsfpga_example_modules()
-    projects = BuildProjectList(
-        modules=modules,
-        project_filters=args.project_filters,
-        include_netlist_not_top_builds=args.netlist_builds,
-        no_color=args.no_color,
-    )
-
-    sys.exit(setup_and_run(modules=modules, projects=projects, args=args))
-
-
-def collect_artifacts(project: "VivadoProject", output_path: Path) -> bool:
-    """
-    Example of a method to collect build artifacts. Will create a zip file with the bitstream,
-    hardware definition (.xsa) and register documentation.
-
-    Arguments:
-        project: Project object that has been built, and who's artifacts shall now be collected.
-        output_path: Path to the build output. Artifact zip will be placed here as well.
-
-    Return:
-        True if everything went well.
-    """
-    version = "0.0.0"
-    release_dir = create_directory(output_path / f"{project.name}-{version}", empty=True)
-    print(f"Creating release in {release_dir.resolve()}.zip")
-
-    generate_registers(modules=project.modules, output_path=release_dir / "registers")
-    copy2(output_path / f"{project.name }.bit", release_dir)
-    copy2(output_path / f"{project.name}.bin", release_dir)
-    if (output_path / f"{project.name}.xsa").exists():
-        copy2(output_path / f"{project.name}.xsa", release_dir)
-
-    make_archive(str(release_dir), "zip", release_dir)
-
-    # Remove folder so that only zip remains
-    delete(release_dir)
-
-    return True
-
-
 def setup_and_run(  # pylint: disable=too-many-return-statements
     modules: "ModuleList",
     projects: BuildProjectList,
     args: argparse.Namespace,
-    collect_artifacts_function: Optional[
-        Callable[["VivadoProject", Path], bool]
-    ] = collect_artifacts,
+    collect_artifacts_function: Optional[Callable[["VivadoProject", Path], bool]],
 ) -> int:
     """
-    Setup build projects, and execute as instructed by the arguments.
+    Setup and execute build projects.
+    As instructed by the arguments.
 
     Arguments:
         modules: When running a register generation, registers from these
@@ -207,9 +149,11 @@ def setup_and_run(  # pylint: disable=too-many-return-statements
             Will be run after a successful implementation build.
             The function must return ``True`` if successful and ``False`` otherwise.
             It will receive the ``project`` and ``output_path`` as arguments.
+            Can be ``None`` if no special artifact collection operation shall be run.
 
     Return:
-        0 if everything passed, otherwise non-zero. Can be used for system exit code.
+        0 if everything passed, otherwise non-zero.
+        Can be used for system exit code.
     """
     if args.list_only:
         print(projects)
@@ -218,7 +162,9 @@ def setup_and_run(  # pylint: disable=too-many-return-statements
     if args.generate_registers_only:
         # Generate register output from all modules. Note that this is not used by the
         # build flow or simulation flow, it is only for the user to inspect the artifacts.
-        generate_registers(modules=modules, output_path=args.projects_path.parent / "registers")
+        generate_register_artifacts(
+            modules=modules, output_path=args.projects_path.parent / "registers"
+        )
         return 0
 
     if args.open:
@@ -285,7 +231,7 @@ def setup_and_run(  # pylint: disable=too-many-return-statements
     return 1
 
 
-def generate_registers(modules: "ModuleList", output_path: Path) -> None:
+def generate_register_artifacts(modules: "ModuleList", output_path: Path) -> None:
     """
     Generate register artifacts from the given modules.
 
@@ -293,7 +239,10 @@ def generate_registers(modules: "ModuleList", output_path: Path) -> None:
         modules: Registers from these modules will be included.
         output_path: Register artifacts will be placed here.
     """
-    print(f"Generating registers in {output_path.resolve()}")
+    print(f"Generating register artifacts in {output_path.resolve()}...")
+
+    # Empty the output directory so we don't have leftover old artifacts.
+    create_directory(directory=output_path, empty=True)
 
     for module in modules:
         if module.registers is not None:
@@ -306,7 +255,3 @@ def generate_registers(modules: "ModuleList", output_path: Path) -> None:
             HtmlPageGenerator(module.registers, output_path / "html").create()
 
             PythonPickleGenerator(module.registers, output_path / "python").create()
-
-
-if __name__ == "__main__":
-    main()
