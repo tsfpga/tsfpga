@@ -12,8 +12,8 @@ from pathlib import Path
 # First party libraries
 from tsfpga.constraint import Constraint
 from tsfpga.examples.example_env import get_hdl_modules, get_tsfpga_example_modules
+from tsfpga.examples.vivado.project import TsfpgaExampleVivadoProject
 from tsfpga.module import BaseModule
-from tsfpga.vivado.project import VivadoProject
 
 THIS_FILE = Path(__file__)
 
@@ -30,7 +30,7 @@ class Module(BaseModule):
         block_design = tcl_dir / "block_design.tcl"
 
         projects.append(
-            VivadoProject(
+            TsfpgaExampleVivadoProject(
                 name="artyz7",
                 modules=modules,
                 part=part,
@@ -41,7 +41,7 @@ class Module(BaseModule):
         )
 
         projects.append(
-            VivadoProject(
+            TsfpgaExampleVivadoProject(
                 name="artyz7_explore",
                 top="artyz7_top",
                 modules=modules,
@@ -53,22 +53,4 @@ class Module(BaseModule):
             )
         )
 
-        projects.append(
-            SpecialVivadoProject(
-                name="artyz7_dummy",
-                modules=modules,
-                part=part,
-                top="artyz7_top",
-                generics=dict(dummy=True, value=123),
-                constraints=[pinning],
-                tcl_sources=[block_design],
-            )
-        )
-
         return projects
-
-
-class SpecialVivadoProject(VivadoProject):
-    def post_build(self, output_path, **kwargs):  # pylint: disable=arguments-differ
-        print(f"We can do useful things here. In the output path {output_path} for example")
-        return True

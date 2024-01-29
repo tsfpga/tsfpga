@@ -83,7 +83,7 @@ def arguments() -> argparse.Namespace:
 def generate_registers() -> None:
     cmd = [
         sys.executable,
-        str(tsfpga.TSFPGA_EXAMPLES / "build.py"),
+        str(tsfpga.TSFPGA_EXAMPLES / "build_fpga.py"),
         "--generate-registers-only",
     ]
     run_command(cmd=cmd)
