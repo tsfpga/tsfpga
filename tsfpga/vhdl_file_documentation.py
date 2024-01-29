@@ -19,7 +19,6 @@ VHDL_COMMENT_SEPARATOR = "-- " + ("-" * (SEPARATOR_LINE_LENGTH - 3))
 
 
 class VhdlFileDocumentation:
-
     """
     Methods to extract documentation from a VHDL source file.
     """

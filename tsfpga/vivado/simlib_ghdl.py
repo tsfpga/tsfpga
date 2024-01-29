@@ -20,7 +20,6 @@ from .simlib_common import VivadoSimlibCommon
 
 
 class VivadoSimlibGhdl(VivadoSimlibCommon):
-
     """
     Handle Vivado simlib with GHDL.
     """

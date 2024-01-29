@@ -23,7 +23,6 @@ if TYPE_CHECKING:
 
 
 class VivadoSimlib:
-
     """
     Factory class for getting a Vivado simlib API.
     """

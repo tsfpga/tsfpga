@@ -15,7 +15,6 @@ from .logic_level_distribution_parser import LogicLevelDistributionParser
 
 
 class BuildResult:
-
     """
     Attributes:
         name (`str`): The name of the build.

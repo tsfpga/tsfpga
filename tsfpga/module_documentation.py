@@ -27,7 +27,6 @@ if TYPE_CHECKING:
 
 
 class ModuleDocumentation:
-
     """
     Methods for generating a reStructuredText document with module documentation.
     The content is extracted from VHDL source file headers.

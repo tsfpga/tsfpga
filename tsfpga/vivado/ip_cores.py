@@ -28,7 +28,6 @@ if TYPE_CHECKING:
 
 
 class VivadoIpCores:
-
     """
     Handle a list of IP core sources. Has a mechanism to detect whether a regenerate of IP files
     is needed.
