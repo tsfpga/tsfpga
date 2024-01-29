@@ -11,7 +11,6 @@ from pathlib import Path
 
 
 class BuildStepTclHook:
-
     """
     Represent a TCL file that shall be used as hook in one of the build steps.
     """

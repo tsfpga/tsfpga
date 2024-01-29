@@ -19,7 +19,6 @@ from .simlib_common import VivadoSimlibCommon
 
 
 class VivadoSimlibCommercial(VivadoSimlibCommon):
-
     """
     Handle Vivado simlib with a commercial simulator.
     """

@@ -37,7 +37,6 @@ class Limit(ABC):
 
 
 class LessThan(Limit):
-
     """
     Limit to be used with a checker to see that a figure is less than the specified value.
     """
@@ -50,7 +49,6 @@ class LessThan(Limit):
 
 
 class EqualTo(Limit):
-
     """
     Limit to be used with a checker to see that a figure is equal to the specified value.
     """
@@ -63,7 +61,6 @@ class EqualTo(Limit):
 
 
 class BuildResultChecker(ABC):
-
     """
     Base class for build result checkers that check a certain build result value against a limit.
 
@@ -98,7 +95,6 @@ class BuildResultChecker(ABC):
 
 
 class MaximumLogicLevel(BuildResultChecker):
-
     """
     Check the maximum logic level of a build result against a limit.
     """
@@ -114,7 +110,6 @@ class MaximumLogicLevel(BuildResultChecker):
 
 
 class SizeChecker(BuildResultChecker):
-
     """
     Check a build result size value against a limit.
 
@@ -170,7 +165,6 @@ class Ramb18(SizeChecker):
 
 
 class Ramb(SizeChecker):
-
     """
     Combined checker for RAMB36 and RAMB18 count.
     Each RAMB18 counts as half a RAMB36.
@@ -207,7 +201,6 @@ class Uram(SizeChecker):
 
 
 class DspBlocks(SizeChecker):
-
     """
     In Vivado pre-2020.1 the resource was called "DSP48 Blocks" in the utilization report.
     After that it is called "DSP Blocks". This class checks for both.

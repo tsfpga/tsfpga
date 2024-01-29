@@ -11,7 +11,6 @@ import re
 
 
 class LogicLevelDistributionParser:
-
     """
     Used for parsing the ``report_design_analysis -logic_level_distribution`` report generated
     by Vivado.

@@ -11,7 +11,6 @@ from pathlib import Path
 
 
 class HdlFile:
-
     """
     Class for representing a HDL source code file.
     """

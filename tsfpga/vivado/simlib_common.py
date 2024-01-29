@@ -23,7 +23,6 @@ from .common import get_vivado_path
 
 
 class VivadoSimlibCommon(ABC):
-
     """
     Class for handling Vivado simlib used for simulation. Keeps track of when a
     (re)compile is needed.

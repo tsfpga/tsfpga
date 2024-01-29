@@ -27,7 +27,6 @@ UNRELEASED_EMPTY = "Nothing here yet.\n"
 
 
 class VersionNumberHandler:
-
     """
     Class for handling the version number in __init__.py.
     """

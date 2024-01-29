@@ -30,7 +30,6 @@ if TYPE_CHECKING:
 
 
 class BuildProjectList:
-
     """
     Interface to handle a list of FPGA build projects.
     Enables building many projects in parallel.
@@ -338,7 +337,6 @@ class BuildProjectList:
 
 
 class BuildProjectCreateWrapper:
-
     """
     Wrapper to create a build project, for usage in the build runner.
     Mimics a VUnit test object.
@@ -358,7 +356,6 @@ class BuildProjectCreateWrapper:
 
 
 class BuildProjectBuildWrapper:
-
     """
     Wrapper to build a project, for usage in the build runner.
     Mimics a VUnit test object.
@@ -435,7 +432,6 @@ class BuildProjectBuildWrapper:
 
 
 class BuildProjectOpenWrapper:
-
     """
     Wrapper to open a build project, for usage in the build runner.
     Mimics a VUnit test object.
@@ -454,7 +450,6 @@ class BuildProjectOpenWrapper:
 
 
 class BuildRunner(TestRunner):
-
     """
     Build runner that mimics a VUnit TestRunner. Most things are used as they are in the
     base class, but some behavior is overridden.
@@ -495,7 +490,6 @@ class BuildRunner(TestRunner):
 
 
 class ThreadSafeCollectArtifacts:
-
     """
     A thread-safe wrapper around a user-supplied function that makes sure the function
     is not launched more than once at the same time. When two builds finish at the
