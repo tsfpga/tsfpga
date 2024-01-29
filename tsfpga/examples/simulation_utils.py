@@ -77,6 +77,12 @@ def get_arguments_cli(default_output_path: Path) -> VUnitCLI:
         help="compile and run only a minimal set of tests based on Version Control System history",
     )
 
+    cli.parser.add_argument(
+        "--inspect",
+        action="store_true",
+        help="optionally inspect some simulation result. Is only available for some modules",
+    )
+
     return cli
 
 
@@ -93,6 +99,8 @@ class SimulationProject:
         args: Command line argument namespace from ``simulate.py``.
         enable_preprocessing: If ``True``, VUnit location/check preprocessing will be enabled.
         """
+        self.args = args
+
         self.vunit_proj = VUnit.from_args(args=args)
         self.vunit_proj.add_vhdl_builtins()
         self.vunit_proj.add_verification_components()
@@ -106,7 +114,6 @@ class SimulationProject:
 
     def add_modules(
         self,
-        args: argparse.Namespace,
         modules: ModuleList,
         modules_no_sim: Optional[ModuleList] = None,
         **setup_vunit_kwargs: Any,
@@ -115,7 +122,6 @@ class SimulationProject:
         Add module source files to the VUnit project.
 
         Arguments:
-            args: Command line argument namespace from ``simulate.py``.
             modules: These modules will be included in the simulation project.
             modules_no_sim: These modules will be included in the simulation project,
                 but their test files will not be added.
@@ -126,8 +132,8 @@ class SimulationProject:
         """
         modules_no_sim = ModuleList() if modules_no_sim is None else modules_no_sim
 
-        include_unisim = not args.vivado_skip
-        include_ip_cores = self.has_commercial_simulator and not args.vivado_skip
+        include_unisim = not self.args.vivado_skip
+        include_ip_cores = self.has_commercial_simulator and not self.args.vivado_skip
 
         for module in modules + modules_no_sim:
             vunit_library = self.vunit_proj.add_library(
@@ -150,25 +156,23 @@ class SimulationProject:
                     vunit_proj=self.vunit_proj,
                     include_unisim=include_unisim,
                     include_ip_cores=include_ip_cores,
+                    inspect=self.args.inspect,
                     **setup_vunit_kwargs,
                 )
 
-    def add_vivado_simlib(self, args: argparse.Namespace) -> Optional["VivadoSimlibCommon"]:
+    def add_vivado_simlib(self) -> Optional["VivadoSimlibCommon"]:
         """
         Add Vivado simlib to the VUnit project, unless instructed not to by ``args``.
         Will compile simlib if necessary.
 
-        Arguments:
-            args: Command line argument namespace from ``simulate.py``.
-
         Return:
             The simlib object, ``None`` if simlib was not added due to command line argument.
         """
-        if args.vivado_skip:
+        if self.args.vivado_skip:
             return None
 
         return self._add_simlib(
-            output_path=args.output_path_vivado, force_compile=args.simlib_compile
+            output_path=self.args.output_path_vivado, force_compile=self.args.simlib_compile
         )
 
     def _add_simlib(self, output_path: Path, force_compile: bool) -> "VivadoSimlibCommon":
@@ -203,7 +207,6 @@ class SimulationProject:
 
     def add_vivado_ip_cores(
         self,
-        args: argparse.Namespace,
         modules: ModuleList,
         vivado_part_name: str = "xc7z020clg400-1",
         vivado_ip_core_project_class: Optional[Type[Any]] = None,
@@ -213,7 +216,6 @@ class SimulationProject:
         When running with a commercial simulator they will be added to the VUnit project.
 
         Arguments:
-            args: Command line argument namespace from ``simulate.py``.
             modules: IP cores from these modules will be included in the simulation project.
             vivado_part_name: Part name to be used for Vivado IP core project.
                 Might have to change from default depending on what parts you have available in your
@@ -225,7 +227,7 @@ class SimulationProject:
             Path to the Vivado IP core project's ``project`` directory.
             ``None`` if Vivado IP cores were not added due to command line argument.
         """
-        if args.vivado_skip:
+        if self.args.vivado_skip:
             return None
 
         # Generate IP core simulation files. Might be used for the vhdl_ls config,
@@ -235,8 +237,8 @@ class SimulationProject:
             ip_core_vivado_project_directory,
         ) = self._generate_ip_core_files(
             modules=modules,
-            output_path=args.output_path_vivado,
-            force_generate=args.ip_compile,
+            output_path=self.args.output_path_vivado,
+            force_generate=self.args.ip_compile,
             part_name=vivado_part_name,
             vivado_project_class=vivado_ip_core_project_class,
         )
