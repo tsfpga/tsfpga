@@ -82,9 +82,9 @@ def main() -> None:
 
     simulation_project = SimulationProject(args=args)
     simulation_project.add_modules(args=args, modules=modules, modules_no_sim=modules_no_sim)
-    simlib = simulation_project.add_vivado_simlib(args=args)
+    simlib = simulation_project.add_vivado_simlib()
     ip_core_vivado_project_directory = simulation_project.add_vivado_ip_cores(
-        args=args, modules=modules + modules_no_sim
+        modules=modules + modules_no_sim
     )
 
     create_vhdl_ls_configuration(
