@@ -89,7 +89,7 @@ class VivadoProject:
                 Can also use the argument to :meth:`build() <VivadoProject.build>` to
                 specify at build-time.
             defined_at: Optional path to the file where you defined this project.
-                To get a useful ``build.py --list`` message. Is useful when you have many
+                To get a useful ``build_fpga.py --list`` message. Is useful when you have many
                 projects set up.
             other_arguments: Optional further arguments. Will not be used by tsfpga, but will
                 instead be passed on to

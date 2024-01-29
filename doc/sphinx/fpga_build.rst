@@ -14,15 +14,15 @@ settings and operations.
 
 .. _example_build_py:
 
-Minimal build.py example
-------------------------
+Minimal build_fpga.py example
+-----------------------------
 
 Given that we follow the :ref:`folder structure <folder_structure>`, and have and least one module
-that :ref:`sets up  build projects <example_project_class>`, we can utilize a ``build.py``
+that :ref:`sets up  build projects <example_project_class>`, we can utilize a ``build_fpga.py``
 like this:
 
 .. code-block:: python
-    :caption: Minimal ``build.py`` file.
+    :caption: Minimal ``build_fpga.py`` file.
 
     from pathlib import Path
     from tsfpga.build_project_list import BuildProjectList
@@ -49,7 +49,7 @@ It shows the build projects being launched in parallel, and then finishing at ro
 
 .. code-block::
 
-    [/home/lukas/work/repo/tsfpga]$ python tsfpga/examples/build.py
+    [/home/lukas/work/repo/tsfpga]$ python tsfpga/examples/build_fpga.py
     Starting artyz7
     Output file: /home/lukas/work/repo/tsfpga/generated/projects/artyz7/output.txt
     Starting artyz7_dummy
@@ -100,10 +100,10 @@ It shows the build projects being launched in parallel, and then finishing at ro
 Note that before a project is built a :ref:`register generation <integration_hdl_registers>` is run,
 so that the project is built using up-to-date register definitions.
 
-Of course a more realistic ``build.py`` would be a little more verbose.
+Of course a more realistic ``build_fpga.py`` would be a little more verbose.
 It would probably feature command line arguments that control the behavior, output paths, etc.
 And example of this, which also features release artifact packaging, is available in the
-`repo <https://github.com/tsfpga/tsfpga/blob/main/tsfpga/examples/build.py>`__.
+`repo <https://github.com/tsfpga/tsfpga/blob/main/tsfpga/examples/build_fpga.py>`__.
 
 
 
@@ -173,7 +173,7 @@ list which is returned at the end.
 First a :class:`.VivadoProject` object is created with the name ``artyz7``.
 The modules, part name, TCL sources and constraints are passed to the constructor.
 There is also a ``defined_at`` argument, which is given the path to the ``module_artyz7.py`` file.
-This is used to get a useful ``--list`` result in our :ref:`build.py <example_build_py>`.
+This is used to get a useful ``--list`` result in our :ref:`build_fpga.py <example_build_py>`.
 
 The second project is created using a subclass that inherits :class:`.VivadoProject`.
 It showcases how to use :ref:`pre and post build hook functions <pre_post_build>`.
@@ -198,8 +198,8 @@ They will receive all the arguments that are passed to :meth:`.VivadoProject.bui
 path and output path.
 Additional named arguments sent to :meth:`.VivadoProject.build` will also be available in
 :meth:`pre_build() <.VivadoProject.pre_build>` and :meth:`post_build() <.VivadoProject.post_build>`.
-So in our :ref:`example build.py <example_build_py>` above we could have passed further arguments on
-the line that says ``project.build(...)``.
+So in our :ref:`example build_fpga.py <example_build_py>` above we could have passed further
+arguments on the line that says ``project.build(...)``.
 
 
 

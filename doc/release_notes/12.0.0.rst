@@ -5,7 +5,7 @@ Added
 * Add table with netlist build resource utilization to Sphinx documentation in
   :class:`.ModuleDocumentation`.
 
-* Add ``--from-impl`` support to :meth:`.VivadoProject.build` and example ``build.py``.
+* Add ``--from-impl`` support to :meth:`.VivadoProject.build` and example ``build_fpga.py``.
 
 * Add :func:`.create_ghdl_ls_configuration` function to generate a configuration file
   (``hdl-prj.json``) for the `ghdl-ls <https://github.com/ghdl/ghdl-language-server>`__
