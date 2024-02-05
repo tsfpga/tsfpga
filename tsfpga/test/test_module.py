@@ -346,11 +346,12 @@ def test_register_toml_file_parsed_only_once_when_getting_synthesis_files(
 @patch("tsfpga.module.from_toml", autospec=True)
 @patch("tsfpga.module.VhdlRegisterPackageGenerator.create", autospec=True)
 @patch("tsfpga.module.VhdlRecordPackageGenerator.create", autospec=True)
-@patch("tsfpga.module.VhdlSimulationReadWritePackageGenerator.create", autospec=True)
-@patch("tsfpga.module.VhdlSimulationWaitUntilPackageGenerator.create", autospec=True)
 @patch("tsfpga.module.VhdlAxiLiteWrapperGenerator.create", autospec=True)
+@patch("tsfpga.module.VhdlSimulationReadWritePackageGenerator.create", autospec=True)
+@patch("tsfpga.module.VhdlSimulationCheckPackageGenerator.create", autospec=True)
+@patch("tsfpga.module.VhdlSimulationWaitUntilPackageGenerator.create", autospec=True)
 def test_register_toml_file_parsed_only_once_when_getting_simulation_files(
-    _, __, ___, ____, _____, from_toml, tmp_path
+    _, __, ___, ____, _____, ______, from_toml, tmp_path
 ):
     toml_file = create_file(tmp_path / "a" / "regs_a.toml")
 
@@ -364,11 +365,12 @@ def test_register_toml_file_parsed_only_once_when_getting_simulation_files(
 @patch("tsfpga.module.from_toml", autospec=True)
 @patch("tsfpga.module.VhdlRegisterPackageGenerator.create", autospec=True)
 @patch("tsfpga.module.VhdlRecordPackageGenerator.create", autospec=True)
-@patch("tsfpga.module.VhdlSimulationReadWritePackageGenerator.create", autospec=True)
-@patch("tsfpga.module.VhdlSimulationWaitUntilPackageGenerator.create", autospec=True)
 @patch("tsfpga.module.VhdlAxiLiteWrapperGenerator.create", autospec=True)
+@patch("tsfpga.module.VhdlSimulationReadWritePackageGenerator.create", autospec=True)
+@patch("tsfpga.module.VhdlSimulationCheckPackageGenerator.create", autospec=True)
+@patch("tsfpga.module.VhdlSimulationWaitUntilPackageGenerator.create", autospec=True)
 def test_register_toml_file_parsed_only_once_when_getting_mixed_files(
-    _, __, ___, ____, _____, from_toml, tmp_path
+    _, __, ___, ____, _____, ______, from_toml, tmp_path
 ):
     toml_file = create_file(tmp_path / "a" / "regs_a.toml")
 

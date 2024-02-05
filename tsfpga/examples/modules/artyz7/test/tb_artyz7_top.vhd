@@ -17,6 +17,8 @@ context vunit_lib.vunit_context;
 context vunit_lib.vc_context;
 
 library ddr_buffer;
+use ddr_buffer.ddr_buffer_register_check_pkg.all;
+use ddr_buffer.ddr_buffer_regs_pkg.all;
 use ddr_buffer.ddr_buffer_sim_pkg.all;
 
 library reg_file;
@@ -65,7 +67,14 @@ begin
       check_reg_equal(net, 0, beef, base_address => regs_base_addresses(0));
 
     elsif run("test_ddr_buffer") then
-      run_ddr_buffer_test(net, axi_memory, rnd, ddr_buffer_regs_base_addr);
+      run_ddr_buffer_test(
+        net=>net, memory=>axi_memory, rnd=>rnd, regs_base_address=>ddr_buffer_regs_base_addr
+      );
+      check_ddr_buffer_status_counter_equal(
+        net=>net,
+        expected=>ddr_buffer_base_addresses_array_length,
+        base_address=>ddr_buffer_regs_base_addr
+      );
 
     end if;
 

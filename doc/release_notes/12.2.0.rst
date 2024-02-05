@@ -1,4 +1,19 @@
 Added
 
-* Generate further register VHDL artifacts from ``hdl-registers`` before simulation and build.
+* Generate further register VHDL artifacts
+
+  * record package (
+    :class:`VhdlRecordPackageGenerator <hdl_registers.generator.vhdl.record_package.VhdlRecordPackageGenerator>`
+    ),
+  * AXI-Lite register file wrapper (
+    :class:`VhdlAxiLiteWrapperGenerator <hdl_registers.generator.vhdl.axi_lite.wrapper.VhdlAxiLiteWrapperGenerator>`
+    ),
+  * simulation read/write package (
+    :class:`VhdlSimulationReadWritePackageGenerator <hdl_registers.generator.vhdl.simulation.read_write_package.VhdlSimulationReadWritePackageGenerator>`
+    ),
+  * simulation wait until package (
+    :class:`VhdlSimulationWaitUntilPackageGenerator <hdl_registers.generator.vhdl.simulation.wait_until_package.VhdlSimulationWaitUntilPackageGenerator>`
+    )
+
+  from ``hdl-registers`` before simulation and build.
   Requires ``hdl-registers`` version 5.0.0 or greater.
