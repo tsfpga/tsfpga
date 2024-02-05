@@ -30,7 +30,7 @@ use reg_file.reg_file_pkg.all;
 use reg_file.reg_operations_pkg.all;
 
 use work.ddr_buffer_regs_pkg.all;
-use work.ddr_buffer_register_read_write_pkg.all;
+use work.ddr_buffer_register_check_pkg.all;
 use work.ddr_buffer_sim_pkg.all;
 
 
@@ -72,32 +72,25 @@ begin
   ------------------------------------------------------------------------------
   main : process
     variable rnd : RandomPType;
-
-    procedure check_counter(expected : natural) is
-      variable counter : integer := 0;
-    begin
-      read_ddr_buffer_status_counter(net=>net, value=>counter);
-      check_equal(counter, expected);
-    end procedure;
-
-    variable version : integer := 0;
-
   begin
     test_runner_setup(runner, runner_cfg);
     rnd.InitSeed(rnd'instance_name);
 
     if run("test_ddr_buffer") then
-      check_counter(0);
+      check_ddr_buffer_status_counter_equal(net=>net, expected=>0);
 
-      run_ddr_buffer_test(net, memory, rnd);
-      check_counter(ddr_buffer_base_addresses_array_length);
+      run_ddr_buffer_test(net=>net, memory=>memory, rnd=>rnd);
+      check_ddr_buffer_status_counter_equal(
+        net=>net, expected=>ddr_buffer_base_addresses_array_length
+      );
 
-      run_ddr_buffer_test(net, memory, rnd);
-      check_counter(2 * ddr_buffer_base_addresses_array_length);
+      run_ddr_buffer_test(net=>net, memory=>memory, rnd=>rnd);
+      check_ddr_buffer_status_counter_equal(
+        net=>net, expected=>2 * ddr_buffer_base_addresses_array_length
+      );
 
     elsif run("test_version") then
-      read_ddr_buffer_version_version(net=>net, value=>version);
-      check_equal(version, ddr_buffer_constant_version);
+      check_ddr_buffer_version_version_equal(net=>net, expected=>ddr_buffer_constant_version);
 
     end if;
 

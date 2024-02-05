@@ -15,6 +15,9 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, Union
 from hdl_registers.generator.vhdl.axi_lite.wrapper import VhdlAxiLiteWrapperGenerator
 from hdl_registers.generator.vhdl.record_package import VhdlRecordPackageGenerator
 from hdl_registers.generator.vhdl.register_package import VhdlRegisterPackageGenerator
+from hdl_registers.generator.vhdl.simulation.check_package import (
+    VhdlSimulationCheckPackageGenerator,
+)
 from hdl_registers.generator.vhdl.simulation.read_write_package import (
     VhdlSimulationReadWritePackageGenerator,
 )
@@ -52,6 +55,7 @@ class BaseModule:
     create_record_package = True
     create_axi_lite_wrapper = True
     create_simulation_read_write_package = True
+    create_simulation_check_package = True
     create_simulation_wait_until_package = True
 
     def __init__(
@@ -199,6 +203,11 @@ class BaseModule:
         if self.registers is not None:
             if self.create_simulation_read_write_package:
                 VhdlSimulationReadWritePackageGenerator(
+                    register_list=self.registers, output_folder=self.register_simulation_folder
+                ).create_if_needed()
+
+            if self.create_simulation_check_package:
+                VhdlSimulationCheckPackageGenerator(
                     register_list=self.registers, output_folder=self.register_simulation_folder
                 ).create_if_needed()
 

@@ -88,6 +88,9 @@ They all have default value ``True`` in :class:`.BaseModule`.
 * ``create_simulation_read_write_package``, controls whether
   :class:`VhdlSimulationReadWritePackageGenerator <hdl_registers.generator.vhdl.simulation.read_write_package.VhdlSimulationReadWritePackageGenerator>`
   is generated into the register simulation folder of the module.
+* ``create_simulation_check_package``, controls whether
+  :class:`VhdlSimulationCheckPackageGenerator <hdl_registers.generator.vhdl.simulation.check_package.VhdlSimulationCheckPackageGenerator>`
+  is generated into the register simulation folder of the module.
 * ``create_simulation_wait_until_package``, controls whether
   :class:`VhdlSimulationWaitUntilPackageGenerator <hdl_registers.generator.vhdl.simulation.wait_until_package.VhdlSimulationWaitUntilPackageGenerator>`
   is generated into the register simulation folder of the module.
