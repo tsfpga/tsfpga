@@ -252,13 +252,14 @@ This document contains technical documentation for the ``{self._module.name}`` m
         symbolator_rst = self._get_symbolator_rst(vhdl_file_documentation)
         symbolator_rst = "" if symbolator_rst is None else symbolator_rst
 
+        entity_name = vhdl_file_path.stem
+
         resource_utilization_rst = self._get_resource_utilization_rst(
-            vhdl_file_path=vhdl_file_path,
+            entity_name=entity_name,
             heading_character=heading_character_2,
             netlist_builds=netlist_builds,
         )
 
-        entity_name = vhdl_file_path.stem
         heading = f"{vhdl_file_path.name}"
         heading_underline = heading_character * len(heading)
 
@@ -293,10 +294,7 @@ This document contains technical documentation for the ``{self._module.name}`` m
         return rst
 
     def _get_resource_utilization_rst(  # pylint: disable=too-many-locals,too-many-branches
-        self,
-        vhdl_file_path: Path,
-        heading_character: str,
-        netlist_builds: list["VivadoNetlistProject"],
+        self, entity_name: str, heading_character: str, netlist_builds: list["VivadoNetlistProject"]
     ) -> str:
         # First, loop over all netlist builds for this module and assemble information
         generics = []
@@ -319,6 +317,8 @@ This document contains technical documentation for the ``{self._module.name}`` m
             heading = "Resource utilization"
             heading_underline = heading_character * len(heading)
             rst = f"""
+.. _{self._module.name}.{entity_name}.resource_utilization:
+
 {heading}
 {heading_underline}
 
@@ -328,7 +328,7 @@ in ``module_{self._module.name}.py``.
 The following table lists the resource utilization for the entity, depending on
 generic configuration.
 
-.. list-table:: Resource utilization for {vhdl_file_path.name} netlist builds.
+.. list-table:: Resource utilization for **{entity_name}** netlist builds.
   :header-rows: 1
 
 """
@@ -353,10 +353,10 @@ generic configuration.
                 rst += f"""\
   * - {generics_rst}"""
 
-                # If the "top" of the project is different than this file name, we assume that it
+                # If the "top" of the project is different than the entity, we assume that it
                 # is a wrapper. Add a note to the table about this. This occurs e.g. in the reg_file
                 # and fifo modules.
-                if netlist_builds[build_idx].top != vhdl_file_path.stem:
+                if netlist_builds[build_idx].top != entity_name:
                     if generic_strings:
                         # If there is already something in the generic column, this note shall be
                         # placed on a new line.
