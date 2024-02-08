@@ -8,6 +8,7 @@
 
 # First party libraries
 import tsfpga
+from tsfpga.about import REPOSITORY_URL, WEBSITE_URL
 from tsfpga.git_utils import find_git_files
 from tsfpga.test.lint.copyright_lint import CopyrightHeader
 
@@ -30,8 +31,8 @@ def test_copyright_header_of_all_checked_in_files():
         copyright_lines = [
             "This file is part of the tsfpga project, a project platform for modern "
             "FPGA development.",
-            "https://tsfpga.com",
-            "https://github.com/tsfpga/tsfpga",
+            WEBSITE_URL,
+            REPOSITORY_URL,
         ]
         copyright_header_checker = CopyrightHeader(file, "Lukas Vik", copyright_lines)
 

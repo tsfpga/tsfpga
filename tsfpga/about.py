@@ -7,6 +7,10 @@
 # --------------------------------------------------------------------------------------------------
 
 
+REPOSITORY_URL = "https://github.com/tsfpga/tsfpga"
+WEBSITE_URL = "https://tsfpga.com"
+
+
 def get_short_slogan() -> str:
     """
     Short slogan used e.g. on pypi.org.
@@ -41,8 +45,8 @@ def get_readme_rst(
     """
     if include_extra_for_github:
         readme_rst = ""
-        extra_rst = """\
-**See documentation on the website**: https://tsfpga.com
+        extra_rst = f"""\
+**See documentation on the website**: {WEBSITE_URL}
 
 **See PyPI for installation details**: https://pypi.org/project/tsfpga/
 """
@@ -56,56 +60,56 @@ About tsfpga
 ============
 
 """
-        extra_rst = """\
+        extra_rst = f"""\
 To install the Python package, see :ref:`installation`.
-To check out the source code go to the `GitHub page <https://github.com/tsfpga/tsfpga>`__.
+To check out the source code go to the `GitHub page <{REPOSITORY_URL}>`__.
 """
     elif include_extra_for_pypi:
         readme_rst = ""
-        extra_rst = """\
-**See documentation on the website**: https://tsfpga.com
+        extra_rst = f"""\
+**See documentation on the website**: {WEBSITE_URL}
 
-**Check out the source code on GitHub**: https://github.com/tsfpga/tsfpga
+**Check out the source code on GitHub**: {REPOSITORY_URL}
 """
     else:
         readme_rst = ""
         extra_rst = ""
 
     readme_rst += f"""\
-.. image:: https://tsfpga.com/logos/banner.png
+.. image:: {WEBSITE_URL}/logos/banner.png
   :alt: Project banner
   :align: center
 
 |
 
-.. |pic_website| image:: https://tsfpga.com/badges/website.svg
+.. |pic_website| image:: {WEBSITE_URL}/badges/website.svg
   :alt: Website
-  :target: https://tsfpga.com
+  :target: {WEBSITE_URL}
 
-.. |pic_repository| image:: https://tsfpga.com/badges/repository.svg
+.. |pic_repository| image:: {WEBSITE_URL}/badges/repository.svg
   :alt: Repository
-  :target: https://github.com/tsfpga/tsfpga
+  :target: {REPOSITORY_URL}
 
-.. |pic_chat| image:: https://tsfpga.com/badges/chat.svg
+.. |pic_chat| image:: {WEBSITE_URL}/badges/chat.svg
   :alt: Chat
-  :target: https://github.com/tsfpga/tsfpga/discussions
+  :target: {REPOSITORY_URL}/discussions
 
-.. |pic_pip_install| image:: https://tsfpga.com/badges/pip_install.svg
+.. |pic_pip_install| image:: {WEBSITE_URL}/badges/pip_install.svg
   :alt: pypi
   :target: https://pypi.org/project/tsfpga/
 
-.. |pic_license| image:: https://tsfpga.com/badges/license.svg
+.. |pic_license| image:: {WEBSITE_URL}/badges/license.svg
   :alt: License
-  :target: https://tsfpga.com/license_information.html
+  :target: {WEBSITE_URL}/license_information.html
 
-.. |pic_ci_status| image:: https://github.com/tsfpga/tsfpga/actions/workflows/ci.yml/\
+.. |pic_ci_status| image:: {REPOSITORY_URL}/actions/workflows/ci.yml/\
 badge.svg?branch=main
   :alt: CI status
-  :target: https://github.com/tsfpga/tsfpga/actions/workflows/ci.yml
+  :target: {REPOSITORY_URL}/actions/workflows/ci.yml
 
-.. |pic_python_line_coverage| image:: https://tsfpga.com/badges/python_coverage.svg
+.. |pic_python_line_coverage| image:: {WEBSITE_URL}/badges/python_coverage.svg
   :alt: Python line coverage
-  :target: https://tsfpga.com/python_coverage_html
+  :target: {WEBSITE_URL}/python_coverage_html
 
 |pic_website| |pic_repository| |pic_pip_install| |pic_license| |pic_chat| |pic_ci_status|
 |pic_python_line_coverage|
@@ -113,25 +117,25 @@ badge.svg?branch=main
 tsfpga is a flexible and scalable development platform for modern FPGA projects.
 With its Python-based build/simulation flow it is perfect for CI/CD and test-driven development.
 The API is simple and easy to use
-(a complete `simulation project <https://tsfpga.com/simulation.html>`__ is set up in less than
+(a complete `simulation project <{WEBSITE_URL}/simulation.html>`__ is set up in less than
 15 lines).
 
 {extra_rst}
 Key features
 ------------
 
-* Source code-centric `project structure <https://tsfpga.com/module_structure.html>`__
+* Source code-centric `project structure <{WEBSITE_URL}/module_structure.html>`__
   for scalability.
   Build projects, test configurations, constraints, IP cores, etc. are handled close to the
   source code, not in a central monolithic script.
 * Automatically adds build/simulation sources if a recognized folder structure is used.
 * Enables `local VUnit test configuration
-  <https://tsfpga.com/simulation.html#local-configuration-of-test-cases>`__ without
+  <{WEBSITE_URL}/simulation.html#local-configuration-of-test-cases>`__ without
   multiple ``run.py``.
-* Handling of `IP cores <https://tsfpga.com/simulation.html#simulating-with-vivado-ip-cores>`__
-  and `simlib <https://tsfpga.com/simulation.html#vivado-simulation-libraries>`__
+* Handling of `IP cores <{WEBSITE_URL}/simulation.html#simulating-with-vivado-ip-cores>`__
+  and `simlib <{WEBSITE_URL}/simulation.html#vivado-simulation-libraries>`__
   for your simulation project, with automatic re-compile when needed.
-* Python-based `Vivado build system <https://tsfpga.com/fpga_build.html>`__ where many builds can
+* Python-based `Vivado build system <{WEBSITE_URL}/fpga_build.html>`__ where many builds can
   be run in parallel.
 * Tightly integrated with `hdl-registers <https://hdl-registers.com>`__.
   Register code generation is performed before each simulation and each build.

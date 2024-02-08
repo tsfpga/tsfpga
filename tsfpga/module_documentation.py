@@ -13,11 +13,10 @@ from typing import TYPE_CHECKING, Optional
 # Third party libraries
 from hdl_registers.generator.html.page import HtmlPageGenerator
 
-# First party libraries
-from tsfpga.system_utils import create_file, file_is_in_directory, read_file
-from tsfpga.vhdl_file_documentation import VhdlFileDocumentation
-
 # Local folder libraries
+from .about import WEBSITE_URL
+from .system_utils import create_file, file_is_in_directory, read_file
+from .vhdl_file_documentation import VhdlFileDocumentation
 from .vivado.project import VivadoNetlistProject
 
 if TYPE_CHECKING:
@@ -32,12 +31,28 @@ class ModuleDocumentation:
     The content is extracted from VHDL source file headers.
     """
 
-    def __init__(self, module: "BaseModule") -> None:
+    def __init__(
+        self,
+        module: "BaseModule",
+        repository_url: Optional[str] = None,
+        repository_name: Optional[str] = None,
+    ) -> None:
         """
         Arguments:
             module: The module which shall be documented.
+            repository_url: Optionally specify an URL where the source code can be viewed.
+                If this argument is specified, links will be added to the documentation.
+                URL should be to the module folder within the repository.
+            repository_name: Optionally specify the name of the repository URL.
+                For example "GitLab".
         """
         self._module = module
+        self._repository_url = repository_url
+        self._repository_name = repository_name
+
+        assert (repository_url is None) == (
+            repository_name is None
+        ), "Both or none of the repository arguments must be set"
 
     def get_overview_rst(self) -> Optional[str]:
         """
@@ -155,6 +170,14 @@ register documentation.
         heading = f"Module {self._module.name}"
         heading_underline = heading_character_1 * len(heading)
 
+        if self._repository_url:
+            url_rst = (
+                f"To browse the source code, please visit the "
+                f"`repository on {self._repository_name} <{self._repository_url}>`__."
+            )
+        else:
+            url_rst = ""
+
         overview_rst = self.get_overview_rst()
         overview_rst = "" if overview_rst is None else overview_rst
 
@@ -175,6 +198,7 @@ register documentation.
 {heading_underline}
 
 This document contains technical documentation for the ``{self._module.name}`` module.
+{url_rst}
 
 {overview_rst}
 
@@ -249,6 +273,14 @@ This document contains technical documentation for the ``{self._module.name}`` m
         file_rst = vhdl_file_documentation.get_header_rst()
         file_rst = "" if file_rst is None else file_rst
 
+        if self._repository_url:
+            url_rst = (
+                f"`View source code on {self._repository_name} "
+                f"<{self._repository_url}/{vhdl_file_path.relative_to(self._module.path)}>`__."
+            )
+        else:
+            url_rst = ""
+
         symbolator_rst = self._get_symbolator_rst(vhdl_file_documentation)
         symbolator_rst = "" if symbolator_rst is None else symbolator_rst
 
@@ -268,6 +300,8 @@ This document contains technical documentation for the ``{self._module.name}`` m
 
 {heading}
 {heading_underline}
+
+{url_rst}
 
 {symbolator_rst}
 
@@ -322,8 +356,8 @@ This document contains technical documentation for the ``{self._module.name}`` m
 {heading}
 {heading_underline}
 
-This entity has `netlist builds <https://tsfpga.com/netlist_build.html>`__ set up with
-`automatic size checkers <https://tsfpga.com/netlist_build.html#build-result-checkers>`__
+This entity has `netlist builds <{WEBSITE_URL}/netlist_build.html>`__ set up with
+`automatic size checkers <{WEBSITE_URL}/netlist_build.html#build-result-checkers>`__
 in ``module_{self._module.name}.py``.
 The following table lists the resource utilization for the entity, depending on
 generic configuration.

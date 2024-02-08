@@ -21,6 +21,9 @@ sys.path.insert(0, str(REPO_ROOT))
 # Import before others since it modifies PYTHONPATH. pylint: disable=unused-import
 import tsfpga.examples.example_pythonpath  # noqa: F401
 
+# First party libraries
+from tsfpga.about import WEBSITE_URL
+
 project = "tsfpga"
 copyright = "Lukas Vik"
 author = "Lukas Vik"
@@ -48,7 +51,8 @@ intersphinx_mapping = {
 }
 
 # Base URL for generated sitemap.xml.
-html_baseurl = "https://tsfpga.com/"
+# Note that this must end with a trailing slash, otherwise the sitemap.xml will be incorrect.
+html_baseurl = f"{WEBSITE_URL}/"
 
 # To avoid "en" in the sitemap.xml URL.
 # https://sphinx-sitemap.readthedocs.io/en/latest/advanced-configuration.html

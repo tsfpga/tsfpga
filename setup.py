@@ -19,7 +19,7 @@ sys.path.insert(0, str(REPO_ROOT))
 
 # First party libraries
 import tsfpga
-from tsfpga.about import get_readme_rst, get_short_slogan
+from tsfpga.about import REPOSITORY_URL, WEBSITE_URL, get_readme_rst, get_short_slogan
 from tsfpga.system_utils import path_relative_to
 
 REQUIREMENTS_TXT = tsfpga.TSFPGA_PATH / "requirements.txt"
@@ -117,11 +117,11 @@ def main():
         python_requires=">=3.9",
         #
         project_urls={
-            "Homepage": "https://tsfpga.com",
-            "Documentation": "https://tsfpga.com/",
-            "Changelog": "https://tsfpga.com/release_notes.html",
-            "Repository": "https://github.com/tsfpga/tsfpga",
-            "Issues": "https://github.com/tsfpga/tsfpga/issues",
+            "Homepage": WEBSITE_URL,
+            "Documentation": WEBSITE_URL,
+            "Changelog": f"{WEBSITE_URL}/release_notes.html",
+            "Repository": REPOSITORY_URL,
+            "Issues": f"{REPOSITORY_URL}/issues",
         },
     )
 

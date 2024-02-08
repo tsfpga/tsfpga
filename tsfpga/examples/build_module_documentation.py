@@ -17,6 +17,7 @@ REPO_ROOT = THIS_DIR.parent.parent.resolve()
 sys.path.insert(0, str(REPO_ROOT))
 
 # First party libraries
+from tsfpga.about import REPOSITORY_URL
 from tsfpga.examples.example_env import TSFPGA_EXAMPLES_TEMP_DIR, get_tsfpga_example_modules
 from tsfpga.module_documentation import ModuleDocumentation
 from tsfpga.system_utils import create_file
@@ -45,11 +46,15 @@ Documentation of example modules
 """
 
     for module in get_tsfpga_example_modules():
+        output_path = GENERATED_SPHINX_RST / "modules" / module.name
+
         index_rst += f"  modules/{module.name}/{module.name}\n"
 
-        ModuleDocumentation(module=module).create_rst_document(
-            output_path=GENERATED_SPHINX_RST / "modules" / module.name
-        )
+        ModuleDocumentation(
+            module=module,
+            repository_url=f"{REPOSITORY_URL}/tree/main/{module.path.relative_to(REPO_ROOT)}",
+            repository_name="GitHub",
+        ).create_rst_document(output_path=output_path)
 
     create_file(GENERATED_SPHINX_RST / "index.rst", contents=index_rst)
 
