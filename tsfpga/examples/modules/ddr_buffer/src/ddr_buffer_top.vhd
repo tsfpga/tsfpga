@@ -23,13 +23,13 @@ use work.ddr_buffer_register_record_pkg.all;
 entity ddr_buffer_top is
   port (
     clk : in std_ulogic;
-    --
+    --# {{}}
     axi_read_m2s : out axi_read_m2s_t := axi_read_m2s_init;
     axi_read_s2m : in axi_read_s2m_t;
-    --
+    --# {{}}
     axi_write_m2s : out axi_write_m2s_t := axi_write_m2s_init;
     axi_write_s2m : in axi_write_s2m_t;
-    --
+    --# {{}}
     regs_m2s : in axi_lite_m2s_t;
     regs_s2m : out axi_lite_s2m_t := axi_lite_s2m_init
   );

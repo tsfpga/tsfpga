@@ -34,6 +34,7 @@ use work.artyz7_regs_pkg.all;
 entity artyz7_top is
   port (
     clk_ext : in std_ulogic;
+    --# {{}}
     led : out std_ulogic_vector(0 to 3) := (others => '0');
     dummy_output : out std_ulogic_vector(22 - 1 downto 0) := (others => '0')
   );

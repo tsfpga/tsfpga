@@ -16,10 +16,10 @@ library xil_defaultlib;
 entity multiplication is
   port (
     clk : in std_ulogic;
-    --
+    --# {{}}
     multiplicand : in u_unsigned(12 - 1 downto 0);
     multiplier : in u_unsigned(5 - 1 downto 0);
-    --
+    --# {{}}
     product : out u_unsigned(17 - 1 downto 0)
   );
 end entity;
