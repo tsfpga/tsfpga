@@ -350,6 +350,13 @@ This document contains technical documentation for the ``{self._module.name}`` m
         if generics:
             heading = "Resource utilization"
             heading_underline = heading_character * len(heading)
+
+            module_py_name = f"module_{self._module.name}.py"
+            if self._repository_url:
+                module_py_rst = f"`{module_py_name} <{self._repository_url}/{module_py_name}>`__"
+            else:
+                module_py_rst = f"``{module_py_name}``"
+
             rst = f"""
 .. _{self._module.name}.{entity_name}.resource_utilization:
 
@@ -358,7 +365,7 @@ This document contains technical documentation for the ``{self._module.name}`` m
 
 This entity has `netlist builds <{WEBSITE_URL}/netlist_build.html>`__ set up with
 `automatic size checkers <{WEBSITE_URL}/netlist_build.html#build-result-checkers>`__
-in ``module_{self._module.name}.py``.
+in {module_py_rst}.
 The following table lists the resource utilization for the entity, depending on
 generic configuration.
 
