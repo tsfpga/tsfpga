@@ -142,6 +142,11 @@ class VhdlFileDocumentation:
 
         ports_and_generics = match.group(1)
 
+        # Remove attribute lines within the entity declaration.
+        ports_and_generics = re.sub(
+            pattern=r"^\s*attribute\s+.+", repl="", string=ports_and_generics, flags=re.MULTILINE
+        )
+
         # Slit out the generic part and the port part from the entity declaration.
         ports_and_generics_regexp = re.compile(
             # Match all the code for generics and ports.
