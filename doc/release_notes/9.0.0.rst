@@ -10,7 +10,7 @@ Added
 Bug fixes
 
 * Fix bug where ``common.width_conversion`` would set ``output_last`` on the wrong beat
-  when downconverting.
+  when downsizing.
 
 * Fix bug in ``reg_file.reg_operations_pkg.read_modify_reg_bit``.
 
