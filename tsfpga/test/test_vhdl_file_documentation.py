@@ -168,6 +168,38 @@ end component;"""
     run_get_symbolator_component_test(tmp_path=tmp_path, vhdl_code=data, expected=expected)
 
 
+def test_get_symbolator_component_with_attributes(tmp_path):
+    data = """
+entity test_entity is
+  generic (
+    length_attribute : positive;
+    attribute_length : positive
+  );
+  port (
+    data_attribute : out std_ulogic_vector(my_range_constant) := '0';
+    attribute_data : out std_ulogic_vector(my_range_constant) := '0'
+  );
+
+  attribute apa : string;
+  attribute apa of test_entity : entity is "hest";
+end entity;
+"""
+
+    expected = """\
+component test_entity is
+  generic (
+    length_attribute : positive;
+    attribute_length : positive
+  );
+  port (
+    data_attribute : out std_ulogic_vector;
+    attribute_data : out std_ulogic_vector
+  );
+end component;"""
+
+    run_get_symbolator_component_test(tmp_path=tmp_path, vhdl_code=data, expected=expected)
+
+
 def test_get_symbolator_component_no_generics(tmp_path):
     data = """
 entity test_entity is
