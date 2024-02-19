@@ -141,7 +141,7 @@ def generate_sphinx_index() -> None:
     """
     rst_to_verify = get_readme_rst(include_extra_for_github=True)
     if read_file(tsfpga.REPO_ROOT / "readme.rst") != rst_to_verify:
-        file_path = create_file(tsfpga.TSFPGA_GENERATED / "sphinx" / "readme.rst", rst_to_verify)
+        file_path = create_file(tsfpga.TSFPGA_GENERATED / "sphinx" / "readme.txt", rst_to_verify)
         raise ValueError(
             f"readme.rst in repo root not correct. Compare to reference in python: {file_path}"
         )
