@@ -89,8 +89,3 @@ set_property SEVERITY "ERROR" [get_drc_checks "AVAL-46"]
 # Message: Syntax error.
 # Motivation: Quite a general message, but it definitely implies an error.
 set_msg_config -new_severity "ERROR" -id "HDL 9-806"
-
-# Message: Generic not present in instantiated entity will be ignored.
-# Motivation: This is a configuration error, we want to be notified if we set a generic that has
-#     no effect.
-set_msg_config -new_severity "ERROR" -id "Synth 8-3819"
