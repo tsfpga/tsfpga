@@ -7,15 +7,17 @@
 -- -------------------------------------------------------------------------------------------------
 
 library ieee;
-use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.std_logic_1164.all;
 
 library osvvm;
-use osvvm.RandomPkg.all;
+use osvvm.RandomPkg.RandomPType;
 
 library vunit_lib;
-context vunit_lib.vunit_context;
-context vunit_lib.vc_context;
+use vunit_lib.axi_slave_pkg.all;
+use vunit_lib.com_pkg.net;
+use vunit_lib.memory_pkg.all;
+use vunit_lib.run_pkg.all;
 
 library axi;
 use axi.axi_pkg.all;
@@ -24,10 +26,6 @@ library axi_lite;
 use axi_lite.axi_lite_pkg.all;
 
 library bfm;
-
-library reg_file;
-use reg_file.reg_file_pkg.all;
-use reg_file.reg_operations_pkg.all;
 
 use work.ddr_buffer_regs_pkg.all;
 use work.ddr_buffer_register_check_pkg.all;

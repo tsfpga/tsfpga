@@ -7,10 +7,8 @@
 -- -------------------------------------------------------------------------------------------------
 
 library vunit_lib;
-use vunit_lib.bus_master_pkg.all;
-use vunit_lib.memory_pkg.all;
-
-use work.artyz7_top_pkg.all;
+use vunit_lib.memory_pkg.memory_t;
+use vunit_lib.memory_pkg.new_memory;
 
 
 package top_level_sim_pkg is
