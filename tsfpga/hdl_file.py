@@ -15,10 +15,10 @@ class HdlFile:
     Class for representing a HDL source code file.
     """
 
-    vhdl_file_ending = ".vhd"
-    verilog_source_file_ending = ".v"
-    verilog_header_file_ending = ".vh"
-    file_endings = (vhdl_file_ending, verilog_source_file_ending, verilog_header_file_ending)
+    vhdl_file_ending = (".vhd", ".vhdl")
+    verilog_source_file_ending = (".v",)
+    verilog_header_file_ending = (".vh",)
+    file_endings = (*vhdl_file_ending, *verilog_source_file_ending, *verilog_header_file_ending)
 
     def __init__(self, path: Path) -> None:
         """

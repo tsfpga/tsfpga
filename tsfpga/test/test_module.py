@@ -104,7 +104,7 @@ def test_file_list_filtering(tmp_path):
         create_file(path / "syn.v"),
         create_file(path / "rtl" / "syn.v"),
         create_file(path / "src" / "syn.vhd"),
-        create_file(path / "hdl" / "rtl" / "syn.vhd"),
+        create_file(path / "hdl" / "rtl" / "syn.vhdl"),
         create_file(path / "hdl" / "package" / "syn.vhd"),
     }
 
