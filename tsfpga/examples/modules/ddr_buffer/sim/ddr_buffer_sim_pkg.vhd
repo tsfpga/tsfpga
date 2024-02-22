@@ -9,13 +9,15 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-library vunit_lib;
-use vunit_lib.random_pkg.all;
-context vunit_lib.vunit_context;
-context vunit_lib.vc_context;
-
 library osvvm;
-use osvvm.RandomPkg.all;
+use osvvm.RandomPkg.RandomPType;
+
+library vunit_lib;
+use vunit_lib.com_types_pkg.network_t;
+use vunit_lib.integer_array_pkg.all;
+use vunit_lib.memory_pkg.all;
+use vunit_lib.memory_utils_pkg.all;
+use vunit_lib.random_pkg.random_integer_array;
 
 library common;
 use common.addr_pkg.all;

@@ -10,8 +10,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 library vunit_lib;
-context vunit_lib.vunit_context;
-context vunit_lib.vc_context;
+use vunit_lib.axi_slave_pkg.axi_slave_t;
+use vunit_lib.axi_slave_pkg.new_axi_slave;
+use vunit_lib.bus_master_pkg.address_length;
+use vunit_lib.bus_master_pkg.data_length;
 
 library axi;
 use axi.axi_pkg.all;
@@ -19,7 +21,7 @@ use axi.axi_pkg.all;
 library bfm;
 
 library reg_file;
-use reg_file.reg_operations_pkg.all;
+use reg_file.reg_operations_pkg.regs_bus_master;
 
 use work.top_level_sim_pkg.all;
 use work.artyz7_top_pkg.all;

@@ -10,11 +10,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 library osvvm;
-use osvvm.RandomPkg.all;
+use osvvm.RandomPkg.RandomPType;
 
 library vunit_lib;
-context vunit_lib.vunit_context;
-context vunit_lib.vc_context;
+use vunit_lib.com_pkg.net;
+use vunit_lib.memory_pkg.check_expected_was_written;
+use vunit_lib.run_pkg.all;
 
 library ddr_buffer;
 use ddr_buffer.ddr_buffer_register_check_pkg.all;
@@ -22,7 +23,7 @@ use ddr_buffer.ddr_buffer_regs_pkg.all;
 use ddr_buffer.ddr_buffer_sim_pkg.all;
 
 library reg_file;
-use reg_file.reg_file_pkg.all;
+use reg_file.reg_file_pkg.reg_t;
 use reg_file.reg_operations_pkg.all;
 
 use work.artyz7_top_pkg.all;
