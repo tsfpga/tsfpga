@@ -15,6 +15,7 @@ from tsfpga.hdl_file import HdlFile
 
 def test_file_type():
     assert HdlFile(Path("file.vhd")).is_vhdl
+    assert HdlFile(Path("file.vhdl")).is_vhdl
     assert not HdlFile(Path("file.vhd")).is_verilog_source
     assert not HdlFile(Path("file.vhd")).is_verilog_header
 
