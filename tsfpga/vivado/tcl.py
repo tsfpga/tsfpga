@@ -271,12 +271,10 @@ class VivadoTcl:
         other_arguments: dict[str, Any],
     ) -> Iterable["Constraint"]:
         for module in modules:
-            for constraint in module.get_scoped_constraints(**other_arguments):
-                yield constraint
+            yield from module.get_scoped_constraints(**other_arguments)
 
         if constraints is not None:
-            for constraint in constraints:
-                yield constraint
+            yield from constraints
 
     @staticmethod
     def _add_constraints(constraints: Iterable["Constraint"]) -> str:

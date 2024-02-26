@@ -17,12 +17,11 @@ def files_to_check_for_copyright_header():
     file_endings = (".py", ".vhd", ".tcl")
     exclude_directories = [tsfpga.TSFPGA_EXAMPLE_MODULES / "artyz7" / "tcl"]
     for file_ending in file_endings:
-        for file in find_git_files(
+        yield from find_git_files(
             directory=tsfpga.REPO_ROOT,
             exclude_directories=exclude_directories,
             file_endings_include=file_ending,
-        ):
-            yield file
+        )
 
 
 def test_copyright_header_of_all_checked_in_files():
