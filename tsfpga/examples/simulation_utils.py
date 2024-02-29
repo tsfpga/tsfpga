@@ -96,8 +96,8 @@ class SimulationProject:
         Create a VUnit project, configured according to the given arguments.
 
         Arguments:
-        args: Command line argument namespace from ``simulate.py``.
-        enable_preprocessing: If ``True``, VUnit location/check preprocessing will be enabled.
+            args: Command line argument namespace from ``simulate.py``.
+            enable_preprocessing: If ``True``, VUnit location/check preprocessing will be enabled.
         """
         self.args = args
 
@@ -285,7 +285,8 @@ class SimulationProject:
             # If the IP core Vivado project has been (re)created we need to create
             # a new compile order file
             create_compile_order_file(
-                vivado_ip_cores.vivado_project_file, vivado_ip_cores.compile_order_file
+                project_file=vivado_ip_cores.vivado_project_file,
+                compile_order_file=vivado_ip_cores.compile_order_file,
             )
 
         return vivado_ip_cores.compile_order_file, vivado_ip_cores.project_directory
