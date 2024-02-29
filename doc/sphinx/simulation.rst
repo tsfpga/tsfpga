@@ -36,7 +36,7 @@ running simulations using tsfpga and VUnit is as simple as:
         vunit_library = vunit_proj.add_library(module.library_name)
         for hdl_file in module.get_simulation_files():
              vunit_library.add_source_file(hdl_file.path)
-        module.setup_vunit(vunit_proj)
+        module.setup_vunit(vunit_proj=vunit_proj)
 
     vunit_proj.main()
 
@@ -140,7 +140,7 @@ This is pure Python so we can get as fancy as we want to.
 Vivado simulation libraries
 ---------------------------
 
-Compiled Vivado simulation libraries (unisim, xpm, etc.) are often need in the simulation project.
+Compiled Vivado simulation libraries (unisim, xpm, etc.) are often needed in the simulation project.
 The :class:`.VivadoSimlib` class provides an easy interface for handling simlib.
 
 There are different implementations depending on the simulator currently in use.
@@ -162,7 +162,7 @@ Adding simlib to a simulation project using this class is achieved by simply doi
 
     ...
 
-    vivado_simlib = VivadoSimlib.init(temp_dir, vunit_proj)
+    vivado_simlib = VivadoSimlib.init(output_path=temp_dir, vunit_proj=vunit_proj)
     vivado_simlib.compile_if_needed()
     vivado_simlib.add_to_vunit_project()
 
@@ -207,16 +207,22 @@ Adding IP cores to a simulation project can be done like this:
 
     ...
 
-    vivado_ip_cores = VivadoIpCores(modules, temp_dir, "xc7z020clg400-1")
+    vivado_ip_cores = VivadoIpCores(
+        modules=modules, output_path=temp_dir, part_name="xc7z020clg400-1"
+    )
     vivado_project_created = vivado_ip_cores.create_vivado_project_if_needed()
 
     if vivado_project_created:
         # If the IP core Vivado project has been (re)created we need to create
         # a new compile order file
-        create_compile_order_file(vivado_ip_cores.vivado_project_file,
-                                  vivado_ip_cores.compile_order_file)
+        create_compile_order_file(
+            project_file=vivado_ip_cores.vivado_project_file,
+            compile_order_file=vivado_ip_cores.compile_order_file
+        )
 
-    add_from_compile_order_file(vunit_proj, vivado_ip_cores.compile_order_file)
+    add_from_compile_order_file(
+        vunit_obj=vunit_proj, compile_order_file=vivado_ip_cores.compile_order_file
+    )
 
 Note that we use functions from VUnit to handle parts of this.
 The ``create_compile_order_file()`` function will run a TCL script on the project that generates
