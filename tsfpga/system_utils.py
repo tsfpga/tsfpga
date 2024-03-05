@@ -158,7 +158,6 @@ def path_relative_to(path: Path, other: Path) -> Path:
     Note Path.relative_to() does not support the use case where e.g. readme.md should get
     relative path "../readme.md". Hence we have to use os.path.
     """
-    assert path.exists(), path
     return Path(relpath(str(path), str(other)))
 
 
