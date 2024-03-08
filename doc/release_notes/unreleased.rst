@@ -1,3 +1,1 @@
-Fixes
-
-* Remove nonsense assertion in :func:`.path_relative_to`.
+Nothing here yet.
