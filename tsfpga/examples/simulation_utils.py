@@ -116,6 +116,9 @@ class SimulationProject:
         self,
         modules: ModuleList,
         modules_no_sim: Optional[ModuleList] = None,
+        include_vhdl_files: bool = True,
+        include_verilog_files: bool = True,
+        include_systemverilog_files: bool = True,
         **setup_vunit_kwargs: Any,
     ) -> None:
         """
@@ -125,6 +128,12 @@ class SimulationProject:
             modules: These modules will be included in the simulation project.
             modules_no_sim: These modules will be included in the simulation project,
                 but their test files will not be added.
+            include_vhdl_files: Optionally disable inclusion of VHDL files from
+                the modules.
+            include_verilog_files: Optionally disable inclusion of Verilog files from
+                the modules.
+            include_systemverilog_files: Optionally disable inclusion of SystemVerilog files from
+                the modules.
             setup_vunit_kwargs: Further arguments that will be sent to
                 :meth:`.BaseModule.setup_vunit` for each module.
                 Note that this is a "kwargs" style argument; any number of named arguments can
@@ -146,10 +155,12 @@ class SimulationProject:
                 include_unisim=include_unisim,
                 include_ip_cores=include_ip_cores,
             ):
-                if hdl_file.is_vhdl or hdl_file.is_verilog_source:
+                include_as_vhdl = hdl_file.is_vhdl and include_vhdl_files
+                include_as_verilog = hdl_file.is_verilog and include_verilog_files
+                include_as_systemverilog = hdl_file.is_systemverilog and include_systemverilog_files
+
+                if include_as_vhdl or include_as_verilog or include_as_systemverilog:
                     vunit_library.add_source_file(hdl_file.path)
-                else:
-                    assert False, f"Can not handle this file: {hdl_file}"
 
             if simulate_this_module:
                 module.setup_vunit(

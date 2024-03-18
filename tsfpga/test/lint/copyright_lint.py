@@ -65,12 +65,19 @@ class CopyrightHeader:
     def _get_comment_character(self) -> str:
         if self._file.name.endswith(".py"):
             return "#"
+
         if self._file.name.endswith(".vhd"):
             return "--"
+
         if self._file.name.endswith((".xdc", ".tcl")):
             return "#"
-        if self._file.name.endswith((".c", ".cpp", ".h", ".v")):
+
+        if self._file.name.endswith((".c", ".cpp", ".h")):
             return "//"
+
+        if self._file.name.endswith((".v", ".vh", ".sv", ".svh")):
+            return "//"
+
         raise RuntimeError(f"Could not decide file ending of {self._file}")
 
     def _is_suitable_for_insertion(self) -> bool:

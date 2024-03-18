@@ -81,7 +81,13 @@ def main() -> None:
         args.minimal = True
 
     simulation_project = SimulationProject(args=args)
-    simulation_project.add_modules(args=args, modules=modules, modules_no_sim=modules_no_sim)
+    simulation_project.add_modules(
+        args=args,
+        modules=modules,
+        modules_no_sim=modules_no_sim,
+        include_verilog_files=False,
+        include_systemverilog_files=False,
+    )
     simlib = simulation_project.add_vivado_simlib()
     ip_core_vivado_project_directory = simulation_project.add_vivado_ip_cores(
         modules=modules + modules_no_sim
@@ -132,7 +138,12 @@ def find_git_test_filters(
     # Note that sources are added identical to the "real" project above.
     simulation_project = SimulationProject(args=args)
     simulation_project.add_modules(
-        args=args, modules=modules, modules_no_sim=modules_no_sim, **setup_vunit_kwargs
+        args=args,
+        modules=modules,
+        modules_no_sim=modules_no_sim,
+        include_verilog_files=False,
+        include_systemverilog_files=False,
+        **setup_vunit_kwargs,
     )
 
     testbenches_to_run = GitSimulationSubset(

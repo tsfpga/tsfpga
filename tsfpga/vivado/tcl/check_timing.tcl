@@ -12,8 +12,13 @@
 
 set timing_error 0
 
-
-if {[expr {[get_property SLACK [get_timing_paths -delay_type min_max]] < 0}]} {
+# In minimal designs, i.e. typical FPGA starter projects, there might be no constrained paths.
+# For example, input clock + input pin -> register -> output pin.
+# in this case, worst negative slack is reported as "inf" in the Vivado GUI, and the SLACK property
+# below is "".
+# Hence we check for an empty string as well as a numeric value.
+set slack [get_property SLACK [get_timing_paths -delay_type min_max]]
+if {${slack} != "" && [expr {${slack} < 0}]} {
   puts "ERROR: Setup/hold timing not OK after implementation run. See timing_summary.rpt report."
   report_timing_summary -file "timing_summary.rpt"
 
