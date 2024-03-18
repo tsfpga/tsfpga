@@ -53,4 +53,26 @@ class Module(BaseModule):
             )
         )
 
+        projects.append(
+            TsfpgaExampleVivadoProject(
+                name="artyz7_verilog",
+                top="artyz7_top_verilog",
+                modules=modules,
+                part=part,
+                constraints=[pinning],
+                defined_at=THIS_FILE,
+            )
+        )
+
+        projects.append(
+            TsfpgaExampleVivadoProject(
+                name="artyz7_systemverilog",
+                top="artyz7_top_systemverilog",
+                modules=modules,
+                part=part,
+                constraints=[pinning],
+                defined_at=THIS_FILE,
+            )
+        )
+
         return projects

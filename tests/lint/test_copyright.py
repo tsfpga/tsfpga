@@ -14,8 +14,8 @@ from tsfpga.test.lint.copyright_lint import CopyrightHeader
 
 
 def files_to_check_for_copyright_header():
-    file_endings = (".py", ".vhd", ".tcl")
-    exclude_directories = [tsfpga.TSFPGA_EXAMPLE_MODULES / "artyz7" / "tcl"]
+    file_endings = (".py", ".vhd", ".tcl", ".v", ".vh", ".sv", ".svh")
+    exclude_directories = [tsfpga.TSFPGA_EXAMPLE_MODULES / "artyz7" / "tcl" / "block_design.tcl"]
     for file_ending in file_endings:
         yield from find_git_files(
             directory=tsfpga.REPO_ROOT,

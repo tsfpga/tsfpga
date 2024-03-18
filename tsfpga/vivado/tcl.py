@@ -110,30 +110,32 @@ class VivadoTcl:
         tcl = ""
         for module in modules:
             vhdl_files = []
-            verilog_source_files = []
+            verilog_files = []
+            system_verilog_files = []
+
             for hdl_file in module.get_synthesis_files(**other_arguments):
                 if hdl_file.is_vhdl:
                     vhdl_files.append(hdl_file.path)
-                elif hdl_file.is_verilog_source:
-                    verilog_source_files.append(hdl_file.path)
+                elif hdl_file.is_verilog:
+                    verilog_files.append(hdl_file.path)
+                elif hdl_file.is_systemverilog:
+                    system_verilog_files.append(hdl_file.path)
                 else:
                     raise NotImplementedError(f"Can not handle file: {hdl_file}")
-                    # Verilog headers do not need to be handled at all if the
-                    # source file that uses them is in the same directory. If
-                    # it is not, the path needs to be added to include_dirs with
-                    # a tcl command like:
-                    #   set_property include_dirs {/some/path /some/other/path} [current_fileset]
-                    # See https://www.xilinx.com/support/answers/54006.html
-
-                    # Encrypted source files (verilog (.vp?), VHDL) I do not know how
+                    # Encrypted source files (.vp?), etc, I do not know how
                     # to handle, since I have no use case for it at the moment.
 
             if vhdl_files:
                 files_string = self._to_file_list(vhdl_files)
                 tcl += f"read_vhdl -library {module.library_name} -vhdl2008 {files_string}\n"
-            if verilog_source_files:
-                files_string = self._to_file_list(verilog_source_files)
+
+            if verilog_files:
+                files_string = self._to_file_list(verilog_files)
                 tcl += f"read_verilog {files_string}\n"
+
+            if system_verilog_files:
+                files_string = self._to_file_list(system_verilog_files)
+                tcl += f"read_verilog -sv {files_string}\n"
 
         return tcl
 
