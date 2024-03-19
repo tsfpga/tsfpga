@@ -9,18 +9,32 @@
 # Standard libraries
 from pathlib import Path
 
+# Third party libraries
+import pytest
+
 # First party libraries
 from tsfpga.hdl_file import HdlFile
 
 
-def test_file_type():
-    assert HdlFile(Path("file.vhd")).is_vhdl
-    assert HdlFile(Path("file.vhdl")).is_vhdl
-    assert not HdlFile(Path("file.vhd")).is_verilog_source
-    assert not HdlFile(Path("file.vhd")).is_verilog_header
+def test_file_endings():
+    assert HdlFile.file_endings == (".vhd", ".vhdl", ".v", ".vh", ".sv", ".svh")
 
-    assert HdlFile(Path("file.vh")).is_verilog_header
-    assert HdlFile(Path("file.v")).is_verilog_source
+
+def test_file_type():
+    assert HdlFile(Path("file.vhd")).type == HdlFile.Type.VHDL
+    assert HdlFile(Path("file.vhdl")).type == HdlFile.Type.VHDL
+
+    assert HdlFile(Path("file.v")).type == HdlFile.Type.VERILOG_SOURCE
+    assert HdlFile(Path("file.vh")).type == HdlFile.Type.VERILOG_HEADER
+
+    assert HdlFile(Path("file.sv")).type == HdlFile.Type.SYSTEMVERILOG_SOURCE
+    assert HdlFile(Path("file.svh")).type == HdlFile.Type.SYSTEMVERILOG_HEADER
+
+
+def test_unknown_file_ending_raises_exception():
+    with pytest.raises(ValueError) as exception_info:
+        HdlFile(Path("file.unknown"))
+    assert str(exception_info.value) == "Unsupported HDL file ending: file.unknown"
 
 
 def test_can_cast_to_string_without_error():

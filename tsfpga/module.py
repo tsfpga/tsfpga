@@ -109,20 +109,33 @@ class BaseModule:
 
         return files
 
-    def _get_hdl_file_list(
+    def _get_hdl_file_list(  # pylint: disable=too-many-arguments
         self,
         folders: list[Path],
         files_include: Optional[set[Path]] = None,
         files_avoid: Optional[set[Path]] = None,
+        include_vhdl_files: bool = True,
+        include_verilog_files: bool = True,
+        include_systemverilog_files: bool = True,
     ) -> list[HdlFile]:
         """
         Return a list of HDL file objects.
         """
+        file_endings: tuple[str, ...] = tuple()
+        if include_vhdl_files:
+            file_endings += HdlFile.file_endings_mapping[HdlFile.Type.VHDL]
+        if include_verilog_files:
+            file_endings += HdlFile.file_endings_mapping[HdlFile.Type.VERILOG_SOURCE]
+            file_endings += HdlFile.file_endings_mapping[HdlFile.Type.VERILOG_HEADER]
+        if include_systemverilog_files:
+            file_endings += HdlFile.file_endings_mapping[HdlFile.Type.SYSTEMVERILOG_SOURCE]
+            file_endings += HdlFile.file_endings_mapping[HdlFile.Type.SYSTEMVERILOG_HEADER]
+
         return [
             HdlFile(file_path)
             for file_path in self._get_file_list(
                 folders=folders,
-                file_endings=HdlFile.file_endings,
+                file_endings=file_endings,
                 files_include=files_include,
                 files_avoid=files_avoid,
             )
@@ -269,6 +282,9 @@ class BaseModule:
         self,
         files_include: Optional[set[Path]] = None,
         files_avoid: Optional[set[Path]] = None,
+        include_vhdl_files: bool = True,
+        include_verilog_files: bool = True,
+        include_systemverilog_files: bool = True,
         **kwargs: Any,
     ) -> list[HdlFile]:
         """
@@ -284,6 +300,12 @@ class BaseModule:
         Arguments:
             files_include: Optionally filter to only include these files.
             files_avoid: Optionally filter to discard these files.
+            include_vhdl_files: Optionally disable inclusion of files with VHDL
+                file endings.
+            include_verilog_files: Optionally disable inclusion of files with Verilog
+                file endings.
+            include_systemverilog_files: Optionally disable inclusion of files with SystemVerilog
+                file endings.
             kwargs: Further parameters that can be sent by build flow to control what
                 files are included.
 
@@ -293,14 +315,22 @@ class BaseModule:
         self.create_register_synthesis_files()
 
         return self._get_hdl_file_list(
-            folders=self.synthesis_folders, files_include=files_include, files_avoid=files_avoid
+            folders=self.synthesis_folders,
+            files_include=files_include,
+            files_avoid=files_avoid,
+            include_vhdl_files=include_vhdl_files,
+            include_verilog_files=include_verilog_files,
+            include_systemverilog_files=include_systemverilog_files,
         )
 
-    def get_simulation_files(
+    def get_simulation_files(  # pylint: disable=too-many-arguments
         self,
         include_tests: bool = True,
         files_include: Optional[set[Path]] = None,
         files_avoid: Optional[set[Path]] = None,
+        include_vhdl_files: bool = True,
+        include_verilog_files: bool = True,
+        include_systemverilog_files: bool = True,
         **kwargs: Any,
     ) -> list[HdlFile]:
         """
@@ -312,6 +342,12 @@ class BaseModule:
                 (the ``sim`` files are always included).
             files_include: Optionally filter to only include these files.
             files_avoid: Optionally filter to discard these files.
+            include_vhdl_files: Optionally disable inclusion of files with VHDL
+                file endings.
+            include_verilog_files: Optionally disable inclusion of files with Verilog
+                file endings.
+            include_systemverilog_files: Optionally disable inclusion of files with SystemVerilog
+                file endings.
             kwargs: Further parameters that can be sent by simulation flow to control what
                 files are included.
 
@@ -327,11 +363,21 @@ class BaseModule:
         self.create_register_simulation_files()
 
         test_files = self._get_hdl_file_list(
-            folders=sim_and_test_folders, files_include=files_include, files_avoid=files_avoid
+            folders=sim_and_test_folders,
+            files_include=files_include,
+            files_avoid=files_avoid,
+            include_vhdl_files=include_vhdl_files,
+            include_verilog_files=include_verilog_files,
+            include_systemverilog_files=include_systemverilog_files,
         )
 
         synthesis_files = self.get_synthesis_files(
-            files_include=files_include, files_avoid=files_avoid, **kwargs
+            files_include=files_include,
+            files_avoid=files_avoid,
+            include_vhdl_files=include_vhdl_files,
+            include_verilog_files=include_verilog_files,
+            include_systemverilog_files=include_systemverilog_files,
+            **kwargs,
         )
 
         return synthesis_files + test_files
@@ -340,6 +386,9 @@ class BaseModule:
         self,
         files_include: Optional[set[Path]] = None,
         files_avoid: Optional[set[Path]] = None,
+        include_vhdl_files: bool = True,
+        include_verilog_files: bool = True,
+        include_systemverilog_files: bool = True,
         **kwargs: Any,
     ) -> list[HdlFile]:
         """
@@ -348,6 +397,16 @@ class BaseModule:
         It will return all files from the module except testbenches and any generated
         register package.
         Overwrite in a subclass if you want to change this behavior.
+
+        Arguments:
+            files_include: Optionally filter to only include these files.
+            files_avoid: Optionally filter to discard these files.
+            include_vhdl_files: Optionally disable inclusion of files with VHDL
+                file endings.
+            include_verilog_files: Optionally disable inclusion of files with Verilog
+                file endings.
+            include_systemverilog_files: Optionally disable inclusion of files with SystemVerilog
+                file endings.
 
         Return:
             Files that should be included in documentation.
@@ -366,6 +425,9 @@ class BaseModule:
             folders=self.synthesis_folders + self.sim_folders,
             files_include=files_include,
             files_avoid=files_to_avoid,
+            include_vhdl_files=include_vhdl_files,
+            include_verilog_files=include_verilog_files,
+            include_systemverilog_files=include_systemverilog_files,
         )
 
     # pylint: disable=unused-argument

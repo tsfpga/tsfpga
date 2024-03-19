@@ -235,13 +235,13 @@ This document contains technical documentation for the ``{self._module.name}`` m
         """
         Get VHDL files that shall be included in the documentation, in order.
         """
-        hdl_files = self._module.get_documentation_files(files_avoid=exclude_files)
+        # Exclude all file types except VHDL.
+        hdl_files = self._module.get_documentation_files(
+            files_avoid=exclude_files, include_verilog=False, include_systemverilog=False
+        )
 
         def file_should_be_included(hdl_file: "HdlFile") -> bool:
             if file_is_in_directory(hdl_file.path, exclude_folders):
-                return False
-
-            if not hdl_file.is_vhdl:
                 return False
 
             return True

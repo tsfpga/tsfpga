@@ -154,13 +154,11 @@ class SimulationProject:
                 include_tests=simulate_this_module,
                 include_unisim=include_unisim,
                 include_ip_cores=include_ip_cores,
+                include_vhdl_files=include_vhdl_files,
+                include_verilog_files=include_verilog_files,
+                include_systemverilog_files=include_systemverilog_files,
             ):
-                include_as_vhdl = hdl_file.is_vhdl and include_vhdl_files
-                include_as_verilog = hdl_file.is_verilog and include_verilog_files
-                include_as_systemverilog = hdl_file.is_systemverilog and include_systemverilog_files
-
-                if include_as_vhdl or include_as_verilog or include_as_systemverilog:
-                    vunit_library.add_source_file(hdl_file.path)
+                vunit_library.add_source_file(hdl_file.path)
 
             if simulate_this_module:
                 module.setup_vunit(

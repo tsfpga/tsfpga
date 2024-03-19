@@ -7,26 +7,40 @@
 # --------------------------------------------------------------------------------------------------
 
 # Standard libraries
+from enum import Enum, auto
 from pathlib import Path
 
 
 class HdlFile:
     """
-    Class for representing a HDL source code file.
+    Class for representing a HDL source code file in the file system.
     """
 
-    vhdl_file_ending = (".vhd", ".vhdl")
-    verilog_source_file_ending = (".v",)
-    verilog_header_file_ending = (".vh",)
-    system_verilog_source_file_ending = (".sv",)
-    system_verilog_header_file_ending = (".svh",)
+    class Type(Enum):
+        """
+        Enumeration of supported HDL file types.
+        """
 
-    file_endings = (
-        *vhdl_file_ending,
-        *verilog_source_file_ending,
-        *verilog_header_file_ending,
-        *system_verilog_source_file_ending,
-        *system_verilog_header_file_ending,
+        VHDL = auto()
+        VERILOG_SOURCE = auto()
+        VERILOG_HEADER = auto()
+        SYSTEMVERILOG_SOURCE = auto()
+        SYSTEMVERILOG_HEADER = auto()
+
+    # Decides which file endings are associated with which file types.
+    file_endings_mapping = {
+        Type.VHDL: (".vhd", ".vhdl"),
+        Type.VERILOG_SOURCE: (".v",),
+        Type.VERILOG_HEADER: (".vh",),
+        Type.SYSTEMVERILOG_SOURCE: (".sv",),
+        Type.SYSTEMVERILOG_HEADER: (".svh",),
+    }
+
+    # A tuple of all supported HDL file endings.
+    file_endings = tuple(
+        file_ending
+        for type_file_endings in file_endings_mapping.values()
+        for file_ending in type_file_endings
     )
 
     def __init__(self, path: Path) -> None:
@@ -34,59 +48,33 @@ class HdlFile:
         Arguments:
             path: Path to a HDL source code  file.
         """
-        self.path = path
+        self._path = path
+
+        for file_type, file_endings in self.file_endings_mapping.items():
+            if path.name.endswith(file_endings):
+                self._type = file_type
+                break
+        else:
+            raise ValueError(f"Unsupported HDL file ending: {path}")
 
     @property
-    def is_vhdl(self) -> bool:
+    def path(self) -> Path:
         """
-        True if the file is a VHDL file. Otherwise False.
+        Path to the HDL file.
+        Getter for read-only class variable.
         """
-        return self._is_file_ending(file_endings=self.vhdl_file_ending)
+        return self._path
 
     @property
-    def is_verilog_source(self) -> bool:
+    def type(self) -> Type:
         """
-        True if the file is a Verilog source file. Otherwise False.
+        The file type of the HDL file.
+        Getter for read-only class variable.
         """
-        return self._is_file_ending(file_endings=self.verilog_source_file_ending)
-
-    @property
-    def is_verilog_header(self) -> bool:
-        """
-        True if the file is a Verilog header file. Otherwise False.
-        """
-        return self._is_file_ending(file_endings=self.verilog_header_file_ending)
-
-    @property
-    def is_verilog(self) -> bool:
-        """
-        True if the file is a Verilog file (header or source). Otherwise False.
-        """
-        return self.is_verilog_source or self.is_verilog_header
-
-    @property
-    def is_systemverilog_source(self) -> bool:
-        """
-        True if the file is a SystemVerilog source file. Otherwise False.
-        """
-        return self._is_file_ending(file_endings=self.system_verilog_source_file_ending)
-
-    @property
-    def is_systemverilog_header(self) -> bool:
-        """
-        True if the file is a SystemVerilog header file. Otherwise False.
-        """
-        return self._is_file_ending(file_endings=self.system_verilog_header_file_ending)
-
-    @property
-    def is_systemverilog(self) -> bool:
-        """
-        True if the file is a SystemVerilog file (header or source). Otherwise False.
-        """
-        return self.is_systemverilog_source or self.is_systemverilog_header
-
-    def _is_file_ending(self, file_endings: tuple[str, ...]) -> bool:
-        return self.path.name.endswith(file_endings)
+        return self._type
 
     def __str__(self) -> str:
-        return f"{self.__class__.__name__}('{self.path}')"
+        return f"{self.__class__.__name__}('{self._path}', '{self._type}')"
+
+    def __repr__(self) -> str:
+        return str(self)
