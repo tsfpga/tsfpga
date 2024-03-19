@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterable, Optional
 
 # First party libraries
+from tsfpga.hdl_file import HdlFile
 from tsfpga.system_utils import create_file
 
 # Local folder libraries
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
     from tsfpga.build_step_tcl_hook import BuildStepTclHook
     from tsfpga.constraint import Constraint
     from tsfpga.module_list import ModuleList
+
 
 # Number of available Vivado implementation strategies
 NUM_VIVADO_STRATEGIES = 33
@@ -114,11 +116,14 @@ class VivadoTcl:
             system_verilog_files = []
 
             for hdl_file in module.get_synthesis_files(**other_arguments):
-                if hdl_file.is_vhdl:
+                if hdl_file.type == HdlFile.Type.VHDL:
                     vhdl_files.append(hdl_file.path)
-                elif hdl_file.is_verilog:
+                elif hdl_file.type in [HdlFile.Type.VERILOG_SOURCE, HdlFile.Type.VERILOG_HEADER]:
                     verilog_files.append(hdl_file.path)
-                elif hdl_file.is_systemverilog:
+                elif hdl_file.type in [
+                    HdlFile.Type.SYSTEMVERILOG_SOURCE,
+                    HdlFile.Type.SYSTEMVERILOG_HEADER,
+                ]:
                     system_verilog_files.append(hdl_file.path)
                 else:
                     raise NotImplementedError(f"Can not handle file: {hdl_file}")

@@ -136,8 +136,64 @@ def test_file_list_filtering(tmp_path):
 def test_get_synthesis_files_calls_get_simulation_files_with_correct_arguments():
     module = BaseModule(path=Path(), library_name="")
     with patch("tsfpga.module.BaseModule.get_synthesis_files") as get_synthesis_files:
-        module.get_simulation_files(files_include=True, files_avoid=False, apa=123)
-        get_synthesis_files.assert_called_once_with(files_include=True, files_avoid=False, apa=123)
+        module.get_simulation_files(
+            files_include=True,
+            files_avoid=False,
+            apa=123,
+            include_vhdl_files=1,
+            include_verilog_files=2,
+            include_systemverilog_files=3,
+        )
+        get_synthesis_files.assert_called_once_with(
+            files_include=True,
+            files_avoid=False,
+            apa=123,
+            include_vhdl_files=1,
+            include_verilog_files=2,
+            include_systemverilog_files=3,
+        )
+
+
+def test_get_vhdl_files(tmp_path):
+    paths = {
+        create_file(tmp_path / "apa.vhdl"),
+        create_file(tmp_path / "apa.vhd"),
+    }
+    create_file(tmp_path / "apa.v")
+    create_file(tmp_path / "apa.vh")
+    create_file(tmp_path / "apa.sv")
+    create_file(tmp_path / "apa.svh")
+
+    got_hdl_files = BaseModule(path=tmp_path, library_name="").get_synthesis_files(
+        include_verilog_files=False, include_systemverilog_files=False
+    )
+    assert {hdl_file.path for hdl_file in got_hdl_files} == paths
+
+
+def test_get_verilog_files(tmp_path):
+    paths = {create_file(tmp_path / "apa.v"), create_file(tmp_path / "apa.vh")}
+    create_file(tmp_path / "apa.vhdl")
+    create_file(tmp_path / "apa.vhd")
+    create_file(tmp_path / "apa.sv")
+    create_file(tmp_path / "apa.svh")
+
+    got_hdl_files = BaseModule(path=tmp_path, library_name="").get_simulation_files(
+        include_vhdl_files=False, include_systemverilog_files=False
+    )
+    assert {hdl_file.path for hdl_file in got_hdl_files} == paths
+
+
+def test_get_systemverilog_files(tmp_path):
+    paths = {create_file(tmp_path / "apa.sv"), create_file(tmp_path / "apa.svh")}
+    create_file(tmp_path / "apa.vhdl")
+    create_file(tmp_path / "apa.vhd")
+    create_file(tmp_path / "apa.v")
+    create_file(tmp_path / "apa.vh")
+
+    got_hdl_files = BaseModule(path=tmp_path, library_name="").get_documentation_files(
+        include_vhdl_files=False, include_verilog_files=False
+    )
+    assert {hdl_file.path for hdl_file in got_hdl_files} == paths
 
 
 def test_get_documentation_files(tmp_path):
