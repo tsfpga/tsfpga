@@ -437,14 +437,14 @@ if {[get_property PROGRESS [get_runs ${run}]] != "100%"} {
         tcl += f"launch_runs -jobs {num_jobs} [get_runs {base_name}*] -to_step write_bitstream\n"
         tcl += "\n"
 
-        tcl += f"wait_on_runs -exit_condition ANY_ONE_MET_TIMING [get_runs {base_name}*]\n"
+        tcl += f"wait_on_runs -quiet -exit_condition ANY_ONE_MET_TIMING [get_runs {base_name}*]\n"
         tcl += "\n"
 
         tcl += 'reset_runs [get_runs -filter {STATUS == "Queued..."}]\n'
 
         # Wait on runs that are still going, since Vivado can't kill runs in progress reliably.
         # Killing runs in progress causes a zombie process which will lock up VUnit's Process class.
-        tcl += f'wait_on_runs [get_runs -filter {{STATUS != "Not started"}} {base_name}*]\n'
+        tcl += f'wait_on_runs -quiet [get_runs -filter {{STATUS != "Not started"}} {base_name}*]\n'
         tcl += "\n"
 
         tcl_block = """
