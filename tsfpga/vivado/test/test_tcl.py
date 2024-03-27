@@ -407,7 +407,7 @@ def test_impl_explore(vivado_tcl_test):
     )
 
     assert f"launch_runs -jobs {num_runs} [get_runs impl_explore_*] -to_step write_bitstream" in tcl
-    assert "wait_on_runs -exit_condition ANY_ONE_MET_TIMING [get_runs impl_explore_*]" in tcl
+    assert "wait_on_runs -quiet -exit_condition ANY_ONE_MET_TIMING [get_runs impl_explore_*]" in tcl
     assert 'reset_runs [get_runs -filter {STATUS == "Queued..."}]' in tcl
-    assert 'wait_on_runs [get_runs -filter {STATUS != "Not started"} impl_explore_*]' in tcl
+    assert 'wait_on_runs -quiet [get_runs -filter {STATUS != "Not started"} impl_explore_*]' in tcl
     assert 'foreach run [get_runs -filter {PROGRESS == "100%"} impl_explore_*]' in tcl
