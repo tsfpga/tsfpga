@@ -188,17 +188,27 @@ begin
 
 
     ------------------------------------------------------------------------------
-    resync_counter_inst : entity resync.resync_counter
-      generic map (
-        width => 4
-      )
-      port map (
-        clk_in => clk_s_hp0,
-        counter_in => unsigned(misc_dummy_input(3 downto 0)),
-        --
-        clk_out => clk_ext,
-        std_logic_vector(counter_out) => dummy_output_m1(3 downto 0)
-      );
+    resync_counter_block : block
+      signal counter_in : u_unsigned(4 - 1 downto 0) := (others => '0');
+    begin
+
+      ------------------------------------------------------------------------------
+      resync_counter_inst : entity resync.resync_counter
+        generic map (
+          width => counter_in'length
+        )
+        port map (
+          clk_in => clk_s_hp0,
+          counter_in => counter_in,
+          --
+          clk_out => clk_ext,
+          std_logic_vector(counter_out) => dummy_output_m1(3 downto 0)
+        );
+
+      -- If changed to +2, simulation should crash on assert false.
+      counter_in <= counter_in + 1 when rising_edge(clk_s_hp0) else counter_in;
+
+    end block;
 
 
     ------------------------------------------------------------------------------
