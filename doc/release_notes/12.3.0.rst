@@ -4,4 +4,4 @@ Added
   :class:`VhdlSimulationCheckPackageGenerator <hdl_registers.generator.vhdl.simulation.check_package.VhdlSimulationCheckPackageGenerator>`
   )
   from ``hdl-registers`` before simulation and build.
-  Requires ``hdl-registers`` version 5.0.0 or greater.
+  Requires ``hdl-registers`` version 5.1.0 or greater.
