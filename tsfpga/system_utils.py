@@ -28,7 +28,7 @@ def create_file(file: Path, contents: Optional[str] = None) -> Path:
     Return:
         The path to the file that was created (i.e. the original ``file`` argument).
     """
-    # Create directory unless it already exists. Do not delete anything if it exists.
+    # Create directory unless it already exists. Do not delete anything if it does exist.
     create_directory(directory=file.parent, empty=False)
 
     contents = "" if contents is None else contents
@@ -118,15 +118,21 @@ def create_directory(directory: Path, empty: bool = True) -> Path:
         directory: Path to the directory.
         empty: If true and the directory already exists, all existing files/folders in it will
             be deleted.
-            If false, this function will do nothing, since the directory already exists.
+            If false, the directory will be left as-is if it already exists, or will be newly
+            created if it does not.
 
     Return:
         The path that was created (i.e. the original ``directory`` argument).
     """
     if empty:
+        # Delete directory, and anything inside it, before creating it below.
         delete(directory)
+
     elif directory.exists():
-        return directory
+        if directory.is_dir():
+            return directory
+
+        raise FileExistsError(f"Requested directory path already exists as a file: {directory}")
 
     directory.mkdir(parents=True)
     return directory

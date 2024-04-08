@@ -18,7 +18,9 @@ from tsfpga.system_utils import (
     create_directory,
     create_file,
     delete,
+    file_is_in_directory,
     path_relative_to,
+    read_file,
     read_last_lines_of_file,
     run_command,
 )
@@ -46,6 +48,55 @@ def test_delete_files_and_folders(tmp_path):
     assert path.exists()
     delete(path, wait_until_deleted=True)
     assert not path.exists()
+
+
+def test_create_directory_plain(tmp_path):
+    path = tmp_path / "temp_dir"
+    assert not path.exists()
+
+    create_directory(path)
+    assert path.exists()
+    assert path.is_dir()
+
+
+def test_create_directory_that_exists_without_empty(tmp_path):
+    path = tmp_path / "temp_dir"
+    sub_path = create_directory(path / "sub")
+
+    create_directory(path, empty=False)
+    assert sub_path.exists()
+
+
+def test_create_directory_that_exists_with_empty(tmp_path):
+    path = tmp_path / "temp_dir"
+    sub_path = create_directory(path / "sub")
+
+    create_directory(path)
+    assert path.exists()
+    assert not sub_path.exists()
+
+
+def test_create_directory_without_empty_when_path_is_a_file(tmp_path):
+    path = create_file(tmp_path / "file.txt", contents="data")
+
+    with pytest.raises(FileExistsError) as exception_info:
+        create_directory(path, empty=False)
+    assert str(exception_info.value) == f"Requested directory path already exists as a file: {path}"
+
+    assert read_file(path) == "data"
+
+
+def test_file_is_in_directory(tmp_path):
+    assert file_is_in_directory(tmp_path / "file.txt", [tmp_path])
+    assert not file_is_in_directory(tmp_path / "file.txt", [tmp_path / "sub"])
+
+    assert file_is_in_directory(
+        tmp_path / "sub" / "file.txt", [tmp_path / "sub", tmp_path / "sub2"]
+    )
+    assert not file_is_in_directory(tmp_path / "file.txt", [tmp_path / "sub", tmp_path / "sub2"])
+    assert not file_is_in_directory(
+        tmp_path / "sub" / "file.txt", [tmp_path / "sub2", tmp_path / "sub3"]
+    )
 
 
 def test_path_relative_to():
