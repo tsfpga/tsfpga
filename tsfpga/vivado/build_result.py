@@ -41,7 +41,7 @@ class BuildResult:
         self.implementation_size: Optional[dict[str, int]] = None
         self.logic_level_distribution: Optional[str] = None
 
-    def size_summary(self) -> Union[str, None]:
+    def size_summary(self) -> Optional[str]:
         """
         Return a string with a formatted message of the size.
 
@@ -64,7 +64,7 @@ class BuildResult:
 
         return f"Size of {self.name} after {build_step}:\n{json.dumps(size, indent=2)}"
 
-    def report(self) -> Union[str, None]:
+    def report(self) -> Optional[str]:
         """
         Return a report of the build result. Includes all metrics and information that has been
         extracted from the Vivado reports.
