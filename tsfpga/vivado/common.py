@@ -139,7 +139,7 @@ def get_git_sha_slv(git_directory: Path) -> tuple[str, str]:
         assert len(hex_string) == 8
         int_value = int(hex_string, base=16)
 
-        return to_binary_string(int_value=int_value, result_width=32)
+        return to_binary_string(value=int_value, result_width=32)
 
     left_binary_string = hex_to_binary_string(hex_string=git_sha[0:8])
     right_binary_string = hex_to_binary_string(hex_string=git_sha[8:16])
