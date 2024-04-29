@@ -8,6 +8,7 @@ Fixes
 
 * Improve Verilog and SystemVerilog support in Vivado project creation.
 * Fix :func:`.create_directory` behavior when path already exists as a file.
+* Fix potential Vivado build crash when implementation explore is used.
 
 Internal changes
 
