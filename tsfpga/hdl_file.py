@@ -27,7 +27,7 @@ class HdlFile:
         SYSTEMVERILOG_SOURCE = auto()
         SYSTEMVERILOG_HEADER = auto()
 
-    # Decides which file endings are associated with which file types.
+    # Decides which file endings are associated with which file type.
     file_endings_mapping = {
         Type.VHDL: (".vhd", ".vhdl"),
         Type.VERILOG_SOURCE: (".v",),
