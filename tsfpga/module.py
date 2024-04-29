@@ -132,7 +132,7 @@ class BaseModule:
             file_endings += HdlFile.file_endings_mapping[HdlFile.Type.SYSTEMVERILOG_HEADER]
 
         return [
-            HdlFile(file_path)
+            HdlFile(path=file_path)
             for file_path in self._get_file_list(
                 folders=folders,
                 file_endings=file_endings,
