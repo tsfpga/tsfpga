@@ -133,8 +133,9 @@ jobs:
           rtoml \
           setuptools \
           sphinx \
-          sphinx-rtd-theme \
           sphinx_sitemap \
+          sphinx-rtd-theme \
+          sphinxext-opengraph \
           vunit-hdl
 
     - name: Clone dependency repos
