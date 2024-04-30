@@ -29,10 +29,11 @@ copyright = "Lukas Vik"
 author = "Lukas Vik"
 
 extensions = [
-    "sphinx.ext.intersphinx",
-    "sphinx.ext.napoleon",
     "sphinx_rtd_theme",
     "sphinx_sitemap",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.napoleon",
+    "sphinxext.opengraph",
 ]
 
 # Types that are used but sphinx cant find, because they are external
@@ -68,7 +69,14 @@ html_theme_options = {
     "logo_only": True,
 }
 
+# These folders are copied to the documentation's HTML output
+html_static_path = ["opengraph"]
+
 html_logo = "tsfpga_sphinx.png"
+
+# OpenGraph settings.
+ogp_site_url = WEBSITE_URL
+ogp_image = "_static/social_media_preview.png"
 
 
 # Make autodoc include __init__ class method.
