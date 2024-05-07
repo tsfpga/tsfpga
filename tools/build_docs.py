@@ -22,7 +22,7 @@ sys.path.insert(0, str(REPO_ROOT))
 
 # First party libraries
 import tsfpga
-from tsfpga.about import get_readme_rst, get_short_slogan
+from tsfpga.about import WEBSITE_URL, get_readme_rst, get_short_slogan
 from tsfpga.system_utils import create_directory, create_file, delete, read_file, run_command
 from tsfpga.tools.sphinx_doc import build_sphinx, generate_release_notes
 
@@ -122,9 +122,9 @@ def generate_bibtex() -> None:
     author = {Vik, Lukas},
     title  = {{tsfpga: """
 
-    rst_after = """}},
-    url    = {https://tsfpga.com},
-  }
+    rst_after = f"""}}}},
+    url    = {{{WEBSITE_URL}}},
+  }}
 """
 
     rst = f"{rst_before}{get_short_slogan()}{rst_after}"
