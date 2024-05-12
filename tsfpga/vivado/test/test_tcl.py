@@ -223,7 +223,7 @@ def vivado_tcl_test(tmp_path):
             # A library with only test files
             self.d_vhd = to_tcl_path(create_file(self.modules_folder / "zebra" / "test" / "d.vhd"))
 
-            self.modules = get_modules([self.modules_folder])
+            self.modules = get_modules(self.modules_folder)
 
             self.tcl = VivadoTcl(name="name")
 

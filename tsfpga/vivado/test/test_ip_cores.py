@@ -52,7 +52,7 @@ def ip_cores_test(tmp_path):
                 self.modules_folder / "hest" / "ip_cores" / "hest.tcl", "hest"
             )
 
-            modules = get_modules([self.modules_folder])
+            modules = get_modules(self.modules_folder)
             self.vivado_ip_cores = VivadoIpCores(modules, self.project_folder, part_name="-")
 
             # Create initial hash and (empty) compile order file
@@ -94,7 +94,7 @@ def test_should_not_recreate_if_nothing_is_changed(create, ip_cores_test):
     # This test shows that the pattern used in the upcoming tests:
     #   change something -> get modules -> create new VivadoIpCores object
     # should not result in a recreate unless we actually change something.
-    modules = get_modules([ip_cores_test.modules_folder])
+    modules = get_modules(ip_cores_test.modules_folder)
     vivado_ip_cores = VivadoIpCores(modules, ip_cores_test.project_folder, part_name="-")
 
     assert not vivado_ip_cores.create_vivado_project_if_needed()
@@ -104,7 +104,7 @@ def test_should_not_recreate_if_nothing_is_changed(create, ip_cores_test):
 @patch("tsfpga.vivado.ip_cores.VivadoIpCoreProject.create", autospec=True)
 def test_should_recreate_if_ip_core_file_is_added(create, ip_cores_test):
     create_file(ip_cores_test.modules_folder / "zebra" / "ip_cores" / "zebra.tcl", "zebra")
-    modules = get_modules([ip_cores_test.modules_folder])
+    modules = get_modules(ip_cores_test.modules_folder)
     vivado_ip_cores = VivadoIpCores(modules, ip_cores_test.project_folder, part_name="-")
 
     assert vivado_ip_cores.create_vivado_project_if_needed()
@@ -114,7 +114,7 @@ def test_should_recreate_if_ip_core_file_is_added(create, ip_cores_test):
 @patch("tsfpga.vivado.ip_cores.VivadoIpCoreProject.create", autospec=True)
 def test_should_recreate_if_ip_core_file_is_removed(create, ip_cores_test):
     delete(ip_cores_test.hest_tcl)
-    modules = get_modules([ip_cores_test.modules_folder])
+    modules = get_modules(ip_cores_test.modules_folder)
     vivado_ip_cores = VivadoIpCores(modules, ip_cores_test.project_folder, part_name="-")
 
     assert vivado_ip_cores.create_vivado_project_if_needed()
@@ -124,7 +124,7 @@ def test_should_recreate_if_ip_core_file_is_removed(create, ip_cores_test):
 @patch("tsfpga.vivado.ip_cores.VivadoIpCoreProject.create", autospec=True)
 def test_should_recreate_if_ip_core_file_is_changed(create, ip_cores_test):
     create_file(ip_cores_test.apa_tcl, "blaha blaha")
-    modules = get_modules([ip_cores_test.modules_folder])
+    modules = get_modules(ip_cores_test.modules_folder)
     vivado_ip_cores = VivadoIpCores(modules, ip_cores_test.project_folder, part_name="-")
 
     assert vivado_ip_cores.create_vivado_project_if_needed()
