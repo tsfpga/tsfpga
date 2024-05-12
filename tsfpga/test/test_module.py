@@ -324,35 +324,37 @@ def get_modules_test(tmp_path):
 
 
 def test_name_filtering_include(get_modules_test):
-    modules = get_modules(get_modules_test.modules_folders, names_include=["a", "b"])
+    modules = get_modules(
+        modules_folders=get_modules_test.modules_folders, names_include=["a", "b"]
+    )
     assert set(module.name for module in modules) == set(["a", "b"])
 
 
 def test_name_filtering_avoid(get_modules_test):
-    modules = get_modules(get_modules_test.modules_folders, names_avoid=["a", "b"])
+    modules = get_modules(get_modules_test.modules_folder, names_avoid=["a", "b"])
     assert set(module.name for module in modules) == set(["c"])
 
 
 def test_name_filtering_include_and_avoid(get_modules_test):
     modules = get_modules(
-        get_modules_test.modules_folders, names_include=["a", "c"], names_avoid=["b", "c"]
+        get_modules_test.modules_folder, names_include=["a", "c"], names_avoid=["b", "c"]
     )
     assert set(module.name for module in modules) == set(["a"])
 
 
 def test_library_name_does_not_have_lib_suffix(get_modules_test):
-    modules = get_modules(get_modules_test.modules_folders)
+    modules = get_modules(get_modules_test.modules_folder)
     assert set(module.library_name for module in modules) == set(["a", "b", "c"])
 
 
 def test_library_name_has_lib_suffix(get_modules_test):
-    modules = get_modules(get_modules_test.modules_folders, library_name_has_lib_suffix=True)
+    modules = get_modules(get_modules_test.modules_folder, library_name_has_lib_suffix=True)
     assert set(module.library_name for module in modules) == set(["a_lib", "b_lib", "c_lib"])
 
 
 def test_stray_file_can_exist_in_modules_folder_without_error(get_modules_test):
     create_file(get_modules_test.modules_folder / "text_file.txt")
-    modules = get_modules(get_modules_test.modules_folders)
+    modules = get_modules(get_modules_test.modules_folder)
     assert len(modules) == 3
 
 
@@ -367,7 +369,7 @@ class Module(BaseModule):
     create_file(get_modules_test.modules_folder / "a" / "module_a.py", module_file_content + '"a"')
     create_file(get_modules_test.modules_folder / "b" / "module_b.py", module_file_content + '"b"')
 
-    modules = get_modules(get_modules_test.modules_folders)
+    modules = get_modules(get_modules_test.modules_folder)
 
     assert len(modules) == 3
     for module in modules:
@@ -382,56 +384,69 @@ class Module(BaseModule):
 
 
 @patch("tsfpga.module.from_toml", autospec=True)
-@patch("tsfpga.module.VhdlRegisterPackageGenerator.create", autospec=True)
-@patch("tsfpga.module.VhdlRecordPackageGenerator.create", autospec=True)
-@patch("tsfpga.module.VhdlSimulationReadWritePackageGenerator.create", autospec=True)
-@patch("tsfpga.module.VhdlSimulationWaitUntilPackageGenerator.create", autospec=True)
-@patch("tsfpga.module.VhdlAxiLiteWrapperGenerator.create", autospec=True)
+@patch("tsfpga.module.VhdlRegisterPackageGenerator.create_if_needed", autospec=True)
+@patch("tsfpga.module.VhdlRecordPackageGenerator.create_if_needed", autospec=True)
+@patch("tsfpga.module.VhdlAxiLiteWrapperGenerator.create_if_needed", autospec=True)
 def test_register_toml_file_parsed_only_once_when_getting_synthesis_files(
-    _, __, ___, ____, _____, from_toml, tmp_path
+    create3, create2, create1, from_toml, tmp_path
 ):
     toml_file = create_file(tmp_path / "a" / "regs_a.toml")
 
-    module = get_modules([tmp_path]).get("a")
+    module = get_modules(tmp_path).get("a")
     module.get_synthesis_files()
     module.get_synthesis_files()
 
     from_toml.assert_called_once_with("a", toml_file, ANY)
+    assert create3.call_count == 2
+    assert create2.call_count == 2
+    assert create1.call_count == 2
 
 
 @patch("tsfpga.module.from_toml", autospec=True)
-@patch("tsfpga.module.VhdlRegisterPackageGenerator.create", autospec=True)
-@patch("tsfpga.module.VhdlRecordPackageGenerator.create", autospec=True)
-@patch("tsfpga.module.VhdlAxiLiteWrapperGenerator.create", autospec=True)
-@patch("tsfpga.module.VhdlSimulationReadWritePackageGenerator.create", autospec=True)
-@patch("tsfpga.module.VhdlSimulationCheckPackageGenerator.create", autospec=True)
-@patch("tsfpga.module.VhdlSimulationWaitUntilPackageGenerator.create", autospec=True)
+@patch("tsfpga.module.VhdlRegisterPackageGenerator.create_if_needed", autospec=True)
+@patch("tsfpga.module.VhdlRecordPackageGenerator.create_if_needed", autospec=True)
+@patch("tsfpga.module.VhdlAxiLiteWrapperGenerator.create_if_needed", autospec=True)
+@patch("tsfpga.module.VhdlSimulationReadWritePackageGenerator.create_if_needed", autospec=True)
+@patch("tsfpga.module.VhdlSimulationCheckPackageGenerator.create_if_needed", autospec=True)
+@patch("tsfpga.module.VhdlSimulationWaitUntilPackageGenerator.create_if_needed", autospec=True)
 def test_register_toml_file_parsed_only_once_when_getting_simulation_files(
-    _, __, ___, ____, _____, ______, from_toml, tmp_path
-):
+    create6, create5, create4, create3, create2, create1, from_toml, tmp_path
+):  # pylint: disable=too-many-arguments
     toml_file = create_file(tmp_path / "a" / "regs_a.toml")
 
-    module = get_modules([tmp_path]).get("a")
+    module = get_modules(tmp_path).get("a")
     module.get_simulation_files()
     module.get_simulation_files()
 
     from_toml.assert_called_once_with("a", toml_file, ANY)
+    assert create6.call_count == 2
+    assert create5.call_count == 2
+    assert create4.call_count == 2
+    assert create3.call_count == 2
+    assert create2.call_count == 2
+    assert create1.call_count == 2
 
 
 @patch("tsfpga.module.from_toml", autospec=True)
-@patch("tsfpga.module.VhdlRegisterPackageGenerator.create", autospec=True)
-@patch("tsfpga.module.VhdlRecordPackageGenerator.create", autospec=True)
-@patch("tsfpga.module.VhdlAxiLiteWrapperGenerator.create", autospec=True)
-@patch("tsfpga.module.VhdlSimulationReadWritePackageGenerator.create", autospec=True)
-@patch("tsfpga.module.VhdlSimulationCheckPackageGenerator.create", autospec=True)
-@patch("tsfpga.module.VhdlSimulationWaitUntilPackageGenerator.create", autospec=True)
+@patch("tsfpga.module.VhdlRegisterPackageGenerator.create_if_needed", autospec=True)
+@patch("tsfpga.module.VhdlRecordPackageGenerator.create_if_needed", autospec=True)
+@patch("tsfpga.module.VhdlAxiLiteWrapperGenerator.create_if_needed", autospec=True)
+@patch("tsfpga.module.VhdlSimulationReadWritePackageGenerator.create_if_needed", autospec=True)
+@patch("tsfpga.module.VhdlSimulationCheckPackageGenerator.create_if_needed", autospec=True)
+@patch("tsfpga.module.VhdlSimulationWaitUntilPackageGenerator.create_if_needed", autospec=True)
 def test_register_toml_file_parsed_only_once_when_getting_mixed_files(
-    _, __, ___, ____, _____, ______, from_toml, tmp_path
-):
+    create6, create5, create4, create3, create2, create1, from_toml, tmp_path
+):  # pylint: disable=too-many-arguments
     toml_file = create_file(tmp_path / "a" / "regs_a.toml")
 
-    module = get_modules([tmp_path]).get("a")
+    module = get_modules(tmp_path).get("a")
     module.get_synthesis_files()
     module.get_simulation_files()
 
     from_toml.assert_called_once_with("a", toml_file, ANY)
+    assert create6.call_count == 1
+    assert create5.call_count == 1
+    assert create4.call_count == 1
+    assert create3.call_count == 2
+    assert create2.call_count == 2
+    assert create1.call_count == 2

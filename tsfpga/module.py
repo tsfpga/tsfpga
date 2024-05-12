@@ -656,17 +656,21 @@ class BaseModule:
 
 
 def get_modules(
-    modules_folders: list[Path],
+    modules_folder: Optional[Path] = None,
+    modules_folders: Optional[list[Path]] = None,
     names_include: Optional[set[str]] = None,
     names_avoid: Optional[set[str]] = None,
     library_name_has_lib_suffix: bool = False,
     default_registers: Optional[list[Register]] = None,
 ) -> ModuleList:
     """
-    Get a list of Module objects based on the source code folders.
+    Get a list of module objects (:class:`BaseModule` or subclasses thereof) based on the source
+    code folders.
 
     Arguments:
-        modules_folders: A list of paths where your modules are located.
+        modules_folder: The path to the folder containing modules.
+        modules_folders: Optionally, you can specify many folders with modules that will all
+            be searched.
         names_include: If specified, only modules with these names will be included.
         names_avoid: If specified, modules with these names will be discarded.
         library_name_has_lib_suffix: If set, the library name will be ``<module name>_lib``,
@@ -674,12 +678,17 @@ def get_modules(
         default_registers: Default registers.
 
     Return:
-        List of module objects (:class:`BaseModule` or subclasses thereof)
-        created from the specified folders.
+        The modules created from the specified folders.
     """
     modules = ModuleList()
 
-    for module_folder in _iterate_module_folders(modules_folders):
+    folders = []
+    if modules_folder is not None:
+        folders.append(modules_folder)
+    if modules_folders is not None:
+        folders += modules_folders
+
+    for module_folder in _iterate_module_folders(folders):
         module_name = module_folder.name
 
         if names_include is not None and module_name not in names_include:
