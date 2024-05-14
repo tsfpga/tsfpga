@@ -14,7 +14,7 @@ from unittest.mock import ANY, MagicMock, patch
 import pytest
 
 # First party libraries
-from tsfpga.module import BaseModule, get_modules
+from tsfpga.module import BaseModule, get_module, get_modules
 from tsfpga.system_utils import create_directory, create_file
 
 
@@ -321,6 +321,43 @@ def get_modules_test(tmp_path):
 
 # False positive for pytest fixtures
 # pylint: disable=redefined-outer-name
+
+
+def test_get_module(get_modules_test):
+    module = get_module(name="a", modules_folder=get_modules_test.modules_folder)
+    assert module.name == "a"
+    assert module.library_name == "a"
+    assert module.path == get_modules_test.modules_folder / "a"
+
+    module = get_module(
+        name="b",
+        modules_folders=[get_modules_test.modules_folder],
+        library_name_has_lib_suffix=True,
+    )
+    assert module.name == "b"
+    assert module.library_name == "b_lib"
+    assert module.path == get_modules_test.modules_folder / "b"
+
+
+def test_get_module_not_found_should_raise_exception(get_modules_test):
+    with pytest.raises(RuntimeError) as exception_info:
+        get_module(name="d", modules_folder=get_modules_test.modules_folder)
+    assert str(exception_info.value) == 'Could not find module "d".'
+
+
+def test_get_module_found_multiple_should_raise_exception(get_modules_test):
+    create_directory(get_modules_test.modules_folder / "a" / "x")
+    create_directory(get_modules_test.modules_folder / "b" / "x")
+
+    with pytest.raises(RuntimeError) as exception_info:
+        get_module(
+            name="x",
+            modules_folders=[
+                get_modules_test.modules_folder / "a",
+                get_modules_test.modules_folder / "b",
+            ],
+        )
+    assert str(exception_info.value) == 'Found multiple modules named "x".'
 
 
 def test_name_filtering_include(get_modules_test):

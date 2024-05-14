@@ -709,6 +709,46 @@ def get_modules(
     return modules
 
 
+def get_module(
+    name: str,
+    modules_folder: Optional[Path] = None,
+    modules_folders: Optional[list[Path]] = None,
+    library_name_has_lib_suffix: bool = False,
+    default_registers: Optional[list[Register]] = None,
+) -> BaseModule:
+    """
+    Get a single module object, for a module found in one of the specified source code folders.
+    Is a wrapper around :func:`.get_modules`.
+
+    Arguments:
+        name: The name of the module.
+        modules_folder: The path to the folder containing modules.
+        modules_folders: Optionally, you can specify many folders with modules that will all
+            be searched.
+        library_name_has_lib_suffix: If set, the library name will be ``<module name>_lib``,
+            otherwise it is just ``<module name>``.
+        default_registers: Default registers.
+
+    Return:
+        The requested module.
+    """
+    modules = get_modules(
+        modules_folder=modules_folder,
+        modules_folders=modules_folders,
+        names_include={name},
+        library_name_has_lib_suffix=library_name_has_lib_suffix,
+        default_registers=default_registers,
+    )
+
+    if not modules:
+        raise RuntimeError(f'Could not find module "{name}".')
+
+    if len(modules) > 1:
+        raise RuntimeError(f'Found multiple modules named "{name}".')
+
+    return modules[0]
+
+
 def _iterate_module_folders(modules_folders: list[Path]) -> Iterable[Path]:
     for modules_folder in modules_folders:
         for module_folder in modules_folder.glob("*"):
