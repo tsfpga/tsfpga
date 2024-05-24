@@ -29,7 +29,7 @@ from tsfpga.vivado.tcl import VivadoTcl
 
 def test_set_create_run_index():
     tcl = VivadoTcl(name="").create(project_folder=Path(), modules=[], part="", top="", run_index=2)
-    assert "\ncurrent_run [get_runs synth_2]\n" in tcl
+    assert '\ncurrent_run [get_runs "synth_2"]\n' in tcl
 
 
 def test_static_generics():
@@ -47,7 +47,8 @@ def test_static_generics():
         project_folder=Path(), modules=[], part="", top="", run_index=1, generics=generics
     )
     expected = (
-        "\nset_property generic {enable=1'b1 disable=1'b0 integer=123 slv=4'b0101 string=\"apa\"} "
+        '\nset_property "generic" '
+        "{enable=1'b1 disable=1'b0 integer=123 slv=4'b0101 string=\"apa\"} "
         "[current_fileset]\n"
     )
     assert expected in tcl
@@ -66,13 +67,13 @@ def test_build_step_hooks():
     )
 
     assert (
-        f"\nset_property STEPS.SYNTH_DESIGN.TCL.PRE {{{to_tcl_path(dummy.tcl_file)}}} ${{run}}\n"
-        in tcl
-    )
+        f"\n  "
+        f'set_property "STEPS.SYNTH_DESIGN.TCL.PRE" {{{to_tcl_path(dummy.tcl_file)}}} ${{run}}\n'
+    ) in tcl
     assert (
-        f"\nset_property STEPS.ROUTE_DESIGN.TCL.PRE {{{to_tcl_path(files.tcl_file)}}} ${{run}}\n"
-        in tcl
-    )
+        f"\n  "
+        f'set_property "STEPS.ROUTE_DESIGN.TCL.PRE" {{{to_tcl_path(files.tcl_file)}}} ${{run}}\n'
+    ) in tcl
 
 
 def test_build_step_hooks_with_same_hook_step(tmp_path):
@@ -93,7 +94,8 @@ def test_build_step_hooks_with_same_hook_step(tmp_path):
     assert file_contains_string(hook_file, f"source {{{to_tcl_path(files.tcl_file)}}}")
 
     assert (
-        f"\nset_property STEPS.SYNTH_DESIGN.TCL.PRE {{{to_tcl_path(hook_file)}}} ${{run}}\n" in tcl
+        f'\n  set_property "STEPS.SYNTH_DESIGN.TCL.PRE" {{{to_tcl_path(hook_file)}}} ${{run}}\n'
+        in tcl
     )
 
 
@@ -114,9 +116,8 @@ def test_multiple_threads_is_capped_by_vivado_limits():
     tcl = VivadoTcl(name="").build(
         project_file=Path(), output_path=Path(), num_threads=num_threads, run_index=1
     )
-    print(tcl)
-    assert "set_param general.maxThreads 32" in tcl
-    assert "set_param synth.maxThreads 8" in tcl
+    assert 'set_param "general.maxThreads" 32' in tcl
+    assert 'set_param "synth.maxThreads" 8' in tcl
     assert "launch_runs ${run} -jobs 128" in tcl
     assert "launch_runs ${run} -jobs 128" in tcl
 
@@ -147,7 +148,7 @@ def test_runtime_generics():
         run_index=0,
         generics=dict(dummy=True),
     )
-    expected = "\nset_property generic {dummy=1'b1} [current_fileset]\n"
+    expected = '\nset_property "generic" {dummy=1\'b1} [current_fileset]\n'
     assert expected in tcl
 
 
@@ -241,11 +242,11 @@ def test_source_file_list_is_correctly_formatted(vivado_tcl_test):
 
     # Order of files is not really deterministic
     expected_1 = (
-        "\nread_vhdl -library apa -vhdl2008 "
+        '\nread_vhdl -library "apa" -vhdl2008 '
         f"{{{{{vivado_tcl_test.b_vhd}}} {{{vivado_tcl_test.a_vhd}}}}}\n"
     )
     expected_2 = (
-        "\nread_vhdl -library apa -vhdl2008 "
+        '\nread_vhdl -library "apa" -vhdl2008 '
         f"{{{{{vivado_tcl_test.a_vhd}}} {{{vivado_tcl_test.b_vhd}}}}}\n"
     )
     assert expected_1 in tcl or expected_2 in tcl
@@ -267,9 +268,9 @@ def test_constraints(vivado_tcl_test):
         project_folder=Path(), modules=vivado_tcl_test.modules, part="part", top="", run_index=1
     )
 
-    expected = f"\nread_xdc -ref a {{{vivado_tcl_test.a_xdc}}}\n"
+    expected = f'\nread_xdc -ref "a" {{{vivado_tcl_test.a_xdc}}}\n'
     assert expected in tcl
-    expected = f"\nread_xdc -ref b -unmanaged {{{vivado_tcl_test.b_tcl}}}\n"
+    expected = f'\nread_xdc -ref "b" -unmanaged {{{vivado_tcl_test.b_tcl}}}\n'
     assert expected in tcl
 
 
@@ -355,8 +356,8 @@ def test_io_buffer_setting(vivado_tcl_test):
     )
 
     no_io_buffers_tcl = (
-        "\nset_property -name {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} "
-        "-value -no_iobuf -objects [get_runs synth_1]\n"
+        '\nset_property -name "STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS" '
+        '-value "-no_iobuf" -objects [get_runs "synth_1"]\n'
     )
     assert no_io_buffers_tcl in tcl
 
@@ -406,8 +407,15 @@ def test_impl_explore(vivado_tcl_test):
         impl_explore=True,
     )
 
-    assert f"launch_runs -jobs {num_runs} [get_runs impl_explore_*] -to_step write_bitstream" in tcl
-    assert "wait_on_runs -quiet -exit_condition ANY_ONE_MET_TIMING [get_runs impl_explore_*]" in tcl
+    assert (
+        f'launch_runs -jobs {num_runs} [get_runs "impl_explore_*"] -to_step "write_bitstream"'
+        in tcl
+    )
+    assert (
+        'wait_on_runs -quiet -exit_condition ANY_ONE_MET_TIMING [get_runs "impl_explore_*"]' in tcl
+    )
     assert 'reset_runs [get_runs -filter {STATUS == "Queued..."}]' in tcl
-    assert 'wait_on_runs -quiet [get_runs -filter {STATUS != "Not started"} impl_explore_*]' in tcl
-    assert 'foreach run [get_runs -filter {PROGRESS == "100%"} impl_explore_*]' in tcl
+    assert (
+        'wait_on_runs -quiet [get_runs -filter {STATUS != "Not started"} "impl_explore_*"]' in tcl
+    )
+    assert 'foreach run [get_runs -filter {PROGRESS == "100%"} "impl_explore_*"]' in tcl

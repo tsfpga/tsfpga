@@ -195,10 +195,14 @@ class VivadoProject:
         self.build_step_hooks.append(
             BuildStepTclHook(TSFPGA_TCL / "check_timing.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE")
         )
+        self.build_step_hooks.append(
+            BuildStepTclHook(TSFPGA_TCL / "check_cdc.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE")
+        )
 
         if not self.analyze_synthesis_timing:
-            # In this special case however, the synthesized design is never opened, and
-            # report_utilization is not run by the build_vivado_project.tcl.
+            # In this special case however, the synthesized design is never opened (to save
+            # execution time), meaning 'report_utilization' is not run by the
+            # 'build_vivado_project.tcl' script.
             # So in order to get a utilization report anyway we add it as a hook.
             # This mode is exclusively used by netlist builds, which very rarely include IP cores,
             # so it is acceptable that the utilization report might be erroneous with regards to

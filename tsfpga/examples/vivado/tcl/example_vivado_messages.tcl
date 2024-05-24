@@ -61,7 +61,7 @@ set_msg_config -new_severity "ERROR" -id "filemgmt 20-1318"
 
 # Message: Duplicate IP found.
 # Motivation: Something has been done wrong in the project flow or the naming of files.
-set_msg_config -new_severity "ERROR" -id {IP_Flow 19-1663}
+set_msg_config -new_severity "ERROR" -id "IP_Flow 19-1663"
 
 # Message: Failed to register IP shared directory path.
 # Motivation: Using IP cache saves us a lot of time in builds, so we want to know if that fails.

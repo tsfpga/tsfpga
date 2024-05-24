@@ -89,7 +89,6 @@ def test_no_checked_in_files_have_too_long_lines():
         REPO_ROOT / "license.txt",
         # Impossible TCL syntax to break
         TSFPGA_TCL / "check_timing.tcl",
-        TSFPGA_TCL / "vivado_strategies.tcl",
         # From Vivado, not modified by us
         TSFPGA_EXAMPLE_MODULES / "artyz7" / "tcl" / "block_design.tcl",
     ]

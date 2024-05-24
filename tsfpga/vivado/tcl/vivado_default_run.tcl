@@ -20,13 +20,13 @@ puts "Setting up default run"
 # Synthesis settings
 #
 
-set_property STEPS.SYNTH_DESIGN.ARGS.DIRECTIVE Default [get_runs synth_1]
+set_property "STEPS.SYNTH_DESIGN.ARGS.DIRECTIVE" "Default" [get_runs "synth_1"]
 
 # Allows the synthesis tool to flatten the hierarchy, perform synthesis, and then rebuild the
 # hierarchy based on the original RTL.
 # This value allows the QoR benefit of cross-boundary optimizations with a
 # final hierarchy that is similar to the RTL for ease of analysis.
-set_property STEPS.SYNTH_DESIGN.ARGS.FLATTEN_HIERARCHY Rebuilt [get_runs synth_1]
+set_property "STEPS.SYNTH_DESIGN.ARGS.FLATTEN_HIERARCHY" "Rebuilt" [get_runs "synth_1"]
 
 
 
@@ -54,23 +54,23 @@ set_property STEPS.SYNTH_DESIGN.ARGS.FLATTEN_HIERARCHY Rebuilt [get_runs synth_1
 # Note that steps 2 and 4 are mutually exclusive. Both can be enabled but only one will run.
 
 # Opt design (opt_design)
-set_property STEPS.OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
-set_property STEPS.OPT_DESIGN.ARGS.DIRECTIVE Default [get_runs impl_1]
+set_property "STEPS.OPT_DESIGN.IS_ENABLED" true [get_runs "impl_1"]
+set_property "STEPS.OPT_DESIGN.ARGS.DIRECTIVE" "Default" [get_runs "impl_1"]
 
 # Pre-place power opt design (power_opt_design)
-set_property STEPS.POWER_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
+set_property "STEPS.POWER_OPT_DESIGN.IS_ENABLED" false [get_runs "impl_1"]
 
 # Place design (place_design)
-set_property STEPS.PLACE_DESIGN.ARGS.DIRECTIVE Default [get_runs impl_1]
+set_property "STEPS.PLACE_DESIGN.ARGS.DIRECTIVE" "Default" [get_runs "impl_1"]
 
 # Post-place power opt design (power_opt_design)
-set_property STEPS.POST_PLACE_POWER_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
+set_property "STEPS.POST_PLACE_POWER_OPT_DESIGN.IS_ENABLED" false [get_runs "impl_1"]
 
 # Post-place phys opt design (phys_opt_design)
-set_property STEPS.PHYS_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
+set_property "STEPS.PHYS_OPT_DESIGN.IS_ENABLED" false [get_runs "impl_1"]
 
 # Route design (route_design)
-set_property STEPS.ROUTE_DESIGN.ARGS.DIRECTIVE Default [get_runs impl_1]
+set_property "STEPS.ROUTE_DESIGN.ARGS.DIRECTIVE" "Default" [get_runs "impl_1"]
 
 # Post-route phys opt design (phys_opt_design)
-set_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
+set_property "STEPS.POST_ROUTE_PHYS_OPT_DESIGN.IS_ENABLED" false [get_runs "impl_1"]
