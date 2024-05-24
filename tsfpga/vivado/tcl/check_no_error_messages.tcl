@@ -6,7 +6,7 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-if {[get_msg_config -count -severity ERROR]} {
+if {[get_msg_config -count -severity "ERROR"]} {
   puts "ERROR: Vivado has reported one or more ERROR messages. See build log."
   exit 1
 }

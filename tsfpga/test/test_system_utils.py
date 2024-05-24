@@ -177,9 +177,6 @@ def test_run_command_should_capture_output_as_strings():
 
     assert result.stderr == ""
 
-    print(result.stdout)
-    print(result.stderr)
-
     # Show that it is regular text with regular newlines.
     assert "\ntest_system_utils.py\n" in result.stdout
     assert "\ntest_ip_core_file.py\n" in result.stdout

@@ -62,54 +62,59 @@ class VivadoTcl:
         generics = {} if generics is None else generics
         other_arguments = {} if other_arguments is None else other_arguments
 
-        tcl = f"create_project {self.name} {{{to_tcl_path(project_folder)}}} -part {part}\n"
-        tcl += "set_property target_language VHDL [current_project]\n"
+        tcl = f"""\
+create_project -part "{part}" "{self.name}" {{{to_tcl_path(project_folder)}}}
+set_property "target_language" "VHDL" [current_project]
 
+"""
         if ip_cache_path is not None:
-            tcl += f"config_ip_cache -use_cache_location {{{to_tcl_path(ip_cache_path)}}}\n"
-            tcl += "\n"
+            tcl += f"config_ip_cache -use_cache_location {{{to_tcl_path(ip_cache_path)}}}\n\n"
 
         tcl += self._add_tcl_sources(tcl_sources)
-        tcl += "\n"
 
         if not ip_cores_only:
             tcl += self._add_module_source_files(modules=modules, other_arguments=other_arguments)
-            tcl += "\n"
             tcl += self._add_generics(generics)
-            tcl += "\n"
-            tcl += self._add_constraints(
+
+            constraints = list(
                 self._iterate_constraints(
                     modules=modules, constraints=constraints, other_arguments=other_arguments
                 )
             )
-            tcl += "\n"
+            tcl += self._add_constraints(constraints=constraints)
             tcl += self._add_build_step_hooks(build_step_hooks, project_folder)
-            tcl += "\n"
 
         tcl += self._add_ip_cores(modules=modules, other_arguments=other_arguments)
-        tcl += "\n"
         tcl += self._add_project_settings()
-        tcl += "\n"
-        tcl += f"current_run [get_runs synth_{run_index}]\n"
-        tcl += "\n"
-        tcl += f"set_property top {top} [current_fileset]\n"
-        tcl += "reorder_files -auto -disable_unused\n"
-        tcl += "\n"
 
+        tcl += f"""
+# ------------------------------------------------------------------------------
+current_run [get_runs "synth_{run_index}"]
+set_property "top" "{top}" [current_fileset]
+reorder_files -auto -disable_unused
+
+"""
         if disable_io_buffers:
-            tcl += (
-                "set_property -name {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} "
-                f"-value -no_iobuf -objects [get_runs synth_{run_index}]"
-            )
-            tcl += "\n"
+            tcl += f"""\
+set_property -name "STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS" \
+-value "-no_iobuf" -objects [get_runs "synth_{run_index}"]
 
-        tcl += "exit\n"
+"""
+        tcl += """
+# ------------------------------------------------------------------------------
+exit
+"""
         return tcl
 
     def _add_module_source_files(
         self, modules: "ModuleList", other_arguments: dict[str, Any]
     ) -> str:
-        tcl = ""
+        if len(modules) == 0:
+            return ""
+
+        tcl = """
+# ------------------------------------------------------------------------------
+"""
         for module in modules:
             vhdl_files = []
             verilog_files = []
@@ -132,7 +137,7 @@ class VivadoTcl:
 
             if vhdl_files:
                 files_string = self._to_file_list(vhdl_files)
-                tcl += f"read_vhdl -library {module.library_name} -vhdl2008 {files_string}\n"
+                tcl += f'read_vhdl -library "{module.library_name}" -vhdl2008 {files_string}\n'
 
             if verilog_files:
                 files_string = self._to_file_list(verilog_files)
@@ -142,7 +147,7 @@ class VivadoTcl:
                 files_string = self._to_file_list(system_verilog_files)
                 tcl += f"read_verilog -sv {files_string}\n"
 
-        return tcl
+        return f"{tcl}\n"
 
     @staticmethod
     def _to_file_list(file_paths: list[Path]) -> str:
@@ -159,13 +164,16 @@ class VivadoTcl:
 
     @staticmethod
     def _add_tcl_sources(tcl_sources: Optional[list[Path]]) -> str:
-        if tcl_sources is None:
+        if tcl_sources is None or len(tcl_sources) == 0:
             return ""
 
-        tcl = ""
+        tcl = """
+# ------------------------------------------------------------------------------
+"""
         for tcl_source_file in tcl_sources:
             tcl += f"source -notrace {{{to_tcl_path(tcl_source_file)}}}\n"
-        return tcl
+
+        return f"{tcl}\n"
 
     @staticmethod
     def _add_ip_cores(modules: "ModuleList", other_arguments: dict[str, Any]) -> str:
@@ -183,14 +191,20 @@ class VivadoTcl:
   source -notrace {{{to_tcl_path(ip_core_file.path)}}}
 }}
 {create_function_name}
-"""
 
-        return tcl
+"""
+        if tcl == "":
+            return ""
+
+        return f"""
+# ------------------------------------------------------------------------------
+{tcl}\
+"""
 
     def _add_build_step_hooks(
         self, build_step_hooks: Optional[list["BuildStepTclHook"]], project_folder: Path
     ) -> str:
-        if build_step_hooks is None:
+        if build_step_hooks is None or len(build_step_hooks) == 0:
             return ""
 
         # There can be many hooks for the same step. Reorganize them into a dict.
@@ -201,7 +215,9 @@ class VivadoTcl:
             else:
                 hook_steps[build_step_hook.hook_step] = [build_step_hook]
 
-        tcl = ""
+        tcl = """
+# ------------------------------------------------------------------------------
+"""
         for step, hooks in hook_steps.items():
             # Vivado will only accept one TCL script as hook for each step. So if we want
             # to add more we have to create a new TCL file, that sources the other files,
@@ -216,43 +232,48 @@ class VivadoTcl:
                 create_file(tcl_file, source_hooks_tcl)
 
             # Add to fileset to enable archive and other project based functionality
-            tcl += f"add_files -fileset utils_1 -norecurse {{{to_tcl_path(tcl_file)}}}\n"
+            tcl += f'add_files -fileset "utils_1" -norecurse {{{to_tcl_path(tcl_file)}}}\n'
 
             # Build step hook can only be applied to a run (e.g. impl_1), not on a project basis
-            run_wildcard = "synth_*" if hooks[0].step_is_synth else "impl_*"
-            tcl_block = f"set_property {step} {{{to_tcl_path(tcl_file)}}} ${{run}}"
-            tcl += self._tcl_for_each_run(run_wildcard, tcl_block)
+            run_wildcard = '"synth_*"' if hooks[0].step_is_synth else '"impl_*"'
+            tcl_block = f'set_property "{step}" {{{to_tcl_path(tcl_file)}}} ${{run}}'
+            tcl += self._tcl_for_each_run(run_wildcard=run_wildcard, tcl_block=tcl_block)
 
-        return tcl
+        return f"{tcl}\n"
 
     def _add_project_settings(self) -> str:
-        tcl = ""
+        tcl = """
+# ------------------------------------------------------------------------------
+"""
 
         # Default value for when opening project in GUI.
         # Will be overwritten if using build() function.
-        tcl += "set_param general.maxThreads 7\n"
+        tcl += 'set_param "general.maxThreads" 7\n'
 
         # Enable VHDL assert statements to be evaluated. A severity level of failure will
         # stop the synthesis and produce an error.
-        tcl_block = "set_property STEPS.SYNTH_DESIGN.ARGS.ASSERT true ${run}"
-        tcl += self._tcl_for_each_run("synth_*", tcl_block)
+        tcl_block = 'set_property "STEPS.SYNTH_DESIGN.ARGS.ASSERT" true ${run}'
+        tcl += self._tcl_for_each_run(run_wildcard='"synth_*"', tcl_block=tcl_block)
 
         # Enable binary bitstream as well
-        tcl_block = "set_property STEPS.WRITE_BITSTREAM.ARGS.BIN_FILE true ${run}"
-        tcl += self._tcl_for_each_run("impl_*", tcl_block)
+        tcl_block = 'set_property "STEPS.WRITE_BITSTREAM.ARGS.BIN_FILE" true ${run}'
+        tcl += self._tcl_for_each_run(run_wildcard='"impl_*"', tcl_block=tcl_block)
 
-        return tcl
+        return f"{tcl}\n"
 
     @staticmethod
     def _tcl_for_each_run(run_wildcard: str, tcl_block: str) -> str:
         """
         Apply TCL block for each defined run. Use ${run} for run variable in TCL.
         """
-        tcl = ""
-        tcl += f"foreach run [get_runs {run_wildcard}] {{\n"
-        tcl += tcl_block + "\n"
-        tcl += "}\n"
-        return tcl
+        # Apply indentation for all lines within the block.
+        tcl_block = tcl_block.replace("\n", "\n  ")
+
+        return f"""\
+foreach run [get_runs {run_wildcard}] {{
+  {tcl_block}
+}}
+"""
 
     @staticmethod
     def _add_generics(generics: Optional[dict[str, Any]]) -> str:
@@ -269,7 +290,11 @@ class VivadoTcl:
             generic_list.append(f"{name}={value_tcl_formatted}")
 
         generics_string = " ".join(generic_list)
-        return f"set_property generic {{{generics_string}}} [current_fileset]\n"
+        return f"""
+# ------------------------------------------------------------------------------
+set_property "generic" {{{generics_string}}} [current_fileset]
+
+"""
 
     @staticmethod
     def _iterate_constraints(
@@ -284,24 +309,29 @@ class VivadoTcl:
             yield from constraints
 
     @staticmethod
-    def _add_constraints(constraints: Iterable["Constraint"]) -> str:
-        tcl = ""
+    def _add_constraints(constraints: list["Constraint"]) -> str:
+        if len(constraints) == 0:
+            return ""
+
+        tcl = """
+# ------------------------------------------------------------------------------
+"""
         for constraint in constraints:
             constraint_file = to_tcl_path(constraint.file)
 
-            ref_flags = "" if constraint.ref is None else (f"-ref {constraint.ref} ")
+            ref_flags = "" if constraint.ref is None else (f'-ref "{constraint.ref}" ')
             managed_flags = "" if constraint_file.endswith("xdc") else "-unmanaged "
             tcl += f"read_xdc {ref_flags}{managed_flags}{{{constraint_file}}}\n"
 
             get_file = f"[get_files {{{constraint_file}}}]"
-            tcl += f"set_property PROCESSING_ORDER {constraint.processing_order} {get_file}\n"
+            tcl += f'set_property "PROCESSING_ORDER" "{constraint.processing_order}" {get_file}\n'
 
             if constraint.used_in == "impl":
-                tcl += f"set_property used_in_synthesis false {get_file}\n"
+                tcl += f'set_property "USED_IN_SYNTHESIS" false {get_file}\n'
             elif constraint.used_in == "synth":
-                tcl += f"set_property used_in_implementation false {get_file}\n"
+                tcl += f'set_property "USED_IN_IMPLEMENTATION" false {get_file}\n'
 
-        return tcl
+        return f"{tcl}\n"
 
     def build(
         self,
@@ -326,18 +356,15 @@ class VivadoTcl:
 
         num_threads_synth = min(num_threads, 8)
 
-        tcl = f"open_project {to_tcl_path(project_file)}\n"
-        tcl += f"set_param general.maxThreads {num_threads_general}\n"
-        tcl += f"set_param synth.maxThreads {num_threads_synth}\n"
-        tcl += "\n"
+        tcl = f"open_project {{{to_tcl_path(project_file)}}}\n"
+        tcl += f'set_param "general.maxThreads" {num_threads_general}\n'
+        tcl += f'set_param "synth.maxThreads" {num_threads_synth}\n\n'
         tcl += self._add_generics(generics)
-        tcl += "\n"
 
         if not from_impl:
             synth_run = f"synth_{run_index}"
 
             tcl += self._synthesis(synth_run, num_threads, analyze_synthesis_timing)
-            tcl += "\n"
 
         if not synth_only:
             impl_run = f"impl_{run_index}"
@@ -346,27 +373,37 @@ class VivadoTcl:
                 tcl += self._run_multiple(num_jobs=num_threads)
             else:
                 tcl += self._run(impl_run, num_threads, to_step="write_bitstream")
-            tcl += "\n"
 
             tcl += self._write_hw_platform(output_path)
-            tcl += "\n"
 
-        tcl += "exit\n"
-
+        tcl += """
+# ------------------------------------------------------------------------------
+exit
+"""
         return tcl
 
     def _synthesis(self, run: str, num_threads: int, analyze_synthesis_timing: bool) -> str:
         tcl = self._run(run, num_threads)
-        if analyze_synthesis_timing:
-            # For synthesis flow we perform the timing checks by opening the design. It would have
-            # been more efficient to use a post-synthesis hook (since the design would already be
-            # open), if that mechanism had worked. It seems to be very bugged. So we add the
-            # checkers to the build script.
-            # For implementation, we use a pre-bitstream build hook which seems to work decently.
-            tcl += """
-open_run ${run}
-set run_directory [get_property DIRECTORY [get_runs ${run}]]
+        if not analyze_synthesis_timing:
+            return tcl
 
+        # For synthesis flow we perform the timing checks by opening the design. It would have
+        # been more efficient to use a post-synthesis hook (since the design would already be
+        # open), if that mechanism had worked. It seems to be very bugged. So we add the
+        # checkers to the build script.
+        # For implementation, we use a pre-bitstream build hook which seems to work decently.
+        #
+        # Timing checks such as setup/hold/pulse width violations, are not reliable after synthesis,
+        # and should not abort the build as we do below.
+        # These need to be checked after implementation.
+        tcl += """
+# ------------------------------------------------------------------------------
+open_run ${run}
+set run_directory [get_property "DIRECTORY" ${run}]
+set should_exit 0
+
+
+# ------------------------------------------------------------------------------
 # Generate report on simultaneous switching noise (SSN) for the design.
 # It seems safe to do this after synthesis; inspecting the reports in a test build after both
 # synthesis and implementation shows that the results are identical.
@@ -375,28 +412,28 @@ set run_directory [get_property DIRECTORY [get_runs ${run}]]
 # At the moment we do not know how stable this mechanism is, so we do not fail the build
 # per default.
 # The call is very fast (< 1s) so it is fine to run always, even though not everyone will use it.
-set current_part [get_property PART [current_project]]
+set current_part [get_property "PART" [current_project]]
 set part_supports_ssn [get_parts ${current_part} -filter {ssn_report == 1}]
 if {${part_supports_ssn} != ""} {
     set output_file [file join ${run_directory} "report_ssn.html"]
     report_ssn -phase -format html -file ${output_file}
 }
 
-# This call is duplicated in report_utilization.tcl for implementation.
+
+# ------------------------------------------------------------------------------
+# This call is duplicated in 'report_utilization.tcl' for implementation.
 set output_file [file join ${run_directory} "hierarchical_utilization.rpt"]
 report_utilization -hierarchical -hierarchical_depth 4 -file ${output_file}
 
 
-# After synthesis we check for unhandled clock crossings and abort the build based on the result.
-# Other timing checks, e.g. setup/hold/pulse width violations, are not reliable after synthesis,
-# and should not abort the build. These need to be checked after implementation.
-"""
-
-            tcl += """
-# This code is duplicated in check_timing.tcl for implementation.
-if {[regexp {\\(unsafe\\)} [report_clock_interaction -delay_type min_max -return_string]]} {
-  puts "ERROR: Unhandled clock crossing in ${run} run. See clock_interaction.rpt and \
-timing_summary.rpt in ${run_directory}."
+# ------------------------------------------------------------------------------
+# This code is duplicated in 'check_timing.tcl' for implementation.
+set clock_interaction_report [
+  report_clock_interaction -delay_type "min_max" -no_header -return_string
+]
+if {[string first "(unsafe)" ${clock_interaction_report}] != -1} {
+  puts "ERROR: Unhandled clock crossing in ${run} run. See 'clock_interaction.rpt' and \
+'timing_summary.rpt' in ${run_directory}."
 
   set output_file [file join ${run_directory} "clock_interaction.rpt"]
   report_clock_interaction -delay_type min_max -file ${output_file}
@@ -404,17 +441,44 @@ timing_summary.rpt in ${run_directory}."
   set output_file [file join ${run_directory} "timing_summary.rpt"]
   report_timing_summary -file ${output_file}
 
+  set should_exit 1
+}
+
+
+# ------------------------------------------------------------------------------
+# This code is duplicated in 'check_cdc.tcl' for implementation.
+# Check that there are no critical CDC rule violations in the design.
+# List of CDC rules: https://docs.amd.com/r/en-US/ug906-vivado-design-analysis/CDC-Rules-Precedence
+# If this makes your build fail on a false positive, you can waive the rule using the
+# 'create_waiver' command in a (scoped) constraint file.
+# Rules can be disable in general (not recommended), or for specific paths using the '-from'
+# and '-to' flags (recommended).
+set cdc_report [report_cdc -return_string -no_header -details -severity "Critical"]
+if {[string first "Critical" ${cdc_report}] != -1} {
+  set output_file [file join ${run_directory} "cdc.rpt"]
+  puts "ERROR: Critical CDC rule violation in ${run} run. See ${output_file}."
+
+  report_cdc -details -file ${output_file}
+
+  set should_exit 1
+}
+
+
+# ------------------------------------------------------------------------------
+if {${should_exit} eq 1} {
   exit 1
 }
+
 """
         return tcl
 
     @staticmethod
     def _run(run: str, num_threads: int, to_step: Optional[str] = None) -> str:
-        to_step = "" if to_step is None else f" -to_step {to_step}"
+        to_step = "" if to_step is None else f' -to_step "{to_step}"'
 
         tcl = f"""
-set run {run}
+# ------------------------------------------------------------------------------
+set run [get_runs "{run}"]
 reset_run ${{run}}
 launch_runs ${{run}} -jobs {num_threads}{to_step}
 """
@@ -422,37 +486,43 @@ launch_runs ${{run}} -jobs {num_threads}{to_step}
         tcl += """
 wait_on_run ${run}
 
-if {[get_property PROGRESS [get_runs ${run}]] != "100%"} {
+if {[get_property "PROGRESS" ${run}] != "100%"} {
   puts "ERROR: Run ${run} failed."
   exit 1
 }
+
 """
         return tcl
 
     def _run_multiple(self, num_jobs: int = 4, base_name: str = "impl_explore_") -> str:
-        # Currently, this creates .tcl that waits for all active runs to complete
-
-        tcl = "set build_succeeded 0\n"
-        tcl += f"reset_runs [get_runs {base_name}*]\n"
-        tcl += f"launch_runs -jobs {num_jobs} [get_runs {base_name}*] -to_step write_bitstream\n"
+        """
+        Currently, this creates a .tcl that waits for all active runs to complete.
+        """
+        tcl = "\nset build_succeeded 0\n"
+        tcl += f'reset_runs [get_runs "{base_name}*"]\n'
+        tcl += (
+            f'launch_runs -jobs {num_jobs} [get_runs "{base_name}*"] -to_step "write_bitstream"\n'
+        )
         tcl += "\n"
 
-        tcl += f"wait_on_runs -quiet -exit_condition ANY_ONE_MET_TIMING [get_runs {base_name}*]\n"
+        tcl += f'wait_on_runs -quiet -exit_condition ANY_ONE_MET_TIMING [get_runs "{base_name}*"]\n'
         tcl += "\n"
 
         tcl += 'reset_runs [get_runs -filter {STATUS == "Queued..."}]\n'
 
         # Wait on runs that are still going, since Vivado can't kill runs in progress reliably.
         # Killing runs in progress causes a zombie process which will lock up VUnit's Process class.
-        tcl += f'wait_on_runs -quiet [get_runs -filter {{STATUS != "Not started"}} {base_name}*]\n'
+        tcl += (
+            f'wait_on_runs -quiet [get_runs -filter {{STATUS != "Not started"}} "{base_name}*"]\n'
+        )
         tcl += "\n"
 
-        tcl_block = """
-  set build_succeeded 1
-  puts "Run $run met timing"
+        tcl_block = """\
+set build_succeeded 1
+puts "Run ${run} met timing"\
 """
         tcl += self._tcl_for_each_run(
-            f'-filter {{PROGRESS == "100%"}} {base_name}*', tcl_block=tcl_block
+            run_wildcard=f'-filter {{PROGRESS == "100%"}} "{base_name}*"', tcl_block=tcl_block
         )
 
         tcl += """
@@ -460,6 +530,7 @@ if {${build_succeeded} eq 0} {
   puts "No build met timing, exiting."
   exit 1
 }
+
 """
 
         return tcl
@@ -489,8 +560,10 @@ if {${build_succeeded} eq 0} {
         xsa_file = to_tcl_path(output_path / f"{self.name}.xsa")
 
         tcl = f"""
+# ------------------------------------------------------------------------------
 puts "Creating hardware platform {xsa_file}..."
 write_hw_platform -fixed -force -quiet -include_bit {{{xsa_file}}}
+
 """
 
         return tcl

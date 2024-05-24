@@ -44,80 +44,42 @@ def test_building_artyz7_project(tmp_path):
 @pytest.fixture
 def basic_project_test(tmp_path):
     class BasicProjectTest:  # pylint: disable=too-many-instance-attributes
-        top_template = """
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-
-library common;
-use common.attribute_pkg.all;
-
-library resync;
-
-
-entity test_proj_top is
-  port (
-    clk_in : in std_ulogic;
-    input : in std_ulogic;
-    clk_out : in std_ulogic;
-    output : out std_ulogic
-  );
-end entity;
-
-architecture a of test_proj_top is
-  signal input_p1 : std_ulogic;
-begin
-
-  pipe_input : process
-  begin
-    wait until rising_edge(clk_in);
-    input_p1 <= input;
-  end process;
-
-{code_block}
-
-end architecture;
-"""
-
         def __init__(self):
-            module_folder = tmp_path / "modules" / "apa"
-
+            self.module_folder = tmp_path / "modules" / "apa"
             self.project_folder = tmp_path / "vivado"
 
             # Default top level
             resync = """
-  code_block : entity resync.resync_level
-  generic map (
-    enable_input_register => false
-  )
-  port map (
-    data_in => input_p1,
-
-    clk_out => clk_out,
-    data_out => output
-  );"""
-
-            top = self.top_template.format(code_block=resync)
-            self.top_file = create_file(module_folder / "test_proj_top.vhd", top)
+  resync_level_inst : entity resync.resync_level
+    generic map (
+      enable_input_register => false
+    )
+    port map (
+      data_in => input_p1,
+      --
+      clk_out => clk_out,
+      data_out => output
+    );"""
+            self.top_file = self.create_top_file(code_block=resync)
 
             self.constraint_io = """
-set_property -dict {package_pin H16 iostandard lvcmos33} [get_ports clk_in]
-set_property -dict {package_pin P14 iostandard lvcmos33} [get_ports input]
-set_property -dict {package_pin K17 iostandard lvcmos33} [get_ports clk_out]
-set_property -dict {package_pin T16 iostandard lvcmos33} [get_ports output]
+set_property -dict {"PACKAGE_PIN" "H16" "IOSTANDARD" "LVCMOS33"} [get_ports "clk_in"]
+set_property -dict {"PACKAGE_PIN" "P14" "IOSTANDARD" "LVCMOS33"} [get_ports "input"]
+set_property -dict {"PACKAGE_PIN" "K17" "IOSTANDARD" "LVCMOS33"} [get_ports "clk_out"]
+set_property -dict {"PACKAGE_PIN" "T16" "IOSTANDARD" "LVCMOS33"} [get_ports "output"]
 """
             self.constraint_clocks = """
 # 250 MHz
-create_clock -period 4 -name clk_in [get_ports clk_in]
-create_clock -period 4 -name clk_out [get_ports clk_out]
+create_clock -period 4 -name "clk_in" [get_ports "clk_in"]
+create_clock -period 4 -name "clk_out" [get_ports "clk_out"]
 """
             self.constraint_file = create_file(
-                file=module_folder / "test_proj_pinning.tcl",
+                file=self.module_folder / "test_proj_pinning.tcl",
                 contents=self.constraint_io + self.constraint_clocks,
             )
             constraints = [Constraint(self.constraint_file)]
 
-            self.modules = get_hdl_modules() + get_modules(modules_folders=[module_folder.parent])
+            self.modules = get_hdl_modules() + get_modules(modules_folder=self.module_folder.parent)
             self.proj = VivadoProject(
                 name="test_proj",
                 modules=self.modules,
@@ -160,6 +122,45 @@ create_clock -period 4 -name clk_out [get_ports clk_out]
                 self.project_folder / f"{self.proj.name}.bin",
                 self.runs_folder / "impl_2" / "hierarchical_utilization.rpt",
             ]
+
+        def create_top_file(self, code_block: str):
+            top = f"""
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+library common;
+use common.attribute_pkg.all;
+
+library resync;
+
+
+entity test_proj_top is
+  port (
+    clk_in : in std_ulogic;
+    input : in std_ulogic;
+    clk_out : in std_ulogic;
+    output : out std_ulogic := '0'
+  );
+end entity;
+
+architecture a of test_proj_top is
+  signal input_p1, input_p2 : std_ulogic := '0';
+begin
+
+  pipe_input : process
+  begin
+    wait until rising_edge(clk_in);
+
+    input_p2 <= input_p1;
+    input_p1 <= input;
+  end process;
+
+{code_block}
+
+end architecture;
+"""
+            return create_file(self.module_folder / "test_proj_top.vhd", top)
 
         def create_vivado_project(self):
             assert self.proj.create(self.project_folder)
@@ -221,14 +222,12 @@ def test_synth_with_assert_false_should_fail(basic_project_test):
     assert_false = """
   assert false severity failure;"""
 
-    top = basic_project_test.top_template.format(code_block=assert_false)
-    create_file(basic_project_test.top_file, top)
-
+    basic_project_test.create_top_file(code_block=assert_false)
     basic_project_test.create_vivado_project()
-
     build_result = basic_project_test.proj.build(
         basic_project_test.project_folder, synth_only=True, run_index=2
     )
+
     assert not build_result.success
     assert file_contains_string(
         basic_project_test.log_file, 'RTL assertion: "Assertion violation."'
@@ -309,21 +308,22 @@ def test_build_project_in_steps(basic_project_test):
 def test_build_with_bad_setup_timing_should_fail(basic_project_test):
     # Do a ridiculously wide multiplication, which Vivado can't optimize away
     bad_timing = """
-  mult_block : block
+  multiplication_block : block
     signal resynced_input : std_ulogic;
   begin
+
     resync_level_inst : entity resync.resync_level
-    generic map (
-      enable_input_register => false
-    )
-    port map (
-      data_in => input_p1,
+      generic map (
+        enable_input_register => false
+      )
+      port map (
+        data_in => input_p1,
+        --
+        clk_out => clk_out,
+        data_out => resynced_input
+      );
 
-      clk_out => clk_out,
-      data_out => resynced_input
-    );
-
-    mult : process
+    multiplication : process
       constant bit_pattern : std_ulogic_vector(32 -1 downto 0) := x"deadbeef";
       variable term1, term2, term3 : u_unsigned(bit_pattern'range);
     begin
@@ -336,16 +336,15 @@ def test_build_with_bad_setup_timing_should_fail(basic_project_test):
 
       output <= xor (term1 * term2);
     end process;
-  end block;"""
 
-    top = basic_project_test.top_template.format(code_block=bad_timing)
-    create_file(basic_project_test.top_file, top)
-
+  end block;
+"""
+    basic_project_test.create_top_file(code_block=bad_timing)
     basic_project_test.create_vivado_project()
-
     build_result = basic_project_test.proj.build(
         basic_project_test.project_folder, basic_project_test.project_folder
     )
+
     assert not build_result.success
     assert file_contains_string(
         basic_project_test.log_file, "\nERROR: Setup/hold timing not OK after implementation run."
@@ -361,15 +360,12 @@ def test_build_with_unhandled_clock_crossing_should_fail(basic_project_test):
     wait until rising_edge(clk_out);
     output <= input_p1;
   end process;"""
-
-    top = basic_project_test.top_template.format(code_block=bad_resync)
-    create_file(basic_project_test.top_file, top)
-
+    basic_project_test.create_top_file(code_block=bad_resync)
     basic_project_test.create_vivado_project()
-
     build_result = basic_project_test.proj.build(
         basic_project_test.project_folder, basic_project_test.project_folder
     )
+
     assert not build_result.success
     assert file_contains_string(
         basic_project_test.log_file, "\nERROR: Unhandled clock crossing in synth_2 run."
@@ -378,6 +374,42 @@ def test_build_with_unhandled_clock_crossing_should_fail(basic_project_test):
     assert (basic_project_test.runs_folder / "synth_2" / "hierarchical_utilization.rpt").exists()
     assert (basic_project_test.runs_folder / "synth_2" / "timing_summary.rpt").exists()
     assert (basic_project_test.runs_folder / "synth_2" / "clock_interaction.rpt").exists()
+
+
+def test_build_with_async_reg_driven_by_lut_should_fail(basic_project_test):
+    bad_resync = """
+  resync_block : block
+    signal input_bit : std_ulogic := '0';
+  begin
+
+    input_bit <= input_p1 or input_p2;
+
+    resync_level_inst : entity resync.resync_level
+      generic map (
+        enable_input_register => false
+      )
+      port map (
+        data_in => input_bit,
+        --
+        clk_out => clk_out,
+        data_out => output
+      );
+
+  end block;
+  """
+    basic_project_test.create_top_file(code_block=bad_resync)
+    basic_project_test.create_vivado_project()
+    build_result = basic_project_test.proj.build(
+        basic_project_test.project_folder, basic_project_test.project_folder
+    )
+
+    assert not build_result.success
+    assert file_contains_string(
+        basic_project_test.log_file, "\nERROR: Critical CDC rule violation in synth_2 run."
+    )
+
+    assert (basic_project_test.runs_folder / "synth_2" / "hierarchical_utilization.rpt").exists()
+    assert (basic_project_test.runs_folder / "synth_2" / "cdc.rpt").exists()
 
 
 def test_build_with_bad_pulse_width_timing_should_fail(basic_project_test):
@@ -426,8 +458,7 @@ def test_build_with_bad_bus_skew_should_fail(basic_project_test):
     end process;
 
   end block;"""
-    top = basic_project_test.top_template.format(code_block=resync_wide_word)
-    create_file(basic_project_test.top_file, top)
+    basic_project_test.create_top_file(code_block=resync_wide_word)
 
     # Overwrite the default constraint file
     constraint_bus_skew = """
@@ -441,6 +472,15 @@ set_bus_skew -from ${input_word} -to ${result_word} 0.8
 
 # Set max delay to exclude the clock crossing from regular timing analysis
 set_max_delay -datapath_only -from ${input_word} -to ${result_word} 3
+
+# Waive critical CDC warning (Multi-bit unknown CDC circuitry).
+for {set bit_idx 0} {${bit_idx} < 32} {incr bit_idx} {
+  create_waiver \
+    -id "CDC-4" \
+    -description "Stupid CDC for test" \
+    -from [get_pin resync_block.input_word_reg[${bit_idx}]/C] \
+    -to [get_pin resync_block.result_word_reg[${bit_idx}]/D]
+}
 """
     create_file(
         file=basic_project_test.constraint_file,

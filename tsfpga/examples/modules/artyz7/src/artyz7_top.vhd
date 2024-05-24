@@ -235,6 +235,8 @@ begin
         data_out => dummy_output_m1(5)
       );
 
+    sample_value <= dummy_output(8);
+
 
     ------------------------------------------------------------------------------
     resync_level_with_clk_in_inst : entity resync.resync_level
@@ -275,8 +277,6 @@ begin
         clk_out => clk_ext,
         data_out => dummy_output_m1(8)
       );
-
-    sample_value <= dummy_output(8);
 
 
     ------------------------------------------------------------------------------

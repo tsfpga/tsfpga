@@ -43,9 +43,13 @@ Congestion_SpreadLogic_low]
 
 set idx 1
 
-create_run impl_explore_$idx -parent_run synth_1 -flow {Vivado Implementation 2021}
+create_run "impl_explore_${idx}" -parent_run "synth_1" -flow "Vivado Implementation 2021"
 
-foreach strategy $vivado_strategies {
+foreach strategy ${vivado_strategies} {
   incr idx
-  create_run impl_explore_$idx -parent_run synth_1 -flow {Vivado Implementation 2021} -strategy $strategy
+  create_run \
+    "impl_explore_${idx}" \
+    -parent_run "synth_1" \
+    -flow "Vivado Implementation 2021" \
+    -strategy ${strategy}
 }
