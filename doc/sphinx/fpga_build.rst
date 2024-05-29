@@ -164,27 +164,29 @@ The pinning on the other hand, which is used as a constraint in Vivado, must be 
 the :class:`.Constraint` class.
 
 
-Line 24-45: Creating project objects
+Line 24-68: Creating project objects
 ____________________________________
 
-The sources gathered are then use to create project objects which are appended to the ``projects``
-list which is returned at the end.
+The sources gathered are then use to create project objects that are appended to the ``projects``
+list, which is returned at the end of the method.
 
 First a :class:`.VivadoProject` object is created with the name ``artyz7``.
 The modules, part name, TCL sources and constraints are passed to the constructor.
 There is also a ``defined_at`` argument, which is given the path to the ``module_artyz7.py`` file.
 This is used to get a useful ``--list`` result in our :ref:`build_fpga.py <example_build_py>`.
 
-The second project is created using a subclass that inherits :class:`.VivadoProject`.
-It showcases how to use :ref:`pre and post build hook functions <pre_post_build>`.
-The ``post_build()`` function does nothing in this example, but the mechanism can be very useful
-in real-world cases.
+The first project does not have the ``top`` argument set, which means it will be inferred from
+the provided ``name``.
+After the first project, a few other projects are set up with different top levels and
+different settings.
+This is where we could also set different ``generics`` for the projects via the
+:meth:`.VivadoProject.__init__` constructor.
 
-The second project also showcases how to set some generic values.
-For the second project we additionally have to specify the ``top`` name.
-In the first one it is inferred from the project name to be ``artyz7_top``, whereas in the second
-one we have to specify it explicitly.
-
+Note that all of these projects use a project subclass that inherits :class:`.VivadoProject`.
+In this case, the project subclass only adds a few more TCL sources with some further
+message severity settings.
+But using the project subclass concept we could do some more advanced things, for example
+setting up build hooks, as decsribed below.
 
 
 .. _pre_post_build:
@@ -195,11 +197,9 @@ Pre- and post- build function hooks
 The :class:`.VivadoProject` functions :meth:`pre_build() <.VivadoProject.pre_build>` and
 :meth:`post_build() <.VivadoProject.post_build>` can be convenient in certain use cases.
 They will receive all the arguments that are passed to :meth:`.VivadoProject.build`, such as project
-path and output path.
+path, output path, etc.
 Additional named arguments sent to :meth:`.VivadoProject.build` will also be available in
 :meth:`pre_build() <.VivadoProject.pre_build>` and :meth:`post_build() <.VivadoProject.post_build>`.
-So in our :ref:`example build_fpga.py <example_build_py>` above we could have passed further
-arguments on the line that says ``project.build(...)``.
 
 
 
