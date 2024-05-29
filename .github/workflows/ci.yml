@@ -135,6 +135,7 @@ jobs:
           sphinx \
           sphinx_sitemap \
           sphinx-rtd-theme \
+          sphinx-toolbox \
           sphinxext-opengraph \
           vunit-hdl
 
