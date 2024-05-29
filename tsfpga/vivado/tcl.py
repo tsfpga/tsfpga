@@ -324,7 +324,10 @@ set_property "generic" {{{generics_string}}} [current_fileset]
             tcl += f"read_xdc {ref_flags}{managed_flags}{{{constraint_file}}}\n"
 
             get_file = f"[get_files {{{constraint_file}}}]"
-            tcl += f'set_property "PROCESSING_ORDER" "{constraint.processing_order}" {get_file}\n'
+            tcl += (
+                'set_property "PROCESSING_ORDER" '
+                f'"{constraint.processing_order.upper()}" {get_file}\n'
+            )
 
             if constraint.used_in == "impl":
                 tcl += f'set_property "USED_IN_SYNTHESIS" false {get_file}\n'
