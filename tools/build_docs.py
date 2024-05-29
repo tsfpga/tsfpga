@@ -11,6 +11,7 @@ import argparse
 import shutil
 import sys
 from pathlib import Path
+from unittest.mock import patch
 from xml.etree import ElementTree
 
 # Third party libraries
@@ -20,9 +21,13 @@ from pybadges import badge
 REPO_ROOT = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(REPO_ROOT))
 
+# Import before others since it modifies PYTHONPATH. pylint: disable=unused-import
+import tsfpga.examples.example_pythonpath  # noqa: F401
+
 # First party libraries
 import tsfpga
 from tsfpga.about import WEBSITE_URL, get_readme_rst, get_short_slogan
+from tsfpga.module import get_module
 from tsfpga.system_utils import create_directory, create_file, delete, read_file, run_command
 from tsfpga.tools.sphinx_doc import build_sphinx, generate_release_notes
 
@@ -55,6 +60,8 @@ def main() -> None:
     generate_apidoc()
 
     generate_bibtex()
+
+    generate_vivado_scripts()
 
     generate_sphinx_index()
 
@@ -130,6 +137,28 @@ def generate_bibtex() -> None:
     rst = f"{rst_before}{get_short_slogan()}{rst_after}"
 
     create_file(GENERATED_SPHINX / "bibtex.rst", rst)
+
+
+def generate_vivado_scripts() -> None:
+    """
+    Create some Vivado TCL scripts to be shown in documentation.
+    """
+    project_path = GENERATED_SPHINX / "projects" / "artyz7"
+    delete(project_path)
+
+    module = get_module(name="artyz7", modules_folder=tsfpga.TSFPGA_EXAMPLE_MODULES)
+    project = module.get_build_projects()[0]
+
+    with patch("tsfpga.vivado.project.run_vivado_tcl", autospec=True):
+        project.create(
+            project_path=project_path, ip_cache_path=GENERATED_SPHINX / "vivado_ip_cache"
+        )
+        create_file(project_path / "artyz7.xpr")
+        try:
+            project.build(project_path=project_path, output_path=project_path)
+        except FileNotFoundError:
+            # Expected when it can not find utilization reports to parse.
+            pass
 
 
 def generate_sphinx_index() -> None:

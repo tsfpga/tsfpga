@@ -31,6 +31,7 @@ author = "Lukas Vik"
 extensions = [
     "sphinx_rtd_theme",
     "sphinx_sitemap",
+    "sphinx_toolbox.collapse",
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
     "sphinxext.opengraph",
