@@ -6,4 +6,4 @@
 // https://github.com/tsfpga/tsfpga
 // -------------------------------------------------------------------------------------------------
 
-parameter num_dummy_output = 22;
+parameter num_dummy_output = 23;

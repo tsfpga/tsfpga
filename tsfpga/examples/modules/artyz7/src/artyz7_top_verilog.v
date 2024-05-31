@@ -10,7 +10,7 @@
 module artyz7_top_verilog (
   input clk_ext,
   input [0:3] led,
-  output reg [22 - 1:0] dummy_output
+  output reg [23 - 1:0] dummy_output
 );
 
 `include "artyz7_top_verilog_header.vh"
