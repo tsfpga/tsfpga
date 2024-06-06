@@ -255,6 +255,10 @@ class BaseModule:
         """
         Generated register artifacts that are needed for synthesis/implementation will be
         placed in this folder.
+
+        .. warning::
+
+            This path name is also hardcoded in :class:`.GitSimulationSubset`.
         """
         return self.path / "regs_src"
 
