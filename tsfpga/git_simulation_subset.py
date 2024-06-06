@@ -29,7 +29,8 @@ class GitSimulationSubset:
     Find a subset of testbenches to simulate based on git history.
     """
 
-    _re_tb_filename = re.compile(r"(tb_.+\.vhdl?)|(.+\_tb.vhdl?)")
+    _re_tb_filename = re.compile(r"^(tb_.+\.vhdl?)|(.+\_tb.vhdl?)$")
+    _re_register_toml_filename = re.compile(r"^regs_(.+)\.toml$")
 
     def __init__(
         self,
@@ -108,8 +109,11 @@ class GitSimulationSubset:
 
     def _iterate_vhd_file_diffs(self, diffs: Any) -> set[Path]:
         """
-        Return the currently existing files that have been changed (added/renamed/modified)
-        within any of the diffs commits.
+        Return the currently existing VHDL files that have been changed (added/renamed/modified)
+        within any of the ``diffs`` commits.
+
+        Will also try to find VHDL files that depend on generated register artifacts that
+        have changed.
         """
         files = set()
 
@@ -124,6 +128,31 @@ class GitSimulationSubset:
                 if b_path.exists():
                     if b_path.name.endswith(VHDL_FILE_ENDINGS):
                         files.add(b_path.resolve())
+
+                    else:
+                        match = self._re_register_toml_filename.match(b_path.name)
+                        if match is not None:
+                            # Note that this part of the code makes a lot of assumptions, it's
+                            # not the greatest code ever.
+                            # It hard codes the register artifact folder name from the
+                            # 'BaseModule' class.
+                            # It also hard codes the output file name from the
+                            # 'VhdlRegisterPackageGenerator' class.
+                            # Other than that, we might also find stray .toml files laying around,
+                            # which are not part of a module's register setup.
+                            # Which is something we can't really control for.
+                            # In this case, the corresponding VHDL file (which probably does not
+                            # exist)will still be added to the simulation subset.
+                            # But if the TOML file is not actually used, there should be no
+                            # testbench depending on it.
+                            # Hence, erroneously adding stray TOML files should not have any effect.
+                            module_name = match.group(1)
+                            regs_pkg_path = (
+                                b_path.parent.resolve() / "regs_src" / f"{module_name}_regs_pkg.vhd"
+                            )
+                            # It is okay to add only the base register package, since all other
+                            # register artifacts depend on it.
+                            files.add(regs_pkg_path)
 
         self._print_file_list("Found git diff in the following files", files)
         return files
@@ -181,7 +210,7 @@ class GitSimulationSubset:
             assert source_file_path.exists(), source_file_path
 
             # The file is considered a testbench if it follows the tb naming pattern
-            if re.fullmatch(self._re_tb_filename, source_file_path.name):
+            if self._re_tb_filename.match(source_file_path.name) is not None:
                 result.append((source_file, source_file.library.name))
 
         return result
