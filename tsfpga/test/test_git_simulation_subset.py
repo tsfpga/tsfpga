@@ -55,10 +55,10 @@ def test_find_subset(tmp_path):  # pylint: disable=too-many-locals
     #
     # It is quite a complicated test. I am not sure that it adds a tremendous amount of value.
     # It is really just a practice in using mocks. :)
-    vhd_with_diff = create_file(tmp_path / "file_with_diff.vhd")
+    vhd_with_diff = create_file(tmp_path / "file_with_diff.vhdl")
     vhd_with_no_diff = create_file(tmp_path / "file_with_no_diff.vhd")
     tb_vhd_with_diff = create_file(tmp_path / "tb_file_with_diff.vhd")
-    tb_vhd_with_no_diff = create_file(tmp_path / "tb_file_with_no_diff.vhd")
+    tb_vhd_with_no_diff = create_file(tmp_path / "file_with_no_diff_tb.vhdl")
 
     vunit_proj = MagicMock()
 
@@ -117,13 +117,12 @@ def test_find_subset(tmp_path):  # pylint: disable=too-many-locals
                 # This tb, which has no diff, depends on itself and a vhd file that does have a diff
                 return [source_file_tb_vhd_with_no_diff, source_file_vhd_with_diff]
             assert False
-            return None
 
         vunit_proj.get_implementation_subset.side_effect = get_implementation_subset
 
         assert git_simulation_subset.find_subset() == [
-            ("tb_file_with_diff", "zebra"),
-            ("tb_file_with_no_diff", "foo"),
+            (tb_vhd_with_diff.stem, "zebra"),
+            (tb_vhd_with_no_diff.stem, "foo"),
         ]
 
         repo.commit.assert_called_once_with("origin/main")

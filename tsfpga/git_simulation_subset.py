@@ -14,9 +14,14 @@ from typing import TYPE_CHECKING, Any, Optional
 # Third party libraries
 from git.repo import Repo
 
+# Local folder libraries
+from .hdl_file import HdlFile
+
 if TYPE_CHECKING:
     # Local folder libraries
     from .module_list import ModuleList
+
+VHDL_FILE_ENDINGS = HdlFile.file_endings_mapping[HdlFile.Type.VHDL]
 
 
 class GitSimulationSubset:
@@ -24,7 +29,7 @@ class GitSimulationSubset:
     Find a subset of testbenches to simulate based on git history.
     """
 
-    _re_tb_filename = re.compile(r"(tb_.+\.vhd)|(.+\_tb.vhd)")
+    _re_tb_filename = re.compile(r"(tb_.+\.vhdl?)|(.+\_tb.vhdl?)")
 
     def __init__(
         self,
@@ -117,7 +122,7 @@ class GitSimulationSubset:
                 # A file can be changed in an early commit, but then removed/renamed in a
                 # later commit. Include only files that are currently existing.
                 if b_path.exists():
-                    if b_path.name.endswith(".vhd"):
+                    if b_path.name.endswith(VHDL_FILE_ENDINGS):
                         files.add(b_path.resolve())
 
         self._print_file_list("Found git diff in the following files", files)
