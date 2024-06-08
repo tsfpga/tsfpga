@@ -63,7 +63,7 @@ class BaseModule:
         path: Path,
         library_name: str,
         default_registers: Optional[list[Register]] = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Arguments:
