@@ -59,7 +59,11 @@ class BaseModule:
     create_simulation_wait_until_package = True
 
     def __init__(
-        self, path: Path, library_name: str, default_registers: Optional[list[Register]] = None
+        self,
+        path: Path,
+        library_name: str,
+        default_registers: Optional[list[Register]] = None,
+        **kwargs,
     ):
         """
         Arguments:
@@ -73,6 +77,8 @@ class BaseModule:
 
         self._default_registers = default_registers
         self._registers: Optional[RegisterList] = None
+
+        super().__init__(**kwargs)
 
     @staticmethod
     def _get_file_list(
