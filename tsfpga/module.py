@@ -70,7 +70,7 @@ class BaseModule:
             path: Path to the module folder.
             library_name: VHDL library name.
             default_registers: Default registers.
-            kwargs: Further parameters sent along to super().__init__
+            kwargs: Further parameters sent along to ``super().__init__``.
         """
         self.path = path.resolve()
         self.name = path.name
