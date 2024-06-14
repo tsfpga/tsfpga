@@ -9,43 +9,10 @@
 # Standard libraries
 from unittest.mock import MagicMock, patch
 
-# Third party libraries
-import pytest
-
 # First party libraries
 from tsfpga.git_simulation_subset import GitSimulationSubset
+from tsfpga.module import get_modules
 from tsfpga.system_utils import create_file
-
-
-def test_supplying_only_one_of_vunit_preprocessed_path_or_modules_should_raise_exception():
-    GitSimulationSubset(repo_root=None, reference_branch=None, vunit_proj=None)
-    GitSimulationSubset(
-        repo_root=None,
-        reference_branch=None,
-        vunit_proj=None,
-        vunit_preprocessed_path="dummy",
-        modules="dummy",
-    )
-
-    assertion_message = "Can not supply only one of vunit_preprocessed_path and modules"
-
-    with pytest.raises(ValueError) as exception_info:
-        GitSimulationSubset(
-            repo_root=None,
-            reference_branch=None,
-            vunit_proj=None,
-            vunit_preprocessed_path="dummy",
-        )
-    assert str(exception_info.value) == assertion_message
-
-    with pytest.raises(ValueError) as exception_info:
-        GitSimulationSubset(
-            repo_root=None,
-            reference_branch=None,
-            vunit_proj=None,
-            modules="dummy",
-        )
-    assert str(exception_info.value) == assertion_message
 
 
 def test_find_subset(tmp_path):  # pylint: disable=too-many-statements,too-many-locals
@@ -55,19 +22,23 @@ def test_find_subset(tmp_path):  # pylint: disable=too-many-statements,too-many-
     has diffs.
     This means that these TBs should also be returned by find_subset().
     """
-    vhd_with_diff = create_file(tmp_path / "file_with_diff.vhdl")
-    vhd_with_no_diff = create_file(tmp_path / "file_with_no_diff.vhd")
-    tb_vhd_with_diff = create_file(tmp_path / "tb_file_with_diff.vhd")
-    tb_vhd1_with_no_diff = create_file(tmp_path / "file1_with_no_diff_tb.vhdl")
-    tb_vhd2_with_no_diff = create_file(tmp_path / "file2_with_no_diff_tb.vhdl")
-    tb_vhd3_with_no_diff = create_file(tmp_path / "file3_with_no_diff_tb.vhdl")
-    regs_toml_with_diff = create_file(tmp_path / "regs_bar.toml")
-    regs_pkg_vhd_untracked = create_file(tmp_path / "regs_src" / "bar_regs_pkg.vhd")
+    module_paths = tmp_path / "modules"
+
+    vhd_with_diff = create_file(module_paths / "foo" / "file_with_diff.vhdl")
+    vhd_with_no_diff = create_file(module_paths / "foo" / "file_with_no_diff.vhd")
+    tb_vhd_with_diff = create_file(module_paths / "foo" / "tb_file_with_diff.vhd")
+    tb_vhd1_with_no_diff = create_file(module_paths / "foo" / "file1_with_no_diff_tb.vhdl")
+    tb_vhd2_with_no_diff = create_file(module_paths / "foo" / "file2_with_no_diff_tb.vhdl")
+    tb_vhd3_with_no_diff = create_file(module_paths / "foo" / "file3_with_no_diff_tb.vhdl")
+    regs_toml_with_diff = create_file(module_paths / "bar" / "regs_bar.toml")
+    regs_pkg_vhd_untracked = create_file(module_paths / "bar" / "regs_src" / "bar_regs_pkg.vhd")
+
+    modules = get_modules(modules_folder=module_paths)
 
     vunit_proj = MagicMock()
 
     git_simulation_subset = GitSimulationSubset(
-        repo_root=tmp_path, reference_branch="origin/main", vunit_proj=vunit_proj
+        repo_root=tmp_path, reference_branch="origin/main", vunit_proj=vunit_proj, modules=modules
     )
 
     with patch("tsfpga.git_simulation_subset.Repo", autospec=True) as mocked_repo:

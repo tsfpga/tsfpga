@@ -8,6 +8,7 @@
 
 # Standard libraries
 import re
+from collections.abc import Iterable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional
 
@@ -19,6 +20,7 @@ from .hdl_file import HdlFile
 
 if TYPE_CHECKING:
     # Local folder libraries
+    from .module import BaseModule
     from .module_list import ModuleList
 
 VHDL_FILE_ENDINGS = HdlFile.file_endings_mapping[HdlFile.Type.VHDL]
@@ -29,16 +31,21 @@ class GitSimulationSubset:
     Find a subset of testbenches to simulate based on git history.
     """
 
+    # Should work with
+    # * tb_<name>.vhd
+    # * <name>_tb.vhd
+    # and possibly .vhdl as file extension.
     _re_tb_filename = re.compile(r"^(tb_.+\.vhdl?)|(.+\_tb.vhdl?)$")
-    _re_register_toml_filename = re.compile(r"^regs_(.+)\.toml$")
+    # Should work with .toml, .json, .yaml, etc.
+    _re_register_data_filename = re.compile(r"^regs_(.+)\.[a-z]+$")
 
     def __init__(
         self,
         repo_root: Path,
         reference_branch: str,
         vunit_proj: Any,
-        vunit_preprocessed_path: Optional[Path] = None,
         modules: Optional["ModuleList"] = None,
+        vunit_preprocessed_path: Optional[Path] = None,
     ) -> None:
         """
         Arguments:
@@ -47,19 +54,21 @@ class GitSimulationSubset:
                 changed. Typically "origin/main" or "origin/master".
             vunit_proj: A vunit project with all source files and testbenches added. Will be used
                 for dependency scanning.
-            vunit_preprocessed_path: If location/check preprocessing is enabled
-                in your VUnit project, supply the path to vunit_out/preprocessed.
             modules: A list of modules that are included in the VUnit project.
-                Must be supplied only if preprocessing is enabled.
+
+                When this argument is provided, this class will look for changes in the modules'
+                register data files, and simulate the testbenches that depend on register artifacts
+                in case of any changes.
+
+                This argument **must**  be supplied if VUnit preprocessing is enabled.
+            vunit_preprocessed_path: If location/check preprocessing is enabled
+                in your VUnit project, supply the path to ``vunit_out/preprocessed``.
         """
         self._repo_root = repo_root
         self._reference_branch = reference_branch
         self._vunit_proj = vunit_proj
-        self._vunit_preprocessed_path = vunit_preprocessed_path
         self._modules = modules
-
-        if (vunit_preprocessed_path is not None) != (modules is not None):
-            raise ValueError("Can not supply only one of vunit_preprocessed_path and modules")
+        self._vunit_preprocessed_path = vunit_preprocessed_path
 
     def find_subset(self) -> list[tuple[str, str]]:
         """
@@ -117,6 +126,63 @@ class GitSimulationSubset:
         """
         files = set()
 
+        def add_register_artifacts_if_match(
+            diff_path: Path, module_register_data_file: Path, module: "BaseModule"
+        ) -> None:
+            """
+            Note that Path.__eq__ does not do normalization of paths.
+            If one argument is a relative path and the other is an absolute path, they will not
+            be considered equal.
+            Hence, it is important that both paths are resolved before comparison.
+            """
+            if diff_path != module_register_data_file:
+                return
+
+            re_match = self._re_register_data_filename.match(module_register_data_file.name)
+            assert (
+                re_match is not None
+            ), "Register data file does not use the expected naming convention"
+
+            register_list_name = re_match.group(1)
+            regs_pkg_path = module.register_synthesis_folder / f"{register_list_name}_regs_pkg.vhd"
+
+            # It is okay to add only the base register package, since all other
+            # register artifacts depend on it.
+            # This file will typically not exist yet in a CI flow, so it doesn't make sense to
+            # assert for its existence.
+            files.add(regs_pkg_path)
+
+        for diff_path in self._iterate_diff_paths(diffs=diffs):
+            print(diff_path)
+
+            if diff_path.name.endswith(VHDL_FILE_ENDINGS):
+                files.add(diff_path)
+
+            elif self._modules is not None:
+                for module in self._modules:
+                    module_register_data_file = module.register_data_file
+
+                    if isinstance(module_register_data_file, list):
+                        # In users implement a sub-class of BaseModule that has multiple register
+                        # lists. This is not a standard use case, but we support it here.
+                        for data_file in module_register_data_file:
+                            add_register_artifacts_if_match(
+                                diff_path=diff_path,
+                                module_register_data_file=data_file,
+                                module=module,
+                            )
+
+                    else:
+                        add_register_artifacts_if_match(
+                            diff_path=diff_path,
+                            module_register_data_file=module_register_data_file,
+                            module=module,
+                        )
+
+        self._print_file_list("Found git diff in the following files", files)
+        return files
+
+    def _iterate_diff_paths(self, diffs: Any) -> Iterable[Path]:
         for diff in diffs:
             # The diff contains "a" -> "b" changes information. In case of file deletion, a_path
             # will be set but not b_path. Removed files are not included by this method.
@@ -126,36 +192,7 @@ class GitSimulationSubset:
                 # A file can be changed in an early commit, but then removed/renamed in a
                 # later commit. Include only files that are currently existing.
                 if b_path.exists():
-                    if b_path.name.endswith(VHDL_FILE_ENDINGS):
-                        files.add(b_path.resolve())
-
-                    else:
-                        match = self._re_register_toml_filename.match(b_path.name)
-                        if match is not None:
-                            # Note that this part of the code makes a lot of assumptions, it's
-                            # not the greatest code ever.
-                            # It hard codes the register artifact folder name from the
-                            # 'BaseModule' class.
-                            # It also hard codes the output file name from the
-                            # 'VhdlRegisterPackageGenerator' class.
-                            # Other than that, we might also find stray .toml files laying around,
-                            # which are not part of a module's register setup.
-                            # Which is something we can't really control for.
-                            # In this case, the corresponding VHDL file (which probably does not
-                            # exist)will still be added to the simulation subset.
-                            # But if the TOML file is not actually used, there should be no
-                            # testbench depending on it.
-                            # Hence, erroneously adding stray TOML files should not have any effect.
-                            module_name = match.group(1)
-                            regs_pkg_path = (
-                                b_path.parent.resolve() / "regs_src" / f"{module_name}_regs_pkg.vhd"
-                            )
-                            # It is okay to add only the base register package, since all other
-                            # register artifacts depend on it.
-                            files.add(regs_pkg_path)
-
-        self._print_file_list("Found git diff in the following files", files)
-        return files
+                    yield b_path.resolve()
 
     def _get_preprocessed_file_locations(self, vhd_files: set[Path]) -> set[Path]:
         """
@@ -164,6 +201,10 @@ class GitSimulationSubset:
         on IP cores are excluded), hence files that can not be found in any module's simulation
         files are ignored.
         """
+        assert (
+            self._modules is not None
+        ), "Modules must be supplied when VUnit preprocessing is enabled"
+
         result = set()
         for vhd_file in vhd_files:
             library_name = self._get_library_name_from_path(vhd_file)

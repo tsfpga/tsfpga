@@ -149,6 +149,13 @@ class BaseModule:
         ]
 
     @property
+    def register_data_file(self) -> Path:
+        """
+        The path to this module's register data file (which may or may not exist).
+        """
+        return self.path / f"regs_{self.name}.toml"
+
+    @property
     def registers(self) -> Optional[RegisterList]:
         """
         Get the registers for this module.
@@ -159,7 +166,7 @@ class BaseModule:
             # Only create object from TOML once.
             return self._registers
 
-        toml_file = self.path / f"regs_{self.name}.toml"
+        toml_file = self.register_data_file
         if toml_file.exists():
             self._registers = from_toml(
                 name=self.name, toml_file=toml_file, default_registers=self._default_registers
@@ -255,10 +262,6 @@ class BaseModule:
         """
         Generated register artifacts that are needed for synthesis/implementation will be
         placed in this folder.
-
-        .. warning::
-
-            This path name is also hardcoded in :class:`.GitSimulationSubset`.
         """
         return self.path / "regs_src"
 
