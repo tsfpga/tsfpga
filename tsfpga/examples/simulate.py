@@ -150,6 +150,7 @@ def find_git_test_filters(
         repo_root=repo_root,
         reference_branch=reference_branch,
         vunit_proj=simulation_project.vunit_proj,
+        modules=modules,
     ).find_subset()
 
     test_filters = []
