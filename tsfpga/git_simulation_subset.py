@@ -153,8 +153,6 @@ class GitSimulationSubset:
             files.add(regs_pkg_path)
 
         for diff_path in self._iterate_diff_paths(diffs=diffs):
-            print(diff_path)
-
             if diff_path.name.endswith(VHDL_FILE_ENDINGS):
                 files.add(diff_path)
 
