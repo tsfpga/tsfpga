@@ -1,76 +1,78 @@
-
 ################################################################################
-[register.status]
+[status]
 
-[register.status.bit.idle]
-
-description = """'1' when the module is inactive and a new run can be launched.
+idle.type = "bit"
+idle.description = """
+'1' when the module is inactive and a new run can be launched.
 
 '0' when the module is working."""
 
-
-[register.status.integer.counter]
-
-description = "Number of AXI bursts that have finished."
-max_value = 255
+counter.type = "integer"
+counter.description = "Number of AXI bursts that have finished."
+counter.max_value = 255
 
 
 ################################################################################
-[register.command]
+[command]
 
-[register.command.bit.start]
-
-description = "Start a read and write cycle."
+start.type = "bit"
+start.description = "Start a read and write cycle."
 
 
 ################################################################################
-[register.version]
+[version]
 
 mode = "r"
 description = "Version number for this module"
 
-[register.version.integer.version]
-
-description = "Version field."
-max_value = 255
+version.type = "integer"
+version.description = "Version field."
+version.max_value = 255
 
 
 ################################################################################
-[register_array.base_addresses]
+[base_addresses]
 
+type = "register_array"
 array_length = 2
 
 
 # ------------------------------------------------------------------------------
-[register_array.base_addresses.register.read]
+[base_addresses.read]
 
 mode = "r_w"
 description = "Where to read data from."
 
-bit_vector.value.width = 28
-bit_vector.value.description = "Address for a 256 MiB memory space."
+value.type = "bit_vector"
+value.width = 28
+value.description = "Address for a 256 MiB memory space."
 
 
 # ------------------------------------------------------------------------------
-[register_array.base_addresses.register.write]
+[base_addresses.write]
 
 mode = "r_w"
 description = "Where to write data."
 
-bit_vector.value.width = 28
-bit_vector.value.description = "Address for a 256 MiB memory space."
+
+# ------------------------------------------------------------------------------
+value.type = "bit_vector"
+value.width = 28
+value.description = "Address for a 256 MiB memory space."
 
 
 ################################################################################
-[constant.axi_data_width]
+[axi_data_width]
 
+type = "constant"
 value = 64
 description = "Data width of the AXI port used by this module."
 
 
 ################################################################################
-[constant.burst_length_beats]
+[burst_length_beats]
 
+type = "constant"
 value = 16
 description = """
 The burst length, in number of beats, that will be used by this module.

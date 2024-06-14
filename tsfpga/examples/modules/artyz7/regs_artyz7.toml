@@ -1,7 +1,11 @@
-[register_array.resync]
+################################################################################
+[resync]
 
+type = "register_array"
 array_length = 30
 
-# Use 'r_wpulse' mode so we can use both the 'up' and 'down' as registers that will
-# not be stripped by synthesis.
-register.data.mode = "r_wpulse"
+
+# ------------------------------------------------------------------------------
+[resync.data]
+
+mode = "r_wpulse"
