@@ -51,7 +51,7 @@ def main() -> None:
 
     modules = get_tsfpga_example_modules()
 
-    # Avoid the module that depends on Xilinx unisim library
+    # Avoid the module that depends on Xilinx unisim library.
     module_names_avoid = set(["hard_fifo"]) if args.vivado_skip else None
     modules_no_sim = get_hdl_modules(names_avoid=module_names_avoid)
 
@@ -59,7 +59,7 @@ def main() -> None:
         if args.test_patterns != "*":
             sys.exit(
                 "Can not specify a test pattern when using the --vcs-minimal flag."
-                f" Got {args.test_patterns}",
+                f' Got "{args.test_patterns}"',
             )
 
         test_filters = find_git_test_filters(
@@ -73,7 +73,7 @@ def main() -> None:
             print("Nothing to run. Appears to be no VHDL-related git diff.")
             return
 
-        # Override the test pattern argument to VUnit
+        # Override the test pattern argument to VUnit.
         args.test_patterns = test_filters
         print(f"Running VUnit with test pattern {args.test_patterns}")
 
