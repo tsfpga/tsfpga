@@ -57,24 +57,25 @@ begin
     rnd.InitSeed(rnd'instance_name);
 
     if run("test_register_read_write") then
-      write_reg(net, 0, beef, base_address => regs_base_addresses(0));
-      check_reg_equal(net, 0, beef, base_address => regs_base_addresses(0));
+      write_reg(net, 0, beef, base_address => regs_base_addresses(resync_hp0_regs_idx));
+      check_reg_equal(net, 0, beef, base_address => regs_base_addresses(resync_hp0_regs_idx));
 
-      -- Write different value to same register in another register map.
-      -- Should be in another clock domain to verify CDC.
-      write_reg(net, 0, dead, base_address => regs_base_addresses(ddr_buffer_regs_idx));
-      check_reg_equal(net, 0, dead, base_address => regs_base_addresses(ddr_buffer_regs_idx));
+      write_reg(net, 0, dead, base_address => regs_base_addresses(resync_ext_regs_idx));
+      check_reg_equal(net, 0, dead, base_address => regs_base_addresses(resync_ext_regs_idx));
 
-      check_reg_equal(net, 0, beef, base_address => regs_base_addresses(0));
+      check_reg_equal(net, 0, beef, base_address => regs_base_addresses(resync_hp0_regs_idx));
 
     elsif run("test_ddr_buffer") then
       run_ddr_buffer_test(
-        net=>net, memory=>axi_memory, rnd=>rnd, regs_base_address=>ddr_buffer_regs_base_addr
+        net=>net,
+        memory=>axi_memory,
+        rnd=>rnd,
+        regs_base_address=>regs_base_addresses(ddr_buffer_regs_idx)
       );
       check_ddr_buffer_status_counter_equal(
         net=>net,
         expected=>ddr_buffer_base_addresses_array_length,
-        base_address=>ddr_buffer_regs_base_addr
+        base_address=>regs_base_addresses(ddr_buffer_regs_idx)
       );
 
     end if;
