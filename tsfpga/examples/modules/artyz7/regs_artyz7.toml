@@ -1,1 +1,7 @@
-# Nothing here, so only the default registers will be used in the register map of this module.
+[register_array.resync]
+
+array_length = 27
+
+# Use 'r_wpulse' mode so we can use both the 'up' and 'down' as registers that will
+# not be stripped by synthesis.
+register.data.mode = "r_wpulse"
