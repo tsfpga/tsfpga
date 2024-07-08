@@ -88,7 +88,11 @@ begin
 
   ------------------------------------------------------------------------------
   dut : entity work.artyz7_top
+    generic map (
+      is_in_simulation => true
+    )
     port map (
+      enable_led => '1',
       clk_ext => clk_ext
     );
 
