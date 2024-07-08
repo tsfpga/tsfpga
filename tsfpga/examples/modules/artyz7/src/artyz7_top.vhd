@@ -922,15 +922,15 @@ begin
           depth => 1024
         )
         port map (
-          clk_read => clk_ext,
-          read_ready => read_ready,
-          read_valid => read_valid,
-          read_data => read_data,
-          --
           clk_write => clk_s_hp0,
           write_ready => write_ready,
           write_valid => write_valid,
-          write_data => write_data
+          write_data => write_data,
+          --
+          clk_read => clk_ext,
+          read_ready => read_ready,
+          read_valid => read_valid,
+          read_data => read_data
         );
 
       hp0_regs_up.resync(resync_idx).data(31) <= write_ready;
@@ -959,15 +959,15 @@ begin
           depth => 16
         )
         port map (
-          clk_read => clk_ext,
-          read_ready => read_ready,
-          read_valid => read_valid,
-          read_data => read_data,
-          --
           clk_write => clk_s_hp0,
           write_ready => write_ready,
           write_valid => write_valid,
-          write_data => write_data
+          write_data => write_data,
+          --
+          clk_read => clk_ext,
+          read_ready => read_ready,
+          read_valid => read_valid,
+          read_data => read_data
         );
 
       hp0_regs_up.resync(resync_idx).data(31) <= write_ready;
@@ -996,15 +996,15 @@ begin
           depth => 1024
         )
         port map (
-          clk_read => clk_ext,
-          read_ready => read_ready,
-          read_valid => read_valid,
-          read_data => read_data,
-          --
           clk_write => clk_s_hp0,
           write_ready => write_ready,
           write_valid => write_valid,
-          write_data => write_data
+          write_data => write_data,
+          --
+          clk_read => clk_ext,
+          read_ready => read_ready,
+          read_valid => read_valid,
+          read_data => read_data
         );
 
       hp0_regs_up.resync(resync_idx).data(31) <= write_ready;
@@ -1033,15 +1033,15 @@ begin
           depth => 16
         )
         port map (
-          clk_read => clk_ext,
-          read_ready => read_ready,
-          read_valid => read_valid,
-          read_data => read_data,
-          --
           clk_write => clk_s_hp0,
           write_ready => write_ready,
           write_valid => write_valid,
-          write_data => write_data
+          write_data => write_data,
+          --
+          clk_read => clk_ext,
+          read_ready => read_ready,
+          read_valid => read_valid,
+          read_data => read_data
         );
 
       hp0_regs_up.resync(resync_idx).data(31) <= write_ready;
