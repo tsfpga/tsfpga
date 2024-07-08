@@ -16,8 +16,15 @@ use common.addr_pkg.all;
 library reg_file;
 use reg_file.reg_file_pkg.all;
 
+use work.block_design_pkg.all;
+
 
 package artyz7_top_pkg is
+
+  ------------------------------------------------------------------------------
+  -- Assigned in top level.
+  constant clk_m_gp0_frequency_hz : real := pl_clk0_frequency_hz;
+  constant clk_s_hp0_frequency_hz : real := pl_clk1_frequency_hz;
 
   ------------------------------------------------------------------------------
   constant resync_hp0_regs_idx : natural := 0;

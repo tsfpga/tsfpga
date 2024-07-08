@@ -76,3 +76,23 @@ class Module(BaseModule):
         )
 
         return projects
+
+    def get_simulation_files(
+        self, files_avoid=None, include_unisim=True, **kwargs
+    ):  # pylint: disable=arguments-differ
+        """
+        Exclude files that depend on IP cores and/or unisim.
+
+        Note that this must be after the 'get_build_projects' method, since this file up until that
+        point is included in documentation.
+        """
+        files_to_avoid = {
+            self.path / "src" / "mmcm_wrapper.vhd",
+            self.path / "src" / "artyz7_top.vhd",
+            self.path / "test" / "tb_artyz7_top.vhd",
+        }
+
+        if not include_unisim:
+            files_avoid = files_to_avoid if files_avoid is None else files_avoid | files_to_avoid
+
+        return super().get_simulation_files(files_avoid=files_avoid, **kwargs)

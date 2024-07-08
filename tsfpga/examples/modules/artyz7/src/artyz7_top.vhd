@@ -51,7 +51,7 @@ architecture a of artyz7_top is
   signal m_gp0_m2s : axi_m2s_t := axi_m2s_init;
   signal m_gp0_s2m : axi_s2m_t := axi_s2m_init;
 
-  signal clk_s_hp0 : std_ulogic := '0';
+  signal clk_s_hp0, clk_s_hp0_div4 : std_ulogic := '0';
   signal s_hp0_m2s : axi_m2s_t := axi_m2s_init;
   signal s_hp0_s2m : axi_s2m_t := axi_s2m_init;
 
@@ -230,6 +230,17 @@ begin
       );
 
   end block;
+
+
+  ------------------------------------------------------------------------------
+  mmcm_wrapper_inst : entity work.mmcm_wrapper
+    generic map (
+      clk_frequency_hz => clk_s_hp0_frequency_hz
+    )
+    port map (
+      clk => clk_s_hp0,
+      clk_div4 => clk_s_hp0_div4
+    );
 
 
   ------------------------------------------------------------------------------

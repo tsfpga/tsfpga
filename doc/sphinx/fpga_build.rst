@@ -125,7 +125,7 @@ a list of :class:`build project objects <.VivadoProject>`.
 .. literalinclude:: ../../tsfpga/examples/modules/artyz7/module_artyz7.py
    :caption: Example project creation
    :language: python
-   :lines: 9-
+   :lines: 9-78
    :linenos:
 
 There is a lot going on here, so lets go through what happens in ``get_build_projects()``.
