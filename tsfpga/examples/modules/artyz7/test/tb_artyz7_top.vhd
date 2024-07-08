@@ -92,7 +92,7 @@ begin
       is_in_simulation => true
     )
     port map (
-      enable_led => '1',
+      enable_led => (others => '1'),
       clk_ext => clk_ext
     );
 
