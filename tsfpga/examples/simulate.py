@@ -50,10 +50,7 @@ def main() -> None:
     args = cli.parse_args()
 
     modules = get_tsfpga_example_modules()
-
-    # Avoid the module that depends on Xilinx unisim library.
-    module_names_avoid = set(["hard_fifo"]) if args.vivado_skip else None
-    modules_no_sim = get_hdl_modules(names_avoid=module_names_avoid)
+    modules_no_sim = get_hdl_modules()
 
     if args.vcs_minimal:
         if args.test_patterns != "*":
@@ -92,6 +89,10 @@ def main() -> None:
     ip_core_vivado_project_directory = simulation_project.add_vivado_ip_cores(
         modules=modules + modules_no_sim
     )
+    # Synopsys is needed by unisim MMCME2_ADV primitive.
+    # Relaxed rules needed by unisim VITAL2000 package.
+    # Do not use in any new code.
+    simulation_project.vunit_proj.set_sim_option("ghdl.elab_flags", ["-frelaxed", "-fsynopsys"])
 
     create_vhdl_ls_configuration(
         output_path=tsfpga.REPO_ROOT,

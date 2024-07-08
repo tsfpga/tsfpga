@@ -16,6 +16,10 @@ use ieee.std_logic_1164.all;
 
 package block_design_pkg is
 
+  -- Settings in block design.
+  constant pl_clk0_frequency_hz : real := 100.0e6;
+  constant pl_clk1_frequency_hz : real := 200.0e6;
+
   component block_design is
     port (
       M_AXI_GP0_arvalid : out STD_LOGIC;

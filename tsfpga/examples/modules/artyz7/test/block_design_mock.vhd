@@ -20,11 +20,15 @@ use axi.axi_pkg.all;
 
 library bfm;
 
+library common;
+use common.time_pkg.to_period;
+
 library reg_file;
 use reg_file.reg_operations_pkg.regs_bus_master;
 
-use work.top_level_sim_pkg.all;
+use work.block_design_pkg.all;
 use work.artyz7_top_pkg.all;
+use work.top_level_sim_pkg.all;
 
 
 entity block_design_mock is
@@ -44,8 +48,8 @@ end entity;
 
 architecture a of block_design_mock is
 
-  constant pl_clk0_period : time := 10 ns; -- 100 MHz
-  constant pl_clk1_period : time := 5 ns; -- 200 MHz
+  constant pl_clk0_period : time := to_period(frequency_hz=>pl_clk0_frequency_hz);
+  constant pl_clk1_period : time := to_period(frequency_hz=>pl_clk1_frequency_hz);
 
   constant axi_read_slave, axi_write_slave : axi_slave_t := new_axi_slave(
     address_fifo_depth => 1,
