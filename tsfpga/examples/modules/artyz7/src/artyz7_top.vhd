@@ -34,9 +34,13 @@ use work.artyz7_register_record_pkg.all;
 
 
 entity artyz7_top is
+  generic (
+    is_in_simulation : boolean := false
+  );
   port (
     clk_ext : in std_ulogic;
     --# {{}}
+    enable_led : in std_ulogic_vector(0 to 1);
     led : out std_ulogic_vector(0 to 3) := (others => '0')
   );
 end entity;
@@ -59,26 +63,74 @@ architecture a of artyz7_top is
 
 begin
 
-  ------------------------------------------------------------------------------
-  blink_0 : process
-    variable count : u_unsigned(27 - 1 downto 0) := (others => '0');
-  begin
-    wait until rising_edge(clk_m_gp0);
-
-    led(0) <= count(count'high);
-    count := count + 1;
-  end process;
+  assert in_simulation = is_in_simulation severity failure;
 
 
   ------------------------------------------------------------------------------
-  blink_1 : process
-    variable count : u_unsigned(27 - 1 downto 0) := (others => '0');
+  blink0_block : block
+    signal enable_blink : std_ulogic := '0';
   begin
-    wait until rising_edge(clk_s_hp0);
 
-    led(1) <= count(count'high);
-    count := count + 1;
-  end process;
+    ------------------------------------------------------------------------------
+    debounce_inst : entity common.debounce
+      generic map (
+        stable_count => 1024
+      )
+      port map (
+        noisy_input => enable_led(0),
+        --
+        clk => clk_m_gp0,
+        stable_result => enable_blink
+      );
+
+
+    ------------------------------------------------------------------------------
+    blink : process
+      variable count : u_unsigned(27 - 1 downto 0) := (others => '0');
+    begin
+      wait until rising_edge(clk_m_gp0);
+
+      if enable_blink then
+        led(0) <= count(count'high);
+        count := count + 1;
+      end if;
+    end process;
+
+  end block;
+
+
+  ------------------------------------------------------------------------------
+  blink1_block : block
+    signal enable_blink : std_ulogic := '0';
+  begin
+
+    ------------------------------------------------------------------------------
+    debounce_inst : entity common.debounce
+      generic map (
+        stable_count => 1024,
+        enable_iob => false
+      )
+      port map (
+        noisy_input => enable_led(1),
+        --
+        clk => clk_s_hp0,
+        stable_result => enable_blink
+      );
+
+
+    ------------------------------------------------------------------------------
+    blink : process
+      variable count : u_unsigned(27 - 1 downto 0) := (others => '0');
+    begin
+      wait until rising_edge(clk_s_hp0);
+
+      if enable_blink then
+        led(1) <= count(count'high);
+        count := count + 1;
+      end if;
+    end process;
+
+  end block;
 
 
   ------------------------------------------------------------------------------
@@ -476,13 +528,41 @@ begin
 
 
     ------------------------------------------------------------------------------
-    resync_pulse_block : block
+    resync_pulse_with_feedback_block : block
       constant resync_idx : natural := 10;
       signal data_in, data_out : std_ulogic := '0';
     begin
 
       ------------------------------------------------------------------------------
       resync_pulse_inst : entity resync.resync_pulse
+        generic map (
+          enable_feedback => true
+        )
+        port map (
+          clk_in => clk_s_hp0,
+          pulse_in => data_in,
+          --
+          clk_out => clk_ext,
+          pulse_out => data_out
+        );
+
+      data_in <= hp0_regs_down.resync(resync_idx).data(0);
+      ext_regs_up.resync(resync_idx).data(0) <= data_out;
+
+    end block;
+
+
+    ------------------------------------------------------------------------------
+    resync_pulse_without_feedback_block : block
+      constant resync_idx : natural := 11;
+      signal data_in, data_out : std_ulogic := '0';
+    begin
+
+      ------------------------------------------------------------------------------
+      resync_pulse_inst : entity resync.resync_pulse
+        generic map (
+          enable_feedback => false
+        )
         port map (
           clk_in => clk_s_hp0,
           pulse_in => data_in,
@@ -499,7 +579,7 @@ begin
 
     ------------------------------------------------------------------------------
     resync_slv_handshake_wide_block : block
-      constant resync_idx : natural := 11;
+      constant resync_idx : natural := 12;
       signal input_ready, input_valid, result_ready, result_valid : std_ulogic := '0';
       signal input_data, result_data : std_ulogic_vector(16 - 1 downto 0) := (others => '0');
     begin
@@ -534,7 +614,7 @@ begin
 
     ------------------------------------------------------------------------------
     resync_slv_handshake_narrow_block : block
-      constant resync_idx : natural := 12;
+      constant resync_idx : natural := 13;
       signal input_ready, input_valid, result_ready, result_valid : std_ulogic := '0';
       signal input_data, result_data : std_ulogic_vector(2 - 1 downto 0) := (others => '0');
     begin
@@ -569,7 +649,7 @@ begin
 
     ------------------------------------------------------------------------------
     resync_slv_level_coherent_wide_block : block
-      constant resync_idx : natural := 13;
+      constant resync_idx : natural := 14;
       signal data_in, data_out : std_ulogic_vector(16 - 1 downto 0) := (others => '0');
     begin
 
@@ -594,7 +674,7 @@ begin
 
     ------------------------------------------------------------------------------
     resync_slv_level_coherent_narrow_block : block
-      constant resync_idx : natural := 14;
+      constant resync_idx : natural := 15;
       signal data_in, data_out : std_ulogic_vector(2 - 1 downto 0) := (others => '0');
     begin
 
@@ -619,7 +699,7 @@ begin
 
     ------------------------------------------------------------------------------
     resync_slv_level_on_signal_wide_block : block
-      constant resync_idx : natural := 15;
+      constant resync_idx : natural := 16;
       signal data_in, data_out : std_ulogic_vector(16 - 1 downto 0) := (others => '0');
       signal sample_value : std_ulogic := '0';
     begin
@@ -647,7 +727,7 @@ begin
 
     ------------------------------------------------------------------------------
     resync_slv_level_on_signal_narrow_block : block
-      constant resync_idx : natural := 16;
+      constant resync_idx : natural := 17;
       signal data_in, data_out : std_ulogic_vector(2 - 1 downto 0) := (others => '0');
       signal sample_value : std_ulogic := '0';
     begin
@@ -675,7 +755,7 @@ begin
 
     ------------------------------------------------------------------------------
     resync_slv_level_without_clk_in_wide_block : block
-      constant resync_idx : natural := 17;
+      constant resync_idx : natural := 18;
       signal data_in, data_out : std_ulogic_vector(16 - 1 downto 0) := (others => '0');
     begin
 
@@ -700,7 +780,7 @@ begin
 
     ------------------------------------------------------------------------------
     resync_slv_level_without_clk_in_narrow_block : block
-      constant resync_idx : natural := 18;
+      constant resync_idx : natural := 19;
       signal data_in, data_out : std_ulogic_vector(2 - 1 downto 0) := (others => '0');
     begin
 
@@ -725,7 +805,7 @@ begin
 
     ------------------------------------------------------------------------------
     resync_slv_level_with_clk_in_wide_block : block
-      constant resync_idx : natural := 19;
+      constant resync_idx : natural := 20;
       signal data_in, data_out : std_ulogic_vector(16 - 1 downto 0) := (others => '0');
     begin
 
@@ -751,7 +831,7 @@ begin
 
     ------------------------------------------------------------------------------
     resync_slv_level_with_clk_in_narrow_block : block
-      constant resync_idx : natural := 20;
+      constant resync_idx : natural := 21;
       signal data_in, data_out : std_ulogic_vector(2 - 1 downto 0) := (others => '0');
     begin
 
@@ -777,7 +857,7 @@ begin
 
     ------------------------------------------------------------------------------
     resync_slv_level_with_input_register_wide_block : block
-      constant resync_idx : natural := 21;
+      constant resync_idx : natural := 22;
       signal data_in, data_out : std_ulogic_vector(16 - 1 downto 0) := (others => '0');
     begin
 
@@ -803,7 +883,7 @@ begin
 
     ------------------------------------------------------------------------------
     resync_slv_level_with_input_register_narrow_block : block
-      constant resync_idx : natural := 22;
+      constant resync_idx : natural := 23;
       signal data_in, data_out : std_ulogic_vector(2 - 1 downto 0) := (others => '0');
     begin
 
@@ -829,7 +909,7 @@ begin
 
     ------------------------------------------------------------------------------
     asynchronous_fifo_wide_deep_block : block
-      constant resync_idx : natural := 23;
+      constant resync_idx : natural := 24;
       signal write_ready, write_valid, read_ready, read_valid : std_ulogic := '0';
       signal write_data, read_data : std_ulogic_vector(16 - 1 downto 0) := (others => '0');
     begin
@@ -866,7 +946,7 @@ begin
 
     ------------------------------------------------------------------------------
     asynchronous_fifo_wide_shallow_block : block
-      constant resync_idx : natural := 24;
+      constant resync_idx : natural := 25;
       signal write_ready, write_valid, read_ready, read_valid : std_ulogic := '0';
       signal write_data, read_data : std_ulogic_vector(16 - 1 downto 0) := (others => '0');
     begin
@@ -903,7 +983,7 @@ begin
 
     ------------------------------------------------------------------------------
     asynchronous_fifo_narrow_deep_block : block
-      constant resync_idx : natural := 25;
+      constant resync_idx : natural := 26;
       signal write_ready, write_valid, read_ready, read_valid : std_ulogic := '0';
       signal write_data, read_data : std_ulogic_vector(2 - 1 downto 0) := (others => '0');
     begin
@@ -940,7 +1020,7 @@ begin
 
     ------------------------------------------------------------------------------
     asynchronous_fifo_narrow_shallow_block : block
-      constant resync_idx : natural := 26;
+      constant resync_idx : natural := 27;
       signal write_ready, write_valid, read_ready, read_valid : std_ulogic := '0';
       signal write_data, read_data : std_ulogic_vector(2 - 1 downto 0) := (others => '0');
     begin

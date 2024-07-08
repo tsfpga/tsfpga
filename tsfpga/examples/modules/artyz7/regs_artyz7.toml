@@ -1,6 +1,6 @@
 [register_array.resync]
 
-array_length = 27
+array_length = 28
 
 # Use 'r_wpulse' mode so we can use both the 'up' and 'down' as registers that will
 # not be stripped by synthesis.
