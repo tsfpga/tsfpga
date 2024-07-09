@@ -16,8 +16,9 @@ use axi.axi_pkg.all;
 library common;
 use common.common_pkg.all;
 
-use work.block_design_pkg.block_design;
 use work.artyz7_top_pkg.all;
+use work.block_design_pkg.all;
+use work.block_design_wrapper_pkg.block_design;
 
 
 entity block_design_wrapper is

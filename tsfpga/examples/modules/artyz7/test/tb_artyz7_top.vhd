@@ -27,7 +27,7 @@ use reg_file.reg_file_pkg.reg_t;
 use reg_file.reg_operations_pkg.all;
 
 use work.artyz7_top_pkg.all;
-use work.top_level_sim_pkg.all;
+use work.block_design_pkg.all;
 
 
 entity tb_artyz7_top is

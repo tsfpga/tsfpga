@@ -26,25 +26,19 @@ package artyz7_top_pkg is
   constant clk_m_gp0_frequency_hz : real := pl_clk0_frequency_hz;
   constant clk_s_hp0_frequency_hz : real := pl_clk1_frequency_hz;
 
+
   ------------------------------------------------------------------------------
+  -- Register bus.
   constant resync_hp0_regs_idx : natural := 0;
   constant resync_ext_regs_idx : natural := 1;
-  constant ddr_buffer_regs_idx : natural := 2;
+  constant resync_synchronous_regs_idx : natural := 2;
+  constant ddr_buffer_regs_idx : natural := 3;
 
-  constant regs_base_addresses : addr_vec_t(0 to 3 - 1) := (
+  constant regs_base_addresses : addr_vec_t(0 to 4 - 1) := (
     resync_hp0_regs_idx => x"0000_0000",
     resync_ext_regs_idx => x"0000_1000",
-    ddr_buffer_regs_idx => x"0000_2000"
+    resync_synchronous_regs_idx => x"0000_2000",
+    ddr_buffer_regs_idx => x"0000_3000"
   );
-
-
-  ------------------------------------------------------------------------------
-  constant m_gp0_id_width : natural := 12;
-  constant m_gp0_addr_width : positive := 32;
-  constant m_gp0_data_width : positive := 32;
-
-  constant s_hp0_id_width : natural := 6;
-  constant s_hp0_addr_width : positive := 32;
-  constant s_hp0_data_width : positive := 64;
 
 end;
