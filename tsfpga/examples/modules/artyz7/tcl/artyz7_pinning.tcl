@@ -10,8 +10,8 @@
 # --------------------------------------------------------------------------------------------------
 
 # Clock Signal.
-set_property -dict {"PACKAGE_PIN" "H16" "IOSTANDARD" "LVCMOS33"} [get_ports "clk_ext"]
-create_clock -add -name "clk_ext" -period 8.00 -waveform {0 4} [get_ports "clk_ext"]
+set_property -dict {"PACKAGE_PIN" "H16" "IOSTANDARD" "LVCMOS33"} [get_ports "ext_clk"]
+create_clock -add -name "ext_clk" -period 8.00 -waveform {0 4} [get_ports "ext_clk"]
 
 # Switches.
 set_property -dict {"PACKAGE_PIN" "M20" "IOSTANDARD" "LVCMOS33"} [get_ports "enable_led[0]"]

@@ -31,6 +31,7 @@ library resync;
 use work.artyz7_top_pkg.all;
 use work.artyz7_regs_pkg.all;
 use work.artyz7_register_record_pkg.all;
+use work.block_design_pkg.all;
 
 
 entity artyz7_top is
@@ -38,7 +39,7 @@ entity artyz7_top is
     is_in_simulation : boolean := false
   );
   port (
-    clk_ext : in std_ulogic;
+    ext_clk : in std_ulogic;
     --# {{}}
     enable_led : in std_ulogic_vector(0 to 1);
     led : out std_ulogic_vector(0 to 3) := (others => '0')
@@ -47,19 +48,20 @@ end entity;
 
 architecture a of artyz7_top is
 
-  signal clk_m_gp0 : std_ulogic := '0';
+  signal pl_clk, pl_clk_div4 : std_ulogic := '0';
+
   signal m_gp0_m2s : axi_m2s_t := axi_m2s_init;
   signal m_gp0_s2m : axi_s2m_t := axi_s2m_init;
 
-  signal clk_s_hp0, clk_s_hp0_div4 : std_ulogic := '0';
   signal s_hp0_m2s : axi_m2s_t := axi_m2s_init;
   signal s_hp0_s2m : axi_s2m_t := axi_s2m_init;
 
   signal regs_m2s : axi_lite_m2s_vec_t(regs_base_addresses'range) := (others => axi_lite_m2s_init);
   signal regs_s2m : axi_lite_s2m_vec_t(regs_base_addresses'range) := (others => axi_lite_s2m_init);
 
-  signal hp0_regs_up, ext_regs_up : artyz7_regs_up_t := artyz7_regs_up_init;
-  signal hp0_regs_down, ext_regs_down : artyz7_regs_down_t := artyz7_regs_down_init;
+  signal ext_regs_up, pl_regs_up, pl_div4_regs_up : artyz7_regs_up_t := artyz7_regs_up_init;
+  signal ext_regs_down, pl_regs_down, pl_div4_regs_down : artyz7_regs_down_t :=
+    artyz7_regs_down_init;
 
 begin
 
@@ -80,7 +82,7 @@ begin
       port map (
         noisy_input => enable_led(0),
         --
-        clk => clk_m_gp0,
+        clk => pl_clk,
         stable_result => enable_blink
       );
 
@@ -89,7 +91,7 @@ begin
     blink : process
       variable count : u_unsigned(27 - 1 downto 0) := (others => '0');
     begin
-      wait until rising_edge(clk_m_gp0);
+      wait until rising_edge(pl_clk);
 
       if enable_blink then
         led(0) <= count(count'high);
@@ -114,7 +116,7 @@ begin
       port map (
         noisy_input => enable_led(1),
         --
-        clk => clk_s_hp0,
+        clk => ext_clk,
         stable_result => enable_blink
       );
 
@@ -123,7 +125,7 @@ begin
     blink : process
       variable count : u_unsigned(27 - 1 downto 0) := (others => '0');
     begin
-      wait until rising_edge(clk_s_hp0);
+      wait until rising_edge(ext_clk);
 
       if enable_blink then
         led(1) <= count(count'high);
@@ -139,7 +141,10 @@ begin
     -- Set up some registers to be in same clock domain as AXI port,
     -- and some to be in another clock domain.
     constant clocks_are_the_same : boolean_vector(regs_base_addresses'range) := (
-      resync_hp0_regs_idx => false, resync_ext_regs_idx => false, ddr_buffer_regs_idx => false
+      resync_ext_regs_idx => false,
+      resync_pl_regs_idx => true,
+      resync_pl_div4_regs_idx => false,
+      ddr_buffer_regs_idx => true
     );
   begin
 
@@ -150,35 +155,22 @@ begin
         clocks_are_the_same => clocks_are_the_same
       )
       port map (
-        clk_axi => clk_m_gp0,
+        clk_axi => pl_clk,
         axi_m2s => m_gp0_m2s,
         axi_s2m => m_gp0_s2m,
         --
-        clk_axi_lite_vec(resync_hp0_regs_idx) => clk_s_hp0,
-        clk_axi_lite_vec(resync_ext_regs_idx) => clk_ext,
-        clk_axi_lite_vec(ddr_buffer_regs_idx) => clk_s_hp0,
+        clk_axi_lite_vec(resync_ext_regs_idx) => ext_clk,
+        clk_axi_lite_vec(resync_pl_regs_idx) => '0',
+        clk_axi_lite_vec(resync_pl_div4_regs_idx) => pl_clk_div4,
+        clk_axi_lite_vec(ddr_buffer_regs_idx) => '0',
         axi_lite_m2s_vec => regs_m2s,
         axi_lite_s2m_vec => regs_s2m
       );
 
-
-    ------------------------------------------------------------------------------
-    resync_hp0_artyz7_reg_file_inst : entity work.artyz7_reg_file
-      port map (
-        clk => clk_s_hp0,
-        --
-        axi_lite_m2s => regs_m2s(resync_hp0_regs_idx),
-        axi_lite_s2m => regs_s2m(resync_hp0_regs_idx),
-        --
-        regs_up => hp0_regs_up,
-        regs_down => hp0_regs_down
-      );
-
-
     ------------------------------------------------------------------------------
     resync_ext_artyz7_reg_file_inst : entity work.artyz7_reg_file
       port map (
-        clk => clk_ext,
+        clk => ext_clk,
         --
         axi_lite_m2s => regs_m2s(resync_ext_regs_idx),
         axi_lite_s2m => regs_s2m(resync_ext_regs_idx),
@@ -187,13 +179,38 @@ begin
         regs_down => ext_regs_down
       );
 
+
+    ------------------------------------------------------------------------------
+    resync_pl_artyz7_reg_file_inst : entity work.artyz7_reg_file
+      port map (
+        clk => pl_clk,
+        --
+        axi_lite_m2s => regs_m2s(resync_pl_regs_idx),
+        axi_lite_s2m => regs_s2m(resync_pl_regs_idx),
+        --
+        regs_up => pl_regs_up,
+        regs_down => pl_regs_down
+      );
+
+
+    ------------------------------------------------------------------------------
+    resync_pl_div4_artyz7_reg_file_inst : entity work.artyz7_reg_file
+      port map (
+        clk => pl_clk_div4,
+        --
+        axi_lite_m2s => regs_m2s(resync_pl_div4_regs_idx),
+        axi_lite_s2m => regs_s2m(resync_pl_div4_regs_idx),
+        --
+        regs_up => pl_div4_regs_up,
+        regs_down => pl_div4_regs_down
+      );
   end block;
 
 
   ------------------------------------------------------------------------------
   ddr_buffer_inst : entity ddr_buffer.ddr_buffer_top
     port map (
-      clk => clk_s_hp0,
+      clk => pl_clk,
       --
       axi_read_m2s => s_hp0_m2s.read,
       axi_read_s2m => s_hp0_s2m.read,
@@ -208,26 +225,18 @@ begin
 
   ------------------------------------------------------------------------------
   block_design : block
-    signal pl_clk0, pl_clk1 : std_ulogic := '0';
   begin
-
-    clk_m_gp0 <= pl_clk0;
-    clk_s_hp0 <= pl_clk1;
-
 
     ------------------------------------------------------------------------------
     block_design_inst : entity work.block_design_wrapper
       port map (
-        clk_m_gp0 => clk_m_gp0,
         m_gp0_m2s => m_gp0_m2s,
         m_gp0_s2m => m_gp0_s2m,
         --
-        clk_s_hp0 => clk_s_hp0,
         s_hp0_m2s => s_hp0_m2s,
         s_hp0_s2m => s_hp0_s2m,
         --
-        pl_clk0 => pl_clk0,
-        pl_clk1 => pl_clk1
+        pl_clk => pl_clk
       );
 
   end block;
@@ -236,18 +245,18 @@ begin
   ------------------------------------------------------------------------------
   mmcm_wrapper_inst : entity work.mmcm_wrapper
     generic map (
-      clk_frequency_hz => clk_s_hp0_frequency_hz
+      clk_frequency_hz => pl_clk_frequency_hz
     )
     port map (
-      clk => clk_s_hp0,
-      clk_div4 => clk_s_hp0_div4
+      clk => pl_clk,
+      clk_div4 => pl_clk_div4
     );
 
 
   ------------------------------------------------------------------------------
   -- Build with an instance of each of the available resync block. To show that the constraints work
   -- and the build passes timing.
-  -- All resync should be from internal clock to clk_ext.
+  -- All resync should be from internal clock to ext_clk.
   resync_test_block : block
   begin
 
@@ -260,7 +269,7 @@ begin
       ------------------------------------------------------------------------------
       assign_input : process
       begin
-        wait until rising_edge(clk_s_hp0);
+        wait until rising_edge(pl_clk);
 
         -- If changed to +2, simulation should crash on assert false.
         data_in <= data_in + 1;
@@ -274,10 +283,10 @@ begin
           pipeline_output => false
         )
         port map (
-          clk_in => clk_s_hp0,
+          clk_in => pl_clk,
           counter_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           counter_out => data_out
         );
 
@@ -295,7 +304,7 @@ begin
       ------------------------------------------------------------------------------
       assign_input : process
       begin
-        wait until rising_edge(clk_s_hp0);
+        wait until rising_edge(pl_clk);
 
         -- If changed to +2, simulation should crash on assert false.
         data_in <= data_in + 1;
@@ -309,10 +318,10 @@ begin
           pipeline_output => false
         )
         port map (
-          clk_in => clk_s_hp0,
+          clk_in => pl_clk,
           counter_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           counter_out => data_out
         );
 
@@ -330,7 +339,7 @@ begin
       ------------------------------------------------------------------------------
       assign_input : process
       begin
-        wait until rising_edge(clk_s_hp0);
+        wait until rising_edge(pl_clk);
 
         -- If changed to +2, simulation should crash on assert false.
         data_in <= data_in + 1;
@@ -344,10 +353,10 @@ begin
           pipeline_output => true
         )
         port map (
-          clk_in => clk_s_hp0,
+          clk_in => pl_clk,
           counter_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           counter_out => data_out
         );
 
@@ -365,7 +374,7 @@ begin
       ------------------------------------------------------------------------------
       assign_input : process
       begin
-        wait until rising_edge(clk_s_hp0);
+        wait until rising_edge(pl_clk);
 
         -- If changed to +2, simulation should crash on assert false.
         data_in <= data_in + 1;
@@ -379,10 +388,10 @@ begin
           pipeline_output => true
         )
         port map (
-          clk_in => clk_s_hp0,
+          clk_in => pl_clk,
           counter_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           counter_out => data_out
         );
 
@@ -403,14 +412,14 @@ begin
           counter_width => 16
         )
         port map (
-          clk_in => clk_s_hp0,
+          clk_in => pl_clk,
           data_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           data_out => data_out
         );
 
-      data_in <= hp0_regs_down.resync(resync_idx).data(0);
+      data_in <= pl_regs_down.resync(resync_idx).data(0);
       ext_regs_up.resync(resync_idx).data(0) <= data_out;
 
     end block;
@@ -428,14 +437,14 @@ begin
           counter_width => 2
         )
         port map (
-          clk_in => clk_s_hp0,
+          clk_in => pl_clk,
           data_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           data_out => data_out
         );
 
-      data_in <= hp0_regs_down.resync(resync_idx).data(0);
+      data_in <= pl_regs_down.resync(resync_idx).data(0);
       ext_regs_up.resync(resync_idx).data(0) <= data_out;
 
     end block;
@@ -452,12 +461,12 @@ begin
         port map (
           data_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           sample_value => sample_value,
           data_out => data_out
         );
 
-      data_in <= hp0_regs_down.resync(resync_idx).data(0);
+      data_in <= pl_regs_down.resync(resync_idx).data(0);
 
       sample_value <= ext_regs_down.resync(resync_idx).data(0);
       ext_regs_up.resync(resync_idx).data(0) <= data_out;
@@ -477,14 +486,14 @@ begin
           enable_input_register => false
         )
         port map (
-          clk_in => clk_s_hp0,
+          clk_in => pl_clk,
           data_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           data_out => data_out
         );
 
-      data_in <= hp0_regs_down.resync(resync_idx).data(0);
+      data_in <= pl_regs_down.resync(resync_idx).data(0);
       ext_regs_up.resync(resync_idx).data(0) <= data_out;
 
     end block;
@@ -502,14 +511,14 @@ begin
           enable_input_register => true
         )
         port map (
-          clk_in => clk_s_hp0,
+          clk_in => pl_clk,
           data_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           data_out => data_out
         );
 
-      data_in <= hp0_regs_down.resync(resync_idx).data(0);
+      data_in <= pl_regs_down.resync(resync_idx).data(0);
       ext_regs_up.resync(resync_idx).data(0) <= data_out;
 
     end block;
@@ -529,11 +538,11 @@ begin
         port map (
           data_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           data_out => data_out
         );
 
-      data_in <= hp0_regs_down.resync(resync_idx).data(0);
+      data_in <= pl_regs_down.resync(resync_idx).data(0);
       ext_regs_up.resync(resync_idx).data(0) <= data_out;
 
     end block;
@@ -551,14 +560,14 @@ begin
           enable_feedback => true
         )
         port map (
-          clk_in => clk_s_hp0,
+          clk_in => pl_clk,
           pulse_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           pulse_out => data_out
         );
 
-      data_in <= hp0_regs_down.resync(resync_idx).data(0);
+      data_in <= pl_regs_down.resync(resync_idx).data(0);
       ext_regs_up.resync(resync_idx).data(0) <= data_out;
 
     end block;
@@ -576,14 +585,14 @@ begin
           enable_feedback => false
         )
         port map (
-          clk_in => clk_s_hp0,
+          clk_in => pl_clk,
           pulse_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           pulse_out => data_out
         );
 
-      data_in <= hp0_regs_down.resync(resync_idx).data(0);
+      data_in <= pl_regs_down.resync(resync_idx).data(0);
       ext_regs_up.resync(resync_idx).data(0) <= data_out;
 
     end block;
@@ -602,20 +611,20 @@ begin
           data_width => input_data'length
         )
         port map (
-          input_clk => clk_s_hp0,
+          input_clk => pl_clk,
           input_ready => input_ready,
           input_valid => input_valid,
           input_data => input_data,
           --
-          result_clk => clk_ext,
+          result_clk => ext_clk,
           result_ready => result_ready,
           result_valid => result_valid,
           result_data => result_data
         );
 
-      hp0_regs_up.resync(resync_idx).data(31) <= input_ready;
-      input_valid <= hp0_regs_down.resync(resync_idx).data(31);
-      input_data <= hp0_regs_down.resync(resync_idx).data(input_data'range);
+      pl_regs_up.resync(resync_idx).data(31) <= input_ready;
+      input_valid <= pl_regs_down.resync(resync_idx).data(31);
+      input_data <= pl_regs_down.resync(resync_idx).data(input_data'range);
 
       result_ready <= ext_regs_down.resync(resync_idx).data(31);
       ext_regs_up.resync(resync_idx).data(31) <= result_valid;
@@ -637,20 +646,20 @@ begin
           data_width => input_data'length
         )
         port map (
-          input_clk => clk_s_hp0,
+          input_clk => pl_clk,
           input_ready => input_ready,
           input_valid => input_valid,
           input_data => input_data,
           --
-          result_clk => clk_ext,
+          result_clk => ext_clk,
           result_ready => result_ready,
           result_valid => result_valid,
           result_data => result_data
         );
 
-      hp0_regs_up.resync(resync_idx).data(31) <= input_ready;
-      input_valid <= hp0_regs_down.resync(resync_idx).data(31);
-      input_data <= hp0_regs_down.resync(resync_idx).data(input_data'range);
+      pl_regs_up.resync(resync_idx).data(31) <= input_ready;
+      input_valid <= pl_regs_down.resync(resync_idx).data(31);
+      input_data <= pl_regs_down.resync(resync_idx).data(input_data'range);
 
       result_ready <= ext_regs_down.resync(resync_idx).data(31);
       ext_regs_up.resync(resync_idx).data(31) <= result_valid;
@@ -671,14 +680,14 @@ begin
           width => data_in'length
         )
         port map (
-          clk_in => clk_s_hp0,
+          clk_in => pl_clk,
           data_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           data_out => data_out
         );
 
-      data_in <= hp0_regs_down.resync(resync_idx).data(data_in'range);
+      data_in <= pl_regs_down.resync(resync_idx).data(data_in'range);
       ext_regs_up.resync(resync_idx).data(data_out'range) <= data_out;
 
     end block;
@@ -696,14 +705,14 @@ begin
           width => data_in'length
         )
         port map (
-          clk_in => clk_s_hp0,
+          clk_in => pl_clk,
           data_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           data_out => data_out
         );
 
-      data_in <= hp0_regs_down.resync(resync_idx).data(data_in'range);
+      data_in <= pl_regs_down.resync(resync_idx).data(data_in'range);
       ext_regs_up.resync(resync_idx).data(data_out'range) <= data_out;
 
     end block;
@@ -724,12 +733,12 @@ begin
         port map (
           data_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           sample_value => sample_value,
           data_out => data_out
         );
 
-      data_in <= hp0_regs_down.resync(resync_idx).data(data_in'range);
+      data_in <= pl_regs_down.resync(resync_idx).data(data_in'range);
 
       sample_value <= ext_regs_down.resync(resync_idx).data(0);
       ext_regs_up.resync(resync_idx).data(data_out'range) <= data_out;
@@ -752,12 +761,12 @@ begin
         port map (
           data_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           sample_value => sample_value,
           data_out => data_out
         );
 
-      data_in <= hp0_regs_down.resync(resync_idx).data(data_in'range);
+      data_in <= pl_regs_down.resync(resync_idx).data(data_in'range);
 
       sample_value <= ext_regs_down.resync(resync_idx).data(0);
       ext_regs_up.resync(resync_idx).data(data_out'range) <= data_out;
@@ -780,11 +789,11 @@ begin
         port map (
           data_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           data_out => data_out
         );
 
-      data_in <= hp0_regs_down.resync(resync_idx).data(data_in'range);
+      data_in <= pl_regs_down.resync(resync_idx).data(data_in'range);
       ext_regs_up.resync(resync_idx).data(data_out'range) <= data_out;
 
     end block;
@@ -805,11 +814,11 @@ begin
         port map (
           data_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           data_out => data_out
         );
 
-      data_in <= hp0_regs_down.resync(resync_idx).data(data_in'range);
+      data_in <= pl_regs_down.resync(resync_idx).data(data_in'range);
       ext_regs_up.resync(resync_idx).data(data_out'range) <= data_out;
 
     end block;
@@ -828,14 +837,14 @@ begin
           enable_input_register => false
         )
         port map (
-          clk_in => clk_s_hp0,
+          clk_in => pl_clk,
           data_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           data_out => data_out
         );
 
-      data_in <= hp0_regs_down.resync(resync_idx).data(data_in'range);
+      data_in <= pl_regs_down.resync(resync_idx).data(data_in'range);
       ext_regs_up.resync(resync_idx).data(data_out'range) <= data_out;
 
     end block;
@@ -854,14 +863,14 @@ begin
           enable_input_register => false
         )
         port map (
-          clk_in => clk_s_hp0,
+          clk_in => pl_clk,
           data_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           data_out => data_out
         );
 
-      data_in <= hp0_regs_down.resync(resync_idx).data(data_in'range);
+      data_in <= pl_regs_down.resync(resync_idx).data(data_in'range);
       ext_regs_up.resync(resync_idx).data(data_out'range) <= data_out;
 
     end block;
@@ -880,14 +889,14 @@ begin
           enable_input_register => true
         )
         port map (
-          clk_in => clk_s_hp0,
+          clk_in => pl_clk,
           data_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           data_out => data_out
         );
 
-      data_in <= hp0_regs_down.resync(resync_idx).data(data_in'range);
+      data_in <= pl_regs_down.resync(resync_idx).data(data_in'range);
       ext_regs_up.resync(resync_idx).data(data_out'range) <= data_out;
 
     end block;
@@ -906,14 +915,14 @@ begin
           enable_input_register => true
         )
         port map (
-          clk_in => clk_s_hp0,
+          clk_in => pl_clk,
           data_in => data_in,
           --
-          clk_out => clk_ext,
+          clk_out => ext_clk,
           data_out => data_out
         );
 
-      data_in <= hp0_regs_down.resync(resync_idx).data(data_in'range);
+      data_in <= pl_regs_down.resync(resync_idx).data(data_in'range);
       ext_regs_up.resync(resync_idx).data(data_out'range) <= data_out;
 
     end block;
@@ -934,20 +943,20 @@ begin
           depth => 1024
         )
         port map (
-          clk_write => clk_s_hp0,
+          clk_write => pl_clk,
           write_ready => write_ready,
           write_valid => write_valid,
           write_data => write_data,
           --
-          clk_read => clk_ext,
+          clk_read => ext_clk,
           read_ready => read_ready,
           read_valid => read_valid,
           read_data => read_data
         );
 
-      hp0_regs_up.resync(resync_idx).data(31) <= write_ready;
-      write_valid <= hp0_regs_down.resync(resync_idx).data(31);
-      write_data <= hp0_regs_down.resync(resync_idx).data(write_data'range);
+      pl_regs_up.resync(resync_idx).data(31) <= write_ready;
+      write_valid <= pl_regs_down.resync(resync_idx).data(31);
+      write_data <= pl_regs_down.resync(resync_idx).data(write_data'range);
 
       read_ready <= ext_regs_down.resync(resync_idx).data(31);
       ext_regs_up.resync(resync_idx).data(31) <= read_valid;
@@ -971,20 +980,20 @@ begin
           depth => 16
         )
         port map (
-          clk_write => clk_s_hp0,
+          clk_write => pl_clk,
           write_ready => write_ready,
           write_valid => write_valid,
           write_data => write_data,
           --
-          clk_read => clk_ext,
+          clk_read => ext_clk,
           read_ready => read_ready,
           read_valid => read_valid,
           read_data => read_data
         );
 
-      hp0_regs_up.resync(resync_idx).data(31) <= write_ready;
-      write_valid <= hp0_regs_down.resync(resync_idx).data(31);
-      write_data <= hp0_regs_down.resync(resync_idx).data(write_data'range);
+      pl_regs_up.resync(resync_idx).data(31) <= write_ready;
+      write_valid <= pl_regs_down.resync(resync_idx).data(31);
+      write_data <= pl_regs_down.resync(resync_idx).data(write_data'range);
 
       read_ready <= ext_regs_down.resync(resync_idx).data(31);
       ext_regs_up.resync(resync_idx).data(31) <= read_valid;
@@ -1008,20 +1017,20 @@ begin
           depth => 1024
         )
         port map (
-          clk_write => clk_s_hp0,
+          clk_write => pl_clk,
           write_ready => write_ready,
           write_valid => write_valid,
           write_data => write_data,
           --
-          clk_read => clk_ext,
+          clk_read => ext_clk,
           read_ready => read_ready,
           read_valid => read_valid,
           read_data => read_data
         );
 
-      hp0_regs_up.resync(resync_idx).data(31) <= write_ready;
-      write_valid <= hp0_regs_down.resync(resync_idx).data(31);
-      write_data <= hp0_regs_down.resync(resync_idx).data(write_data'range);
+      pl_regs_up.resync(resync_idx).data(31) <= write_ready;
+      write_valid <= pl_regs_down.resync(resync_idx).data(31);
+      write_data <= pl_regs_down.resync(resync_idx).data(write_data'range);
 
       read_ready <= ext_regs_down.resync(resync_idx).data(31);
       ext_regs_up.resync(resync_idx).data(31) <= read_valid;
@@ -1045,20 +1054,20 @@ begin
           depth => 16
         )
         port map (
-          clk_write => clk_s_hp0,
+          clk_write => pl_clk,
           write_ready => write_ready,
           write_valid => write_valid,
           write_data => write_data,
           --
-          clk_read => clk_ext,
+          clk_read => ext_clk,
           read_ready => read_ready,
           read_valid => read_valid,
           read_data => read_data
         );
 
-      hp0_regs_up.resync(resync_idx).data(31) <= write_ready;
-      write_valid <= hp0_regs_down.resync(resync_idx).data(31);
-      write_data <= hp0_regs_down.resync(resync_idx).data(write_data'range);
+      pl_regs_up.resync(resync_idx).data(31) <= write_ready;
+      write_valid <= pl_regs_down.resync(resync_idx).data(31);
+      write_data <= pl_regs_down.resync(resync_idx).data(write_data'range);
 
       read_ready <= ext_regs_down.resync(resync_idx).data(31);
       ext_regs_up.resync(resync_idx).data(31) <= read_valid;
@@ -1078,7 +1087,7 @@ begin
       logger_name_suffix => " - artyz7_top"
     )
     port map (
-      clk => clk_s_hp0,
+      clk => pl_clk,
       --
       ready => s_hp0_s2m.write.w.ready,
       valid => s_hp0_m2s.write.w.valid,

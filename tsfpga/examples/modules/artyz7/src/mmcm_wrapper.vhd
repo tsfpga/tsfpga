@@ -6,7 +6,7 @@
 -- https://github.com/tsfpga/tsfpga
 -- -------------------------------------------------------------------------------------------------
 -- Parameterization and instantiation from AMD Vivado clocking wizard IP with
--- settings 200 MHz -> 50 MHz.
+-- settings 100 MHz -> 25 MHz.
 -- -------------------------------------------------------------------------------------------------
 
 library ieee;
@@ -32,11 +32,11 @@ architecture a of mmcm_wrapper is
   constant clk_period_ns : real := 1.0e9 / clk_frequency_hz;
 
   constant mmcm_d : positive := 1;
-  constant mmcm_m : real := 5.0;
+  constant mmcm_m : real := 9.125;
 
   constant mmcm_f_vco_hz : real := clk_frequency_hz * mmcm_m / real(mmcm_d);
 
-  constant mmcm_o : real := 20.0;
+  constant mmcm_o : real := 36.5;
 
   constant result_clk_frequency_hz : real := mmcm_f_vco_hz / mmcm_o;
 

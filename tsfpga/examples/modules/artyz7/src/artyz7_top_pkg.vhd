@@ -22,22 +22,16 @@ use work.block_design_pkg.all;
 package artyz7_top_pkg is
 
   ------------------------------------------------------------------------------
-  -- Assigned in top level.
-  constant clk_m_gp0_frequency_hz : real := pl_clk0_frequency_hz;
-  constant clk_s_hp0_frequency_hz : real := pl_clk1_frequency_hz;
-
-
-  ------------------------------------------------------------------------------
   -- Register bus.
-  constant resync_hp0_regs_idx : natural := 0;
-  constant resync_ext_regs_idx : natural := 1;
-  constant resync_synchronous_regs_idx : natural := 2;
+  constant resync_ext_regs_idx : natural := 0;
+  constant resync_pl_regs_idx : natural := 1;
+  constant resync_pl_div4_regs_idx : natural := 2;
   constant ddr_buffer_regs_idx : natural := 3;
 
   constant regs_base_addresses : addr_vec_t(0 to 4 - 1) := (
-    resync_hp0_regs_idx => x"0000_0000",
-    resync_ext_regs_idx => x"0000_1000",
-    resync_synchronous_regs_idx => x"0000_2000",
+    resync_ext_regs_idx => x"0000_0000",
+    resync_pl_regs_idx => x"0000_1000",
+    resync_pl_div4_regs_idx => x"0000_2000",
     ddr_buffer_regs_idx => x"0000_3000"
   );
 

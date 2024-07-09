@@ -8,7 +8,7 @@
 
 
 module artyz7_top_verilog (
-  input clk_ext,
+  input ext_clk,
   input [0:3] led,
   output reg [23 - 1:0] dummy_output
 );
@@ -17,7 +17,7 @@ module artyz7_top_verilog (
 
 integer i;
 
-always@(posedge clk_ext)
+always@(posedge ext_clk)
 begin
   for (i = 0; i < num_leds; i = i + 1) begin
     dummy_output[i] = led[i];
