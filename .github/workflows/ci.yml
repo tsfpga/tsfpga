@@ -55,7 +55,7 @@ jobs:
 
     - name: Install Python packages
       run: |
-        python3 -m pip install GitPython pytest rtoml vunit-hdl
+        python3 -m pip install GitPython pytest rtoml vunit-hdl@git+https://github.com/VUnit/vunit.git
 
     - name: Clone dependency repos
       run: |
