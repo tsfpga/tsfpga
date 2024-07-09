@@ -17,19 +17,11 @@ library axi_lite;
 use axi_lite.axi_lite_pkg.all;
 
 library common;
-use common.attribute_pkg.all;
 use common.common_pkg.all;
 
 library ddr_buffer;
 
-library fifo;
-
-library reg_file;
-
-library resync;
-
 use work.artyz7_top_pkg.all;
-use work.artyz7_regs_pkg.all;
 use work.artyz7_register_record_pkg.all;
 use work.block_design_pkg.all;
 
