@@ -573,7 +573,7 @@ class BuildResult(TestResult):
         """
         self.report_length_lines = report_length_lines
 
-    def print_status(self, printer: Any, padding: int = 0) -> None:
+    def print_status(self, printer: Any, padding: int = 0, max_time: int = 0) -> None:
         """
         Overloaded from super class.
 
@@ -602,6 +602,6 @@ class BuildResult(TestResult):
 
         # Print the regular output from the VUnit class.
         # A little extra margin between build name and execution time makes the output more readable
-        super().print_status(printer=printer, padding=padding + 2)
+        super().print_status(printer=printer, padding=padding + 2, max_time=max_time)
         # Add an empty line between each build, for readability.
         printer.write("\n")
