@@ -23,16 +23,13 @@ use work.block_design_wrapper_pkg.block_design;
 
 entity block_design_wrapper is
   port (
-    clk_m_gp0 : in std_ulogic;
     m_gp0_m2s : out axi_m2s_t := axi_m2s_init;
     m_gp0_s2m : in axi_s2m_t;
     --# {{}}
-    clk_s_hp0 : in std_ulogic;
     s_hp0_m2s : in axi_m2s_t;
     s_hp0_s2m : out axi_s2m_t := axi_s2m_init;
     --# {{}}
-    pl_clk0 : out std_ulogic := '0';
-    pl_clk1 : out std_ulogic := '0'
+    pl_clk : out std_ulogic := '0'
   );
 end entity;
 
@@ -45,16 +42,13 @@ begin
     ------------------------------------------------------------------------------
     block_design_mock_inst : entity work.block_design_mock
       port map (
-        clk_m_gp0 => clk_m_gp0,
         m_gp0_m2s => m_gp0_m2s,
         m_gp0_s2m => m_gp0_s2m,
         --
-        clk_s_hp0 => clk_s_hp0,
         s_hp0_m2s => s_hp0_m2s,
         s_hp0_s2m => s_hp0_s2m,
         --
-        pl_clk0 => pl_clk0,
-        pl_clk1 => pl_clk1
+        pl_clk => pl_clk
       );
 
 
@@ -152,10 +146,9 @@ begin
         S_AXI_HP0_wdata => s_hp0_m2s.write.w.data(s_hp0_data_rng),
         S_AXI_HP0_wstrb => s_hp0_m2s.write.w.strb(s_hp0_strb_rng),
         --
-        M_AXI_GP0_ACLK => clk_m_gp0,
-        FCLK_CLK0 => pl_clk0,
-        S_AXI_HP0_ACLK => clk_s_hp0,
-        FCLK_CLK1 => pl_clk1
+        M_AXI_GP0_ACLK => pl_clk,
+        FCLK_CLK0 => pl_clk,
+        S_AXI_HP0_ACLK => pl_clk
       );
   end generate;
 

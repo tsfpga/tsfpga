@@ -12,8 +12,7 @@ package block_design_pkg is
 
   ------------------------------------------------------------------------------
   -- PL clock settings.
-  constant pl_clk0_frequency_hz : real := 100.0e6;
-  constant pl_clk1_frequency_hz : real := 200.0e6;
+  constant pl_clk_frequency_hz : real := 100.0e6;
 
 
   ------------------------------------------------------------------------------

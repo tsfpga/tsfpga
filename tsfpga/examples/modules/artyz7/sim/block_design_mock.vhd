@@ -33,23 +33,19 @@ use work.block_design_pkg.all;
 
 entity block_design_mock is
   port (
-    clk_m_gp0 : in std_ulogic;
     m_gp0_m2s : out axi_m2s_t;
     m_gp0_s2m : in axi_s2m_t;
     --# {{}}
-    clk_s_hp0 : in std_ulogic;
     s_hp0_m2s : in axi_m2s_t;
     s_hp0_s2m : out axi_s2m_t;
     --# {{}}
-    pl_clk0 : out std_ulogic := '0';
-    pl_clk1 : out std_ulogic := '0'
+    pl_clk : out std_ulogic := '0'
   );
 end entity;
 
 architecture a of block_design_mock is
 
-  constant pl_clk0_period : time := to_period(frequency_hz=>pl_clk0_frequency_hz);
-  constant pl_clk1_period : time := to_period(frequency_hz=>pl_clk1_frequency_hz);
+  constant pl_clk0_period : time := to_period(frequency_hz=>pl_clk_frequency_hz);
 
   constant axi_read_slave, axi_write_slave : axi_slave_t := new_axi_slave(
     address_fifo_depth => 1,
@@ -58,8 +54,7 @@ architecture a of block_design_mock is
 
 begin
 
-  pl_clk0 <= not pl_clk0 after pl_clk0_period / 2;
-  pl_clk1 <= not pl_clk1 after pl_clk1_period / 2;
+  pl_clk <= not pl_clk after pl_clk0_period / 2;
 
 
   ------------------------------------------------------------------------------
@@ -68,7 +63,7 @@ begin
       bus_handle => regs_bus_master
     )
     port map (
-      clk => clk_m_gp0,
+      clk => pl_clk,
       --
       axi_read_m2s => m_gp0_m2s.read,
       axi_read_s2m =>  m_gp0_s2m.read,
@@ -93,7 +88,7 @@ begin
       supports_narrow_burst => false
     )
     port map (
-      clk => clk_s_hp0,
+      clk => pl_clk,
       --
       read_m2s => s_hp0_m2s.read,
       read_s2m => s_hp0_s2m.read
@@ -110,7 +105,7 @@ begin
       supports_narrow_burst => false
     )
     port map (
-      clk => clk_s_hp0,
+      clk => pl_clk,
       --
       write_m2s => s_hp0_m2s.write,
       write_s2m => s_hp0_s2m.write
@@ -126,7 +121,7 @@ begin
       id_width => s_hp0_id_width
     )
     port map (
-      clk => clk_s_hp0,
+      clk => pl_clk,
       --
       axi_read_m2s => s_hp0_m2s.read,
       axi_read_s2m => s_hp0_s2m.read,

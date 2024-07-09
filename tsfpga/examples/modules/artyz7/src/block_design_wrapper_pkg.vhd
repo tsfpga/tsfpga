@@ -96,8 +96,7 @@ package block_design_wrapper_pkg is
       S_AXI_HP0_wstrb : in STD_LOGIC_VECTOR ( 7 downto 0 );
       M_AXI_GP0_ACLK : in STD_LOGIC;
       FCLK_CLK0 : out STD_LOGIC;
-      S_AXI_HP0_ACLK : in STD_LOGIC;
-      FCLK_CLK1 : out STD_LOGIC
+      S_AXI_HP0_ACLK : in STD_LOGIC
     );
   end component block_design;
 

@@ -27,6 +27,7 @@ use reg_file.reg_file_pkg.reg_t;
 use reg_file.reg_operations_pkg.all;
 
 use work.artyz7_top_pkg.all;
+use work.block_design_mock_pkg.all;
 use work.block_design_pkg.all;
 
 
@@ -38,12 +39,12 @@ end entity;
 
 architecture tb of tb_artyz7_top is
 
-  signal clk_ext : std_ulogic := '0';
+  signal ext_clk : std_ulogic := '0';
 
 begin
 
   test_runner_watchdog(runner, 200 us);
-  clk_ext <= not clk_ext after 8 ns;
+  ext_clk <= not ext_clk after 8 ns;
 
 
   ------------------------------------------------------------------------------
@@ -57,13 +58,13 @@ begin
     rnd.InitSeed(rnd'instance_name);
 
     if run("test_register_read_write") then
-      write_reg(net, 0, beef, base_address => regs_base_addresses(resync_hp0_regs_idx));
-      check_reg_equal(net, 0, beef, base_address => regs_base_addresses(resync_hp0_regs_idx));
+      write_reg(net, 0, beef, base_address => regs_base_addresses(resync_ext_regs_idx));
+      check_reg_equal(net, 0, beef, base_address => regs_base_addresses(resync_ext_regs_idx));
 
-      write_reg(net, 0, dead, base_address => regs_base_addresses(resync_ext_regs_idx));
-      check_reg_equal(net, 0, dead, base_address => regs_base_addresses(resync_ext_regs_idx));
+      write_reg(net, 0, dead, base_address => regs_base_addresses(resync_pl_regs_idx));
+      check_reg_equal(net, 0, dead, base_address => regs_base_addresses(resync_pl_regs_idx));
 
-      check_reg_equal(net, 0, beef, base_address => regs_base_addresses(resync_hp0_regs_idx));
+      check_reg_equal(net, 0, beef, base_address => regs_base_addresses(resync_ext_regs_idx));
 
     elsif run("test_ddr_buffer") then
       run_ddr_buffer_test(
@@ -93,7 +94,7 @@ begin
     )
     port map (
       enable_led => (others => '1'),
-      clk_ext => clk_ext
+      ext_clk => ext_clk
     );
 
 end architecture;
