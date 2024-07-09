@@ -6,4 +6,4 @@
 // https://github.com/tsfpga/tsfpga
 // -------------------------------------------------------------------------------------------------
 
-parameter num_dummy_output = 23;
+parameter num_enable_led = 2;
