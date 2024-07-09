@@ -8,15 +8,9 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
 
 library common;
 use common.addr_pkg.all;
-
-library reg_file;
-use reg_file.reg_file_pkg.all;
-
-use work.block_design_pkg.all;
 
 
 package artyz7_top_pkg is

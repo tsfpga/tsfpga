@@ -26,7 +26,6 @@ use common.time_pkg.to_period;
 library reg_file;
 use reg_file.reg_operations_pkg.regs_bus_master;
 
-use work.artyz7_top_pkg.all;
 use work.block_design_mock_pkg.all;
 use work.block_design_pkg.all;
 

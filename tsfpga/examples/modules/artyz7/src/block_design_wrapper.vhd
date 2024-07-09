@@ -14,9 +14,8 @@ library axi;
 use axi.axi_pkg.all;
 
 library common;
-use common.common_pkg.all;
+use common.common_pkg.in_simulation;
 
-use work.artyz7_top_pkg.all;
 use work.block_design_pkg.all;
 use work.block_design_wrapper_pkg.block_design;
 
