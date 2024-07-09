@@ -11,7 +11,7 @@ use vunit_lib.memory_pkg.memory_t;
 use vunit_lib.memory_pkg.new_memory;
 
 
-package top_level_sim_pkg is
+package block_design_mock_pkg is
 
   constant axi_memory : memory_t := new_memory;
 
