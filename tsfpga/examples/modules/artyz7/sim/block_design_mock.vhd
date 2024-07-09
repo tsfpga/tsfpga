@@ -45,7 +45,7 @@ end entity;
 
 architecture a of block_design_mock is
 
-  constant pl_clk0_period : time := to_period(frequency_hz=>pl_clk_frequency_hz);
+  constant pl_clk_period : time := to_period(frequency_hz=>pl_clk_frequency_hz);
 
   constant axi_read_slave, axi_write_slave : axi_slave_t := new_axi_slave(
     address_fifo_depth => 1,
@@ -54,7 +54,7 @@ architecture a of block_design_mock is
 
 begin
 
-  pl_clk <= not pl_clk after pl_clk0_period / 2;
+  pl_clk <= not pl_clk after pl_clk_period / 2;
 
 
   ------------------------------------------------------------------------------
@@ -96,6 +96,21 @@ begin
 
 
   ------------------------------------------------------------------------------
+  axi_read_slave_inst : entity bfm.axi_read_slave
+    generic map (
+      axi_slave => axi_read_slave,
+      data_width => s_hp0_data_width,
+      id_width => s_hp0_id_width
+    )
+    port map (
+      clk => pl_clk,
+      --
+      axi_read_m2s => s_hp0_m2s.read,
+      axi_read_s2m => s_hp0_s2m.read
+    );
+
+
+  ------------------------------------------------------------------------------
   axi_write_range_checker_inst : entity axi.axi_write_range_checker
     generic map (
       address_width => s_hp0_addr_width,
@@ -113,18 +128,14 @@ begin
 
 
   ------------------------------------------------------------------------------
-  axi_slave_inst : entity bfm.axi_slave
+  axi_write_slave_inst : entity bfm.axi_write_slave
     generic map (
-      axi_read_slave => axi_read_slave,
-      axi_write_slave => axi_write_slave,
+      axi_slave => axi_write_slave,
       data_width => s_hp0_data_width,
       id_width => s_hp0_id_width
     )
     port map (
       clk => pl_clk,
-      --
-      axi_read_m2s => s_hp0_m2s.read,
-      axi_read_s2m => s_hp0_s2m.read,
       --
       axi_write_m2s => s_hp0_m2s.write,
       axi_write_s2m => s_hp0_s2m.write
