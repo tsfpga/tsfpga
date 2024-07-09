@@ -63,6 +63,7 @@ architecture a of artyz7_top is
 
 begin
 
+  -- Check the behavior of this function, in simulation as well as synthesis.
   assert in_simulation = is_in_simulation severity failure;
 
 
