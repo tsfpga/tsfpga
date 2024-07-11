@@ -55,7 +55,7 @@ jobs:
 
     - name: Install Python packages
       run: |
-        python3 -m pip install GitPython pytest rtoml vunit-hdl@git+https://github.com/VUnit/vunit.git
+        python3 -m pip install GitPython PyYAML pytest rtoml tomli_w vunit-hdl@git+https://github.com/VUnit/vunit.git
 
     - name: Clone dependency repos
       run: |
@@ -130,6 +130,7 @@ jobs:
         pip install \
           GitPython \
           pybadges \
+          PyYAML \
           rtoml \
           setuptools \
           sphinx \
@@ -137,6 +138,7 @@ jobs:
           sphinx-rtd-theme \
           sphinx-toolbox \
           sphinxext-opengraph \
+          tomli_w \
           vunit-hdl
 
     - name: Clone dependency repos
@@ -214,7 +216,9 @@ jobs:
       run: |
         python3 -m pip install \
           GitPython \
+          PyYAML \
           rtoml \
+          tomli_w \
           vunit-hdl@git+https://github.com/VUnit/vunit.git
 
     - name: Setup GHDL
