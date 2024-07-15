@@ -21,6 +21,7 @@ import tsfpga.examples.example_pythonpath  # noqa: F401
 
 # Third party libraries
 from hdl_registers.register import Register
+from hdl_registers.register_modes import REGISTER_MODES
 
 # First party libraries
 import tsfpga
@@ -34,19 +35,19 @@ def get_default_registers() -> list[Register]:
     Default registers for tsfpga examples.
     """
     registers = [
-        Register("config", 0, "r_w", "Configuration register."),
+        Register("config", 0, REGISTER_MODES["r_w"], "Configuration register."),
         Register(
             "command",
             1,
-            "wpulse",
+            REGISTER_MODES["wpulse"],
             "When this register is written, all '1's in the written word will be asserted for one "
             "clock cycle in the FPGA logic.",
         ),
-        Register("status", 2, "r", "Status register."),
+        Register("status", 2, REGISTER_MODES["r"], "Status register."),
         Register(
             "irq_status",
             3,
-            "r_wpulse",
+            REGISTER_MODES["r_wpulse"],
             "Reading a '1' in this register means the corresponding interrupt has triggered.\n"
             "Writing to this register will clear the interrupts where there is a '1' in the "
             "written word.",
@@ -54,7 +55,7 @@ def get_default_registers() -> list[Register]:
         Register(
             "irq_mask",
             4,
-            "r_w",
+            REGISTER_MODES["r_w"],
             "A '1' in this register means that the corresponding interrupt is enabled.",
         ),
     ]
