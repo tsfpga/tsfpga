@@ -77,7 +77,7 @@ class Module(BaseModule):
 
         return projects
 
-    def get_simulation_files(
+    def get_simulation_files(  # type: ignore[override]
         self, files_avoid=None, include_unisim=True, **kwargs
     ):  # pylint: disable=arguments-differ
         """
