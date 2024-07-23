@@ -26,7 +26,10 @@ class Module(BaseModule):
         part = "xc7z020clg400-1"
 
         tcl_dir = self.path / "tcl"
-        pinning = Constraint(tcl_dir / "artyz7_pinning.tcl")
+        constraints = [
+            Constraint(tcl_dir / "artyz7_pinning.tcl"),
+            Constraint(tcl_dir / "demo_pinning.tcl"),
+        ]
         block_design = tcl_dir / "block_design.tcl"
 
         projects.append(
@@ -35,7 +38,7 @@ class Module(BaseModule):
                 modules=modules,
                 part=part,
                 tcl_sources=[block_design],
-                constraints=[pinning],
+                constraints=constraints,
                 defined_at=THIS_FILE,
             )
         )
@@ -47,7 +50,7 @@ class Module(BaseModule):
                 modules=modules,
                 part=part,
                 tcl_sources=[block_design],
-                constraints=[pinning],
+                constraints=constraints,
                 impl_explore=True,
                 defined_at=THIS_FILE,
             )
@@ -59,7 +62,7 @@ class Module(BaseModule):
                 top="artyz7_top_verilog",
                 modules=modules,
                 part=part,
-                constraints=[pinning],
+                constraints=constraints,
                 defined_at=THIS_FILE,
             )
         )
@@ -70,7 +73,7 @@ class Module(BaseModule):
                 top="artyz7_top_systemverilog",
                 modules=modules,
                 part=part,
-                constraints=[pinning],
+                constraints=constraints,
                 defined_at=THIS_FILE,
             )
         )

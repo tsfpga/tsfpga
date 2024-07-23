@@ -31,7 +31,8 @@ entity artyz7_top is
     is_in_simulation : boolean := false
   );
   port (
-    ext_clk : in std_ulogic;
+    chip2_clock : in std_ulogic;
+    chip2_data : in std_ulogic_vector(4 - 1 downto 0);
     --# {{}}
     enable_led : in std_ulogic_vector(0 to 1);
     led : out std_ulogic_vector(0 to 3) := (others => '0')
@@ -63,66 +64,18 @@ begin
 
   ------------------------------------------------------------------------------
   blink0_block : block
-    signal enable_blink : std_ulogic := '0';
+    signal chip2_data_p1, chip2_data_p2 : std_ulogic_vector(chip2_data'range) := (others => '0');
   begin
 
     ------------------------------------------------------------------------------
-    debounce_inst : entity common.debounce
-      generic map (
-        stable_count => 1024
-      )
-      port map (
-        noisy_input => enable_led(0),
-        --
-        clk => pl_clk,
-        stable_result => enable_blink
-      );
-
-
-    ------------------------------------------------------------------------------
     blink : process
-      variable count : u_unsigned(27 - 1 downto 0) := (others => '0');
     begin
-      wait until rising_edge(pl_clk);
+      wait until rising_edge(chip2_clock);
 
-      if enable_blink then
-        led(0) <= count(count'high);
-        count := count + 1;
-      end if;
-    end process;
+      led <= (others => xor chip2_data_p2);
 
-  end block;
-
-
-  ------------------------------------------------------------------------------
-  blink1_block : block
-    signal enable_blink : std_ulogic := '0';
-  begin
-
-    ------------------------------------------------------------------------------
-    debounce_inst : entity common.debounce
-      generic map (
-        stable_count => 1024,
-        enable_iob => false
-      )
-      port map (
-        noisy_input => enable_led(1),
-        --
-        clk => ext_clk,
-        stable_result => enable_blink
-      );
-
-
-    ------------------------------------------------------------------------------
-    blink : process
-      variable count : u_unsigned(27 - 1 downto 0) := (others => '0');
-    begin
-      wait until rising_edge(ext_clk);
-
-      if enable_blink then
-        led(1) <= count(count'high);
-        count := count + 1;
-      end if;
+      chip2_data_p2 <= chip2_data_p1;
+      chip2_data_p1 <= chip2_data;
     end process;
 
   end block;
@@ -151,7 +104,7 @@ begin
         axi_m2s => m_gp0_m2s,
         axi_s2m => m_gp0_s2m,
         --
-        clk_axi_lite_vec(resync_ext_regs_idx) => ext_clk,
+        clk_axi_lite_vec(resync_ext_regs_idx) => chip2_clock,
         clk_axi_lite_vec(resync_pl_regs_idx) => '0',
         clk_axi_lite_vec(resync_pl_div4_regs_idx) => pl_clk_div4,
         clk_axi_lite_vec(ddr_buffer_regs_idx) => '0',
@@ -162,7 +115,7 @@ begin
     ------------------------------------------------------------------------------
     resync_ext_artyz7_reg_file_inst : entity work.artyz7_reg_file
       port map (
-        clk => ext_clk,
+        clk => chip2_clock,
         --
         axi_lite_m2s => regs_m2s(resync_ext_regs_idx),
         axi_lite_s2m => regs_s2m(resync_ext_regs_idx),
@@ -249,7 +202,7 @@ begin
   ------------------------------------------------------------------------------
   resync_test_inst : entity work.resync_test
     port map (
-      ext_clk => ext_clk,
+      ext_clk => chip2_clock,
       ext_regs_down => ext_regs_down,
       ext_regs_up => ext_regs_up,
       --

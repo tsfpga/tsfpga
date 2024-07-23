@@ -9,14 +9,6 @@
 # Further pins and all original names available there.
 # --------------------------------------------------------------------------------------------------
 
-# Clock Signal.
-set_property -dict {"PACKAGE_PIN" "H16" "IOSTANDARD" "LVCMOS33"} [get_ports "ext_clk"]
-create_clock -add -name "ext_clk" -period 8.00 -waveform {0 4} [get_ports "ext_clk"]
-
-# Switches.
-set_property -dict {"PACKAGE_PIN" "M20" "IOSTANDARD" "LVCMOS33"} [get_ports "enable_led[0]"]
-set_property -dict {"PACKAGE_PIN" "M19" "IOSTANDARD" "LVCMOS33"} [get_ports "enable_led[1]"]
-
 # LEDs.
 set_property -dict {"PACKAGE_PIN" "R14" "IOSTANDARD" "LVCMOS33"} [get_ports "led[0]"]
 set_property -dict {"PACKAGE_PIN" "P14" "IOSTANDARD" "LVCMOS33"} [get_ports "led[1]"]
