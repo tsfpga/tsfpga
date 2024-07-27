@@ -17,6 +17,7 @@ from hdl_registers.generator.cpp.header import CppHeaderGenerator
 from hdl_registers.generator.cpp.implementation import CppImplementationGenerator
 from hdl_registers.generator.cpp.interface import CppInterfaceGenerator
 from hdl_registers.generator.html.page import HtmlPageGenerator
+from hdl_registers.generator.python.accessor import PythonAccessorGenerator
 from hdl_registers.generator.python.pickle import PythonPickleGenerator
 
 # First party libraries
@@ -255,3 +256,4 @@ def generate_register_artifacts(modules: "ModuleList", output_path: Path) -> Non
             HtmlPageGenerator(module.registers, output_path / "html").create()
 
             PythonPickleGenerator(module.registers, output_path / "python").create()
+            PythonAccessorGenerator(module.registers, output_path / "python").create()
