@@ -35,7 +35,7 @@ def arguments(default_temp_dir: Path) -> argparse.Namespace:
     Setup of arguments for the example build flow.
 
     Arguments:
-        default_temp_dir (pathlib.Path): Default value for output paths.
+        default_temp_dir: Default value for output paths.
     """
     parser = argparse.ArgumentParser(
         "Create, synth and build an FPGA project",

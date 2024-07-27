@@ -17,7 +17,7 @@ def to_binary_string(value: int, result_width: int) -> str:
 
     Arguments:
         value: The value to be converted.
-        result_width_bits: The supplied ``value`` will be interpreted as an unsigned value with
+        result_width: The supplied ``value`` will be interpreted as an unsigned value with
             this many bits.
             The result string will contain this many bit characters.
     """

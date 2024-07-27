@@ -11,8 +11,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    # Standard libraries
-
     # Local folder libraries
     from .hdl_file import HdlFile
 

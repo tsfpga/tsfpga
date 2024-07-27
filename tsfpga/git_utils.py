@@ -122,7 +122,6 @@ def find_git_files(
     Return:
         The files that are available in git.
     """
-
     # Import fails if "git" executable is not available, hence it can not be on top level.
     # This function should only be called if git is available.
     # pylint: disable=import-outside-toplevel
