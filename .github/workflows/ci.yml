@@ -128,6 +128,7 @@ jobs:
     - name: Install Python packages
       run: |
         pip install \
+          black \
           GitPython \
           pybadges \
           PyYAML \
