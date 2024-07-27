@@ -33,7 +33,7 @@ def get_arguments_cli(default_output_path: Path) -> VUnitCLI:
     Get arguments for the simulation flow.
 
     Arguments:
-        default_output_path (pathlib.Path): Will be set as default for output path arguments
+        default_output_path: Will be set as default for output path arguments
             (both VUnit files and Vivado files).
     """
     cli = VUnitCLI()

@@ -50,8 +50,8 @@ def run_isort(files: list[Path], cwd: Path) -> None:
     Will raise exception if any of the ``files`` does not pass the check.
 
     Arguments:
-        files (list(pathlib.Path)): The files that shall be checked.
-        cwd (pathlib.Path): Path where the command shall be executed.
+        files: The files that shall be checked.
+        cwd: Path where the command shall be executed.
             The ``pyproject.toml`` file should be located here.
     """
     command = [sys.executable, "-m", "isort", "--check", "--diff"] + [

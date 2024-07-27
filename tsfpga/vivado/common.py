@@ -59,8 +59,8 @@ def run_vivado_gui(vivado_path: Optional[Path], project_file: Path) -> bool:
     the same directory as the project.
 
     Arguments:
-        vivado_path: Path to Vivado executable. Can set to ``None``
-            to use whatever version is in ``PATH``.
+        vivado_path: Path to Vivado executable.
+            Leave as ``None`` to use whatever is available in the system ``PATH``.
         project_file: Path to a project .xpr file.
 
     Return:
@@ -84,8 +84,8 @@ def get_vivado_path(vivado_path: Optional[Path] = None) -> Path:
     Wrapper to get a path to Vivado executable.
 
     Arguments:
-        vivado_path: Path to vivado executable. Set to ``None`` to use whatever
-            is available in the system ``PATH``.
+        vivado_path: Path to vivado executable.
+            Leave as ``None`` to use whatever is available in the system ``PATH``.
     """
     if vivado_path is not None:
         return vivado_path.resolve()
@@ -102,8 +102,8 @@ def get_vivado_version(vivado_path: Optional[Path] = None) -> str:
     Get the version number of the Vivado installation.
 
     Arguments:
-        vivado_path: Path to vivado executable. Set to ``None`` to use whatever
-            is available in the system ``PATH``.
+        vivado_path: Path to vivado executable.
+            Leave as ``None`` to use whatever is available in the system ``PATH``.
 
     Return:
         The version, e.g. ``"2021.2"``.
@@ -122,15 +122,16 @@ def get_git_sha_slv(git_directory: Path) -> tuple[str, str]:
     as ``std_logic_vector`` generics to a Vivado build, where they can be assigned to
     software-accessible registers to keep track of what revision an FPGA was built from.
 
-    Will return the left-most 16 characters of the git SHA, encoded into two 32-character strings.
+    Will return the left-most 16 characters of the git SHA, encoded into two 32-character
+    binary strings.
 
     Arguments:
-        directory (pathlib.Path): The directory where git commands will be run.
+        directory: The directory where git commands will be run.
 
     Return:
         First object in tuple is the left-most eight characters of the git SHA
-        encoded as a 32-character binary string. Second object is the next eight characters from
-        the git SHA.
+        encoded as a 32-character binary string.
+        Second object is the next eight characters from the git SHA.
     """
     git_sha = get_git_sha(directory=git_directory)
     assert len(git_sha) == 16
