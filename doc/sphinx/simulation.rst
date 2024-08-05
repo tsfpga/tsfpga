@@ -29,10 +29,8 @@ running simulations using tsfpga and VUnit is as simple as:
     from vunit import VUnit
 
     vunit_proj = VUnit.from_argv()
-    my_modules_folders = [
-        Path("path/to/my/modules")
-    ]
-    for module in get_modules(my_modules_folders):
+
+    for module in get_modules(modules_folder=Path("path/to/my/modules")):
         vunit_library = vunit_proj.add_library(module.library_name)
         for hdl_file in module.get_simulation_files():
              vunit_library.add_source_file(hdl_file.path)
