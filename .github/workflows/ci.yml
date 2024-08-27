@@ -55,7 +55,7 @@ jobs:
 
     - name: Install Python packages
       run: |
-        python3 -m pip install GitPython PyYAML pytest rtoml tomli_w vunit-hdl@git+https://github.com/VUnit/vunit.git
+        python3 -m pip install GitPython PyYAML pytest rtoml tomli_w vunit-hdl
 
     - name: Clone dependency repos
       run: |
