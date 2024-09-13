@@ -17,7 +17,7 @@ import sys
 # First party libraries
 import tsfpga
 
-# Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install
+# Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install.
 
 # Paths e.g.
 # repo/tsfpga/tsfpga
