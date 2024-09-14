@@ -71,7 +71,7 @@ def collect_artifacts(project: "VivadoProject", output_path: Path) -> bool:
     print(f"Creating release in {release_dir.resolve()}.zip")
 
     generate_register_artifacts(modules=project.modules, output_path=release_dir / "registers")
-    copy2(output_path / f"{project.name }.bit", release_dir)
+    copy2(output_path / f"{project.name}.bit", release_dir)
     copy2(output_path / f"{project.name}.bin", release_dir)
     if (output_path / f"{project.name}.xsa").exists():
         copy2(output_path / f"{project.name}.xsa", release_dir)
