@@ -60,6 +60,18 @@ class EqualTo(Limit):
         return str(self.value)
 
 
+class GreaterThan(Limit):
+    """
+    Limit to be used with a checker to see that a figure is greater than the specified value.
+    """
+
+    def check(self, result_value: Union[int, float]) -> bool:
+        return result_value > self.value
+
+    def __str__(self) -> str:
+        return f"> {self.value}"
+
+
 class BuildResultChecker(ABC):
     """
     Base class for build result checkers that check a certain build result value against a limit.

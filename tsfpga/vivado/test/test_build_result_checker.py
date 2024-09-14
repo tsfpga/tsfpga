@@ -18,6 +18,7 @@ from tsfpga.vivado.build_result import BuildResult
 from tsfpga.vivado.build_result_checker import (
     DspBlocks,
     EqualTo,
+    GreaterThan,
     LessThan,
     MaximumLogicLevel,
     Ramb,
@@ -42,6 +43,24 @@ def test_size_checker_less_than_fail(mock_stdout):
 
     assert not TotalLuts(LessThan(5)).check(build_result)
     assert mock_stdout.getvalue() == "Result check failed for Total LUTs. Got 5, expected < 5.\n"
+
+
+@patch("sys.stdout", new_callable=io.StringIO)
+def test_size_checker_greater_than_pass(mock_stdout):
+    build_result = BuildResult(name="")
+    build_result.synthesis_size = {"Total LUTs": 5}
+
+    assert TotalLuts(GreaterThan(2)).check(build_result)
+    assert mock_stdout.getvalue() == "Result check passed for Total LUTs: 5 (> 2)\n"
+
+
+@patch("sys.stdout", new_callable=io.StringIO)
+def test_size_checker_greater_than_fail(mock_stdout):
+    build_result = BuildResult(name="")
+    build_result.synthesis_size = {"Total LUTs": 5}
+
+    assert not TotalLuts(GreaterThan(5)).check(build_result)
+    assert mock_stdout.getvalue() == "Result check failed for Total LUTs. Got 5, expected > 5.\n"
 
 
 @patch("sys.stdout", new_callable=io.StringIO)
