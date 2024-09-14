@@ -378,14 +378,14 @@ begin
 
 
   ------------------------------------------------------------------------------
-  resync_slv_handshake_wide_block : block
+  resync_twophase_handshake_wide_block : block
     constant resync_idx : natural := 12;
     signal input_ready, input_valid, result_ready, result_valid : std_ulogic := '0';
     signal input_data, result_data : std_ulogic_vector(16 - 1 downto 0) := (others => '0');
   begin
 
     ------------------------------------------------------------------------------
-    resync_slv_handshake_inst : entity resync.resync_slv_handshake
+    resync_twophase_handshake_inst : entity resync.resync_twophase_handshake
       generic map (
         data_width => input_data'length
       )
@@ -413,14 +413,14 @@ begin
 
 
   ------------------------------------------------------------------------------
-  resync_slv_handshake_narrow_block : block
+  resync_twophase_handshake_narrow_block : block
     constant resync_idx : natural := 13;
     signal input_ready, input_valid, result_ready, result_valid : std_ulogic := '0';
     signal input_data, result_data : std_ulogic_vector(2 - 1 downto 0) := (others => '0');
   begin
 
     ------------------------------------------------------------------------------
-    resync_slv_handshake_inst : entity resync.resync_slv_handshake
+    resync_twophase_handshake_inst : entity resync.resync_twophase_handshake
       generic map (
         data_width => input_data'length
       )
@@ -448,13 +448,13 @@ begin
 
 
   ------------------------------------------------------------------------------
-  resync_slv_level_coherent_wide_block : block
+  resync_twophase_wide_block : block
     constant resync_idx : natural := 14;
     signal data_in, data_out : std_ulogic_vector(16 - 1 downto 0) := (others => '0');
   begin
 
     ------------------------------------------------------------------------------
-    resync_slv_level_coherent_inst : entity resync.resync_slv_level_coherent
+    resync_twophase_inst : entity resync.resync_twophase
       generic map (
         width => data_in'length
       )
@@ -473,13 +473,13 @@ begin
 
 
   ------------------------------------------------------------------------------
-  resync_slv_level_coherent_narrow_block : block
+  resync_twophase_narrow_block : block
     constant resync_idx : natural := 15;
     signal data_in, data_out : std_ulogic_vector(2 - 1 downto 0) := (others => '0');
   begin
 
     ------------------------------------------------------------------------------
-    resync_slv_level_coherent_inst : entity resync.resync_slv_level_coherent
+    resync_twophase_inst : entity resync.resync_twophase
       generic map (
         width => data_in'length
       )
