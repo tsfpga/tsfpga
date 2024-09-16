@@ -155,16 +155,16 @@ design open:
       puts "\n\n";
 
       set ipdef [get_property IPDEF ${ip}]
-      puts "create_ip -vlnv ${ipdef} -module_name ${ip}"
+      puts "create_ip -vlnv \"${ipdef}\" -module_name \"${ip}\""
 
       puts "set_property -dict \[list \\"
       foreach property [list_property ${ip} -regexp {^CONFIG\.\w+$}] {
         if {[get_property ${property}.value_src ${ip}] == "USER"} {
           set property_value [get_property $property ${ip}]
-          puts "  ${property} \"${property_value}\" \\"
+          puts "  \"${property}\" \"${property_value}\" \\"
         }
       }
-      puts "\] \[get_ips ${ip}\]"
+      puts "\] \[get_ips \"${ip}\"\]"
     }
 
 Alternatively, the Vivado command ``write_ip_tcl [get_ips <name>]`` can be used and the generated
