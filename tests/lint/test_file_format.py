@@ -70,7 +70,14 @@ def test_no_checked_in_files_contain_trailing_whitespace():
     https://softwareengineering.stackexchange.com/questions/121555/
     """
     test_ok = True
-    for file in files_to_test():
+    excludes = [
+        # From Vivado, not modified by us
+        TSFPGA_EXAMPLE_MODULES
+        / "artyz7"
+        / "tcl"
+        / "block_design.tcl",
+    ]
+    for file in files_to_test(exclude_directories=excludes):
         test_ok &= check_file_for_trailing_whitespace(file)
     assert test_ok
 
