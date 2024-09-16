@@ -28,7 +28,10 @@ entity block_design_wrapper is
     s_hp0_m2s : in axi_m2s_t;
     s_hp0_s2m : out axi_s2m_t := axi_s2m_init;
     --# {{}}
-    pl_clk : out std_ulogic := '0'
+    pl_clk : out std_ulogic := '0';
+    --# {{}}
+    ddr : inout zynq7000_ddr_t;
+    fixed_io : inout zynq7000_fixed_io_t
   );
 end entity;
 
@@ -145,9 +148,30 @@ begin
         S_AXI_HP0_wdata => s_hp0_m2s.write.w.data(s_hp0_data_rng),
         S_AXI_HP0_wstrb => s_hp0_m2s.write.w.strb(s_hp0_strb_rng),
         --
-        M_AXI_GP0_ACLK => pl_clk,
         FCLK_CLK0 => pl_clk,
-        S_AXI_HP0_ACLK => pl_clk
+        --
+        DDR_cas_n => ddr.cas_n,
+        DDR_cke => ddr.cke,
+        DDR_ck_n => ddr.ck_n,
+        DDR_ck_p => ddr.ck_p,
+        DDR_cs_n => ddr.cs_n,
+        DDR_reset_n => ddr.reset_n,
+        DDR_odt => ddr.odt,
+        DDR_ras_n => ddr.ras_n,
+        DDR_we_n => ddr.we_n,
+        DDR_ba => ddr.ba,
+        DDR_addr => ddr.addr,
+        DDR_dm => ddr.dm,
+        DDR_dq => ddr.dq,
+        DDR_dqs_n => ddr.dqs_n,
+        DDR_dqs_p => ddr.dqs_p,
+        --
+        FIXED_IO_mio => fixed_io.mio,
+        FIXED_IO_ddr_vrn => fixed_io.ddr_vrn,
+        FIXED_IO_ddr_vrp => fixed_io.ddr_vrp,
+        FIXED_IO_ps_srstb => fixed_io.ps_srstb,
+        FIXED_IO_ps_clk => fixed_io.ps_clk,
+        FIXED_IO_ps_porb => fixed_io.ps_porb
       );
   end generate;
 

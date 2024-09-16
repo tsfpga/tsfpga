@@ -34,7 +34,10 @@ entity artyz7_top is
     ext_clk : in std_ulogic;
     --# {{}}
     enable_led : in std_ulogic_vector(0 to 1);
-    led : out std_ulogic_vector(0 to 3) := (others => '0')
+    led : out std_ulogic_vector(0 to 3) := (others => '0');
+    --# {{}}
+    ddr : inout zynq7000_ddr_t;
+    fixed_io : inout zynq7000_fixed_io_t
   );
 end entity;
 
@@ -229,7 +232,10 @@ begin
         s_hp0_m2s => s_hp0_m2s,
         s_hp0_s2m => s_hp0_s2m,
         --
-        pl_clk => pl_clk
+        pl_clk => pl_clk,
+        --
+        ddr => ddr,
+        fixed_io => fixed_io
       );
 
   end block;
