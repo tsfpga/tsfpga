@@ -11,13 +11,15 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+library axi;
+use axi.axi_pkg.all;
+
 
 package block_design_pkg is
 
   ------------------------------------------------------------------------------
   -- PL clock settings.
   constant pl_clk_frequency_hz : real := 100.0e6;
-
 
   ------------------------------------------------------------------------------
   -- AXI ports.
@@ -28,6 +30,16 @@ package block_design_pkg is
   constant s_hp0_id_width : natural := 6;
   constant s_hp0_addr_width : positive := 32;
   constant s_hp0_data_width : positive := 64;
+
+  ------------------------------------------------------------------------------
+  -- AXI settings.
+  constant artyz7_axi_default_axlock : axi3_a_lock_t := axi3_a_lock_normal;
+  constant artyz7_axi_default_axprot : axi_a_prot_t := (
+    axi_a_prot_unprivileged or axi_a_prot_secure or axi_a_prot_data
+  );
+  constant artyz7_axi_default_axcache : axi_a_cache_t := axi_a_cache_device_non_bufferable;
+  -- No QoS scheme
+  constant artyz7_axi_default_axqos : std_ulogic_vector(4 - 1 downto 0) := (others => '0');
 
   ------------------------------------------------------------------------------
   -- Types for PS MIO pins.
