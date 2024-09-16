@@ -456,7 +456,9 @@ begin
     ------------------------------------------------------------------------------
     resync_twophase_lutram_inst : entity resync.resync_twophase_lutram
       generic map (
-        width => data_in'length
+        width => data_in'length,
+        -- Check that it still synthesizes to a LUTRAM even when default value is set.
+        default_value => (others => '1')
       )
       port map (
         clk_in => pl_clk,
