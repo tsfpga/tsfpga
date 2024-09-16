@@ -314,8 +314,8 @@ def create_vhdl_ls_configuration(
     appropriate place in order to always have an up-to-date vhdl_ls config.
 
     Arguments:
-        output_path: Config file will be placed here.
-        temp_files_path: Some temporary files will be placed here.
+        output_path: Config file will be placed in this directory.
+        temp_files_path: Some temporary files will be stored in a folder within this directory.
         modules: These modules will be added.
         ip_core_vivado_project_directory: Vivado IP core files in this location will be added.
     """
