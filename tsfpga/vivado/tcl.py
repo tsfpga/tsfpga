@@ -70,10 +70,9 @@ set_property "target_language" "VHDL" [current_project]
         if ip_cache_path is not None:
             tcl += f"config_ip_cache -use_cache_location {{{to_tcl_path(ip_cache_path)}}}\n\n"
 
-        tcl += self._add_tcl_sources(tcl_sources)
-
         if not ip_cores_only:
             tcl += self._add_module_source_files(modules=modules, other_arguments=other_arguments)
+            tcl += self._add_tcl_sources(tcl_sources)
             tcl += self._add_generics(generics)
 
             constraints = list(
