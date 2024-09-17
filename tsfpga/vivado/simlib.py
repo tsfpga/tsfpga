@@ -45,6 +45,9 @@ class VivadoSimlib:
         """
         simulator_interface = vunit_proj._simulator_class  # pylint: disable=protected-access
 
+        if simulator_interface is None:
+            raise RuntimeError("VUnit found no simulator. Can not proceed.")
+
         if simulator_interface.name == "ghdl":
             return VivadoSimlibGhdl(
                 vivado_path=vivado_path,
