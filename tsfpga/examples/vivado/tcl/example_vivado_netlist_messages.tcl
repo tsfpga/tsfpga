@@ -5,8 +5,8 @@
 # https://tsfpga.com
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
-# Further file that is specific for netlist builds. See example_vivado_messages.tcl for
-# more details.
+# Further file that is specific for netlist builds.
+# See 'example_vivado_messages.tcl' for more details.
 # --------------------------------------------------------------------------------------------------
 
 puts "Applying example vivado netlist message rules"

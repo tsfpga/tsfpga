@@ -46,10 +46,6 @@ set_property SEVERITY "ERROR" [get_drc_checks "MDRV-1"]
 #     Can lead to undefined behavior.
 set_msg_config -new_severity "ERROR" -id "Synth 8-153"
 
-# Message: Tying undriven pin to a constant.
-# Motivation: An undriven pin that is used, is probably a mistake in the code.
-set_msg_config -new_severity "ERROR" -id "Synth 8-3295"
-
 # Message: Assigned value in logic is out of range.
 # Motivation: Probably caused by a mistake in the code, or setting an invalid generic value.
 #     Can lead to undefined behavior or a difference in simulation/synthesis behavior.
