@@ -30,6 +30,7 @@ class TsfpgaExampleVivadoProject(VivadoProject):
         Update TCL sources just before project creation.
         """
         self.tcl_sources.append(THIS_DIR / "tcl" / "example_vivado_messages.tcl")
+        self.tcl_sources.append(THIS_DIR / "tcl" / "example_vivado_message_undriven_pin.tcl")
 
         return super().pre_create(generics=generics, kwargs=kwargs)
 
@@ -48,6 +49,7 @@ class TsfpgaExampleVivadoNetlistProject(VivadoNetlistProject):
         Update TCL sources just before project creation.
         """
         self.tcl_sources.append(THIS_DIR / "tcl" / "example_vivado_messages.tcl")
+        self.tcl_sources.append(THIS_DIR / "tcl" / "example_vivado_message_undriven_pin.tcl")
         self.tcl_sources.append(THIS_DIR / "tcl" / "example_vivado_netlist_messages.tcl")
 
         return super().pre_create(generics=generics, kwargs=kwargs)
