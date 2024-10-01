@@ -573,7 +573,10 @@ class BuildResult(TestResult):
         """
         self.report_length_lines = report_length_lines
 
-    def print_status(self, printer: Any, padding: int = 0, max_time: int = 0) -> None:
+    # pylint: disable=arguments-differ
+    def print_status(  # type: ignore[override]
+        self, printer: Any, padding: int = 0, **kwargs: dict[str, Any]
+    ) -> None:
         """
         Overloaded from super class.
 
@@ -583,6 +586,10 @@ class BuildResult(TestResult):
         the end when all builds have finished.
 
         Inherited and adapted from the VUnit function.
+
+        Note that a ``max_time`` integer argument is added in VUnit >4.7.0, but at the time of
+        writing this is un-released on the VUnit ``master`` branch.
+        In order to be compatible with both older and newer versions, we use ``**kwargs`` for this.
         """
         if self.passed and self.report_length_lines is not None:
             # Build passed, print build summary of the specified length. The length is only
@@ -602,6 +609,6 @@ class BuildResult(TestResult):
 
         # Print the regular output from the VUnit class.
         # A little extra margin between build name and execution time makes the output more readable
-        super().print_status(printer=printer, padding=padding + 2, max_time=max_time)
+        super().print_status(printer=printer, padding=padding + 2, **kwargs)
         # Add an empty line between each build, for readability.
         printer.write("\n")
