@@ -4,3 +4,8 @@ Added
   critical violation.
 * Find VHDL simulation subset that depends on generated register artifacts
   in :class:`.GitSimulationSubset`.
+
+Accidentally breaking change
+
+* Call ``super().__init__(**kwargs)`` in :meth:`.BaseModule.__init__`.
+  See `#112 <https://github.com/tsfpga/tsfpga/issues/112>`__.

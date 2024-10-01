@@ -59,18 +59,13 @@ class BaseModule:
     create_simulation_wait_until_package = True
 
     def __init__(
-        self,
-        path: Path,
-        library_name: str,
-        default_registers: Optional[list[Register]] = None,
-        **kwargs: Any,
+        self, path: Path, library_name: str, default_registers: Optional[list[Register]] = None
     ):
         """
         Arguments:
             path: Path to the module folder.
             library_name: VHDL library name.
             default_registers: Default registers.
-            kwargs: Further parameters sent along to ``super().__init__``.
         """
         self.path = path.resolve()
         self.name = path.name
@@ -78,8 +73,6 @@ class BaseModule:
 
         self._default_registers = default_registers
         self._registers: Optional[RegisterList] = None
-
-        super().__init__(**kwargs)
 
     @staticmethod
     def _get_file_list(

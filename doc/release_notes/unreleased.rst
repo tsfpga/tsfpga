@@ -1,6 +1,10 @@
 Bug fixes
 
-* Adapt netlist build time reporting to work with VUnit > 4.7.0
+* Adapt netlist build time reporting to work with VUnit > 4.7.0 also
   (`#87 <https://github.com/tsfpga/tsfpga/issues/87>`__.).
 
-Requires VUnit > 4.7.0.
+Breaking changes
+
+* Remove ``super().__init__(**kwargs)`` call from :meth:`.BaseModule.__init__`.
+  Users that depend on base class initialization must now make these calls explicitly.
+  See `#112 <https://github.com/tsfpga/tsfpga/issues/112>`__ for background.
