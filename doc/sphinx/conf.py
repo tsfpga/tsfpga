@@ -34,6 +34,7 @@ extensions = [
     "sphinx_toolbox.collapse",
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
+    "sphinxcontrib.googleanalytics",
     "sphinxext.opengraph",
 ]
 
@@ -66,7 +67,6 @@ html_theme = "sphinx_rtd_theme"
 
 html_theme_options = {
     "prev_next_buttons_location": "both",
-    "analytics_id": "G-GN3TVQGSHC",
     "logo_only": True,
 }
 
@@ -74,6 +74,9 @@ html_theme_options = {
 html_static_path = ["opengraph"]
 
 html_logo = "tsfpga_sphinx.png"
+
+# Google Analytics settings.
+googleanalytics_id = "G-GN3TVQGSHC"
 
 # OpenGraph settings.
 ogp_site_url = WEBSITE_URL
