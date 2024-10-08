@@ -138,6 +138,7 @@ jobs:
           sphinx_sitemap \
           sphinx-rtd-theme \
           sphinx-toolbox \
+          sphinxcontrib-googleanalytics \
           sphinxext-opengraph \
           tomli_w \
           vunit-hdl
