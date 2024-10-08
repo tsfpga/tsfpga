@@ -82,7 +82,7 @@ begin
 
 
   ----------------------------------------------------------------------------
-  clk_bufg_bufg_inst : BUFG
+  clk_feedback_bufg_inst : BUFG
     port map (
       I => clk_feedback,
       O => clk_feedback_buf
@@ -90,7 +90,7 @@ begin
 
 
   ----------------------------------------------------------------------------
-  clk_system_bufg_inst : BUFG
+  clk_div4_bufg_inst : BUFG
     port map (
       I => clk_div4_unbuffered,
       O => clk_div4
