@@ -178,6 +178,15 @@ register documentation.
         else:
             url_rst = ""
 
+        if self._module.registers is not None:
+            register_note_rst = (
+                "This module has a register interface, so make sure to study the "
+                f":ref:`register interface documentation <{self._module.name}.register_interface>` "
+                "as well as this top-level document."
+            )
+        else:
+            register_note_rst = ""
+
         overview_rst = self.get_overview_rst()
         overview_rst = "" if overview_rst is None else overview_rst
 
@@ -199,6 +208,7 @@ register documentation.
 
 This document contains technical documentation for the ``{self._module.name}`` module.
 {url_rst}
+{register_note_rst}
 
 {overview_rst}
 
