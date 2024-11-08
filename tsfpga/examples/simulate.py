@@ -78,6 +78,18 @@ def main() -> None:
         args.minimal = True
 
     simulation_project = SimulationProject(args=args)
+    ip_core_vivado_project_directory = simulation_project.add_vivado_ip_cores(
+        modules=modules + modules_no_sim
+    )
+
+    # Generate before modules are added to VUnit project, to avoid duplicates.
+    create_vhdl_ls_configuration(
+        output_path=tsfpga.REPO_ROOT,
+        modules=modules + modules_no_sim,
+        vunit_proj=simulation_project.vunit_proj,
+        ip_core_vivado_project_directory=ip_core_vivado_project_directory,
+    )
+
     simulation_project.add_modules(
         args=args,
         modules=modules,
@@ -86,20 +98,10 @@ def main() -> None:
         include_systemverilog_files=False,
     )
     simlib = simulation_project.add_vivado_simlib()
-    ip_core_vivado_project_directory = simulation_project.add_vivado_ip_cores(
-        modules=modules + modules_no_sim
-    )
     # Synopsys is needed by unisim MMCME2_ADV primitive.
     # Relaxed rules needed by unisim VITAL2000 package.
     # Do not use in any new code.
     simulation_project.vunit_proj.set_sim_option("ghdl.elab_flags", ["-frelaxed", "-fsynopsys"])
-
-    create_vhdl_ls_configuration(
-        output_path=tsfpga.REPO_ROOT,
-        temp_files_path=TSFPGA_EXAMPLES_TEMP_DIR,
-        modules=modules + modules_no_sim,
-        ip_core_vivado_project_directory=ip_core_vivado_project_directory,
-    )
 
     create_ghdl_ls_configuration(
         output_path=tsfpga.REPO_ROOT,
