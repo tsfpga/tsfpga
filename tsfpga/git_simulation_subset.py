@@ -19,6 +19,9 @@ from git.repo import Repo
 from .hdl_file import HdlFile
 
 if TYPE_CHECKING:
+    # Third party libraries
+    from vunit.ui import VUnit
+
     # Local folder libraries
     from .module import BaseModule
     from .module_list import ModuleList
@@ -43,7 +46,7 @@ class GitSimulationSubset:
         self,
         repo_root: Path,
         reference_branch: str,
-        vunit_proj: Any,
+        vunit_proj: "VUnit",
         modules: Optional["ModuleList"] = None,
         vunit_preprocessed_path: Optional[Path] = None,
     ) -> None:
@@ -223,7 +226,7 @@ class GitSimulationSubset:
 
     def _get_library_name_from_path(self, vhd_file: Path) -> Optional[str]:
         """
-        Returns (str): Library name for the given file path.
+        Returns: Library name for the given file path.
             Will return None if no library can be found.
         """
         # Ignore that '_modules' is type 'Path | None', since we only come

@@ -7,14 +7,8 @@
 # --------------------------------------------------------------------------------------------------
 
 # Standard libraries
-import argparse
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional
-
-if TYPE_CHECKING:
-    # First party libraries
-    from tsfpga.module_list import ModuleList
 
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install.
 REPO_ROOT = Path(__file__).parent.parent.parent.resolve()
@@ -33,11 +27,12 @@ from tsfpga.examples.example_env import (
     get_tsfpga_example_modules,
 )
 from tsfpga.examples.simulation_utils import (
+    NoGitDiffTestsFound,
     SimulationProject,
     create_vhdl_ls_configuration,
+    find_git_test_filters,
     get_arguments_cli,
 )
-from tsfpga.git_simulation_subset import GitSimulationSubset
 
 
 def main() -> None:
@@ -53,29 +48,16 @@ def main() -> None:
     modules_no_sim = get_hdl_modules()
 
     if args.vcs_minimal:
-        if args.test_patterns != "*":
-            sys.exit(
-                "Can not specify a test pattern when using the --vcs-minimal flag."
-                f' Got "{args.test_patterns}"',
+        try:
+            args = find_git_test_filters(
+                args=args,
+                repo_root=tsfpga.REPO_ROOT,
+                modules=modules,
+                modules_no_sim=modules_no_sim,
             )
-
-        test_filters = find_git_test_filters(
-            args=args,
-            repo_root=tsfpga.REPO_ROOT,
-            modules=modules,
-            modules_no_sim=modules_no_sim,
-            reference_branch="origin/main",
-        )
-        if not test_filters:
+        except NoGitDiffTestsFound:
             print("Nothing to run. Appears to be no VHDL-related git diff.")
             return
-
-        # Override the test pattern argument to VUnit.
-        args.test_patterns = test_filters
-        print(f"Running VUnit with test pattern {args.test_patterns}")
-
-        # Enable minimal compilation in VUnit
-        args.minimal = True
 
     simulation_project = SimulationProject(args=args)
     ip_core_vivado_project_directory = simulation_project.add_vivado_ip_cores(
@@ -111,56 +93,6 @@ def main() -> None:
     )
 
     simulation_project.vunit_proj.main()
-
-
-def find_git_test_filters(
-    args: argparse.Namespace,
-    repo_root: Path,
-    modules: "ModuleList",
-    modules_no_sim: Optional["ModuleList"] = None,
-    reference_branch: str = "origin/master",
-    **setup_vunit_kwargs: Any,
-) -> list[str]:
-    """
-    Construct a VUnit test filter that will run all test cases that are affected by git changes.
-    The current git state is compared to a reference branch, and differences are derived.
-    See :class:`.GitSimulationSubset` for details.
-
-    Arguments:
-        args: Command line argument namespace.
-        repo_root: Path to the repository root. Git commands will be run here.
-        modules: Will be passed on to :meth:`.SimulationProject.add_modules`.
-        modules_no_sim: Will be passed on to :meth:`.SimulationProject.add_modules`.
-        reference_branch (str): The name of the reference branch that is used to collect a diff.
-        setup_vunit_kwargs : Will be passed on to :meth:`.SimulationProject.add_modules`.
-
-    Return:
-        A list of VUnit test case filters.
-    """
-    # Set up a dummy VUnit project that will be used for dependency scanning.
-    # Note that sources are added identical to the "real" project above.
-    simulation_project = SimulationProject(args=args)
-    simulation_project.add_modules(
-        args=args,
-        modules=modules,
-        modules_no_sim=modules_no_sim,
-        include_verilog_files=False,
-        include_systemverilog_files=False,
-        **setup_vunit_kwargs,
-    )
-
-    testbenches_to_run = GitSimulationSubset(
-        repo_root=repo_root,
-        reference_branch=reference_branch,
-        vunit_proj=simulation_project.vunit_proj,
-        modules=modules,
-    ).find_subset()
-
-    test_filters = []
-    for testbench_file_name, library_name in testbenches_to_run:
-        test_filters.append(f"{library_name}.{testbench_file_name}.*")
-
-    return test_filters
 
 
 if __name__ == "__main__":
