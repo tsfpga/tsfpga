@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Type
 
 # Third party libraries
+import hdl_registers
 from vunit.ui import VUnit
 from vunit.vivado.vivado import add_from_compile_order_file, create_compile_order_file
 from vunit.vunit_cli import VUnitCLI
@@ -332,10 +333,25 @@ def create_vhdl_ls_configuration(
     except FileNotFoundError:
         vivado_location = None
 
+    # Add some files needed when doing hdl-registers development.
+    hdl_register_repo_root = Path(hdl_registers.__file__).parent.parent
+    additional_files = [
+        ("example", hdl_register_repo_root / "tests" / "functional" / "simulation" / "*.vhd"),
+        (
+            "example",
+            hdl_register_repo_root / "generated" / "vunit_out" / "generated_register" / "*.vhd",
+        ),
+        (
+            "example",
+            hdl_register_repo_root / "doc" / "sphinx" / "rst" / "generator" / "sim" / "*.vhd",
+        ),
+    ]
+
     tsfpga.create_vhdl_ls_config.create_configuration(
         output_path=output_path,
         modules=modules,
         vunit_proj=vunit_proj,
+        files=additional_files,
         vivado_location=vivado_location,
         ip_core_vivado_project_directory=ip_core_vivado_project_directory,
     )
