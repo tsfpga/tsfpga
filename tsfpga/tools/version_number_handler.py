@@ -153,8 +153,8 @@ def make_commit(repo: Repo, commit_message: str) -> None:
     Make a git commit, and check that it worked.
 
     Arguments:
-        repo (`git.Repo`): The git repository to work with.
-        commit_message (str): Commit message to use.
+        repo: The git repository to work with.
+        commit_message: Commit message to use.
     """
     repo.index.commit(commit_message)
     if repo.is_dirty():
