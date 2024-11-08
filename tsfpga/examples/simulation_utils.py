@@ -9,11 +9,7 @@
 # Standard libraries
 import argparse
 from pathlib import Path
-from shutil import which
 from typing import TYPE_CHECKING, Any, Optional, Type
-
-if TYPE_CHECKING:
-    from tsfpga.vivado.simlib_common import VivadoSimlibCommon
 
 # Third party libraries
 from vunit.ui import VUnit
@@ -24,8 +20,13 @@ from vunit.vunit_cli import VUnitCLI
 import tsfpga
 import tsfpga.create_vhdl_ls_config
 from tsfpga.module_list import ModuleList
+from tsfpga.vivado.common import get_vivado_path
 from tsfpga.vivado.ip_cores import VivadoIpCores
 from tsfpga.vivado.simlib import VivadoSimlib
+
+if TYPE_CHECKING:
+    # First party libraries
+    from tsfpga.vivado.simlib_common import VivadoSimlibCommon
 
 
 def get_arguments_cli(default_output_path: Path) -> VUnitCLI:
@@ -303,34 +304,33 @@ class SimulationProject:
 
 def create_vhdl_ls_configuration(
     output_path: Path,
-    temp_files_path: Path,
     modules: ModuleList,
+    vunit_proj: VUnit,
     ip_core_vivado_project_directory: Optional[Path] = None,
 ) -> None:
     """
-    Create config for vhdl_ls (https://github.com/VHDL-LS/rust_hdl).
-    Granted this might no be the "correct" place for this functionality.
-    But since the call is somewhat quick (~10 ms), and simulate.py is run "often" it seems an
-    appropriate place in order to always have an up-to-date vhdl_ls config.
+    Create a configuration file (``vhdl_ls.toml``) for the rust_hdl VHDL Language Server
+    (https://github.com/VHDL-LS/rust_hdl).
+
+    The call is very quick (10-15 ms).
+    Running it from ``simulate.py``, a script that is run "often", might be a good idea
+    in order to always have an up-to-date vhdl_ls config.
 
     Arguments:
         output_path: Config file will be placed in this directory.
-        temp_files_path: Some temporary files will be stored in a folder within this directory.
-        modules: These modules will be added.
+        modules: All files from these modules will be added.
+        vunit_proj: All files in this VUnit project will be added.
+            This includes the files from VUnit itself, and any user files.
+
+            .. warning::
+                Using a VUnit project with location/check preprocessing enabled might be
+                dangerous, since it introduces the risk of editing a generated file.
         ip_core_vivado_project_directory: Vivado IP core files in this location will be added.
     """
-    # Create an empty VUnit project to add files from VUnit and OSVVM library.
-    # If we were to use the "real" VUnit project that we set up above instead, all the files would
-    # be in the "preprocessed" folder. Hence we use an "empty" VUnit project, and add all files
-    # via modules.
-    vunit_proj = VUnit.from_argv(argv=["--output-path", str(temp_files_path / "vhdl_ls_vunit_out")])
-    vunit_proj.add_vhdl_builtins()
-    vunit_proj.add_verification_components()
-    vunit_proj.add_random()
-    vunit_proj.add_osvvm()
-
-    which_vivado = which("vivado")
-    vivado_location = None if which_vivado is None else Path(which_vivado)
+    try:
+        vivado_location = get_vivado_path()
+    except FileNotFoundError:
+        vivado_location = None
 
     tsfpga.create_vhdl_ls_config.create_configuration(
         output_path=output_path,

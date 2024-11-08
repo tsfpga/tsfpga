@@ -17,6 +17,9 @@ import rtoml
 from tsfpga.vivado.ip_cores import VivadoIpCores
 
 if TYPE_CHECKING:
+    # Third party libraries
+    from vunit.ui import VUnit
+
     # Local folder libraries
     from .module_list import ModuleList
 
@@ -24,42 +27,66 @@ if TYPE_CHECKING:
 def create_configuration(
     output_path: Path,
     modules: Optional["ModuleList"] = None,
-    vunit_proj: Optional[Any] = None,
+    vunit_proj: Optional["VUnit"] = None,
+    files: Optional[list[tuple[str, Path]]] = None,
     vivado_location: Optional[Path] = None,
     ip_core_vivado_project_directory: Optional[Path] = None,
 ) -> None:
     """
-    Create a configuration file (vhdl_ls.toml) for the rust_hdl VHDL Language Server.
+    Create a configuration file (``vhdl_ls.toml``) for the rust_hdl VHDL Language Server
+    (https://github.com/VHDL-LS/rust_hdl).
 
     Can be used with modules and an "empty" VUnit project, or with a complete VUnit
     project with all user files added.
+    Files can also be added manually with the ``files`` argument.
 
     Execution of this function takes roughly 12 ms for a large project (62 modules and a
     VUnit project).
 
     Arguments:
         output_path: vhdl_ls.toml file will be placed in this folder.
-        modules: A list of Module objects.
-        vunit_proj: A VUnit project.
-        vivado_location: Vivado binary path. Will add unisim from this Vivado installation.
+        modules: All files from these modules will be added.
+        vunit_proj: All files in this VUnit project will be added.
+            This includes the files from VUnit itself, and any user files.
+
+            .. warning::
+                Using a VUnit project with user files and location/check preprocessing enabled is
+                dangerous, since it introduces the risk of editing a generated file.
+        files: All files listed here will be added.
+            Can be used to add additional files outside of the modules or the VUnit project.
+            The list shall contain tuples: ``("library name", Path)``.
+        vivado_location: Vivado binary path.
+            The ``unisim`` from this Vivado installation will be added.
         ip_core_vivado_project_directory: Path to a Vivado project that contains
             generated "simulation" and "synthesis" files of IP cores
-            (the "generate_target" TCL command). See simulate.py for an example of using this.
+            (the "generate_target" TCL command).
+            See :py:mod:`.examples.simulate.py` for an example of using this.
     """
-    toml_data: dict[str, dict[str, dict[str, list[str]]]] = dict(libraries={})
+    toml_data: dict[str, dict[str, Any]] = dict(libraries={})
+
+    def add_file(library_name: str, file_path: Path) -> None:
+        """
+        Note that 'file_path' may contain wildcards.
+        """
+        if library_name not in toml_data["libraries"]:
+            toml_data["libraries"][library_name] = dict(files=[])
+
+            if library_name in ["vunit_lib", "osvvm", "unisim", "xil_defaultlib"]:
+                toml_data["libraries"][library_name]["is_third_party"] = True
+
+        toml_data["libraries"][library_name]["files"].append(str(file_path.resolve()))
 
     if modules is not None:
         for module in modules:
-            vhd_file_wildcard = module.path.resolve() / "**" / "*.vhd"
-            toml_data["libraries"][module.library_name] = dict(files=[str(vhd_file_wildcard)])
+            add_file(library_name=module.library_name, file_path=module.path / "**" / "*.vhd")
 
     if vunit_proj is not None:
         for source_file in vunit_proj.get_compile_order():
-            if source_file.library.name not in toml_data["libraries"]:
-                toml_data["libraries"][source_file.library.name] = dict(files=[])
-            toml_data["libraries"][source_file.library.name]["files"].append(
-                str(Path(source_file.name).resolve())
-            )
+            add_file(library_name=source_file.library.name, file_path=Path(source_file.name))
+
+    if files is not None:
+        for library_name, file_path in files:
+            add_file(library_name=library_name, file_path=file_path)
 
     if vivado_location is not None:
         vcomponents_package = (
@@ -73,18 +100,14 @@ def create_configuration(
         if not vcomponents_package.exists():
             raise FileNotFoundError(f"Could not find unisim file: {vcomponents_package}")
 
-        toml_data["libraries"]["unisim"] = dict(files=[str(vcomponents_package.resolve())])
+        add_file(library_name="unisim", file_path=vcomponents_package)
 
     if ip_core_vivado_project_directory is not None:
-        ip_core_vivado_project_directory = ip_core_vivado_project_directory.resolve()
-        toml_data["libraries"]["xil_defaultlib"] = dict(files=[])
-
         # Vivado 2020.2+ (?) seems to place the files in "gen"
         ip_gen_dir = (
             ip_core_vivado_project_directory / f"{VivadoIpCores.project_name}.gen" / "sources_1"
         )
         if ip_gen_dir.exists():
-            vhd_file_wildcard = ip_gen_dir / "ip" / "**" / "*.vhd"
-            toml_data["libraries"]["xil_defaultlib"]["files"].append(str(vhd_file_wildcard))
+            add_file(library_name="xil_defaultlib", file_path=ip_gen_dir / "ip" / "**" / "*.vhd")
 
     rtoml.dump(obj=toml_data, file=output_path / "vhdl_ls.toml", pretty=True)
