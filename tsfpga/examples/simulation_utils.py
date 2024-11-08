@@ -409,24 +409,24 @@ def create_vhdl_ls_configuration(
                 dangerous, since it introduces the risk of editing a generated file.
         ip_core_vivado_project_directory: Vivado IP core files in this location will be added.
     """
+    # Add some files needed when doing hdl-registers development.
+    hdl_register_repo_root = Path(hdl_registers.__file__).parent.parent
+    additional_files = [
+        (hdl_register_repo_root / "tests" / "functional" / "simulation" / "*.vhd", "example"),
+        (
+            hdl_register_repo_root / "generated" / "vunit_out" / "generated_register" / "*.vhd",
+            "example",
+        ),
+        (
+            hdl_register_repo_root / "doc" / "sphinx" / "rst" / "generator" / "sim" / "*.vhd",
+            "example",
+        ),
+    ]
+
     try:
         vivado_location = get_vivado_path()
     except FileNotFoundError:
         vivado_location = None
-
-    # Add some files needed when doing hdl-registers development.
-    hdl_register_repo_root = Path(hdl_registers.__file__).parent.parent
-    additional_files = [
-        ("example", hdl_register_repo_root / "tests" / "functional" / "simulation" / "*.vhd"),
-        (
-            "example",
-            hdl_register_repo_root / "generated" / "vunit_out" / "generated_register" / "*.vhd",
-        ),
-        (
-            "example",
-            hdl_register_repo_root / "doc" / "sphinx" / "rst" / "generator" / "sim" / "*.vhd",
-        ),
-    ]
 
     tsfpga.create_vhdl_ls_config.create_configuration(
         output_path=output_path,
