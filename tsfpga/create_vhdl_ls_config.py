@@ -28,7 +28,7 @@ def create_configuration(
     output_path: Path,
     modules: Optional["ModuleList"] = None,
     vunit_proj: Optional["VUnit"] = None,
-    files: Optional[list[tuple[str, Path]]] = None,
+    files: Optional[list[tuple[Path, str]]] = None,
     vivado_location: Optional[Path] = None,
     ip_core_vivado_project_directory: Optional[Path] = None,
 ) -> None:
@@ -54,7 +54,7 @@ def create_configuration(
                 dangerous, since it introduces the risk of editing a generated file.
         files: All files listed here will be added.
             Can be used to add additional files outside of the modules or the VUnit project.
-            The list shall contain tuples: ``("library name", Path)``.
+            The list shall contain tuples: ``(Path, "library name")``.
         vivado_location: Vivado binary path.
             The ``unisim`` from this Vivado installation will be added.
         ip_core_vivado_project_directory: Path to a Vivado project that contains
@@ -64,7 +64,7 @@ def create_configuration(
     """
     toml_data: dict[str, dict[str, Any]] = dict(libraries={})
 
-    def add_file(library_name: str, file_path: Path) -> None:
+    def add_file(file_path: Path, library_name: str) -> None:
         """
         Note that 'file_path' may contain wildcards.
         """
@@ -78,15 +78,15 @@ def create_configuration(
 
     if modules is not None:
         for module in modules:
-            add_file(library_name=module.library_name, file_path=module.path / "**" / "*.vhd")
+            add_file(file_path=module.path / "**" / "*.vhd", library_name=module.library_name)
 
     if vunit_proj is not None:
         for source_file in vunit_proj.get_compile_order():
-            add_file(library_name=source_file.library.name, file_path=Path(source_file.name))
+            add_file(file_path=Path(source_file.name), library_name=source_file.library.name)
 
     if files is not None:
-        for library_name, file_path in files:
-            add_file(library_name=library_name, file_path=file_path)
+        for file_path, library_name in files:
+            add_file(file_path=file_path, library_name=library_name)
 
     if vivado_location is not None:
         vcomponents_package = (
@@ -100,7 +100,7 @@ def create_configuration(
         if not vcomponents_package.exists():
             raise FileNotFoundError(f"Could not find unisim file: {vcomponents_package}")
 
-        add_file(library_name="unisim", file_path=vcomponents_package)
+        add_file(file_path=vcomponents_package, library_name="unisim")
 
     if ip_core_vivado_project_directory is not None:
         # Vivado 2020.2+ (?) seems to place the files in "gen"
@@ -108,6 +108,6 @@ def create_configuration(
             ip_core_vivado_project_directory / f"{VivadoIpCores.project_name}.gen" / "sources_1"
         )
         if ip_gen_dir.exists():
-            add_file(library_name="xil_defaultlib", file_path=ip_gen_dir / "ip" / "**" / "*.vhd")
+            add_file(file_path=ip_gen_dir / "ip" / "**" / "*.vhd", library_name="xil_defaultlib")
 
     rtoml.dump(obj=toml_data, file=output_path / "vhdl_ls.toml", pretty=True)
