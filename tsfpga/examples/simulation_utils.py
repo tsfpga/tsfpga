@@ -20,6 +20,7 @@ from vunit.vunit_cli import VUnitCLI
 # First party libraries
 import tsfpga
 import tsfpga.create_vhdl_ls_config
+from tsfpga.git_simulation_subset import GitSimulationSubset
 from tsfpga.module_list import ModuleList
 from tsfpga.vivado.common import get_vivado_path
 from tsfpga.vivado.ip_cores import VivadoIpCores
@@ -301,6 +302,86 @@ class SimulationProject:
             )
 
         return vivado_ip_cores.compile_order_file, vivado_ip_cores.project_directory
+
+
+class NoGitDiffTestsFound(Exception):
+    """
+    Raised by :meth:`.find_git_test_filters` when no tests are found due to no
+    VHDL-related git diff.
+    """
+
+
+def find_git_test_filters(
+    args: argparse.Namespace,
+    repo_root: Path,
+    modules: "ModuleList",
+    modules_no_sim: Optional["ModuleList"] = None,
+    reference_branch: str = "origin/main",
+    **setup_vunit_kwargs: Any,
+) -> argparse.Namespace:
+    """
+    Construct a VUnit test filter that will run all test cases that are affected by git changes.
+    The current git state is compared to a reference branch, and differences are derived.
+    See :class:`.GitSimulationSubset` for details.
+
+    Arguments:
+        args: Command line argument namespace.
+        repo_root: Path to the repository root.
+            Git commands will be run here.
+        modules: Will be passed on to :meth:`.SimulationProject.add_modules`.
+        modules_no_sim: Will be passed on to :meth:`.SimulationProject.add_modules`.
+        reference_branch: The name of the reference branch that is used to collect a diff.
+        setup_vunit_kwargs : Will be passed on to :meth:`.SimulationProject.add_modules`.
+
+    Return:
+        An updated argument namespace from which a VUnit project can be created.
+    """
+    if args.test_patterns != "*":
+        raise ValueError(
+            "Can not specify a test pattern when using the --vcs-minimal flag."
+            f" Got {args.test_patterns}",
+        )
+
+    # Set up a dummy VUnit project that will be used for dependency scanning.
+    # We could use the "real" simulation project, which the user has no doubt created, but
+    # in the VUnit project there are two issues:
+    # 1. It is impossible to change the test filter after the project has been created.
+    # 2. We would have to access the _minimal private member.
+    # Hence we create a new project here.
+    # We add the 'modules_no_sim' as well as simlib, not because we need them, but to avoid
+    # excessive terminal printouts about missing files in dependency scanning.
+    simulation_project = SimulationProject(args=args)
+    simulation_project.add_modules(
+        args=args,
+        modules=modules,
+        modules_no_sim=modules_no_sim,
+        include_verilog_files=False,
+        include_systemverilog_files=False,
+        **setup_vunit_kwargs,
+    )
+    simulation_project.add_vivado_simlib()
+
+    testbenches_to_run = GitSimulationSubset(
+        repo_root=repo_root,
+        reference_branch=reference_branch,
+        vunit_proj=simulation_project.vunit_proj,
+        modules=modules,
+    ).find_subset()
+
+    if not testbenches_to_run:
+        raise NoGitDiffTestsFound()
+
+    # Override the test pattern argument to VUnit.
+    args.test_patterns = []
+    for testbench_file_name, library_name in testbenches_to_run:
+        args.test_patterns.append(f"{library_name}.{testbench_file_name}.*")
+
+    print(f"Running VUnit with test pattern {args.test_patterns}")
+
+    # Enable minimal compilation in VUnit to save time.
+    args.minimal = True
+
+    return args
 
 
 def create_vhdl_ls_configuration(
