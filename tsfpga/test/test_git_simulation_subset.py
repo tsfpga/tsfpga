@@ -38,7 +38,7 @@ def test_find_subset(tmp_path):  # pylint: disable=too-many-statements,too-many-
     vunit_proj = MagicMock()
 
     git_simulation_subset = GitSimulationSubset(
-        repo_root=tmp_path, reference_branch="origin/main", vunit_proj=vunit_proj, modules=modules
+        repo_root=tmp_path, reference_branch="origin/master", vunit_proj=vunit_proj, modules=modules
     )
 
     with patch("tsfpga.git_simulation_subset.Repo", autospec=True) as mocked_repo:
@@ -137,4 +137,4 @@ def test_find_subset(tmp_path):  # pylint: disable=too-many-statements,too-many-
             (tb_vhd2_with_no_diff.stem, "bar"),
         ]
 
-        repo.commit.assert_called_once_with("origin/main")
+        repo.commit.assert_called_once_with("origin/master")
