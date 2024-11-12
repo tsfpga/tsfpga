@@ -24,6 +24,10 @@ puts "Applying example vivado message rules"
 set_msg_config -new_severity "ERROR" -id "Synth 8-5863"
 set_msg_config -new_severity "ERROR" -id "Synth 8-327"
 
+# Message: Tying undriven pin to a constant.
+# Motivation: An undriven pin that is used, is probably a mistake in the code.
+set_msg_config -new_severity "ERROR" -id "Synth 8-3295"
+
 # Message: Terminal has IOB constraint set to TRUE, but it is either not
 #     connected to a FLOP element or the connected FLOP element could not be brought into the I/O.
 # Motivation: This warning appears only if we have specifically instructed the tool to use IOB,
@@ -39,7 +43,7 @@ set_msg_config -new_severity "ERROR" -id "Opt 31-80"
 set_msg_config -new_severity "ERROR" -id "Route 35-14"
 set_msg_config -new_severity "ERROR" -id "Synth 8-6859"
 set_msg_config -new_severity "ERROR" -id "Synth 8-3352"
-set_property SEVERITY "ERROR" [get_drc_checks "MDRV-1"]
+set_property "SEVERITY" "ERROR" [get_drc_checks "MDRV-1"]
 
 # Message: Case statement has an input that will never be executed.
 # Motivation: Probably caused by a mistake in the code.
@@ -80,7 +84,7 @@ set_msg_config -new_severity "ERROR" -id "Vivado 12-1411"
 
 # Message: MMCM or PLL VCO frequency out of range.
 # Motivation: Design will not work as intended when this is the case.
-set_property SEVERITY "ERROR" [get_drc_checks "AVAL-46"]
+set_property "SEVERITY" "ERROR" [get_drc_checks "AVAL-46"]
 
 # Message: Syntax error.
 # Motivation: Quite a general message, but it definitely implies an error.
