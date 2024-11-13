@@ -174,15 +174,15 @@ register documentation.
             register_note_rst = (
                 "This module has a register interface, so make sure to study the "
                 f":ref:`register interface documentation <{self._module.name}.register_interface>` "
-                "as well as this top-level document."
+                "as well as this top-level document.\n"
             )
         else:
             register_note_rst = ""
 
         if self._repository_url:
             url_rst = (
-                f"To browse the source code, please visit the "
-                f"`repository on {self._repository_name} <{self._repository_url}>`__."
+                f"To browse the source code, visit the "
+                f"`repository on {self._repository_name} <{self._repository_url}>`__.\n"
             )
         else:
             url_rst = ""
@@ -207,8 +207,8 @@ register documentation.
 {heading_underline}
 
 This document contains technical documentation for the ``{self._module.name}`` module.
-{register_note_rst}
-{url_rst}
+{register_note_rst}\
+{url_rst}\
 
 {overview_rst}
 
