@@ -88,3 +88,10 @@ set_msg_config -new_severity "CRITICAL WARNING" -id "Synth 8-327"
 # Motivation: This is an RTL error. The sensitivity list should be updated.
 #     Can yield different behavior in simulation and synthesis unless fixed.
 set_msg_config -new_severity "ERROR" -id "Synth 8-614"
+
+# Raise from CRITICAL WARNING.
+# Message: Command failed.
+# Motivation: This message appears when the TCL command "error" is called in a
+#     constraint file.
+#     If we don't raise the severity, the build will continue silently.
+set_msg_config -new_severity "ERROR" -id "Common 17-1548"
