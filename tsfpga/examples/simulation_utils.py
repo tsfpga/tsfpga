@@ -24,6 +24,7 @@ from tsfpga.git_simulation_subset import GitSimulationSubset
 from tsfpga.module_list import ModuleList
 from tsfpga.vivado.common import get_vivado_path
 from tsfpga.vivado.ip_cores import VivadoIpCores
+from tsfpga.vivado.project import VivadoIpCoreProject
 from tsfpga.vivado.simlib import VivadoSimlib
 
 if TYPE_CHECKING:
@@ -221,7 +222,7 @@ class SimulationProject:
         self,
         modules: ModuleList,
         vivado_part_name: str = "xc7z020clg400-1",
-        vivado_ip_core_project_class: Optional[Type[Any]] = None,
+        vivado_ip_core_project_class: Optional[Type[VivadoIpCoreProject]] = None,
     ) -> Optional[Path]:
         """
         Generate IP cores from the modules, unless instructed not to by ``args``.
@@ -267,7 +268,7 @@ class SimulationProject:
         output_path: Path,
         force_generate: bool,
         part_name: str,
-        vivado_project_class: Optional[Type[Any]] = None,
+        vivado_project_class: Optional[Type[VivadoIpCoreProject]] = None,
     ) -> tuple[Path, Path]:
         """
         Generate Vivado IP core files that are to be added to the VUnit project.
