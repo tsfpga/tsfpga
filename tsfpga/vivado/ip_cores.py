@@ -23,9 +23,6 @@ if TYPE_CHECKING:
     from tsfpga.ip_core_file import IpCoreFile
     from tsfpga.module_list import ModuleList
 
-    # Local folder libraries
-    from .project import VivadoProject
-
 
 class VivadoIpCores:
     """
@@ -40,7 +37,7 @@ class VivadoIpCores:
         modules: "ModuleList",
         output_path: Path,
         part_name: str,
-        vivado_project_class: Optional[type["VivadoProject"]] = None,
+        vivado_project_class: Optional[type["VivadoIpCoreProject"]] = None,
     ) -> None:
         """
         Arguments:
@@ -59,7 +56,7 @@ class VivadoIpCores:
 
         self._hash_file = self.project_directory / "ip_files_hash.txt"
 
-        self._setup(modules, vivado_project_class)
+        self._setup(modules=modules, vivado_project_class=vivado_project_class)
 
     @property
     def compile_order_file(self) -> Path:
@@ -107,7 +104,9 @@ class VivadoIpCores:
 
         return False
 
-    def _setup(self, modules: "ModuleList", vivado_project_class: type["VivadoProject"]) -> None:
+    def _setup(
+        self, modules: "ModuleList", vivado_project_class: type["VivadoIpCoreProject"]
+    ) -> None:
         self._vivado_project = vivado_project_class(
             name=self.project_name, modules=modules, part=self._part_name
         )
