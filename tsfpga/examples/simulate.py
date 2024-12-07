@@ -30,7 +30,7 @@ from tsfpga.examples.simulation_utils import (
     NoVcsDiffTestsFound,
     SimulationProject,
     create_vhdl_ls_configuration,
-    find_git_test_filters,
+    find_git_test_filter,
     get_arguments_cli,
 )
 
@@ -49,7 +49,7 @@ def main() -> None:
 
     if args.vcs_minimal:
         try:
-            args = find_git_test_filters(
+            args = find_git_test_filter(
                 args=args,
                 repo_root=tsfpga.REPO_ROOT,
                 modules=modules,
