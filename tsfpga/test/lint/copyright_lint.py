@@ -72,7 +72,7 @@ class CopyrightHeader:
         if self._file.name.endswith((".xdc", ".tcl")):
             return "#"
 
-        if self._file.name.endswith((".c", ".cpp", ".h")):
+        if self._file.name.endswith((".c", ".cpp", ".h", ".cs")):
             return "//"
 
         if self._file.name.endswith((".v", ".vh", ".sv", ".svh")):
