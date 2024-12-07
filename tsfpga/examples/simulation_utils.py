@@ -78,7 +78,7 @@ def get_arguments_cli(default_output_path: Path) -> VUnitCLI:
     cli.parser.add_argument(
         "--vcs-minimal",
         action="store_true",
-        help="compile and run only a minimal set of tests based on Version Control System history",
+        help="run a minimal set of tests based on version control system (e.g. git) history",
     )
 
     cli.parser.add_argument(
