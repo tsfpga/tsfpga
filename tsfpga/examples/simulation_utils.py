@@ -119,7 +119,7 @@ class SimulationProject:
     def add_modules(
         self,
         modules: ModuleList,
-        modules_no_sim: Optional[ModuleList] = None,
+        modules_no_test: Optional[ModuleList] = None,
         include_vhdl_files: bool = True,
         include_verilog_files: bool = True,
         include_systemverilog_files: bool = True,
@@ -130,8 +130,9 @@ class SimulationProject:
 
         Arguments:
             modules: These modules will be included in the simulation project.
-            modules_no_sim: These modules will be included in the simulation project,
-                but their test files will not be added.
+            modules_no_test: Source and simulation files from these modules will be included in the
+                simulation project, but no testbenches.
+                Provide your dependency modules here, if you have any.
             include_vhdl_files: Optionally disable inclusion of VHDL files from
                 the modules.
             include_verilog_files: Optionally disable inclusion of Verilog files from
@@ -143,16 +144,16 @@ class SimulationProject:
                 Note that this is a "kwargs" style argument; any number of named arguments can
                 be sent.
         """
-        modules_no_sim = ModuleList() if modules_no_sim is None else modules_no_sim
+        modules_no_test = ModuleList() if modules_no_test is None else modules_no_test
 
         include_unisim = not self.args.vivado_skip
         include_ip_cores = self.has_commercial_simulator and not self.args.vivado_skip
 
-        for module in modules + modules_no_sim:
+        for module in modules + modules_no_test:
             vunit_library = self.vunit_proj.add_library(
                 library_name=module.library_name, allow_duplicate=True
             )
-            simulate_this_module = module not in modules_no_sim
+            simulate_this_module = module not in modules_no_test
 
             for hdl_file in module.get_simulation_files(
                 include_tests=simulate_this_module,
@@ -316,7 +317,7 @@ def find_git_test_filters(
     args: argparse.Namespace,
     repo_root: Path,
     modules: "ModuleList",
-    modules_no_sim: Optional["ModuleList"] = None,
+    modules_no_test: Optional["ModuleList"] = None,
     reference_branch: str = "origin/main",
     **setup_vunit_kwargs: Any,
 ) -> argparse.Namespace:
@@ -330,7 +331,7 @@ def find_git_test_filters(
         repo_root: Path to the repository root.
             Git commands will be run here.
         modules: Will be passed on to :meth:`.SimulationProject.add_modules`.
-        modules_no_sim: Will be passed on to :meth:`.SimulationProject.add_modules`.
+        modules_no_test: Will be passed on to :meth:`.SimulationProject.add_modules`.
         reference_branch: The name of the reference branch that is used to collect a diff.
         setup_vunit_kwargs : Will be passed on to :meth:`.SimulationProject.add_modules`.
 
@@ -349,13 +350,13 @@ def find_git_test_filters(
     # 1. It is impossible to change the test filter after the project has been created.
     # 2. We would have to access the _minimal private member.
     # Hence we create a new project here.
-    # We add the 'modules_no_sim' as well as simlib, not because we need them, but to avoid
+    # We add the 'modules_no_test' as well as simlib, not because we need them but to avoid
     # excessive terminal printouts about missing files in dependency scanning.
     simulation_project = SimulationProject(args=args)
     simulation_project.add_modules(
         args=args,
         modules=modules,
-        modules_no_sim=modules_no_sim,
+        modules_no_test=modules_no_test,
         include_verilog_files=False,
         include_systemverilog_files=False,
         **setup_vunit_kwargs,

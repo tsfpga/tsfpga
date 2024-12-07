@@ -45,7 +45,7 @@ def main() -> None:
     args = cli.parse_args()
 
     modules = get_tsfpga_example_modules()
-    modules_no_sim = get_hdl_modules()
+    modules_no_test = get_hdl_modules()
 
     if args.vcs_minimal:
         try:
@@ -53,7 +53,7 @@ def main() -> None:
                 args=args,
                 repo_root=tsfpga.REPO_ROOT,
                 modules=modules,
-                modules_no_sim=modules_no_sim,
+                modules_no_test=modules_no_test,
             )
         except NoGitDiffTestsFound:
             print("Nothing to run. Appears to be no VHDL-related git diff.")
@@ -61,13 +61,13 @@ def main() -> None:
 
     simulation_project = SimulationProject(args=args)
     ip_core_vivado_project_directory = simulation_project.add_vivado_ip_cores(
-        modules=modules + modules_no_sim
+        modules=modules + modules_no_test
     )
 
-    # Generate before modules are added to VUnit project, to avoid duplicates.
+    # Generate before modules are added to VUnit project, to avoid duplicate files.
     create_vhdl_ls_configuration(
         output_path=tsfpga.REPO_ROOT,
-        modules=modules + modules_no_sim,
+        modules=modules + modules_no_test,
         vunit_proj=simulation_project.vunit_proj,
         ip_core_vivado_project_directory=ip_core_vivado_project_directory,
     )
@@ -75,7 +75,7 @@ def main() -> None:
     simulation_project.add_modules(
         args=args,
         modules=modules,
-        modules_no_sim=modules_no_sim,
+        modules_no_test=modules_no_test,
         include_verilog_files=False,
         include_systemverilog_files=False,
     )
@@ -87,7 +87,7 @@ def main() -> None:
 
     create_ghdl_ls_configuration(
         output_path=tsfpga.REPO_ROOT,
-        modules=modules + modules_no_sim,
+        modules=modules + modules_no_test,
         vunit_proj=simulation_project.vunit_proj,
         simlib=simlib,
     )
