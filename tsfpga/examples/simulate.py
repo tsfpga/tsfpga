@@ -79,11 +79,12 @@ def main() -> None:
         include_verilog_files=False,
         include_systemverilog_files=False,
     )
-    simlib = simulation_project.add_vivado_simlib()
+
     # Synopsys is needed by unisim MMCME2_ADV primitive.
     # Relaxed rules needed by unisim VITAL2000 package.
     # Do not use in any new code.
-    simulation_project.vunit_proj.set_sim_option("ghdl.elab_flags", ["-frelaxed", "-fsynopsys"])
+    simlib = simulation_project.add_vivado_simlib()
+    simulation_project.vunit_proj.set_sim_option("ghdl.elab_flags", ["-fsynopsys", "-frelaxed"])
 
     create_ghdl_ls_configuration(
         output_path=tsfpga.REPO_ROOT,

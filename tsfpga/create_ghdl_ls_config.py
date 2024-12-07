@@ -73,7 +73,11 @@ def create_ghdl_ls_configuration(
 
     if modules is not None:
         for module in modules:
-            for hdl_file in module.get_simulation_files(include_ip_cores=False):
+            for hdl_file in module.get_simulation_files(
+                include_ip_cores=False,
+                include_verilog_files=False,
+                include_systemverilog_files=False,
+            ):
                 files.add(hdl_file.path)
 
     for source_file in vunit_proj.get_compile_order():
