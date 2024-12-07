@@ -282,6 +282,9 @@ class GitSimulationSubset:
 
     @staticmethod
     def _print_file_list(title: str, files: set[Path]) -> None:
+        if not files:
+            return
+
         print(f"{title}:")
         for file_path in files:
             print(f"  {file_path}")
