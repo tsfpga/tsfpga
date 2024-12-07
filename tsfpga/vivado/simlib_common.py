@@ -41,7 +41,7 @@ class VivadoSimlibCommon(ABC):
 
     def __init__(self, vivado_path: Optional[Path], output_path: Path) -> None:
         """
-        Call from subclass. Please do not instantiate this class directly.
+        Call from subclass. Do not instantiate this class directly.
         """
         self._vivado_path = get_vivado_path(vivado_path)
         self._libraries_path = (self._vivado_path.parent.parent / "data" / "vhdl" / "src").resolve()
@@ -85,8 +85,10 @@ class VivadoSimlibCommon(ABC):
         """
         Compile simlib.
         """
-        # Probably does not exists, but try to delete just in case.
-        delete(self._done_token)
+        # Delete any existing artifacts, which might be fully or partially compiled.
+        # This also deletes the "done" token file if it exists.
+        # Specifically GHDL compilation fails if there are existing compiled artifacts
+        delete(self.output_path)
 
         print(f"Compiling Vivado simlib from {self._libraries_path} into {self.output_path}...")
         self._compile()
