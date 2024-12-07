@@ -308,12 +308,12 @@ class SimulationProject:
 
 class NoVcsDiffTestsFound(Exception):
     """
-    Raised by :meth:`.find_git_test_filters` when no tests are found due to no
+    Raised by :meth:`.find_git_test_filter` when no tests are found due to no
     VHDL-related git diff.
     """
 
 
-def find_git_test_filters(
+def find_git_test_filter(
     args: argparse.Namespace,
     repo_root: Path,
     modules: "ModuleList",
