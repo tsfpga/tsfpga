@@ -306,7 +306,7 @@ class SimulationProject:
         return vivado_ip_cores.compile_order_file, vivado_ip_cores.project_directory
 
 
-class NoGitDiffTestsFound(Exception):
+class NoVcsDiffTestsFound(Exception):
     """
     Raised by :meth:`.find_git_test_filters` when no tests are found due to no
     VHDL-related git diff.
@@ -371,7 +371,7 @@ def find_git_test_filters(
     ).find_subset()
 
     if not testbenches_to_run:
-        raise NoGitDiffTestsFound()
+        raise NoVcsDiffTestsFound()
 
     # Override the test pattern argument to VUnit.
     args.test_patterns = []

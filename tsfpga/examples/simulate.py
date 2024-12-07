@@ -27,7 +27,7 @@ from tsfpga.examples.example_env import (
     get_tsfpga_example_modules,
 )
 from tsfpga.examples.simulation_utils import (
-    NoGitDiffTestsFound,
+    NoVcsDiffTestsFound,
     SimulationProject,
     create_vhdl_ls_configuration,
     find_git_test_filters,
@@ -55,7 +55,7 @@ def main() -> None:
                 modules=modules,
                 modules_no_test=modules_no_test,
             )
-        except NoGitDiffTestsFound:
+        except NoVcsDiffTestsFound:
             print("Nothing to run. Appears to be no VHDL-related git diff.")
             return
 
