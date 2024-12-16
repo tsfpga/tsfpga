@@ -413,17 +413,15 @@ def create_vhdl_ls_configuration(
     """
     # Add some files needed when doing hdl-registers development.
     hdl_register_repo_root = Path(hdl_registers.__file__).parent.parent
-    additional_files = [
-        (hdl_register_repo_root / "tests" / "functional" / "simulation" / "*.vhd", "example"),
-        (
-            hdl_register_repo_root / "generated" / "vunit_out" / "generated_register" / "*.vhd",
-            "example",
-        ),
-        (
-            hdl_register_repo_root / "doc" / "sphinx" / "rst" / "generator" / "sim" / "*.vhd",
-            "example",
-        ),
-    ]
+    additional_files = []
+    for path in [
+        hdl_register_repo_root / "tests" / "functional" / "simulation",
+        hdl_register_repo_root / "generated" / "vunit_out" / "generated_register",
+        hdl_register_repo_root / "doc" / "sphinx" / "rst" / "generator" / "sim",
+    ]:
+        # Add only if they exist. To avoid vhdl_ls warning about missing files.
+        if path.exists():
+            additional_files.append((path / "*.vhd", "example"))
 
     try:
         vivado_location = get_vivado_path()
