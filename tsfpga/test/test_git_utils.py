@@ -115,10 +115,11 @@ def test_get_git_commit_with_env_variable_and_local_changes(git_commit_with_loca
     else:
         old_env = None
 
-    os.environ["GIT_COMMIT"] = "54849b5a8152b07e0809b8f90fc24d54262cb4d6"
+    sha = "54849b5a8152b07e0809b8f90fc24d54262cb4d6"
+    os.environ["GIT_COMMIT"] = sha
     assert (
         get_git_commit(directory=git_commit_with_local_changes_test.repo_path)
-        == f"{os.environ['GIT_COMMIT'][0:16]} (local changes present)"
+        == f"{sha[0:12]} (local changes present)"
     )
 
     if old_env is None:
