@@ -44,9 +44,9 @@ def get_git_sha(directory: Path) -> str:
         The SHA.
     """
     # Generally, eight to ten characters are more than enough to be unique within a project.
-    # The linux kernel, one of the largest projects, needs 11.
+    # The linux kernel, one of the largest projects, needs 12.
     # https://git-scm.com/book/en/v2/Git-Tools-Revision-Selection#Short-SHA-1
-    sha_length = 16
+    sha_length = 12
 
     if "GIT_COMMIT" in os.environ:
         return os.environ["GIT_COMMIT"][0:sha_length]
