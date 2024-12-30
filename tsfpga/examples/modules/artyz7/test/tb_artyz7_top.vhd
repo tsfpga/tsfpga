@@ -17,9 +17,9 @@ use vunit_lib.com_pkg.net;
 use vunit_lib.memory_pkg.check_expected_was_written;
 use vunit_lib.run_pkg.all;
 
-library block_design;
-use block_design.block_design_mock_pkg.all;
-use block_design.block_design_pkg.all;
+library artyz7_block_design;
+use artyz7_block_design.block_design_mock_pkg.all;
+use artyz7_block_design.block_design_pkg.all;
 
 library ddr_buffer;
 use ddr_buffer.ddr_buffer_register_check_pkg.all;
