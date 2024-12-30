@@ -13,8 +13,8 @@ use ieee.std_logic_1164.all;
 library axi;
 use axi.axi_pkg.all;
 
-library axi_lite;
-use axi_lite.axi_lite_pkg.all;
+library trail;
+use trail.trail_pkg.all;
 
 library common;
 use common.attribute_pkg.all;
@@ -29,34 +29,28 @@ use work.register_top_level_regs_pkg.all;
 use work.register_top_level_register_record_pkg.all;
 
 
-entity axi_lite_register_top_level is
+entity trail_register_test_top is
   port (
-    ext_clk : in std_ulogic;
-    --# {{}}
-    enable_led : in std_ulogic_vector(0 to 1);
-    led : out std_ulogic_vector(0 to 3) := (others => '0');
-    --# {{}}
     ddr : inout zynq7000_ddr_t;
     fixed_io : inout zynq7000_fixed_io_t
   );
 end entity;
 
-architecture a of axi_lite_register_top_level is
+architecture a of trail_register_test_top is
 
   signal pl_clk : std_ulogic := '0';
 
   signal m_gp0_m2s : axi_m2s_t := axi_m2s_init;
   signal m_gp0_s2m : axi_s2m_t := axi_s2m_init;
 
-  signal regs_m2s : axi_lite_m2s_vec_t(base_addresses'range) := (others => axi_lite_m2s_init);
-  signal regs_s2m : axi_lite_s2m_vec_t(base_addresses'range) := (others => axi_lite_s2m_init);
+  signal trail_operations : trail_operation_vec_t(base_addresses'range) := (
+    others => trail_operation_init
+  );
+  signal trail_responses : trail_response_vec_t(base_addresses'range) := (
+    others => trail_response_init
+  );
 
 begin
-
-  -- To get rid of unused warning.
-  led(0) <= ext_clk;
-  led(1) <= enable_led(0);
-
 
   ------------------------------------------------------------------------------
   block_design_wrapper_inst : entity artyz7_block_design.block_design_wrapper
@@ -74,23 +68,23 @@ begin
     );
 
 
-  ------------------------------------------------------------------------------
-  axi_to_axi_lite_vec_inst : entity axi_lite.axi_to_axi_lite_vec
-    generic map (
-      base_addresses => base_addresses
-    )
-    port map (
-      clk_axi => pl_clk,
-      axi_m2s => m_gp0_m2s,
-      axi_s2m => m_gp0_s2m,
-      --
-      axi_lite_m2s_vec => regs_m2s,
-      axi_lite_s2m_vec => regs_s2m
-    );
+  -- ------------------------------------------------------------------------------
+  -- axi_to_axi_lite_vec_inst : entity trail.axi_to_trail_vector
+  --   generic map (
+  --     base_addresses => base_addresses
+  --   )
+  --   port map (
+  --     clk_axi => pl_clk,
+  --     axi_m2s => m_gp0_m2s,
+  --     axi_s2m => m_gp0_s2m,
+  --     --
+  --     axi_lite_m2s_vec => regs_m2s,
+  --     axi_lite_s2m_vec => regs_s2m
+  --   );
 
 
   ------------------------------------------------------------------------------
-  register_file_gen : for register_list_index in regs_m2s'range generate
+  register_file_gen : for register_list_index in trail_operations'range generate
     signal regs_down : register_top_level_regs_down_t := register_top_level_regs_down_init;
 
     -- Make sure that nothing is optimized away.
@@ -98,12 +92,12 @@ begin
   begin
 
     ------------------------------------------------------------------------------
-    register_top_level_reg_file_inst : entity work.register_top_level_reg_file
+    register_top_level_reg_file_inst : entity work.register_top_level_register_file
       port map (
         clk => pl_clk,
         --
-        axi_lite_m2s => regs_m2s(register_list_index),
-        axi_lite_s2m => regs_s2m(register_list_index),
+        trail_operation => trail_operations(register_list_index),
+        trail_response => trail_responses(register_list_index),
         --
         regs_down => regs_down
       );

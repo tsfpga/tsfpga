@@ -23,13 +23,14 @@ use work.register_top_level_register_check_pkg.all;
 use work.register_top_level_regs_pkg.all;
 
 
-entity tb_register_top_level is
+entity tb_register_test_top is
   generic (
+    test_trail : boolean;
     runner_cfg : string
   );
 end entity;
 
-architecture tb of tb_register_top_level is
+architecture tb of tb_register_test_top is
 
 begin
 
@@ -82,10 +83,17 @@ begin
 
 
   ------------------------------------------------------------------------------
-  dut : entity work.axi_lite_register_top_level
-    port map (
-      enable_led => (others => '1'),
-      ext_clk => '0'
-    );
+  dut_gen : if test_trail generate
+
+    ------------------------------------------------------------------------------
+    dut : entity work.trail_register_test_top;
+
+  ------------------------------------------------------------------------------
+  else generate
+
+    ------------------------------------------------------------------------------
+    dut : entity work.axi_lite_register_test_top;
+
+  end generate;
 
 end architecture;
