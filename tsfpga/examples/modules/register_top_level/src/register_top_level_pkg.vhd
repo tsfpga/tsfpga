@@ -33,7 +33,7 @@ package body register_top_level_pkg is
     );
   begin
     for index in result'range loop
-      result(index) := to_unsigned(1024 * index, result(index)'length);
+      result(index) := to_unsigned(65536 * index, result(index)'length);
     end loop;
 
     return result;

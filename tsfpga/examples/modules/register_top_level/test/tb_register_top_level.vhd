@@ -9,28 +9,18 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-library osvvm;
-use osvvm.RandomPkg.RandomPType;
-
 library vunit_lib;
 use vunit_lib.com_pkg.net;
-use vunit_lib.memory_pkg.check_expected_was_written;
 use vunit_lib.run_pkg.all;
-
-library artyz7_block_design;
-use artyz7_block_design.block_design_mock_pkg.all;
-use artyz7_block_design.block_design_pkg.all;
-
-library ddr_buffer;
-use ddr_buffer.ddr_buffer_register_check_pkg.all;
-use ddr_buffer.ddr_buffer_regs_pkg.all;
-use ddr_buffer.ddr_buffer_sim_pkg.all;
 
 library reg_file;
 use reg_file.reg_file_pkg.reg_t;
 use reg_file.reg_operations_pkg.all;
 
-use work.artyz7_top_pkg.all;
+use work.register_top_level_pkg.all;
+use work.register_top_level_register_read_write_pkg.all;
+use work.register_top_level_register_check_pkg.all;
+use work.register_top_level_regs_pkg.all;
 
 
 entity tb_register_top_level is
@@ -41,49 +31,51 @@ end entity;
 
 architecture tb of tb_register_top_level is
 
-  signal ext_clk : std_ulogic := '0';
-
 begin
 
   test_runner_watchdog(runner, 200 us);
-  ext_clk <= not ext_clk after 8 ns;
 
 
   ------------------------------------------------------------------------------
   main : process
-    constant beef : reg_t := x"beef_beef";
-    constant dead : reg_t := x"dead_dead";
+    procedure run_register_test is
+      variable value : natural := 0;
+    begin
+      for register_list_idx in base_addresses'range loop
+        for register_idx in 0 to register_top_level_registers_array_length - 1 loop
+          value := register_list_idx * 256 + register_idx;
 
-    variable rnd : RandomPType;
+          report "Writing " & integer'image(value) & " to register " & integer'image(register_idx) & " in register list " & integer'image(register_list_idx);
+
+          write_register_top_level_registers_reg(
+            net=>net,
+            array_index=>register_idx,
+            value=>value,
+            base_address=>base_addresses(register_list_idx)
+          );
+        end loop;
+      end loop;
+
+      for register_list_idx in base_addresses'range loop
+        for register_idx in 0 to register_top_level_registers_array_length - 1 loop
+          value := register_list_idx * 256 + register_idx;
+
+          check_register_top_level_registers_reg_equal(
+            net=>net,
+            array_index=>register_idx,
+            expected=>value,
+            base_address=>base_addresses(register_list_idx)
+          );
+        end loop;
+      end loop;
+    end procedure;
+
   begin
     test_runner_setup(runner, runner_cfg);
-    rnd.InitSeed(rnd'instance_name);
 
-    if run("test_register_read_write") then
-      write_reg(net, 0, beef, base_address => regs_base_addresses(resync_ext_regs_idx));
-      check_reg_equal(net, 0, beef, base_address => regs_base_addresses(resync_ext_regs_idx));
-
-      write_reg(net, 0, dead, base_address => regs_base_addresses(resync_pl_regs_idx));
-      check_reg_equal(net, 0, dead, base_address => regs_base_addresses(resync_pl_regs_idx));
-
-      check_reg_equal(net, 0, beef, base_address => regs_base_addresses(resync_ext_regs_idx));
-
-    elsif run("test_ddr_buffer") then
-      run_ddr_buffer_test(
-        net=>net,
-        memory=>axi_memory,
-        rnd=>rnd,
-        regs_base_address=>regs_base_addresses(ddr_buffer_regs_idx)
-      );
-      check_ddr_buffer_status_counter_equal(
-        net=>net,
-        expected=>ddr_buffer_base_addresses_array_length,
-        base_address=>regs_base_addresses(ddr_buffer_regs_idx)
-      );
-
+    if run("test_registers") then
+      run_register_test;
     end if;
-
-    check_expected_was_written(axi_memory);
 
     test_runner_cleanup(runner);
   end process;
