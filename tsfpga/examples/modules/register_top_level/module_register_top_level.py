@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING
 from hdl_registers.parser.toml import from_toml
 
 # First party libraries
-from tsfpga.constraint import Constraint
 from tsfpga.examples.example_env import get_hdl_modules, get_tsfpga_example_modules
 from tsfpga.examples.vivado.project import TsfpgaExampleVivadoProject
 from tsfpga.module import BaseModule
@@ -27,6 +26,11 @@ THIS_FILE = Path(__file__)
 
 
 class Module(BaseModule):
+    def setup_vunit(self, vunit_proj, **kwargs):  # pylint: disable=unused-argument
+        test = vunit_proj.library(self.library_name).test_bench("tb_register_test_top")
+        for test_trail in [True, False]:
+            self.add_vunit_config(test=test, generics=dict(test_trail=test_trail))
+
     def get_build_projects(self):
         projects = []
 
@@ -36,15 +40,14 @@ class Module(BaseModule):
         block_design = (
             modules.get(module_name="artyz7_block_design").path / "tcl" / "block_design.tcl"
         )
-        pinning = Constraint(modules.get(module_name="artyz7").path / "tcl" / "artyz7_pinning.tcl")
 
         projects.append(
             TsfpgaExampleVivadoProject(
                 name="axi_lite_register_top_level",
+                top="axi_lite_register_top_level",
                 modules=modules,
                 part=part,
                 tcl_sources=[block_design],
-                constraints=[pinning],
                 defined_at=THIS_FILE,
             )
         )
