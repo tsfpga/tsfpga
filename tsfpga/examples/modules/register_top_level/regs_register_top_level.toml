@@ -6,7 +6,7 @@ array_length = 20
 
 
 # ------------------------------------------------------------------------------
-[registers.registers]
+[registers.reg]
 
 mode = "r_wpulse"
 

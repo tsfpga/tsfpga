@@ -17,13 +17,15 @@ library axi_lite;
 use axi_lite.axi_lite_pkg.all;
 
 library common;
-use common.common_pkg.all;
+use common.attribute_pkg.all;
+
+library reg_file;
 
 library artyz7_block_design;
 use artyz7_block_design.block_design_pkg.all;
 
-library ddr_buffer;
-
+use work.register_top_level_pkg.all;
+use work.register_top_level_regs_pkg.all;
 use work.register_top_level_register_record_pkg.all;
 
 
@@ -41,25 +43,10 @@ architecture a of axi_lite_register_top_level is
   signal m_gp0_m2s : axi_m2s_t := axi_m2s_init;
   signal m_gp0_s2m : axi_s2m_t := axi_s2m_init;
 
-  signal regs_m2s : axi_lite_m2s_vec_t(regs_base_addresses'range) := (others => axi_lite_m2s_init);
-  signal regs_s2m : axi_lite_s2m_vec_t(regs_base_addresses'range) := (others => axi_lite_s2m_init);
+  signal regs_m2s : axi_lite_m2s_vec_t(base_addresses'range) := (others => axi_lite_m2s_init);
+  signal regs_s2m : axi_lite_s2m_vec_t(base_addresses'range) := (others => axi_lite_s2m_init);
 
 begin
-
-  ------------------------------------------------------------------------------
-  regs_block : block
-    -- Set up some registers to be in same clock domain as AXI port,
-    -- and some to be in another clock domain.
-    constant clocks_are_the_same : boolean_vector(regs_base_addresses'range) := (
-      resync_ext_regs_idx => false,
-      resync_pl_regs_idx => true,
-      resync_pl_div4_regs_idx => false,
-      ddr_buffer_regs_idx => true
-    );
-  begin
-
-  end block;
-
 
   ------------------------------------------------------------------------------
   block_design_wrapper_inst : entity artyz7_block_design.block_design_wrapper
@@ -75,5 +62,53 @@ begin
       ddr => ddr,
       fixed_io => fixed_io
     );
+
+
+  ------------------------------------------------------------------------------
+  axi_to_axi_lite_vec_inst : entity axi_lite.axi_to_axi_lite_vec
+    generic map (
+      base_addresses => base_addresses
+    )
+    port map (
+      clk_axi => pl_clk,
+      axi_m2s => m_gp0_m2s,
+      axi_s2m => m_gp0_s2m,
+      --
+      axi_lite_m2s_vec => regs_m2s,
+      axi_lite_s2m_vec => regs_s2m
+    );
+
+
+  ------------------------------------------------------------------------------
+  register_file_gen : for register_list_index in regs_m2s'range generate
+    signal regs_up : register_top_level_regs_up_t := register_top_level_regs_up_init;
+    signal regs_down : register_top_level_regs_down_t := register_top_level_regs_down_init;
+
+    -- Make absolutely sure that nothing is optimized away.
+    attribute dont_touch of regs_up : signal is "true";
+    attribute dont_touch of regs_down : signal is "true";
+  begin
+
+    ------------------------------------------------------------------------------
+    register_top_level_reg_file_inst : entity work.register_top_level_reg_file
+      port map (
+        clk => pl_clk,
+        --
+        axi_lite_m2s => regs_m2s(register_list_index),
+        axi_lite_s2m => regs_s2m(register_list_index),
+        --
+        regs_up => regs_up,
+        regs_down => regs_down
+      );
+
+
+    ------------------------------------------------------------------------------
+    loopback_gen : for register_idx in regs_down.registers'range generate
+
+      regs_up.registers(register_idx).reg <= regs_down.registers(register_idx).reg;
+
+    end generate;
+
+  end generate;
 
 end architecture;
