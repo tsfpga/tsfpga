@@ -17,6 +17,10 @@ use vunit_lib.com_pkg.net;
 use vunit_lib.memory_pkg.check_expected_was_written;
 use vunit_lib.run_pkg.all;
 
+library block_design;
+use block_design.block_design_mock_pkg.all;
+use block_design.block_design_pkg.all;
+
 library ddr_buffer;
 use ddr_buffer.ddr_buffer_register_check_pkg.all;
 use ddr_buffer.ddr_buffer_regs_pkg.all;
@@ -27,8 +31,6 @@ use register_file.register_file_pkg.register_t;
 use register_file.register_operations_pkg.all;
 
 use work.artyz7_top_pkg.all;
-use work.block_design_mock_pkg.all;
-use work.block_design_pkg.all;
 
 
 entity tb_artyz7_top is
