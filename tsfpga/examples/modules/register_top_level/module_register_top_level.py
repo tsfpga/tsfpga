@@ -43,8 +43,17 @@ class Module(BaseModule):
 
         projects.append(
             TsfpgaExampleVivadoProject(
-                name="axi_lite_register_top_level",
-                top="axi_lite_register_top_level",
+                name="axi_lite_register_test",
+                modules=modules,
+                part=part,
+                tcl_sources=[block_design],
+                defined_at=THIS_FILE,
+            )
+        )
+
+        projects.append(
+            TsfpgaExampleVivadoProject(
+                name="trail_register_test",
                 modules=modules,
                 part=part,
                 tcl_sources=[block_design],
