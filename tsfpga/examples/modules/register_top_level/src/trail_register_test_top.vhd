@@ -68,19 +68,22 @@ begin
     );
 
 
-  -- ------------------------------------------------------------------------------
-  -- axi_to_axi_lite_vec_inst : entity trail.axi_to_trail_vector
-  --   generic map (
-  --     base_addresses => base_addresses
-  --   )
-  --   port map (
-  --     clk_axi => pl_clk,
-  --     axi_m2s => m_gp0_m2s,
-  --     axi_s2m => m_gp0_s2m,
-  --     --
-  --     axi_lite_m2s_vec => regs_m2s,
-  --     axi_lite_s2m_vec => regs_s2m
-  --   );
+  ------------------------------------------------------------------------------
+  axi_to_axi_lite_vec_inst : entity trail.axi_to_trail_vector
+    generic map (
+      axi_address_width => m_gp0_addr_width,
+      axi_id_width => m_gp0_id_width,
+      data_width => m_gp0_data_width,
+      base_addresses => base_addresses
+    )
+    port map (
+      clk_axi => pl_clk,
+      axi_m2s => m_gp0_m2s,
+      axi_s2m => m_gp0_s2m,
+      --
+      trail_operations => trail_operations,
+      trail_responses => trail_responses
+    );
 
 
   ------------------------------------------------------------------------------
