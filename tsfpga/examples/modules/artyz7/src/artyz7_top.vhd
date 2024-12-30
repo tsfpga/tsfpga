@@ -19,8 +19,8 @@ use axi_lite.axi_lite_pkg.all;
 library common;
 use common.common_pkg.all;
 
-library block_design;
-use block_design.block_design_pkg.all;
+library artyz7_block_design;
+use artyz7_block_design.block_design_pkg.all;
 
 library ddr_buffer;
 
@@ -222,7 +222,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  block_design_inst : entity block_design.block_design_wrapper
+  block_design_wrapper_inst : entity artyz7_block_design.block_design_wrapper
     port map (
       m_gp0_m2s => m_gp0_m2s,
       m_gp0_s2m => m_gp0_s2m,
