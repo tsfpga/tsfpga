@@ -2,13 +2,13 @@
 [registers]
 
 type = "register_array"
-array_length = 20
+array_length = 2
 
 
 # ------------------------------------------------------------------------------
 [registers.reg]
 
-mode = "r_wpulse"
+mode = "r_w"
 
 field.type = "bit_vector"
 field.width = 16
@@ -18,4 +18,4 @@ field.width = 16
 [num_register_lists]
 
 type = "constant"
-value = 15
+value = 4
