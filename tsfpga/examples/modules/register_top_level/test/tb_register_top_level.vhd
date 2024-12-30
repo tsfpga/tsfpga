@@ -82,6 +82,10 @@ begin
 
 
   ------------------------------------------------------------------------------
-  dut : entity work.axi_lite_register_top_level;
+  dut : entity work.axi_lite_register_top_level
+    port map (
+      enable_led => (others => '1'),
+      ext_clk => '0'
+    );
 
 end architecture;

@@ -31,6 +31,11 @@ use work.register_top_level_register_record_pkg.all;
 
 entity axi_lite_register_top_level is
   port (
+    ext_clk : in std_ulogic;
+    --# {{}}
+    enable_led : in std_ulogic_vector(0 to 1);
+    led : out std_ulogic_vector(0 to 3) := (others => '0');
+    --# {{}}
     ddr : inout zynq7000_ddr_t;
     fixed_io : inout zynq7000_fixed_io_t
   );
@@ -47,6 +52,11 @@ architecture a of axi_lite_register_top_level is
   signal regs_s2m : axi_lite_s2m_vec_t(base_addresses'range) := (others => axi_lite_s2m_init);
 
 begin
+
+  -- To get rid of unused warning.
+  led(0) <= ext_clk;
+  led(1) <= enable_led(0);
+
 
   ------------------------------------------------------------------------------
   block_design_wrapper_inst : entity artyz7_block_design.block_design_wrapper

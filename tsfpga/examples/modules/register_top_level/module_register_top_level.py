@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 from hdl_registers.parser.toml import from_toml
 
 # First party libraries
+from tsfpga.constraint import Constraint
 from tsfpga.examples.example_env import get_hdl_modules, get_tsfpga_example_modules
 from tsfpga.examples.vivado.project import TsfpgaExampleVivadoProject
 from tsfpga.module import BaseModule
@@ -35,6 +36,7 @@ class Module(BaseModule):
         block_design = (
             modules.get(module_name="artyz7_block_design").path / "tcl" / "block_design.tcl"
         )
+        pinning = Constraint(modules.get(module_name="artyz7").path / "tcl" / "artyz7_pinning.tcl")
 
         projects.append(
             TsfpgaExampleVivadoProject(
@@ -42,6 +44,7 @@ class Module(BaseModule):
                 modules=modules,
                 part=part,
                 tcl_sources=[block_design],
+                constraints=[pinning],
                 defined_at=THIS_FILE,
             )
         )
