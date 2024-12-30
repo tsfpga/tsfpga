@@ -83,7 +83,7 @@ begin
   register_file_gen : for register_list_index in regs_m2s'range generate
     signal regs_down : register_top_level_regs_down_t := register_top_level_regs_down_init;
 
-    -- Make absolutely sure that nothing is optimized away.
+    -- Make sure that nothing is optimized away.
     attribute dont_touch of regs_down : signal is "true";
   begin
 
@@ -97,14 +97,6 @@ begin
         --
         regs_down => regs_down
       );
-
-
-    -- ------------------------------------------------------------------------------
-    -- loopback_gen : for register_idx in regs_down.registers'range generate
-
-    --   regs_up.registers(register_idx).reg <= regs_down.registers(register_idx).reg;
-
-    -- end generate;
 
   end generate;
 

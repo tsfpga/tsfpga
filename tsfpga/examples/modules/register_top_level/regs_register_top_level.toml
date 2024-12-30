@@ -2,7 +2,7 @@
 [registers]
 
 type = "register_array"
-array_length = 2
+array_length = 20
 
 
 # ------------------------------------------------------------------------------
@@ -18,4 +18,4 @@ field.width = 16
 [num_register_lists]
 
 type = "constant"
-value = 4
+value = 15
