@@ -405,8 +405,9 @@ generic configuration.
   * - {generics_rst}"""
 
                 # If the "top" of the project is different than the entity, we assume that it
-                # is a wrapper. Add a note to the table about this. This occurs e.g. in the register_file
-                # and fifo modules.
+                # is a netlist build wrapper.
+                # Add a note to the table about this.
+                # This occurs e.g. in the 'register_file' and 'fifo' modules.
                 if netlist_builds[build_idx].top != entity_name:
                     if generic_strings:
                         # If there is already something in the generic column, this note shall be

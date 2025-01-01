@@ -118,9 +118,13 @@ class GitSimulationSubset:
         # Changes in the git log compared to the reference commit
         history_changes = head_commit.diff(reference_commit)
 
-        return self._get_vhd_files(diffs=working_tree_changes + history_changes)
+        all_changes: "DiffIndex[Any]" = (
+            working_tree_changes + history_changes  # type: ignore[assignment]
+        )
 
-    def _get_vhd_files(self, diffs: "DiffIndex") -> set[Path]:
+        return self._get_vhd_files(diffs=all_changes)
+
+    def _get_vhd_files(self, diffs: "DiffIndex[Any]") -> set[Path]:
         """
         Return VHDL files that have been changed (added/renamed/modified/deleted) within any
         of the ``diffs`` commits.
@@ -186,7 +190,7 @@ class GitSimulationSubset:
         self._print_file_list("Found git diff related to the following files", files)
         return files
 
-    def _iterate_diff_paths(self, diffs: "DiffIndex") -> Iterable[Path]:
+    def _iterate_diff_paths(self, diffs: "DiffIndex[Any]") -> Iterable[Path]:
         """
         * If a file is modified, ``a_path`` and ``b_path`` are set and point to the same file.
         * If a file is added, ``a_path`` is None and ``b_path`` points to the newly added file.
