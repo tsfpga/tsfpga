@@ -22,9 +22,9 @@ use ddr_buffer.ddr_buffer_register_check_pkg.all;
 use ddr_buffer.ddr_buffer_regs_pkg.all;
 use ddr_buffer.ddr_buffer_sim_pkg.all;
 
-library reg_file;
-use reg_file.reg_file_pkg.reg_t;
-use reg_file.reg_operations_pkg.all;
+library register_file;
+use register_file.register_file_pkg.register_t;
+use register_file.register_operations_pkg.all;
 
 use work.artyz7_top_pkg.all;
 use work.block_design_mock_pkg.all;
@@ -49,8 +49,8 @@ begin
 
   ------------------------------------------------------------------------------
   main : process
-    constant beef : reg_t := x"beef_beef";
-    constant dead : reg_t := x"dead_dead";
+    constant beef : register_t := x"beef_beef";
+    constant dead : register_t := x"dead_dead";
 
     variable rnd : RandomPType;
   begin

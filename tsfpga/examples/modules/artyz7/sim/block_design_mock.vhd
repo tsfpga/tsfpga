@@ -23,8 +23,8 @@ library bfm;
 library common;
 use common.time_pkg.to_period;
 
-library reg_file;
-use reg_file.reg_operations_pkg.regs_bus_master;
+library register_file;
+use register_file.register_operations_pkg.register_bus_master;
 
 use work.block_design_mock_pkg.all;
 use work.block_design_pkg.all;
@@ -59,7 +59,7 @@ begin
   ------------------------------------------------------------------------------
   axi_master_inst : entity bfm.axi_master
     generic map (
-      bus_handle => regs_bus_master
+      bus_handle => register_bus_master
     )
     port map (
       clk => pl_clk,
@@ -73,8 +73,8 @@ begin
 
   -- If our register AXI master port used different dimensions than these
   -- we would need to create another bus master, probably in block_design_mock_pkg.
-  assert m_gp0_data_width = data_length(regs_bus_master);
-  assert m_gp0_addr_width = address_length(regs_bus_master);
+  assert m_gp0_data_width = data_length(register_bus_master);
+  assert m_gp0_addr_width = address_length(register_bus_master);
 
 
   ------------------------------------------------------------------------------

@@ -31,7 +31,7 @@ Breaking changes
   ``resync.resync_slv_level`` VHDL entities.
   See ``resync_level.vhd`` file header for details.
 
-* Rework testbench helper procedures in ``reg_file.reg_operations_pkg`` completely.
+* Rework testbench helper procedures in ``register_file.register_operations_pkg`` completely.
 
   1. Rename ``bits``/``bits`` argument to ``bit_index``/``bit_indexes``.
 
