@@ -12,12 +12,12 @@ Bug fixes
 * Fix bug where ``common.width_conversion`` would set ``output_last`` on the wrong beat
   when downsizing.
 
-* Fix bug in ``reg_file.reg_operations_pkg.read_modify_reg_bit``.
+* Fix bug in ``register_file.register_operations_pkg.read_modify_reg_bit``.
 
 
 Changes
 
-* Update so that ``reg_file.axi_lite_reg_file`` asserts ``reg_was_read[i]`` the exact same cycle as
+* Update so that ``register_file.axi_lite_register_file`` asserts ``reg_was_read[i]`` the exact same cycle as
   the AXI-Lite ``R`` transaction occurs (used to be cycle after).
 
 
