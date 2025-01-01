@@ -20,6 +20,7 @@ from .hdl_file import HdlFile
 
 if TYPE_CHECKING:
     # Third party libraries
+    from git.diff import DiffIndex
     from vunit.ui import VUnit
 
     # Local folder libraries
@@ -117,12 +118,12 @@ class GitSimulationSubset:
         # Changes in the git log compared to the reference commit
         history_changes = head_commit.diff(reference_commit)
 
-        return self._iterate_vhd_file_diffs(diffs=working_tree_changes + history_changes)
+        return self._get_vhd_files(diffs=working_tree_changes + history_changes)
 
-    def _iterate_vhd_file_diffs(self, diffs: Any) -> set[Path]:
+    def _get_vhd_files(self, diffs: "DiffIndex") -> set[Path]:
         """
-        Return the currently existing VHDL files that have been changed (added/renamed/modified)
-        within any of the ``diffs`` commits.
+        Return VHDL files that have been changed (added/renamed/modified/deleted) within any
+        of the ``diffs`` commits.
 
         Will also try to find VHDL files that depend on generated register artifacts that
         have changed.
@@ -164,8 +165,10 @@ class GitSimulationSubset:
                     module_register_data_file = module.register_data_file
 
                     if isinstance(module_register_data_file, list):
-                        # In users implement a sub-class of BaseModule that has multiple register
-                        # lists. This is not a standard use case, but we support it here.
+                        # In case users implement a sub-class of BaseModule that has multiple
+                        # register lists.
+                        # This is not a standard use case that we recommend or support in general,
+                        # but we support it here for convenience.
                         for data_file in module_register_data_file:
                             add_register_artifacts_if_match(
                                 diff_path=diff_path,
@@ -180,20 +183,23 @@ class GitSimulationSubset:
                             module=module,
                         )
 
-        self._print_file_list("Found git diff in the following files", files)
+        self._print_file_list("Found git diff related to the following files", files)
         return files
 
-    def _iterate_diff_paths(self, diffs: Any) -> Iterable[Path]:
+    def _iterate_diff_paths(self, diffs: "DiffIndex") -> Iterable[Path]:
+        """
+        * If a file is modified, ``a_path`` and ``b_path`` are set and point to the same file.
+        * If a file is added, ``a_path`` is None and ``b_path`` points to the newly added file.
+        * If a file is deleted, ``b_path`` is None and ``a_path`` points to the old deleted file.
+          We still include the 'a_path' in in this case, since we want to catch
+          if any files depend on the deleted file, which would be an error.
+        """
         for diff in diffs:
-            # The diff contains "a" -> "b" changes information. In case of file deletion, a_path
-            # will be set but not b_path. Removed files are not included by this method.
-            if diff.b_path is not None:
-                b_path = Path(diff.b_path)
+            if diff.a_path is not None:
+                yield Path(diff.a_path).resolve()
 
-                # A file can be changed in an early commit, but then removed/renamed in a
-                # later commit. Include only files that are currently existing.
-                if b_path.exists():
-                    yield b_path.resolve()
+            if diff.b_path is not None:
+                yield Path(diff.b_path).resolve()
 
     def _get_preprocessed_file_locations(self, vhd_files: set[Path]) -> set[Path]:
         """
@@ -285,7 +291,9 @@ class GitSimulationSubset:
         if not files:
             return
 
+        sorted_files = sorted(files)
+
         print(f"{title}:")
-        for file_path in files:
+        for file_path in sorted_files:
             print(f"  {file_path}")
         print()
