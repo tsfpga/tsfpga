@@ -17,8 +17,8 @@ Bug fixes
 
 Changes
 
-* Update so that ``register_file.axi_lite_register_file`` asserts ``reg_was_read[i]`` the exact same cycle as
-  the AXI-Lite ``R`` transaction occurs (used to be cycle after).
+* Update so that ``register_file.axi_lite_register_file`` asserts ``reg_was_read[i]`` the exact
+  same cycle as the AXI-Lite ``R`` transaction occurs (used to be cycle after).
 
 
 Breaking changes
