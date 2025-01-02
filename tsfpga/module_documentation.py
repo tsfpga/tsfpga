@@ -13,6 +13,21 @@ from typing import TYPE_CHECKING, Optional
 # Third party libraries
 from hdl_registers.generator.html.page import HtmlPageGenerator
 
+# First party libraries
+from tsfpga.vivado.build_result_checker import (
+    DspBlocks,
+    Ffs,
+    LogicLuts,
+    LutRams,
+    MaximumLogicLevel,
+    Ramb,
+    Ramb18,
+    Ramb36,
+    Srls,
+    TotalLuts,
+    Uram,
+)
+
 # Local folder libraries
 from .about import WEBSITE_URL
 from .system_utils import create_file, file_is_in_directory, read_file
@@ -341,11 +356,12 @@ This document contains technical documentation for the ``{self._module.name}`` m
         self, entity_name: str, heading_character: str, netlist_builds: list["VivadoNetlistProject"]
     ) -> str:
         # First, loop over all netlist builds for this module and assemble information
-        generics = []
-        checkers = []
+        build_generics = []
+        build_checkers = []
+        all_checker_names = set()
         for netlist_build in netlist_builds:
             if netlist_build.build_result_checkers:
-                generics.append(netlist_build.static_generics)
+                build_generics.append(netlist_build.static_generics)
 
                 # Create a dictionary for each build, that maps "Checker name": "value"
                 checker_dict = {}
@@ -353,11 +369,18 @@ This document contains technical documentation for the ``{self._module.name}`` m
                     # Casting the limit to string yields e.g. "< 4", "4" or "> 4"
                     checker_dict[checker.name] = str(checker.limit)
 
-                checkers.append(checker_dict)
+                    # Add to the set of checker names for this entity.
+                    # Note that different netlist builds of the same entity might check a different
+                    # set of resources.
+                    all_checker_names.add(checker.name)
 
-        # Make RST of the information
+                build_checkers.append(checker_dict)
+
+        # Make RST of the information.
+        # But make a heading and table only if there are any netlist builds with checkers, so
+        # that we don't get an empty table.
         rst = ""
-        if generics:
+        if all_checker_names:
             heading = "Resource utilization"
             heading_underline = heading_character * len(heading)
 
@@ -384,20 +407,30 @@ generic configuration.
 
 """
 
-            # Make a list of the unique checker names. Use list rather than set to preserve order.
-            checker_names = []
-            for build_checkers in checkers:
-                for checker_name in build_checkers:
-                    if checker_name not in checker_names:
-                        checker_names.append(checker_name)
+            # Sort so that we always get a consistent order in the table, no matter what order
+            # the user has added the checkers.
+            sort_keys = {
+                TotalLuts.name: 0,
+                LogicLuts.name: 1,
+                LutRams.name: 2,
+                Srls.name: 3,
+                Ffs.name: 4,
+                Ramb36.name: 5,
+                Ramb18.name: 6,
+                Ramb.name: 7,
+                Uram.name: 8,
+                DspBlocks.name: 9,
+                MaximumLogicLevel.name: 10,
+            }
+            sorted_checker_names = sorted(all_checker_names, key=lambda name: sort_keys[name])
 
             # Fill in the header row
             rst += "  * - Generics\n"
-            for checker_name in checker_names:
+            for checker_name in sorted_checker_names:
                 rst += f"    - {checker_name}\n"
 
             # Make one row for each netlist build
-            for build_idx, generic_dict in enumerate(generics):
+            for build_idx, generic_dict in enumerate(build_generics):
                 generic_strings = [f"{name} = {value}" for name, value in generic_dict.items()]
                 generics_rst = "\n\n      ".join(generic_strings)
 
@@ -426,8 +459,12 @@ generic configuration.
 
                 rst += "\n"
 
-                for checker_name in checker_names:
-                    checker_value = checkers[build_idx][checker_name]
+                for checker_name in sorted_checker_names:
+                    checker_value = (
+                        build_checkers[build_idx][checker_name]
+                        if checker_name in build_checkers[build_idx]
+                        else ""
+                    )
                     rst += f"    - {checker_value}\n"
 
         return rst
