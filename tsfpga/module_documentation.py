@@ -69,20 +69,20 @@ class ModuleDocumentation:
             repository_name is None
         ), "Both or none of the repository arguments must be set"
 
-    def get_overview_rst(self) -> Optional[str]:
+    def get_overview_rst(self) -> str:
         """
         Get the contents of the module's ``doc/<name>.rst``, i.e. the module "overview" document.
 
         Return:
-            Module overview RST. ``None`` if file does not exist.
+            Module overview RST. Empty string if file does not exist.
         """
         overview_rst_file = self._module.path / "doc" / f"{self._module.name}.rst"
         if overview_rst_file.exists():
             return read_file(overview_rst_file)
 
-        return None
+        return ""
 
-    def get_register_rst(self, heading_character: str) -> Optional[str]:
+    def get_register_rst(self, heading_character: str) -> str:
         """
         Get an RST snippet with a link to the module's register documentation, if available.
         Note that this will create an RST ``:download:`` statement to the register .html page.
@@ -94,23 +94,34 @@ class ModuleDocumentation:
             heading_character: Character to use for heading underline.
 
         Return:
-            RST snippet with link to register HTML. ``None`` if module does not have registers.
+            RST snippet with link to register HTML. Empty string if module does not have registers.
         """
-        if self._module.registers is not None:
-            heading = "Register interface"
-            heading_underline = heading_character * len(heading)
-            return f"""\
+        if self._module.registers is None:
+            return ""
+
+        heading = "Register interface"
+        heading_underline = heading_character * len(heading)
+
+        if self._repository_url:
+            file_name = f"regs_{self._module.name}.toml"
+            toml_link = (
+                f" based on the `{file_name} <{self._repository_url}/{file_name}>`_ data file"
+            )
+        else:
+            toml_link = ""
+
+        return f"""\
 .. _{self._module.name}.register_interface:
 
 {heading}
 {heading_underline}
 
-This module has register definitions.
+This module is controlled and/or monitored over a register bus.
 Please see :download:`separate HTML page <{self._module.name}_regs.html>` for \
 register documentation.
-"""
 
-        return None
+Register code is generated using `hdl-registers <https://hdl-registers.com>`_{toml_link}.
+"""
 
     def get_submodule_rst(
         self,
@@ -203,10 +214,7 @@ register documentation.
             url_rst = ""
 
         overview_rst = self.get_overview_rst()
-        overview_rst = "" if overview_rst is None else overview_rst
-
         registers_rst = self.get_register_rst(heading_character=heading_character_2)
-        registers_rst = "" if registers_rst is None else registers_rst
 
         submodule_rst = self.get_submodule_rst(
             heading_character=heading_character_2,
