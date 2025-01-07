@@ -119,7 +119,6 @@ class ModuleDocumentation:
 This module is controlled and/or monitored over a register bus.
 Please see :download:`separate HTML page <{self._module.name}_regs.html>` for \
 register documentation.
-
 Register code is generated using `hdl-registers <https://hdl-registers.com>`_{toml_link}.
 """
 
