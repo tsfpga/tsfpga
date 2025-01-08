@@ -52,6 +52,7 @@ def test_documentation_header_with_overview_and_registers(module_documentation):
     # pylint: disable=protected-access
     module = module_documentation._module
     module._registers = MagicMock(spec=RegisterList)
+    module._registers.register_objects = MagicMock(spec=list)
 
     data = "Dummy from apa.rst."
     create_file(module.path / "doc" / "apa.rst", contents=data)
