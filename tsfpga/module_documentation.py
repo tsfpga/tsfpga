@@ -110,13 +110,18 @@ class ModuleDocumentation:
         else:
             toml_link = ""
 
+        if self._module.registers.register_objects:
+            description = "is controlled and monitored over a register bus"
+        else:
+            description = "has register definitions"
+
         return f"""\
 .. _{self._module.name}.register_interface:
 
 {heading}
 {heading_underline}
 
-This module is controlled and/or monitored over a register bus.
+This module {description}.
 Please see :download:`separate HTML page <{self._module.name}_regs.html>` for \
 register documentation.
 Register code is generated using `hdl-registers <https://hdl-registers.com>`_{toml_link}.
