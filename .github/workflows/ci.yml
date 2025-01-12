@@ -201,7 +201,7 @@ jobs:
 
   simulate:
     name: Simulate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
 
     - name: Checkout
@@ -224,7 +224,7 @@ jobs:
           vunit-hdl@git+https://github.com/VUnit/vunit.git
 
     - name: Setup GHDL
-      uses: ghdl/setup-ghdl-ci@nightly
+      uses: paebbels/setup-ghdl@main
 
     - name: Clone dependency repos
       run: |
