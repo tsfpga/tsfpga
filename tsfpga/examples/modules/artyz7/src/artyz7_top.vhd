@@ -163,7 +163,7 @@ begin
       );
 
     ------------------------------------------------------------------------------
-    resync_ext_artyz7_reg_file_inst : entity work.artyz7_reg_file
+    resync_ext_artyz7_register_file_axi_lite_inst : entity work.artyz7_register_file_axi_lite
       port map (
         clk => ext_clk,
         --
@@ -176,7 +176,7 @@ begin
 
 
     ------------------------------------------------------------------------------
-    resync_pl_artyz7_reg_file_inst : entity work.artyz7_reg_file
+    resync_pl_artyz7_register_file_axi_lite_inst : entity work.artyz7_register_file_axi_lite
       port map (
         clk => pl_clk,
         --
@@ -189,7 +189,7 @@ begin
 
 
     ------------------------------------------------------------------------------
-    resync_pl_div4_artyz7_reg_file_inst : entity work.artyz7_reg_file
+    resync_pl_div4_artyz7_register_file_axi_lite_inst : entity work.artyz7_register_file_axi_lite
       port map (
         clk => pl_clk_div4,
         --

@@ -130,7 +130,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  ddr_buffer_reg_file_inst : entity work.ddr_buffer_reg_file
+  ddr_buffer_register_file_axi_lite_inst : entity work.ddr_buffer_register_file_axi_lite
     port map (
       clk => clk,
       --
