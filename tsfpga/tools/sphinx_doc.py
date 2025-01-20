@@ -12,7 +12,7 @@
 import sys
 from datetime import datetime
 from pathlib import Path
-from subprocess import check_call
+from subprocess import CalledProcessError
 from typing import Iterable, Optional
 
 # Third party libraries
@@ -20,7 +20,7 @@ from git.repo import Repo
 from packaging.version import Version, parse
 
 # First party libraries
-from tsfpga.system_utils import read_file
+from tsfpga.system_utils import read_file, run_command
 
 
 def generate_release_notes(
@@ -135,9 +135,11 @@ def build_sphinx(build_path: Path, output_path: Path) -> None:
         build_path: The location that contains ``conf.py`` and ``index.rst``.
         output_path: Where to place the generated HTML.
     """
-    # Since we set the working directory when making the system call, the paths must be absolute
+    # Since we set the working directory when making the system call, paths must be absolute.
     build_path = build_path.resolve()
     output_path = output_path.resolve()
+
+    print("Building Sphinx documentation...")
 
     cmd = [
         sys.executable,
@@ -150,8 +152,20 @@ def build_sphinx(build_path: Path, output_path: Path) -> None:
         str(build_path),
         str(output_path),
     ]
-    check_call(cmd, cwd=build_path)
+    try:
+        run_command(cmd, cwd=build_path, capture_output=True)
+    except CalledProcessError as exception:
+        print(f"ERROR: Sphinx build command failed with exit code {exception.returncode}.")
+        if exception.stdout:
+            print("-" * 80)
+            print("ERROR: Command STDOUT:\n")
+            print(exception.stdout)
+        if exception.stderr:
+            print("-" * 80)
+            print("ERROR: Command STDERR:\n")
+            print(exception.stderr)
+        raise exception
 
     index_html = output_path / "index.html"
     assert index_html.exists(), index_html
-    print(f"Open with:\nfirefox {index_html} &")
+    print(f"Documentation build done. Open with:\n  firefox {index_html} &")
