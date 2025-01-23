@@ -19,8 +19,6 @@ use trail.trail_pkg.all;
 library common;
 use common.attribute_pkg.all;
 
-library reg_file;
-
 library artyz7_block_design;
 use artyz7_block_design.block_design_pkg.all;
 
@@ -95,7 +93,7 @@ begin
   begin
 
     ------------------------------------------------------------------------------
-    register_top_level_reg_file_inst : entity work.register_top_level_register_file
+    register_file_inst : entity work.register_top_level_register_file_trail
       port map (
         clk => pl_clk,
         --

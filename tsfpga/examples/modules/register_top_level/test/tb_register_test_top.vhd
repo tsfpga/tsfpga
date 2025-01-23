@@ -13,10 +13,6 @@ library vunit_lib;
 use vunit_lib.com_pkg.net;
 use vunit_lib.run_pkg.all;
 
-library reg_file;
-use reg_file.reg_file_pkg.reg_t;
-use reg_file.reg_operations_pkg.all;
-
 use work.register_top_level_pkg.all;
 use work.register_top_level_register_read_write_pkg.all;
 use work.register_top_level_register_check_pkg.all;
