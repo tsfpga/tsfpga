@@ -19,11 +19,13 @@ use axi_lite.axi_lite_pkg.all;
 library common;
 use common.common_pkg.all;
 
+library artyz7_block_design;
+use artyz7_block_design.block_design_pkg.all;
+
 library ddr_buffer;
 
 use work.artyz7_top_pkg.all;
 use work.artyz7_register_record_pkg.all;
-use work.block_design_pkg.all;
 
 
 entity artyz7_top is
@@ -220,25 +222,19 @@ begin
 
 
   ------------------------------------------------------------------------------
-  block_design : block
-  begin
-
-    ------------------------------------------------------------------------------
-    block_design_inst : entity work.block_design_wrapper
-      port map (
-        m_gp0_m2s => m_gp0_m2s,
-        m_gp0_s2m => m_gp0_s2m,
-        --
-        s_hp0_m2s => s_hp0_m2s,
-        s_hp0_s2m => s_hp0_s2m,
-        --
-        pl_clk => pl_clk,
-        --
-        ddr => ddr,
-        fixed_io => fixed_io
-      );
-
-  end block;
+  block_design_wrapper_inst : entity artyz7_block_design.block_design_wrapper
+    port map (
+      m_gp0_m2s => m_gp0_m2s,
+      m_gp0_s2m => m_gp0_s2m,
+      --
+      s_hp0_m2s => s_hp0_m2s,
+      s_hp0_s2m => s_hp0_s2m,
+      --
+      pl_clk => pl_clk,
+      --
+      ddr => ddr,
+      fixed_io => fixed_io
+    );
 
 
   ------------------------------------------------------------------------------

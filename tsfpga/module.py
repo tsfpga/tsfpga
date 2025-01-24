@@ -24,6 +24,7 @@ from hdl_registers.generator.vhdl.simulation.read_write_package import (
 from hdl_registers.generator.vhdl.simulation.wait_until_package import (
     VhdlSimulationWaitUntilPackageGenerator,
 )
+from hdl_registers.generator.vhdl.trail.wrapper import VhdlTrailWrapperGenerator
 from hdl_registers.parser.toml import from_toml
 from hdl_registers.register import Register
 from hdl_registers.register_list import RegisterList
@@ -53,7 +54,10 @@ class BaseModule:
     # Note that artifacts will only be created if the module actually has any registers.
     create_register_package = True
     create_record_package = True
+
     create_axi_lite_wrapper = True
+    create_trail_wrapper = True
+
     create_simulation_read_write_package = True
     create_simulation_check_package = True
     create_simulation_wait_until_package = True
@@ -209,6 +213,11 @@ class BaseModule:
 
             if self.create_axi_lite_wrapper:
                 VhdlAxiLiteWrapperGenerator(
+                    register_list=self.registers, output_folder=self.register_synthesis_folder
+                ).create_if_needed()
+
+            if self.create_trail_wrapper:
+                VhdlTrailWrapperGenerator(
                     register_list=self.registers, output_folder=self.register_synthesis_folder
                 ).create_if_needed()
 

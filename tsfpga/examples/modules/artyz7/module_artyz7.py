@@ -25,9 +25,10 @@ class Module(BaseModule):
         modules = get_hdl_modules() + get_tsfpga_example_modules()
         part = "xc7z020clg400-1"
 
-        tcl_dir = self.path / "tcl"
-        pinning = Constraint(tcl_dir / "artyz7_pinning.tcl")
-        block_design = tcl_dir / "block_design.tcl"
+        pinning = Constraint(self.path / "tcl" / "artyz7_pinning.tcl")
+        block_design = (
+            modules.get(module_name="artyz7_block_design").path / "tcl" / "block_design.tcl"
+        )
 
         projects.append(
             TsfpgaExampleVivadoProject(
