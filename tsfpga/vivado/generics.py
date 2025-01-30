@@ -75,7 +75,7 @@ class BitVectorGenericValue:
 
 
 def get_vivado_tcl_generic_value(
-    value: Union[bool, int, float, StringGenericValue, BitVectorGenericValue]
+    value: Union[bool, int, float, StringGenericValue, BitVectorGenericValue],
 ) -> str:
     """
     Convert generic values of different types to the format recognized by Vivado TCL:
