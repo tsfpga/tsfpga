@@ -9,7 +9,7 @@
 # Standard libraries
 import os
 from pathlib import Path
-from typing import Any, Iterator, Optional, Union
+from typing import Iterator, Optional, Union
 
 # First party libraries
 from tsfpga.system_utils import file_is_in_directory
@@ -126,6 +126,7 @@ def find_git_files(
     # This function should only be called if git is available.
     # pylint: disable=import-outside-toplevel
     # Third party libraries
+    from git.objects.tree import Tree
     from git.repo import Repo
 
     exclude_directories = (
@@ -134,7 +135,7 @@ def find_git_files(
         else [exclude_directory.resolve() for exclude_directory in exclude_directories]
     )
 
-    def list_paths(root_tree: Any, path: Path) -> Iterator[Path]:
+    def list_paths(root_tree: Tree, path: Path) -> Iterator[Path]:
         for blob in root_tree.blobs:
             yield path / blob.name
         for tree in root_tree.trees:
@@ -143,7 +144,7 @@ def find_git_files(
     repo = Repo(directory, search_parent_directories=True)
     repo_root = Path(repo.working_dir).resolve()
 
-    for file_path in list_paths(repo.tree(), repo_root):
+    for file_path in list_paths(root_tree=repo.tree(), path=repo_root):
         if file_endings_include is not None and not file_path.name.endswith(file_endings_include):
             continue
 

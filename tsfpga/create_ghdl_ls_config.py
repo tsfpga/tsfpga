@@ -9,12 +9,15 @@
 # Standard libraries
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Optional
 
 # Local folder libraries
 from .system_utils import create_file, path_relative_to
 
 if TYPE_CHECKING:
+    # Third party libraries
+    from vunit.ui import VUnit
+
     # Local folder libraries
     from .module_list import ModuleList
     from .vivado.simlib_common import VivadoSimlibCommon
@@ -23,7 +26,7 @@ if TYPE_CHECKING:
 def create_ghdl_ls_configuration(
     output_path: Path,
     modules: "ModuleList",
-    vunit_proj: Any,
+    vunit_proj: "VUnit",
     simlib: Optional["VivadoSimlibCommon"] = None,
 ) -> None:
     """

@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     # Third party libraries
     from git.diff import DiffIndex
     from vunit.ui import VUnit
+    from vunit.ui.source import SourceFile
 
     # Local folder libraries
     from .module import BaseModule
@@ -96,13 +97,13 @@ class GitSimulationSubset:
 
         # Gather the testbenches that depend on any files that have diffs
         testbenches_to_run = []
-        for testbench_source_file, library_name in testbenches:
+        for testbench_source_file in testbenches:
             if self._source_file_depends_on_files(
                 source_file=testbench_source_file,
                 files=diff_files,
             ):
                 testbench_file_name = Path(testbench_source_file.name).stem
-                testbenches_to_run.append((testbench_file_name, library_name))
+                testbenches_to_run.append((testbench_file_name, testbench_source_file.library.name))
 
         return testbenches_to_run
 
@@ -249,12 +250,9 @@ class GitSimulationSubset:
         print(f"Could not find library for file {vhd_file}. It will be skipped.")
         return None
 
-    def _find_testbenches(self) -> list[tuple[Any, str]]:
+    def _find_testbenches(self) -> list["SourceFile"]:
         """
         Find all testbench files that are available in the VUnit project.
-
-        Return:
-            The VUnit ``SourceFile`` objects and library names for the files.
         """
         result = []
         for source_file in self._vunit_proj.get_source_files():
@@ -263,15 +261,15 @@ class GitSimulationSubset:
 
             # The file is considered a testbench if it follows the tb naming pattern
             if self._re_tb_filename.match(source_file_path.name) is not None:
-                result.append((source_file, source_file.library.name))
+                result.append(source_file)
 
         return result
 
-    def _source_file_depends_on_files(self, source_file: Any, files: set[Path]) -> bool:
+    def _source_file_depends_on_files(self, source_file: "SourceFile", files: set[Path]) -> bool:
         """
-        Return True if the source_file depends on any of the files.
+        Return True if the source file depends on any of the files.
         """
-        # Note that this includes the source_file itself. Is a list of SourceFile objects.
+        # Note that this includes the source_file itself.
         implementation_subset = self._vunit_proj.get_implementation_subset([source_file])
 
         # Convert to a set of absolute Paths, for comparison with "files" which is of that type.
