@@ -36,6 +36,11 @@ from tsfpga.module_list import ModuleList
 from tsfpga.system_utils import load_python_module
 
 if TYPE_CHECKING:
+    # Third party libraries
+    from vunit.ui import VUnit
+    from vunit.ui.test import Test
+    from vunit.ui.testbench import TestBench
+
     # Local folder libraries
     from .vivado.project import VivadoProject
 
@@ -522,7 +527,7 @@ class BaseModule:
 
         return constraints
 
-    def setup_vunit(self, vunit_proj: Any, **kwargs: Any) -> None:
+    def setup_vunit(self, vunit_proj: "VUnit", **kwargs: Any) -> None:
         """
         Setup local configuration of this module's test benches.
 
@@ -605,7 +610,7 @@ class BaseModule:
 
     def add_vunit_config(  # pylint: disable=too-many-arguments
         self,
-        test: Any,
+        test: Union["Test", "TestBench"],
         name: Optional[str] = None,
         generics: Optional[dict[str, Any]] = None,
         set_random_seed: Optional[Union[bool, int]] = False,
@@ -613,11 +618,11 @@ class BaseModule:
         post_check: Optional[Callable[..., bool]] = None,
     ) -> None:
         """
-        Add config for VUnit test case.
+        Add a VUnit test configuration.
         Wrapper that sets a suitable name and can set a random seed generic.
 
         Arguments:
-            test: VUnit test object. Can be testbench or test case.
+            test: VUnit test or testbench object.
             name: Optional designated name for this config. Will be used to form the name of
                 the config together with the ``generics`` value.
             generics: Generic values that will be applied to the testbench entity. The values
@@ -628,7 +633,7 @@ class BaseModule:
                   be set.
                 * When set to boolean ``True``, a random natural (non-negative integer)
                   generic value will be set.
-                * When set to an integer value, that value will be set for the generic.
+                * When set to an integer value, that specific value will be set for the generic.
                   This is useful to get a static test case name for waveform inspection.
 
                 If the generic is to be set it must exist in the testbench entity, and should have

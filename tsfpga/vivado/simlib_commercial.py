@@ -8,7 +8,7 @@
 
 # Standard libraries
 from pathlib import Path
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Optional
 
 # First party libraries
 from tsfpga.system_utils import create_file
@@ -16,6 +16,11 @@ from tsfpga.system_utils import create_file
 # Local folder libraries
 from .common import run_vivado_tcl, to_tcl_path
 from .simlib_common import VivadoSimlibCommon
+
+if TYPE_CHECKING:
+    # Third party libraries
+    from vunit.sim_if import SimulatorInterface
+    from vunit.ui import VUnit
 
 
 class VivadoSimlibCommercial(VivadoSimlibCommon):
@@ -43,8 +48,8 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
         self,
         vivado_path: Optional[Path],
         output_path: Path,
-        vunit_proj: Any,
-        simulator_interface: Any,
+        vunit_proj: "VUnit",
+        simulator_interface: "SimulatorInterface",
     ):
         """
         Arguments:
@@ -60,7 +65,7 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
 
         self._vunit_proj = vunit_proj
 
-    def _get_simulator_name(self, simulator_interface: Any) -> str:
+    def _get_simulator_name(self, simulator_interface: "SimulatorInterface") -> str:
         """
         Used to get the "-simulator" argument to the Vivado "compile_simlib" function.
         In some cases Vivado needs a different simulator name than what is used in VUnit.
@@ -78,7 +83,6 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
         # Siemens Questa is called "modelsim" in VUnit but Vivado needs the name "questasim".
         # See discussion in
         #   https://github.com/VUnit/vunit/issues/834
-        #   https://gitlab.com/tsfpga/tsfpga/-/issues/67
         # Use the simulator installation path to decode whether we are running Questa or
         # regular ModelSim.
         if "questa" in str(self._simulator_folder).lower():
@@ -86,7 +90,7 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
 
         # In other cases Vivado uses the same name as VUnit.
         # We do not do typing of the 'simulator_interface', but we know that '.name' is a string.
-        return simulator_interface.name  # type: ignore[no-any-return]
+        return simulator_interface.name
 
     def _compile(self) -> None:
         tcl_file = self.output_path / "compile_simlib.tcl"

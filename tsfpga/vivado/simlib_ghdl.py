@@ -9,7 +9,7 @@
 # Standard libraries
 import re
 from pathlib import Path
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Optional
 
 # First party libraries
 from tsfpga import DEFAULT_FILE_ENCODING
@@ -17,6 +17,11 @@ from tsfpga.system_utils import create_directory, run_command, system_is_windows
 
 # Local folder libraries
 from .simlib_common import VivadoSimlibCommon
+
+if TYPE_CHECKING:
+    # Third party libraries
+    from vunit.sim_if import SimulatorInterface
+    from vunit.ui import VUnit
 
 
 class VivadoSimlibGhdl(VivadoSimlibCommon):
@@ -30,8 +35,8 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
         self,
         vivado_path: Optional[Path],
         output_path: Path,
-        vunit_proj: Any,
-        simulator_interface: Any,
+        vunit_proj: "VUnit",
+        simulator_interface: "SimulatorInterface",
     ) -> None:
         """
         Arguments:
@@ -149,7 +154,6 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
         # This does not seem to work on Windows.
         # So we auto detect the OS to work around this limitation, while keeping the performance
         # boost on Linux.
-        # See https://gitlab.com/tsfpga/tsfpga/-/merge_requests/499
         compile_file_by_file = system_is_windows()
 
         if compile_file_by_file:
