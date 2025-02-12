@@ -6,14 +6,18 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# First party libraries
+from typing import Any
+
+from tsfpga.hdl_file import HdlFile
 from tsfpga.module import BaseModule
 
 
 class Module(BaseModule):
-    def get_simulation_files(  # type: ignore  # pylint: disable=arguments-differ
-        self, include_ip_cores: bool, **kwargs
-    ):
+    def get_simulation_files(
+        self,
+        include_ip_cores: bool,
+        **kwargs: Any,  # noqa: ANN401
+    ) -> list[HdlFile]:
         """
         Exclude files that depend on IP cores, if instructed to by the simulation script.
         """

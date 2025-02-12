@@ -6,13 +6,18 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
+from __future__ import annotations
+
 import os
 from pathlib import Path
-from typing import Iterator, Optional, Union
+from typing import TYPE_CHECKING
 
-# First party libraries
 from tsfpga.system_utils import file_is_in_directory
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+    from git.objects.tree import Tree
 
 
 def get_git_commit(directory: Path) -> str:
@@ -53,14 +58,11 @@ def get_git_sha(directory: Path) -> str:
 
     # Import fails if "git" executable is not available, hence it can not be on top level.
     # This function should only be called if git is available.
-    # pylint: disable=import-outside-toplevel
-    # Third party libraries
+
     from git.repo import Repo
 
     repo = Repo(directory, search_parent_directories=True)
-    git_sha = repo.head.commit.hexsha[0:sha_length]
-
-    return git_sha
+    return repo.head.commit.hexsha[0:sha_length]
 
 
 def git_local_changes_present(directory: Path) -> bool:
@@ -75,8 +77,7 @@ def git_local_changes_present(directory: Path) -> bool:
     """
     # Import fails if "git" executable is not available, hence it can not be on top level.
     # This function should only be called if git is available.
-    # pylint: disable=import-outside-toplevel
-    # Third party libraries
+
     from git.repo import Repo
 
     repo = Repo(directory, search_parent_directories=True)
@@ -89,8 +90,6 @@ def git_commands_are_available(directory: Path) -> bool:
     True if "git" command executable is available, and ``directory`` is in a valid git repo.
     """
     try:
-        # pylint: disable=import-outside-toplevel
-        # Third party libraries
         from git import InvalidGitRepositoryError
         from git.repo import Repo
     except ImportError:
@@ -106,9 +105,9 @@ def git_commands_are_available(directory: Path) -> bool:
 
 def find_git_files(
     directory: Path,
-    exclude_directories: Optional[list[Path]] = None,
-    file_endings_include: Optional[Union[str, tuple[str]]] = None,
-    file_endings_avoid: Optional[Union[str, tuple[str]]] = None,
+    exclude_directories: list[Path] | None = None,
+    file_endings_include: str | tuple[str] | None = None,
+    file_endings_avoid: str | tuple[str] | None = None,
 ) -> Iterator[Path]:
     """
     Find files that are checked in to git.
@@ -124,9 +123,7 @@ def find_git_files(
     """
     # Import fails if "git" executable is not available, hence it can not be on top level.
     # This function should only be called if git is available.
-    # pylint: disable=import-outside-toplevel
-    # Third party libraries
-    from git.objects.tree import Tree
+
     from git.repo import Repo
 
     exclude_directories = (

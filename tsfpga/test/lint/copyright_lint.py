@@ -6,23 +6,24 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
-import re
-from pathlib import Path
-from typing import Optional
+from __future__ import annotations
 
-# Third party libraries
+import re
+from typing import TYPE_CHECKING
+
 import pytest
 
-# First party libraries
 from tsfpga.system_utils import create_file, read_file
 from tsfpga.vhdl_file_documentation import SEPARATOR_LINE_LENGTH
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class CopyrightHeader:
     def __init__(
-        self, file: Path, copyright_holder: str, copyright_text_lines: Optional[list[str]] = None
-    ):
+        self, file: Path, copyright_holder: str, copyright_text_lines: list[str] | None = None
+    ) -> None:
         self._file = file
         self.comment_character = self._get_comment_character()
         self.separator_line = f"{self.comment_character} " + "-" * (
@@ -49,7 +50,7 @@ class CopyrightHeader:
             raise ValueError(f"Can not fix copyright header in file {self._file}")
 
     def _get_expected_copyright_header(
-        self, copyright_holder: str, copyright_text_lines: Optional[list[str]]
+        self, copyright_holder: str, copyright_text_lines: list[str] | None
     ) -> str:
         header = f"{self.separator_line}\n"
         header += (
@@ -147,6 +148,6 @@ def test_fix_file_should_not_run_on_dirty_file(tmp_path: Path) -> None:
     file = create_file(tmp_path / "file_for_test.vhd", data)
     copyright_header = CopyrightHeader(file, "A")
 
-    with pytest.raises(ValueError) as exception_info:
+    with pytest.raises(ValueError) as exception_info:  # noqa: PT011
         copyright_header.fix_file()
     assert str(exception_info.value) == f"Can not fix copyright header in file {file}"

@@ -6,18 +6,17 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
+# ruff: noqa: E402, S101
+
 import sys
 from pathlib import Path
 
-# Third party libraries
 from setuptools import find_packages, setup
 
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install.
 REPO_ROOT = Path(__file__).parent.resolve()
 sys.path.insert(0, str(REPO_ROOT))
 
-# First party libraries
 import tsfpga
 from tsfpga.about import REPOSITORY_URL, WEBSITE_URL, get_readme_rst, get_short_slogan
 from tsfpga.system_utils import path_relative_to
@@ -26,7 +25,7 @@ REQUIREMENTS_TXT = tsfpga.TSFPGA_PATH / "requirements.txt"
 REQUIREMENTS_DEVELOP_TXT = tsfpga.TSFPGA_PATH / "requirements_develop.txt"
 
 
-def main():
+def main() -> None:
     """
     Be extremely careful when making changes to this setup script.
     It is hard to see what is actually included and what is missing.
@@ -58,20 +57,14 @@ def main():
 
     setup(
         name="tsfpga",
-        #
         version=tsfpga.__version__,
-        #
         description=get_short_slogan(),
-        #
         long_description=get_readme_rst(include_extra_for_pypi=True),
         long_description_content_type="text/x-rst",
-        #
         author="Lukas Vik",
         author_email="10241915+LukasVik@users.noreply.github.com",
-        #
         packages=packages,
         package_data={"tsfpga": get_package_data()},
-        #
         classifiers=[
             "Development Status :: 5 - Production/Stable",
             "Intended Audience :: Developers",
@@ -88,7 +81,6 @@ def main():
             "Topic :: Software Development :: Testing",
             "Topic :: Software Development",
         ],
-        #
         license="BSD 3-Clause License",
         # Same as on GitHub
         keywords=[
@@ -110,12 +102,9 @@ def main():
             "implementation",
             "vunit",
         ],
-        #
         install_requires=read_requirements_file(REQUIREMENTS_TXT),
-        extras_require=dict(develop=read_requirements_file(REQUIREMENTS_DEVELOP_TXT)),
-        #
+        extras_require={"develop": read_requirements_file(REQUIREMENTS_DEVELOP_TXT)},
         python_requires=">=3.9",
-        #
         project_urls={
             "Homepage": WEBSITE_URL,
             "Documentation": WEBSITE_URL,
@@ -126,18 +115,12 @@ def main():
     )
 
 
-def read_requirements_file(path):
-    requirements = []
-    with open(path, encoding=tsfpga.DEFAULT_FILE_ENCODING) as file_handle:
-        # Requirements file contains one package name per line
-        for line_data in file_handle.readlines():
-            if line_data:
-                requirements.append(line_data.strip())
-
-    return requirements
+def read_requirements_file(path: Path) -> list[str]:
+    with path.open(encoding=tsfpga.DEFAULT_FILE_ENCODING) as file_handle:
+        return [line_data.strip() for line_data in file_handle.readlines() if line_data]
 
 
-def get_package_data():
+def get_package_data() -> list[str]:
     """
     Get all files that shall be include with the release, apart from the package python files
     that are already there.
@@ -148,28 +131,28 @@ def get_package_data():
     files = get_package_files(tsfpga.TSFPGA_PATH)
 
     # Specify path relative to the tsfpga python package folder
-    package_data = [str(path_relative_to(file_path, tsfpga.TSFPGA_PATH)) for file_path in files]
-
-    return package_data
+    return [str(path_relative_to(file_path, tsfpga.TSFPGA_PATH)) for file_path in files]
 
 
-def get_package_files(folder):
+def get_package_files(folder: Path) -> list[Path]:
     """
     Find non-python files and non-package python files (namely, module_*.py) to include.
     """
     assert folder.exists(), folder
 
     all_files_and_folders = folder.glob("**/*")
-    non_python_files = []
-    for path in all_files_and_folders:
-        if path.is_file() and path.suffix != ".py" and path.suffix != ".pyc":
-            non_python_files.append(path)
+    non_python_files = [
+        path
+        for path in all_files_and_folders
+        if path.is_file() and path.suffix not in (".py", ".pyc")
+    ]
 
     all_python_files = folder.glob("**/*.py")
-    non_package_python_files = []
-    for python_file in all_python_files:
-        if not (python_file.parent / "__init__.py").exists():
-            non_package_python_files.append(python_file)
+    non_package_python_files = [
+        python_file
+        for python_file in all_python_files
+        if not (python_file.parent / "__init__.py").exists()
+    ]
 
     return non_python_files + non_package_python_files
 

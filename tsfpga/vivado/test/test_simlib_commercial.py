@@ -6,19 +6,17 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-# Third party libraries
 import pytest
 
-# First party libraries
 from tsfpga.test.test_utils import file_contains_string
 from tsfpga.vivado.simlib import VivadoSimlib
 
+# ruff: noqa: SLF001
 
-# pylint: disable=redefined-outer-name
+
 @pytest.fixture
 def simlib_test(tmp_path):
     class SimlibCommercialTestFixture:
@@ -38,7 +36,7 @@ def simlib_test(tmp_path):
             simulator_class.find_prefix.return_value = simulator_prefix
 
             vunit_proj = MagicMock()
-            vunit_proj._simulator_class = simulator_class  # pylint: disable=protected-access
+            vunit_proj._simulator_class = simulator_class
 
             return VivadoSimlib.init(self.output_path, vunit_proj, vivado_path)
 

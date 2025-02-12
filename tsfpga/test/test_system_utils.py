@@ -6,14 +6,11 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 import subprocess
 from pathlib import Path
 
-# Third party libraries
 import pytest
 
-# First party libraries
 from tsfpga.system_utils import (
     create_directory,
     create_file,
@@ -161,7 +158,7 @@ def test_run_command_called_with_non_list_should_raise_exception():
     run_command(cmd)
 
     cmd = "ls -la"
-    with pytest.raises(ValueError) as exception_info:
+    with pytest.raises(TypeError) as exception_info:
         run_command(cmd)
     assert str(exception_info.value).startswith("Must be called with a list")
 

@@ -6,31 +6,28 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
-from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional
+from __future__ import annotations
 
-# Third party libraries
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
+
 import rtoml
 
-# First party libraries
 from tsfpga.vivado.ip_cores import VivadoIpCores
 
 if TYPE_CHECKING:
-    # Third party libraries
     from vunit.ui import VUnit
 
-    # Local folder libraries
     from .module_list import ModuleList
 
 
-def create_configuration(
+def create_configuration(  # noqa: C901
     output_path: Path,
-    modules: Optional["ModuleList"] = None,
-    vunit_proj: Optional["VUnit"] = None,
-    files: Optional[list[tuple[Path, str]]] = None,
-    vivado_location: Optional[Path] = None,
-    ip_core_vivado_project_directory: Optional[Path] = None,
+    modules: ModuleList | None = None,
+    vunit_proj: VUnit | None = None,
+    files: list[tuple[Path, str]] | None = None,
+    vivado_location: Path | None = None,
+    ip_core_vivado_project_directory: Path | None = None,
 ) -> None:
     """
     Create a configuration file (``vhdl_ls.toml``) for the rust_hdl VHDL Language Server
@@ -62,14 +59,14 @@ def create_configuration(
             (the "generate_target" TCL command).
             See :py:mod:`.examples.simulate.py` for an example of using this.
     """
-    toml_data: dict[str, dict[str, Any]] = dict(libraries={})
+    toml_data: dict[str, dict[str, Any]] = {"libraries": {}}
 
     def add_file(file_path: Path, library_name: str) -> None:
         """
         Note that 'file_path' may contain wildcards.
         """
         if library_name not in toml_data["libraries"]:
-            toml_data["libraries"][library_name] = dict(files=[])
+            toml_data["libraries"][library_name] = {"files": []}
 
             if library_name in ["vunit_lib", "osvvm", "unisim", "xil_defaultlib"]:
                 toml_data["libraries"][library_name]["is_third_party"] = True

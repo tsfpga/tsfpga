@@ -20,8 +20,7 @@ def get_short_slogan() -> str:
     Note that this slogan should be the same as the one used in the readme and on the website below.
     The difference is capitalization and whether the project name is included.
     """
-    result = "A flexible and scalable development platform for modern FPGA projects"
-    return result
+    return "A flexible and scalable development platform for modern FPGA projects"
 
 
 def get_readme_rst(
@@ -40,7 +39,7 @@ def get_readme_rst(
             GitHub README.
         include_extra_for_website (bool): Include the extra text that shall be included in the
             website main page.
-      include_extra_for_pypi (bool): Include the extra text that shall be included in the
+        include_extra_for_pypi (bool): Include the extra text that shall be included in the
             PyPI release README.
     """
     if include_extra_for_github:

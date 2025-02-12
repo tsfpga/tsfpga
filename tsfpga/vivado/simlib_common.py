@@ -6,20 +6,21 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
+from __future__ import annotations
+
 import platform
 import zipfile
 from abc import ABC, abstractmethod
-from pathlib import Path
 from shutil import make_archive
-from typing import Optional
+from typing import TYPE_CHECKING
 
-# First party libraries
 from tsfpga.system_utils import create_file, delete
 from tsfpga.vivado.common import get_vivado_version
 
-# Local folder libraries
 from .common import get_vivado_path
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class VivadoSimlibCommon(ABC):
@@ -39,7 +40,7 @@ class VivadoSimlibCommon(ABC):
     # VUnit project.
     library_names: list[str]
 
-    def __init__(self, vivado_path: Optional[Path], output_path: Path) -> None:
+    def __init__(self, vivado_path: Path | None, output_path: Path) -> None:
         """
         Call from subclass. Do not instantiate this class directly.
         """
@@ -76,10 +77,7 @@ class VivadoSimlibCommon(ABC):
         Return:
             True if compiled simlib is not available. False otherwise.
         """
-        if self._done_token.exists():
-            return False
-
-        return True
+        return not self._done_token.exists()
 
     def compile(self) -> None:
         """
@@ -132,9 +130,7 @@ class VivadoSimlibCommon(ABC):
             Path to the archive.
         """
         make_archive(str(self.output_path), "zip", self.output_path)
-        archive = self.output_path.parent / (self.output_path.name + ".zip")
-
-        return archive
+        return self.output_path.parent / (self.output_path.name + ".zip")
 
     def from_archive(self, archive: Path) -> None:
         """

@@ -6,20 +6,18 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
+from __future__ import annotations
+
 from pathlib import Path
 from shutil import which
-from typing import Optional
 
-# Third party libraries
 from vunit.ostools import Process
 
-# First party libraries
 from tsfpga.git_utils import get_git_sha
 from tsfpga.math_utils import to_binary_string
 
 
-def run_vivado_tcl(vivado_path: Optional[Path], tcl_file: Path, no_log_file: bool = False) -> bool:
+def run_vivado_tcl(vivado_path: Path | None, tcl_file: Path, no_log_file: bool = False) -> bool:
     """
     Setting cwd ensures that any .log or .jou files produced are placed in
     the same directory as the TCL file that produced them.
@@ -53,7 +51,7 @@ def run_vivado_tcl(vivado_path: Optional[Path], tcl_file: Path, no_log_file: boo
     return True
 
 
-def run_vivado_gui(vivado_path: Optional[Path], project_file: Path) -> bool:
+def run_vivado_gui(vivado_path: Path | None, project_file: Path) -> bool:
     """
     Setting cwd ensures that any .log or .jou files produced are placed in
     the same directory as the project.
@@ -79,7 +77,7 @@ def run_vivado_gui(vivado_path: Optional[Path], project_file: Path) -> bool:
     return True
 
 
-def get_vivado_path(vivado_path: Optional[Path] = None) -> Path:
+def get_vivado_path(vivado_path: Path | None = None) -> Path:
     """
     Wrapper to get a path to Vivado executable.
 
@@ -97,7 +95,7 @@ def get_vivado_path(vivado_path: Optional[Path] = None) -> Path:
     return Path(which_vivado).resolve()
 
 
-def get_vivado_version(vivado_path: Optional[Path] = None) -> str:
+def get_vivado_version(vivado_path: Path | None = None) -> str:
     """
     Get the version number of the Vivado installation.
 
@@ -111,9 +109,7 @@ def get_vivado_version(vivado_path: Optional[Path] = None) -> str:
     vivado_path = get_vivado_path(vivado_path=vivado_path)
 
     # E.g. "/home/lukas/work/Xilinx/Vivado/2021.2/bin/vivado" -> "2021.2"
-    vivado_version = vivado_path.parent.parent.name
-
-    return vivado_version
+    return vivado_path.parent.parent.name
 
 
 def get_git_sha_slv(git_directory: Path) -> tuple[str, str]:
@@ -126,7 +122,7 @@ def get_git_sha_slv(git_directory: Path) -> tuple[str, str]:
     binary strings.
 
     Arguments:
-        directory: The directory where git commands will be run.
+        git_directory: The directory where git commands will be run.
 
     Return:
         First object in tuple is the left-most eight characters of the git SHA
@@ -134,10 +130,12 @@ def get_git_sha_slv(git_directory: Path) -> tuple[str, str]:
         Second object is the next eight characters from the git SHA.
     """
     git_sha = get_git_sha(directory=git_directory)
-    assert len(git_sha) == 16
+    if len(git_sha) != 16:
+        raise ValueError("Wrong string length")
 
     def hex_to_binary_string(hex_string: str) -> str:
-        assert len(hex_string) == 8
+        if len(hex_string) != 8:
+            raise ValueError("Wrong string length")
         int_value = int(hex_string, base=16)
 
         return to_binary_string(value=int_value, result_width=32)

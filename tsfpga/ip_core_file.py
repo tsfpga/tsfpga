@@ -6,7 +6,6 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 from pathlib import Path
 from typing import Any
 
@@ -16,7 +15,11 @@ class IpCoreFile:
     Class for handling an IP core file.
     """
 
-    def __init__(self, path: Path, **variables: Any) -> None:
+    def __init__(
+        self,
+        path: Path,
+        **variables: Any,  # noqa: ANN401
+    ) -> None:
         """
         Arguments:
             path: Path to the TCL script that creates the IP.

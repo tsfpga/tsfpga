@@ -6,19 +6,18 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
+from __future__ import annotations
+
 import shutil
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, NoReturn
 
-# First party libraries
 from tsfpga import TSFPGA_TCL
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
 from tsfpga.constraint import Constraint
 from tsfpga.system_utils import create_file, read_file
 
-# Local folder libraries
 from .build_result import BuildResult
 from .common import run_vivado_gui, run_vivado_tcl
 from .hierarchical_utilization_parser import HierarchicalUtilizationParser
@@ -26,10 +25,8 @@ from .logic_level_distribution_parser import LogicLevelDistributionParser
 from .tcl import VivadoTcl
 
 if TYPE_CHECKING:
-    # First party libraries
     from tsfpga.module_list import ModuleList
 
-    # Local folder libraries
     from .build_result_checker import MaximumLogicLevel, SizeChecker
 
 
@@ -38,23 +35,22 @@ class VivadoProject:
     Used for handling a Xilinx Vivado HDL project
     """
 
-    # pylint: disable=too-many-arguments,too-many-instance-attributes
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         name: str,
-        modules: "ModuleList",
+        modules: ModuleList,
         part: str,
-        top: Optional[str] = None,
-        generics: Optional[dict[str, Any]] = None,
-        constraints: Optional[list["Constraint"]] = None,
-        tcl_sources: Optional[list[Path]] = None,
-        build_step_hooks: Optional[list["BuildStepTclHook"]] = None,
-        vivado_path: Optional[Path] = None,
+        top: str | None = None,
+        generics: dict[str, Any] | None = None,
+        constraints: list[Constraint] | None = None,
+        tcl_sources: list[Path] | None = None,
+        build_step_hooks: list[BuildStepTclHook] | None = None,
+        vivado_path: Path | None = None,
         default_run_index: int = 1,
         impl_explore: bool = False,
-        defined_at: Optional[Path] = None,
-        **other_arguments: Any,
-    ):  # pylint: disable=too-many-locals
+        defined_at: Path | None = None,
+        **other_arguments: Any,  # noqa: ANN401
+    ) -> None:
         """
         Class constructor. Performs a shallow copy of the mutable arguments, so that the user
         can e.g. append items to their list after creating an object.
@@ -88,6 +84,7 @@ class VivadoProject:
                 project.
                 Can also use the argument to :meth:`build() <VivadoProject.build>` to
                 specify at build-time.
+            impl_explore: Run multiple implementation strategies in parallel.
             defined_at: Optional path to the file where you defined this project.
                 To get a useful ``build_fpga.py --list`` message. Is useful when you have many
                 projects set up.
@@ -223,7 +220,7 @@ class VivadoProject:
             )
 
     def _create_tcl(
-        self, project_path: Path, ip_cache_path: Optional[Path], all_arguments: dict[str, Any]
+        self, project_path: Path, ip_cache_path: Path | None, all_arguments: dict[str, Any]
     ) -> Path:
         """
         Make a TCL file that creates a Vivado project
@@ -255,8 +252,8 @@ class VivadoProject:
     def create(
         self,
         project_path: Path,
-        ip_cache_path: Optional[Path] = None,
-        **other_arguments: Any,
+        ip_cache_path: Path | None = None,
+        **other_arguments: Any,  # noqa: ANN401
     ) -> bool:
         """
         Create a Vivado project
@@ -280,6 +277,7 @@ class VivadoProject:
 
                 .. note::
                     This is a "kwargs" style argument. You can pass any number of named arguments.
+
         Return:
             True if everything went well.
         """
@@ -314,7 +312,10 @@ class VivadoProject:
         )
         return run_vivado_tcl(self._vivado_path, create_vivado_project_tcl)
 
-    def pre_create(self, **kwargs: Any) -> bool:  # pylint: disable=unused-argument
+    def pre_create(
+        self,
+        **kwargs: Any,  # noqa: ANN401, ARG002
+    ) -> bool:
         """
         Override this function in a subclass if you wish to do something useful with it.
         Will be called from :meth:`.create` right before the call to Vivado.
@@ -336,7 +337,7 @@ class VivadoProject:
         """
         return True
 
-    def _build_tcl(
+    def _build_tcl(  # noqa: PLR0913
         self,
         project_path: Path,
         output_path: Path,
@@ -372,7 +373,10 @@ class VivadoProject:
 
         return build_vivado_project_tcl
 
-    def pre_build(self, **kwargs: Any) -> bool:  # pylint: disable=unused-argument
+    def pre_build(
+        self,
+        **kwargs: Any,  # noqa: ANN401, ARG002
+    ) -> bool:
         """
         Override this function in a subclass if you wish to do something useful with it.
         Will be called from :meth:`.build` right before the call to Vivado.
@@ -386,7 +390,10 @@ class VivadoProject:
         """
         return True
 
-    def post_build(self, **kwargs: Any) -> bool:  # pylint: disable=unused-argument
+    def post_build(
+        self,
+        **kwargs: Any,  # noqa: ANN401, ARG002
+    ) -> bool:
         """
         Override this function in a subclass if you wish to do something useful with it.
         Will be called from :meth:`.build` right after the call to Vivado.
@@ -409,16 +416,16 @@ class VivadoProject:
         """
         return True
 
-    def build(  # pylint: disable=too-many-locals,too-many-branches
+    def build(  # noqa: C901, PLR0912, PLR0913
         self,
         project_path: Path,
-        output_path: Optional[Path] = None,
-        run_index: Optional[int] = None,
-        generics: Optional[dict[str, Any]] = None,
+        output_path: Path | None = None,
+        run_index: int | None = None,
+        generics: dict[str, Any] | None = None,
         synth_only: bool = False,
         from_impl: bool = False,
         num_threads: int = 12,
-        **pre_and_post_build_parameters: Any,
+        **pre_and_post_build_parameters: Any,  # noqa: ANN401
     ) -> BuildResult:
         """
         Build a Vivado project
@@ -512,7 +519,7 @@ class VivadoProject:
 
         build_vivado_project_tcl = self._build_tcl(
             project_path=project_path,
-            output_path=output_path,  # type: ignore[arg-type]
+            output_path=output_path,
             num_threads=num_threads,
             run_index=run_index,
             all_generics=all_generics,
@@ -549,8 +556,8 @@ class VivadoProject:
                 bit_file = impl_folder / f"{self.top}.bit"
                 bin_file = impl_folder / f"{self.top}.bin"
 
-            shutil.copy2(bit_file, output_path / f"{self.name}.bit")  # type: ignore[operator]
-            shutil.copy2(bin_file, output_path / f"{self.name}.bin")  # type: ignore[operator]
+            shutil.copy2(bit_file, output_path / f"{self.name}.bit")
+            shutil.copy2(bin_file, output_path / f"{self.name}.bin")
             result.implementation_size = self._get_size(project_path, run_name)
 
         # Send the result object, along with everything else, to the post-build function
@@ -603,10 +610,7 @@ class VivadoProject:
         result += f"Type:       {self.__class__.__name__}\n"
         result += f"Top level:  {self.top}\n"
 
-        if self.static_generics:
-            generics = self._dict_to_string(self.static_generics)
-        else:
-            generics = "-"
+        generics = self._dict_to_string(self.static_generics) if self.static_generics else "-"
         result += f"Generics:   {generics}\n"
 
         if self.other_arguments:
@@ -627,8 +631,8 @@ class VivadoNetlistProject(VivadoProject):
     def __init__(
         self,
         analyze_synthesis_timing: bool = False,
-        build_result_checkers: Optional[list[Union["SizeChecker", "MaximumLogicLevel"]]] = None,
-        **kwargs: Any,
+        build_result_checkers: list[SizeChecker | MaximumLogicLevel] | None = None,
+        **kwargs: Any,  # noqa: ANN401
     ) -> None:
         """
         Arguments:
@@ -650,8 +654,9 @@ class VivadoNetlistProject(VivadoProject):
         self.report_logic_level_distribution = True
         self.build_result_checkers = [] if build_result_checkers is None else build_result_checkers
 
-    def build(  # type: ignore  # pylint: disable=arguments-differ
-        self, **kwargs: Any
+    def build(
+        self,
+        **kwargs: Any,  # noqa: ANN401
     ) -> BuildResult:
         """
         Build the project.
@@ -684,14 +689,20 @@ class VivadoIpCoreProject(VivadoProject):
 
     ip_cores_only = True
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        **kwargs: Any,  # noqa: ANN401
+    ) -> None:
         """
         Arguments:
             kwargs: Arguments as accepted by :meth:`.VivadoProject.__init__`.
         """
         super().__init__(**kwargs)
 
-    def build(self, **kwargs: Any):  # type: ignore  # pylint: disable=arguments-differ
+    def build(
+        self,
+        **kwargs: Any,  # noqa: ANN401
+    ) -> NoReturn:
         """
         Not implemented.
         """
@@ -699,7 +710,7 @@ class VivadoIpCoreProject(VivadoProject):
 
 
 def copy_and_combine_dicts(
-    dict_first: Optional[dict[str, Any]], dict_second: Optional[dict[str, Any]]
+    dict_first: dict[str, Any] | None, dict_second: dict[str, Any] | None
 ) -> dict[str, Any]:
     """
     Will prefer values in the second dict, in case the same key occurs in both.
@@ -707,7 +718,7 @@ def copy_and_combine_dicts(
     """
     if dict_first is None:
         if dict_second is None:
-            return dict()
+            return {}
 
         return dict_second.copy()
 

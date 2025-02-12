@@ -8,18 +8,15 @@
 # A set of tools for versions and releases. Should be reusable between projects.
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 import json
 import re
 import sys
 from pathlib import Path
 from urllib.request import urlopen
 
-# Third party libraries
 from git.repo import Repo
 from packaging.version import Version, parse
 
-# First party libraries
 from tsfpga.system_utils import create_file, read_file
 
 # Contents of unreleased.rst when it is empty
@@ -107,7 +104,7 @@ def verify_new_version_number(
     Arguments:
         repo: The git repository to work with.
         pypi_project_name: The name of this project on PyPI.
-        version: New version.
+        new_version: New version.
         unreleased_notes_file: Path to the "unreleased.rst" release notes file.
             Must not be empty.
 

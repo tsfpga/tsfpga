@@ -6,25 +6,23 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
-import re
-from collections.abc import Iterable
-from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional
+from __future__ import annotations
 
-# Third party libraries
+import re
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
+
 from git.repo import Repo
 
-# Local folder libraries
 from .hdl_file import HdlFile
 
 if TYPE_CHECKING:
-    # Third party libraries
+    from collections.abc import Iterable
+
     from git.diff import DiffIndex
     from vunit.ui import VUnit
     from vunit.ui.source import SourceFile
 
-    # Local folder libraries
     from .module import BaseModule
     from .module_list import ModuleList
 
@@ -48,9 +46,9 @@ class GitSimulationSubset:
         self,
         repo_root: Path,
         reference_branch: str,
-        vunit_proj: "VUnit",
-        modules: Optional["ModuleList"] = None,
-        vunit_preprocessed_path: Optional[Path] = None,
+        vunit_proj: VUnit,
+        modules: ModuleList | None = None,
+        vunit_preprocessed_path: Path | None = None,
     ) -> None:
         """
         Arguments:
@@ -119,13 +117,11 @@ class GitSimulationSubset:
         # Changes in the git log compared to the reference commit
         history_changes = head_commit.diff(reference_commit)
 
-        all_changes: "DiffIndex[Any]" = (
-            working_tree_changes + history_changes  # type: ignore[assignment]
-        )
+        all_changes: DiffIndex[Any] = working_tree_changes + history_changes
 
         return self._get_vhd_files(diffs=all_changes)
 
-    def _get_vhd_files(self, diffs: "DiffIndex[Any]") -> set[Path]:
+    def _get_vhd_files(self, diffs: DiffIndex[Any]) -> set[Path]:
         """
         Return VHDL files that have been changed (added/renamed/modified/deleted) within any
         of the ``diffs`` commits.
@@ -136,7 +132,7 @@ class GitSimulationSubset:
         files = set()
 
         def add_register_artifacts_if_match(
-            diff_path: Path, module_register_data_file: Path, module: "BaseModule"
+            diff_path: Path, module_register_data_file: Path, module: BaseModule
         ) -> None:
             """
             Note that Path.__eq__ does not do normalization of paths.
@@ -148,9 +144,8 @@ class GitSimulationSubset:
                 return
 
             re_match = self._re_register_data_filename.match(module_register_data_file.name)
-            assert (
-                re_match is not None
-            ), "Register data file does not use the expected naming convention"
+            if re_match is None:
+                raise ValueError("Register data file does not use the expected naming convention")
 
             register_list_name = re_match.group(1)
             regs_pkg_path = module.register_synthesis_folder / f"{register_list_name}_regs_pkg.vhd"
@@ -191,7 +186,7 @@ class GitSimulationSubset:
         self._print_file_list("Found git diff related to the following files", files)
         return files
 
-    def _iterate_diff_paths(self, diffs: "DiffIndex[Any]") -> Iterable[Path]:
+    def _iterate_diff_paths(self, diffs: DiffIndex[Any]) -> Iterable[Path]:
         """
         * If a file is modified, ``a_path`` and ``b_path`` are set and point to the same file.
         * If a file is added, ``a_path`` is None and ``b_path`` points to the newly added file.
@@ -213,36 +208,30 @@ class GitSimulationSubset:
         on IP cores are excluded), hence files that can not be found in any module's simulation
         files are ignored.
         """
-        assert (
-            self._modules is not None
-        ), "Modules must be supplied when VUnit preprocessing is enabled"
+        if self._modules is None:
+            raise ValueError("Modules must be supplied when VUnit preprocessing is enabled")
 
         result = set()
         for vhd_file in vhd_files:
             library_name = self._get_library_name_from_path(vhd_file)
 
             if library_name is not None:
-                # Ignore that '_vunit_preprocessed_path' is type 'Path | None', since we only come
-                # if it is not 'None'.
-                preprocessed_file = (
-                    self._vunit_preprocessed_path  # type: ignore[operator]
-                    / library_name
-                    / vhd_file.name
-                )
-                assert preprocessed_file.exists(), preprocessed_file
+                preprocessed_file = self._vunit_preprocessed_path / library_name / vhd_file.name
+                if not preprocessed_file.exists():
+                    raise FileNotFoundError("Could not find file:", preprocessed_file)
 
                 result.add(preprocessed_file)
 
         return result
 
-    def _get_library_name_from_path(self, vhd_file: Path) -> Optional[str]:
+    def _get_library_name_from_path(self, vhd_file: Path) -> str | None:
         """
         Returns: Library name for the given file path.
             Will return None if no library can be found.
         """
         # Ignore that '_modules' is type 'Path | None', since we only come
         # if it is not 'None'.
-        for module in self._modules:  # type: ignore[union-attr]
+        for module in self._modules:
             for module_hdl_file in module.get_simulation_files(include_ip_cores=True):
                 if module_hdl_file.path.name == vhd_file.name:
                     return module.library_name
@@ -250,14 +239,15 @@ class GitSimulationSubset:
         print(f"Could not find library for file {vhd_file}. It will be skipped.")
         return None
 
-    def _find_testbenches(self) -> list["SourceFile"]:
+    def _find_testbenches(self) -> list[SourceFile]:
         """
         Find all testbench files that are available in the VUnit project.
         """
         result = []
         for source_file in self._vunit_proj.get_source_files():
             source_file_path = Path(source_file.name)
-            assert source_file_path.exists(), source_file_path
+            if not source_file_path.exists():
+                raise FileNotFoundError("Could not find file:", source_file_path)
 
             # The file is considered a testbench if it follows the tb naming pattern
             if self._re_tb_filename.match(source_file_path.name) is not None:
@@ -265,7 +255,7 @@ class GitSimulationSubset:
 
         return result
 
-    def _source_file_depends_on_files(self, source_file: "SourceFile", files: set[Path]) -> bool:
+    def _source_file_depends_on_files(self, source_file: SourceFile, files: set[Path]) -> bool:
         """
         Return True if the source file depends on any of the files.
         """

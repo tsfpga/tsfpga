@@ -6,24 +6,23 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+from __future__ import annotations
+
 """
 Common functions and definitions in the example build environment.
 """
 
-# Standard libraries
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from tsfpga.module_list import ModuleList
 
-# Import before others since it modifies PYTHONPATH. pylint: disable=unused-import
-import tsfpga.examples.example_pythonpath  # noqa: F401
+# Import before others since it modifies PYTHONPATH.
+import tsfpga.examples.example_pythonpath
 
-# Third party libraries
 from hdl_registers.register import Register
 from hdl_registers.register_modes import REGISTER_MODES
 
-# First party libraries
 import tsfpga
 from tsfpga.module import get_modules
 
@@ -34,7 +33,7 @@ def get_default_registers() -> list[Register]:
     """
     Default registers for tsfpga examples.
     """
-    registers = [
+    return [
         Register("config", 0, REGISTER_MODES["r_w"], "Configuration register."),
         Register(
             "command",
@@ -59,12 +58,11 @@ def get_default_registers() -> list[Register]:
             "A '1' in this register means that the corresponding interrupt is enabled.",
         ),
     ]
-    return registers
 
 
 def get_tsfpga_example_modules(
-    names_include: Optional[set[str]] = None, names_avoid: Optional[set[str]] = None
-) -> "ModuleList":
+    names_include: set[str] | None = None, names_avoid: set[str] | None = None
+) -> ModuleList:
     """
     Wrapper of the regular :func:`.get_modules`. call with correct settings for tsfpga
     example modules.
@@ -82,8 +80,8 @@ def get_tsfpga_example_modules(
 
 
 def get_hdl_modules(
-    names_include: Optional[set[str]] = None, names_avoid: Optional[set[str]] = None
-) -> "ModuleList":
+    names_include: set[str] | None = None, names_avoid: set[str] | None = None
+) -> ModuleList:
     """
     Wrapper of :func:`.get_modules` which returns the ``hdl-modules`` module objects
     (https://hdl-modules.com), if available.

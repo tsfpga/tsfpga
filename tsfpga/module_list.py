@@ -6,12 +6,11 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 import copy
-from typing import TYPE_CHECKING, Iterator
+from collections.abc import Iterator
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    # Local folder libraries
     from .module import BaseModule
 
 
@@ -21,7 +20,7 @@ class ModuleList:
     """
 
     def __init__(self) -> None:
-        self._modules: list["BaseModule"] = []
+        self._modules: list[BaseModule] = []
 
     def append(self, module: "BaseModule") -> None:
         """
@@ -59,7 +58,7 @@ class ModuleList:
 
     def __copy__(self) -> "ModuleList":
         result = self.__class__()
-        result._modules = self._modules.copy()
+        result._modules = self._modules.copy()  # noqa: SLF001
         return result
 
     def copy(self) -> "ModuleList":

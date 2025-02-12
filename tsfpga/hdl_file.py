@@ -6,9 +6,9 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 from enum import Enum, auto
 from pathlib import Path
+from typing import ClassVar
 
 
 class HdlFile:
@@ -28,7 +28,7 @@ class HdlFile:
         SYSTEMVERILOG_HEADER = auto()
 
     # Decides which file endings are associated with which file type.
-    file_endings_mapping = {
+    file_endings_mapping: ClassVar = {
         Type.VHDL: (".vhd", ".vhdl"),
         Type.VERILOG_SOURCE: (".v",),
         Type.VERILOG_HEADER: (".vh",),

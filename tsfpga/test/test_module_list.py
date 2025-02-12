@@ -6,13 +6,10 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 from unittest.mock import MagicMock
 
-# Third party libraries
 import pytest
 
-# First party libraries
 from tsfpga.module_list import ModuleList
 
 
@@ -50,10 +47,6 @@ def module_list_test():
     return ModuleListTest()
 
 
-# False positive for pytest fixtures
-# pylint: disable=redefined-outer-name
-
-
 def test_get(module_list_test):
     assert module_list_test.modules.get("a") == module_list_test.module_a
     assert module_list_test.modules.get("c") == module_list_test.module_c
@@ -66,8 +59,7 @@ def test_get(module_list_test):
 def test_iteration(module_list_test):
     expected = [module_list_test.module_a, module_list_test.module_b, module_list_test.module_c]
 
-    # pylint: disable=unnecessary-comprehension
-    assert [module for module in module_list_test.modules] == expected
+    assert list(module_list_test.modules) == expected
     assert list(module_list_test.modules) == expected
 
 
@@ -96,17 +88,16 @@ def test_concatenation(module_list_test):
     assert len(module_list_test.modules) == 3
     assert len(modules_2) == 1
 
-    assert (all_modules is not modules_2) and (all_modules is not module_list_test.modules)
+    assert all_modules is not modules_2
+    assert all_modules is not module_list_test.modules
 
-    # pylint: disable=protected-access
-    assert (all_modules._modules is not modules_2._modules) and (
-        all_modules._modules is not module_list_test.modules._modules
-    )
+    # ruff: noqa: SLF001
+    assert all_modules._modules is not modules_2._modules
+    assert all_modules._modules is not module_list_test.modules._modules
 
 
 def test_concatenation_with_unknown_object_should_raise_interrupt(module_list_test):
     with pytest.raises(TypeError) as exception_info:
-        # pylint: disable=pointless-statement
         module_list_test.modules + 3
     assert str(exception_info.value) == "Can only concatenate with another ModuleList"
 

@@ -6,13 +6,10 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 from pathlib import Path
 
-# Third party libraries
 import pytest
 
-# First party libraries
 from tsfpga.ip_core_file import IpCoreFile
 
 
@@ -28,6 +25,5 @@ def test_name():
 def test_name_with_spaces_should_raise_exception():
     path = Path("/apa/my core.tcl")
     with pytest.raises(ValueError) as exception_info:
-        # pylint: disable=expression-not-assigned
-        IpCoreFile(path).name
+        _ = IpCoreFile(path).name
     assert str(exception_info.value) == f"File name may not contain spaces: {path}"

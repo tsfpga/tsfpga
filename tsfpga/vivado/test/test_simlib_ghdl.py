@@ -11,18 +11,16 @@ Test a subset of what is tested for commercial, since most of the code is inheri
 from the common class.
 """
 
-# Standard libraries
 from pathlib import Path
 from unittest.mock import MagicMock, call, patch
 
-# Third party libraries
 import pytest
 
-# First party libraries
 from tsfpga.vivado.simlib import VivadoSimlib
 
+# ruff: noqa: SLF001
 
-# pylint: disable=redefined-outer-name
+
 @pytest.fixture
 def simlib_test(tmp_path):
     class SimlibGhdlTestFixture:
@@ -40,13 +38,11 @@ def simlib_test(tmp_path):
                 simulator_class.find_prefix.return_value = "/usr/bin"
 
                 vunit_proj = MagicMock()
-                vunit_proj._simulator_class = simulator_class  # pylint: disable=protected-access
+                vunit_proj._simulator_class = simulator_class
 
-                vivado_simlib = VivadoSimlib.init(
+                return VivadoSimlib.init(
                     self.output_path, vunit_proj, Path("/tools/xilinx/Vivado/2019.2/bin/vivado")
                 )
-
-                return vivado_simlib
 
         def assert_should_compile(self):
             assert self.vivado_simlib.compile_is_needed
@@ -110,16 +106,16 @@ def test_ghdl_version_string(simlib_test):
 def test_should_compile_file_by_file_on_windows_but_not_on_linux(simlib_test):
     library_name = "unisim"
 
-    # pylint: disable=protected-access
     unisim_path = simlib_test.vivado_simlib._libraries_path / library_name
     vhd_files = [unisim_path / "a.vhd", unisim_path / "b.vhd"]
 
     def run_test(is_windows, expected_calls):
-        with patch.object(
-            simlib_test.vivado_simlib, "_execute_ghdl", autospec=True
-        ) as execute_ghdl, patch(
-            "tsfpga.vivado.simlib_ghdl.system_is_windows", autospec=True
-        ) as system_is_windows:
+        with (
+            patch.object(simlib_test.vivado_simlib, "_execute_ghdl", autospec=True) as execute_ghdl,
+            patch(
+                "tsfpga.vivado.simlib_ghdl.system_is_windows", autospec=True
+            ) as system_is_windows,
+        ):
             system_is_windows.return_value = is_windows
 
             simlib_test.vivado_simlib._compile_ghdl(vhd_files=vhd_files, library_name=library_name)

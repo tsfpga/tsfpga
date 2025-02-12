@@ -6,14 +6,13 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# First party libraries
 from tsfpga.module import BaseModule
 
 
 class Module(BaseModule):
     version = 3
 
-    def registers_hook(self):
+    def registers_hook(self) -> None:
         # Should have some registers already from the TOML file.
         register_list = self.registers
         assert register_list is not None

@@ -6,20 +6,18 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
+from __future__ import annotations
+
 import re
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, ClassVar
 
-# First party libraries
 from tsfpga import DEFAULT_FILE_ENCODING
 from tsfpga.system_utils import create_directory, run_command, system_is_windows
 
-# Local folder libraries
 from .simlib_common import VivadoSimlibCommon
 
 if TYPE_CHECKING:
-    # Third party libraries
     from vunit.sim_if import SimulatorInterface
     from vunit.ui import VUnit
 
@@ -29,14 +27,14 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
     Handle Vivado simlib with GHDL.
     """
 
-    library_names = ["unisim", "secureip", "unimacro", "unifast"]
+    library_names: ClassVar = ["unisim", "secureip", "unimacro", "unifast"]
 
     def __init__(
         self,
-        vivado_path: Optional[Path],
+        vivado_path: Path | None,
         output_path: Path,
-        vunit_proj: "VUnit",
-        simulator_interface: "SimulatorInterface",
+        vunit_proj: VUnit,
+        simulator_interface: SimulatorInterface,
     ) -> None:
         """
         Arguments:
@@ -67,7 +65,8 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
             "unisim_retarget_VCOMP",
         ]:
             vhd_file = library_path / f"{vhd_file_base}.vhd"
-            assert vhd_file.exists(), vhd_file
+            if not vhd_file.exists():
+                raise FileNotFoundError(f"VHDL file does not exist: {vhd_file}")
 
             vhd_files.append(vhd_file)
 
@@ -81,12 +80,7 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
         self._compile_ghdl(vhd_files=vhd_files, library_name="unisim")
 
     def _compile_secureip(self) -> None:
-        library_path = self._libraries_path / "unisims" / "secureip"
-
-        vhd_files = []
-        for vhd_file in library_path.glob("*.vhd"):
-            vhd_files.append(vhd_file)
-
+        vhd_files = (self._libraries_path / "unisims" / "secureip").glob("*.vhd")
         self._compile_ghdl(vhd_files=vhd_files, library_name="secureip")
 
     def _compile_unimacro(self) -> None:
@@ -95,7 +89,8 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
         vhd_files = []
 
         vhd_file = library_path / "unimacro_VCOMP.vhd"
-        assert vhd_file.exists(), vhd_file
+        if not vhd_file.exists():
+            raise FileNotFoundError(f"VHDL file does not exist: {vhd_file}")
         vhd_files.append(vhd_file)
 
         vhd_files += self._get_compile_order(library_path=library_path)
@@ -116,12 +111,14 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
         """
         vhd_files = []
 
-        with open(
-            library_path / "vhdl_analyze_order", encoding=DEFAULT_FILE_ENCODING
+        with (library_path / "vhdl_analyze_order").open(
+            encoding=DEFAULT_FILE_ENCODING
         ) as file_handle:
-            for vhd_file_base in file_handle.readlines():
+            for vhd_file_base in file_handle:
                 vhd_file = library_path / vhd_file_base.strip()
-                assert vhd_file.exists(), vhd_file
+                if not vhd_file.exists():
+                    raise FileNotFoundError(f"VHDL file does not exist: {vhd_file}")
+
                 vhd_files.append(vhd_file)
 
         return vhd_files
@@ -174,15 +171,16 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
             "-a",
             "--ieee=synopsys",
             "--std=08",
-            f"--workdir={str(workdir.resolve())}",
-            f"-P{str(self.output_path / 'unisim')}",
+            f"--workdir={workdir.resolve()}",
+            f"-P{self.output_path / 'unisim'}",
             "-fexplicit",
             "-frelaxed-rules",
             "--no-vital-checks",
             "--warn-binding",
             "--mb-comments",
             f"--work={library_name}",
-        ] + files
+            *files,
+        ]
 
         run_command(cmd, cwd=self.output_path)
 
@@ -211,6 +209,7 @@ class VivadoSimlibGhdl(VivadoSimlibCommon):
         """
         for library_name in self.library_names:
             library_path = self.output_path / library_name
-            assert library_path.exists(), library_path
+            if not library_path.exists():
+                raise FileNotFoundError(f"Library path does not exist: {library_path}")
 
             self._vunit_proj.add_external_library(library_name, library_path)

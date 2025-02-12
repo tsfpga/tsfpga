@@ -6,7 +6,6 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# First party libraries
 import tsfpga
 from tsfpga.about import REPOSITORY_URL, WEBSITE_URL
 from tsfpga.git_utils import find_git_files

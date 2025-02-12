@@ -6,7 +6,6 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 import sys
 from pathlib import Path
 from shutil import copy2, make_archive
@@ -16,17 +15,15 @@ from typing import TYPE_CHECKING
 REPO_ROOT = Path(__file__).parent.parent.parent.resolve()
 sys.path.insert(0, str(REPO_ROOT))
 
-# Import before others since it modifies PYTHONPATH. pylint: disable=unused-import
+# Import before others since it modifies PYTHONPATH.
 import tsfpga.examples.example_pythonpath  # noqa: F401
 
-# First party libraries
 from tsfpga.build_project_list import BuildProjectList
 from tsfpga.examples.build_fpga_utils import arguments, generate_register_artifacts, setup_and_run
 from tsfpga.examples.example_env import TSFPGA_EXAMPLES_TEMP_DIR, get_tsfpga_example_modules
 from tsfpga.system_utils import create_directory, delete
 
 if TYPE_CHECKING:
-    # First party libraries
     from tsfpga.vivado.project import VivadoProject
 
 

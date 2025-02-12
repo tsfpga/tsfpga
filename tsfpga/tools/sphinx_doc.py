@@ -8,19 +8,21 @@
 # A set of methods for building sphinx docs. Should be reusable between projects.
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
+from __future__ import annotations
+
 import sys
 from datetime import datetime
-from pathlib import Path
 from subprocess import CalledProcessError
-from typing import Iterable, Optional
+from typing import TYPE_CHECKING
 
-# Third party libraries
 from git.repo import Repo
 from packaging.version import Version, parse
 
-# First party libraries
 from tsfpga.system_utils import read_file, run_command
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+    from pathlib import Path
 
 
 def generate_release_notes(
@@ -62,18 +64,18 @@ def generate_release_notes(
 
 def _get_release_notes_files(
     repo_root: Path, release_notes_directory: Path
-) -> Iterable[tuple["Release", Optional[str]]]:
+) -> Iterable[tuple[Release, str | None]]:
     """
     Iterate the release notes.
     """
     unreleased_notes_file = release_notes_directory / "unreleased.rst"
 
-    release_notes = []
-
-    # Get all versioned release notes files and sort them in order newest -> oldest
-    for release_notes_file in release_notes_directory.glob("*.rst"):
-        if not release_notes_file == unreleased_notes_file:
-            release_notes.append(release_notes_file)
+    # All versioned release notes files.
+    release_notes = [
+        release_notes_file
+        for release_notes_file in release_notes_directory.glob("*.rst")
+        if release_notes_file != unreleased_notes_file
+    ]
 
     # Sort by parsing the version number in the file name. Newest to oldest.
     def sort_key(path: Path) -> Version:
@@ -91,10 +93,7 @@ def _get_release_notes_files(
     ]
 
     for idx, release in enumerate(releases):
-        if idx == len(releases) - 1:
-            previous_release_git_tag = None
-        else:
-            previous_release_git_tag = releases[idx + 1].git_tag
+        previous_release_git_tag = None if idx == len(releases) - 1 else releases[idx + 1].git_tag
 
         yield release, previous_release_git_tag
 
@@ -123,7 +122,12 @@ class Release:
         Get a formatted date string, gathered from git log based on tag name.
         """
         timestamp = repo.tag(f"refs/tags/{tag}").commit.committed_date
-        time = datetime.fromtimestamp(timestamp)
+        # This call will more or less guess the user's timezone.
+        # In a general use case this is not reliable, hence the rule, but in our case
+        # the date information is not critical in any way.
+        # It is just there for extra info.
+        # https://docs.astral.sh/ruff/rules/call-datetime-fromtimestamp/
+        time = datetime.fromtimestamp(timestamp)  # noqa: DTZ006
         return f"{time.day} {time:%B} {time.year}".lower()
 
 
@@ -164,8 +168,10 @@ def build_sphinx(build_path: Path, output_path: Path) -> None:
             print("-" * 80)
             print("ERROR: Command STDERR:\n")
             print(exception.stderr)
-        raise exception
+        raise
 
     index_html = output_path / "index.html"
-    assert index_html.exists(), index_html
+    if not index_html.exists():
+        raise FileNotFoundError(f"Creating HTML failed: {index_html}")
+
     print(f"Documentation build done. Open with:\n  firefox {index_html} &")

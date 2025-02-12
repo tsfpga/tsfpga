@@ -6,19 +6,18 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
-from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from __future__ import annotations
 
-# Third party libraries
-from vunit.ui import VUnit
+from typing import TYPE_CHECKING
 
-# Local folder libraries
 from .simlib_commercial import VivadoSimlibCommercial
 from .simlib_ghdl import VivadoSimlibGhdl
 
 if TYPE_CHECKING:
-    # Local folder libraries
+    from pathlib import Path
+
+    from vunit.ui import VUnit
+
     from .simlib_common import VivadoSimlibCommon
 
 
@@ -29,8 +28,8 @@ class VivadoSimlib:
 
     @staticmethod
     def init(
-        output_path: Path, vunit_proj: VUnit, vivado_path: Optional[Path] = None
-    ) -> "VivadoSimlibCommon":
+        output_path: Path, vunit_proj: VUnit, vivado_path: Path | None = None
+    ) -> VivadoSimlibCommon:
         """
         Get a Vivado simlib API suitable for your current simulator. Uses VUnit mechanism
         for detecting the simulator currently in use.
@@ -43,7 +42,7 @@ class VivadoSimlib:
             vivado_path: Path to Vivado executable. If left out, the default
                 from system ``PATH`` will be used.
         """
-        simulator_interface = vunit_proj._simulator_class  # pylint: disable=protected-access
+        simulator_interface = vunit_proj._simulator_class  # noqa: SLF001
 
         if simulator_interface is None:
             raise RuntimeError("VUnit found no simulator. Can not proceed.")

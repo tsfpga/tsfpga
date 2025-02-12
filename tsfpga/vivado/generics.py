@@ -6,9 +6,7 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-
-# Standard libraries
-from typing import Union
+from __future__ import annotations
 
 
 class StringGenericValue:
@@ -22,7 +20,7 @@ class StringGenericValue:
             value: A string of variable length with any content.
         """
         if not isinstance(value, str):
-            raise ValueError(
+            raise TypeError(
                 f"Expected {self.__class__.__name__} value to be of type str."
                 f' Got type="{type(value)}", value="{value}".'
             )
@@ -49,7 +47,7 @@ class BitVectorGenericValue:
             value: A string of variable length containing only "1" or "0".
         """
         if not isinstance(value, str):
-            raise ValueError(
+            raise TypeError(
                 f"Expected {self.__class__.__name__} value to be of type str."
                 f' Got type="{type(value)}", value="{value}".'
             )
@@ -75,7 +73,7 @@ class BitVectorGenericValue:
 
 
 def get_vivado_tcl_generic_value(
-    value: Union[bool, int, float, StringGenericValue, BitVectorGenericValue],
+    value: bool | float | StringGenericValue | BitVectorGenericValue,
 ) -> str:
     """
     Convert generic values of different types to the format recognized by Vivado TCL:
@@ -112,4 +110,4 @@ def get_vivado_tcl_generic_value(
             " Please use either of the explicit types StringGenericValue or BitVectorGenericValue."
         )
 
-    raise ValueError(message)
+    raise TypeError(message)

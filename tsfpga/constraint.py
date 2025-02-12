@@ -6,12 +6,10 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
-    # Local folder libraries
     from .hdl_file import HdlFile
 
 
@@ -27,9 +25,9 @@ class Constraint:
     def __init__(
         self,
         file: Path,
-        used_in: str = "all",
+        used_in: Literal["all", "synth", "impl"] = "all",
         scoped_constraint: bool = False,
-        processing_order: str = "normal",
+        processing_order: Literal["early", "normal", "late"] = "normal",
     ) -> None:
         """
         Arguments:
@@ -44,20 +42,19 @@ class Constraint:
         self.ref = file.stem if scoped_constraint else None
         self.processing_order = processing_order.lower()
 
-        assert self.used_in in ["all", "synth", "impl"], self.used_in
-        assert self.processing_order in ["early", "normal", "late"], self.processing_order
-
     def validate_scoped_entity(self, source_files: list["HdlFile"]) -> bool:
         """
         Make sure that a matching entity file exists in case this is a scoped constraint.
         The list of source files should be the synthesis files for the module that this
         constraint belongs to.
         """
-        if self.ref is not None:
-            if not any([source_file.path.stem == self.ref] for source_file in source_files):
-                raise FileNotFoundError(
-                    f"Could not find a matching entity file for scoped constraint file {self.file}"
-                )
+        if self.ref is not None and not any(
+            [source_file.path.stem == self.ref] for source_file in source_files
+        ):
+            raise FileNotFoundError(
+                f"Could not find a matching entity file for scoped constraint file {self.file}"
+            )
+
         return True
 
     def __str__(self) -> str:

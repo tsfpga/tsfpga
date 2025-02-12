@@ -6,12 +6,12 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
+from __future__ import annotations
+
 import argparse
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import TYPE_CHECKING, Callable
 
-# Third party libraries
 from hdl_registers.generator.c.header import CHeaderGenerator
 from hdl_registers.generator.cpp.header import CppHeaderGenerator
 from hdl_registers.generator.cpp.implementation import CppImplementationGenerator
@@ -20,12 +20,10 @@ from hdl_registers.generator.html.page import HtmlPageGenerator
 from hdl_registers.generator.python.accessor import PythonAccessorGenerator
 from hdl_registers.generator.python.pickle import PythonPickleGenerator
 
-# First party libraries
-from tsfpga.build_project_list import BuildProjectList
 from tsfpga.system_utils import create_directory
 
 if TYPE_CHECKING:
-    # First party libraries
+    from tsfpga.build_project_list import BuildProjectList
     from tsfpga.module_list import ModuleList
     from tsfpga.vivado.project import VivadoProject
 
@@ -124,18 +122,18 @@ def arguments(default_temp_dir: Path) -> argparse.Namespace:
 
     args = parser.parse_args()
 
-    assert (
-        args.use_existing_project or not args.from_impl
-    ), "Must set --use-existing-project when using --from-impl"
+    assert args.use_existing_project or not args.from_impl, (
+        "Must set --use-existing-project when using --from-impl"
+    )
 
     return args
 
 
-def setup_and_run(  # pylint: disable=too-many-return-statements
-    modules: "ModuleList",
+def setup_and_run(  # noqa: C901, PLR0911
+    modules: ModuleList,
     projects: BuildProjectList,
     args: argparse.Namespace,
-    collect_artifacts_function: Optional[Callable[["VivadoProject", Path], bool]],
+    collect_artifacts_function: Callable[[VivadoProject, Path], bool] | None,
 ) -> int:
     """
     Setup and execute build projects.
@@ -232,7 +230,7 @@ def setup_and_run(  # pylint: disable=too-many-return-statements
     return 1
 
 
-def generate_register_artifacts(modules: "ModuleList", output_path: Path) -> None:
+def generate_register_artifacts(modules: ModuleList, output_path: Path) -> None:
     """
     Generate register artifacts from the given modules.
 

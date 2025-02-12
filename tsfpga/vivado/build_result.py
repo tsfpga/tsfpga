@@ -6,11 +6,10 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
-import json
-from typing import Optional, Union
+from __future__ import annotations
 
-# Local folder libraries
+import json
+
 from .logic_level_distribution_parser import LogicLevelDistributionParser
 
 
@@ -30,18 +29,18 @@ class BuildResult:
             Will be ``None`` if synthesis failed or did not run.
     """
 
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         """
         Arguments:
             name: The name of the build.
         """
         self.name = name
         self.success: bool = True
-        self.synthesis_size: Optional[dict[str, int]] = None
-        self.implementation_size: Optional[dict[str, int]] = None
-        self.logic_level_distribution: Optional[str] = None
+        self.synthesis_size: dict[str, int] | None = None
+        self.implementation_size: dict[str, int] | None = None
+        self.logic_level_distribution: str | None = None
 
-    def size_summary(self) -> Optional[str]:
+    def size_summary(self) -> str | None:
         """
         Return a string with a formatted message of the size.
 
@@ -64,7 +63,7 @@ class BuildResult:
 
         return f"Size of {self.name} after {build_step}:\n{json.dumps(size, indent=2)}"
 
-    def report(self) -> Optional[str]:
+    def report(self) -> str | None:
         """
         Return a report of the build result. Includes all metrics and information that has been
         extracted from the Vivado reports.
@@ -77,7 +76,7 @@ class BuildResult:
         return result
 
     @property
-    def maximum_logic_level(self) -> Union[None, int]:
+    def maximum_logic_level(self) -> None | int:
         """
         The maximum level in the the :attr:`.BuildResult.logic_level_distribution`.
         Will be ``None`` for non-netlist builds.

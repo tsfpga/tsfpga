@@ -6,7 +6,8 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
+from __future__ import annotations
+
 import importlib.util
 import os
 import subprocess
@@ -14,13 +15,15 @@ from os.path import commonpath, relpath
 from pathlib import Path
 from platform import system
 from shutil import rmtree
-from typing import Any, Optional
+from typing import TYPE_CHECKING
 
-# First party libraries
 from tsfpga import DEFAULT_FILE_ENCODING
 
+if TYPE_CHECKING:
+    from types import ModuleType
 
-def create_file(file: Path, contents: Optional[str] = None) -> Path:
+
+def create_file(file: Path, contents: str | None = None) -> Path:
     """
     Create the ``file`` and any parent directories that do not exist.
     File will be empty unless ``contents`` is specified.
@@ -32,7 +35,7 @@ def create_file(file: Path, contents: Optional[str] = None) -> Path:
     create_directory(directory=file.parent, empty=False)
 
     contents = "" if contents is None else contents
-    with open(file, "w", encoding=DEFAULT_FILE_ENCODING) as file_handle:
+    with file.open("w", encoding=DEFAULT_FILE_ENCODING) as file_handle:
         file_handle.write(contents)
 
     return file
@@ -42,7 +45,7 @@ def read_file(file: Path) -> str:
     """
     Read and return the file contents.
     """
-    with open(file, encoding=DEFAULT_FILE_ENCODING) as file_handle:
+    with file.open(encoding=DEFAULT_FILE_ENCODING) as file_handle:
         return file_handle.read()
 
 
@@ -61,7 +64,7 @@ def read_last_lines_of_file(file: Path, num_lines: int) -> str:
     result_lines: list[str] = []
     blocks_to_read = 0
 
-    with open(file, encoding=DEFAULT_FILE_ENCODING) as file_handle:
+    with file.open(encoding=DEFAULT_FILE_ENCODING) as file_handle:
         while len(result_lines) < num_lines:
             # Since we do not know the line lengths, there is some guessing involved. Keep reading
             # larger and larger blocks until we have all the lines that are requested.
@@ -70,7 +73,7 @@ def read_last_lines_of_file(file: Path, num_lines: int) -> str:
             try:
                 # Read a block from the end
                 file_handle.seek(-blocks_to_read * 4096, os.SEEK_END)
-            except IOError:
+            except OSError:
                 # Tried to read more data than what is available. Read whatever we have and return
                 # to user.
                 file_handle.seek(0)
@@ -79,8 +82,7 @@ def read_last_lines_of_file(file: Path, num_lines: int) -> str:
 
             result_lines = file_handle.readlines()
 
-    result = "".join(result_lines[-num_lines:])
-    return result
+    return "".join(result_lines[-num_lines:])
 
 
 def delete(path: Path, wait_until_deleted: bool = False) -> Path:
@@ -169,8 +171,8 @@ def path_relative_to(path: Path, other: Path) -> Path:
 
 def run_command(
     cmd: list[str],
-    cwd: Optional[Path] = None,
-    env: Optional[dict[str, str]] = None,
+    cwd: Path | None = None,
+    env: dict[str, str] | None = None,
     capture_output: bool = False,
 ) -> subprocess.CompletedProcess[str]:
     """
@@ -188,7 +190,7 @@ def run_command(
         be inspected.
     """
     if not isinstance(cmd, list):
-        raise ValueError("Must be called with a list, not a string")
+        raise TypeError("Must be called with a list, not a string")
 
     return subprocess.run(
         args=cmd,
@@ -200,7 +202,7 @@ def run_command(
     )
 
 
-def load_python_module(file: Path) -> Any:
+def load_python_module(file: Path) -> ModuleType:
     """
     Load the specified Python module.
     Note that in Python nomenclature, a module is a source code file.

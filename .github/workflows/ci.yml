@@ -74,13 +74,10 @@ jobs:
       if: matrix.os == 'ubuntu-latest' && matrix.py == '3.13'
       run: |
         python3 -m pip install \
-          black \
-          flake8 \
-          mypy \
           pybadges \
-          pylint \
           pytest-cov \
-          pytest-xdist
+          pytest-xdist \
+          ruff
 
     # Run ALL tests, including unit, lint and functional ones.
     # The execution time goes from 1:13 -> 0:50 when two threads are used.

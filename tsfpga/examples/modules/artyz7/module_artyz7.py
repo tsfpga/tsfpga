@@ -6,20 +6,25 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
-from pathlib import Path
+from __future__ import annotations
 
-# First party libraries
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
+
 from tsfpga.constraint import Constraint
 from tsfpga.examples.example_env import get_hdl_modules, get_tsfpga_example_modules
 from tsfpga.examples.vivado.project import TsfpgaExampleVivadoProject
 from tsfpga.module import BaseModule
 
+if TYPE_CHECKING:
+    from tsfpga.hdl_file import HdlFile
+    from tsfpga.vivado.project import VivadoProject
+
 THIS_FILE = Path(__file__)
 
 
 class Module(BaseModule):
-    def get_build_projects(self):
+    def get_build_projects(self) -> list[VivadoProject]:
         projects = []
 
         modules = get_hdl_modules() + get_tsfpga_example_modules()
@@ -77,9 +82,12 @@ class Module(BaseModule):
 
         return projects
 
-    def get_simulation_files(  # type: ignore[override]
-        self, files_avoid=None, include_unisim=True, **kwargs
-    ):  # pylint: disable=arguments-differ
+    def get_simulation_files(
+        self,
+        files_avoid: bool | None = None,
+        include_unisim: bool = True,
+        **kwargs: Any,  # noqa: ANN401
+    ) -> list[HdlFile]:
         """
         Exclude files that depend on IP cores and/or unisim.
 

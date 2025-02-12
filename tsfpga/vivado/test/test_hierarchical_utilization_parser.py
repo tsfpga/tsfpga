@@ -6,7 +6,6 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# First party libraries
 from tsfpga.vivado.hierarchical_utilization_parser import HierarchicalUtilizationParser
 
 

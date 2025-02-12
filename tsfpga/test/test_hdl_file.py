@@ -6,13 +6,10 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 from pathlib import Path
 
-# Third party libraries
 import pytest
 
-# First party libraries
 from tsfpga.hdl_file import HdlFile
 
 

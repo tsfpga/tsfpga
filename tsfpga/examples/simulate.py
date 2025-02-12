@@ -6,7 +6,6 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 import sys
 from pathlib import Path
 
@@ -14,10 +13,9 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).parent.parent.parent.resolve()
 sys.path.insert(0, str(REPO_ROOT))
 
-# Import before others since it modifies PYTHONPATH. pylint: disable=unused-import
-import tsfpga.examples.example_pythonpath  # noqa: F401
+# Import before others since it modifies PYTHONPATH.
+import tsfpga.examples.example_pythonpath
 
-# First party libraries
 import tsfpga
 import tsfpga.create_vhdl_ls_config
 from tsfpga.create_ghdl_ls_config import create_ghdl_ls_configuration

@@ -1,6 +1,0 @@
-[flake8]
-max-line-length = 100
-# E402 = Wrong import order. Flake8 does not usually allow us doing sys.path.append(...)
-#        before import.
-# E203, W503 per black instructions: https://black.readthedocs.io/en/stable/compatible_configs.html
-ignore = E402, E203, W503

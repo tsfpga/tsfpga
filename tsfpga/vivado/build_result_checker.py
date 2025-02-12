@@ -6,11 +6,8 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 from abc import ABC, abstractmethod
-from typing import Union
 
-# Local folder libraries
 from .build_result import BuildResult
 
 
@@ -28,7 +25,7 @@ class Limit(ABC):
         self.value = value
 
     @abstractmethod
-    def check(self, result_value: Union[int, float]) -> bool:
+    def check(self, result_value: float) -> bool:
         pass
 
     @abstractmethod
@@ -41,7 +38,7 @@ class LessThan(Limit):
     Limit to be used with a checker to see that a figure is less than the specified value.
     """
 
-    def check(self, result_value: Union[int, float]) -> bool:
+    def check(self, result_value: float) -> bool:
         return result_value < self.value
 
     def __str__(self) -> str:
@@ -53,7 +50,7 @@ class EqualTo(Limit):
     Limit to be used with a checker to see that a figure is equal to the specified value.
     """
 
-    def check(self, result_value: Union[int, float]) -> bool:
+    def check(self, result_value: float) -> bool:
         return result_value == self.value
 
     def __str__(self) -> str:
@@ -65,7 +62,7 @@ class GreaterThan(Limit):
     Limit to be used with a checker to see that a figure is greater than the specified value.
     """
 
-    def check(self, result_value: Union[int, float]) -> bool:
+    def check(self, result_value: float) -> bool:
         return result_value > self.value
 
     def __str__(self) -> str:
@@ -80,7 +77,7 @@ class BuildResultChecker(ABC):
     to check.
     """
 
-    def __init__(self, limit: Limit):
+    def __init__(self, limit: Limit) -> None:
         """
         Arguments:
             limit: The limit that the specified resource shall be checked against.
@@ -97,7 +94,7 @@ class BuildResultChecker(ABC):
             True if check passed, false otherwise.
         """
 
-    def _check_result_value(self, name: str, result_value: Union[int, float]) -> bool:
+    def _check_result_value(self, name: str, result_value: float) -> bool:
         if result_value is not None and self.limit.check(result_value=result_value):
             print(f"Result check passed for {name}: {result_value} ({self.limit})")
             return True

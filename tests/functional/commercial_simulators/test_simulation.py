@@ -6,14 +6,11 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 import os
 import sys
 
-# Third party libraries
 import pytest
 
-# First party libraries
 import tsfpga
 from tsfpga.system_utils import run_command
 
