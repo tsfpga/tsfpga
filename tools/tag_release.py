@@ -6,20 +6,17 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 import argparse
 import sys
 from pathlib import Path
 from shutil import move
 
-# Third party libraries
 from git.repo import Repo
 
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install.
 REPO_ROOT = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(REPO_ROOT))
 
-# First party libraries
 import tsfpga
 from tsfpga.system_utils import create_file
 from tsfpga.tools.version_number_handler import (

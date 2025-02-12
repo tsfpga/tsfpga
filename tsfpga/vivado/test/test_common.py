@@ -6,11 +6,9 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 from pathlib import Path
 from unittest.mock import patch
 
-# First party libraries
 from tsfpga.vivado.common import get_git_sha_slv, get_vivado_version, run_vivado_tcl
 
 THIS_DIR = Path(__file__).parent
@@ -37,7 +35,7 @@ def test_run_vivado_tcl():
         mocked_process.NonZeroExitCode = ValueError
         assert run_vivado_tcl(vivado_path, tcl_file, no_log_file=True)
         mocked_process.assert_called_once_with(
-            args=expected_cmd + ["-nojournal", "-nolog"], cwd=THIS_DIR
+            args=[*expected_cmd, "-nojournal", "-nolog"], cwd=THIS_DIR
         )
 
     with patch("tsfpga.vivado.common.Process") as mocked_process:

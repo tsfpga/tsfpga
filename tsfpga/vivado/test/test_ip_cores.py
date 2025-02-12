@@ -6,13 +6,10 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 from unittest.mock import MagicMock, patch
 
-# Third party libraries
 import pytest
 
-# First party libraries
 from tsfpga.ip_core_file import IpCoreFile
 from tsfpga.module import BaseModule, get_modules
 from tsfpga.system_utils import create_file, delete
@@ -34,7 +31,7 @@ def test_system_call_to_vivado_failing_should_raise_exception(tmp_path):
     with patch("tsfpga.vivado.ip_cores.VivadoIpCoreProject.create", autospec=True) as create:
         create.return_value = False
 
-        with pytest.raises(AssertionError) as exception_info:
+        with pytest.raises(RuntimeError) as exception_info:
             project.create_vivado_project_if_needed()
 
         assert str(exception_info.value) == "Failed to create Vivado IP core project"
@@ -56,17 +53,13 @@ def ip_cores_test(tmp_path):
             self.vivado_ip_cores = VivadoIpCores(modules, self.project_folder, part_name="-")
 
             # Create initial hash and (empty) compile order file
-            self.vivado_ip_cores._save_hash()  # pylint: disable=protected-access
+            self.vivado_ip_cores._save_hash()  # noqa: SLF001
             self.create_compile_order_file()
 
         def create_compile_order_file(self):
             create_file(self.vivado_ip_cores.compile_order_file)
 
     return IpCoresTest()
-
-
-# False positive for pytest fixtures
-# pylint: disable=redefined-outer-name
 
 
 @patch("tsfpga.vivado.ip_cores.VivadoIpCoreProject.create", autospec=True)
@@ -84,7 +77,7 @@ def test_should_recreate_if_compile_order_file_is_missing(create, ip_cores_test)
 
 @patch("tsfpga.vivado.ip_cores.VivadoIpCoreProject.create", autospec=True)
 def test_should_recreate_if_hash_file_is_missing(create, ip_cores_test):
-    delete(ip_cores_test.vivado_ip_cores._hash_file)  # pylint: disable=protected-access
+    delete(ip_cores_test.vivado_ip_cores._hash_file)  # noqa: SLF001
     assert ip_cores_test.vivado_ip_cores.create_vivado_project_if_needed()
     create.assert_called_once()
 

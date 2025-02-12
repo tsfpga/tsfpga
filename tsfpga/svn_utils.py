@@ -6,17 +6,20 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
+from __future__ import annotations
+
 import re
 import subprocess
-from pathlib import Path
-from typing import Iterable, Optional, Union
+from typing import TYPE_CHECKING
 
-# Local folder libraries
 from .system_utils import file_is_in_directory, run_command
 
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+    from pathlib import Path
 
-def get_svn_revision_information(cwd: Optional[Path] = None) -> str:
+
+def get_svn_revision_information(cwd: Path | None = None) -> str:
     """
     Get a string describing the current SVN commit.
     E.g. ``"r1234"`` or ``"r1234 (local changes present)"``.
@@ -34,7 +37,7 @@ def get_svn_revision_information(cwd: Optional[Path] = None) -> str:
     return result
 
 
-def svn_commands_are_available(cwd: Optional[Path] = None) -> bool:
+def svn_commands_are_available(cwd: Path | None = None) -> bool:
     """
     True if "svn" command executable is available and ``cwd`` is in a valid SVN repo.
 
@@ -48,7 +51,7 @@ def svn_commands_are_available(cwd: Optional[Path] = None) -> bool:
     return True
 
 
-def check_that_svn_commands_are_available(cwd: Optional[Path] = None) -> None:
+def check_that_svn_commands_are_available(cwd: Path | None = None) -> None:
     """
     Raise an exception unless "svn" command executable is available and ``cwd`` is in a valid
     SVN repo.
@@ -63,7 +66,7 @@ def check_that_svn_commands_are_available(cwd: Optional[Path] = None) -> None:
         raise RuntimeError(message)
 
 
-def get_svn_revision(cwd: Optional[Path] = None) -> int:
+def get_svn_revision(cwd: Path | None = None) -> int:
     """
     Get the current SVN revision number.
 
@@ -77,7 +80,7 @@ def get_svn_revision(cwd: Optional[Path] = None) -> int:
     return int(stdout.strip())
 
 
-def svn_local_changes_are_present(cwd: Optional[Path] = None) -> bool:
+def svn_local_changes_are_present(cwd: Path | None = None) -> bool:
     """
     Return true if the repo contains changes that have been made after the last commit.
     Info from here: https://rubyinrails.com/2014/01/11/svn-command-to-check-modified-files/
@@ -98,9 +101,9 @@ RE_SVN_STATUS_LINE = re.compile(r"^.+\d+\s+\d+\s+\S+\s+(\S+)$")
 
 def find_svn_files(
     directory: Path,
-    excludes: Optional[list[Path]] = None,
-    file_endings_include: Optional[Union[str, tuple[str, ...]]] = None,
-    file_endings_avoid: Optional[Union[str, tuple[str, ...]]] = None,
+    excludes: list[Path] | None = None,
+    file_endings_include: str | tuple[str, ...] | None = None,
+    file_endings_avoid: str | tuple[str, ...] | None = None,
 ) -> Iterable[Path]:
     """
     Find files that are checked in to SVN. It runs "svn status" rather than "svn ls". This means
@@ -129,8 +132,8 @@ def find_svn_files(
         svn_file = match.group(1)
         file_path = directory / svn_file
 
-        # Make sure concatenation of relative paths worked
-        assert file_path.exists(), file_path
+        if not file_path.exists():
+            raise FileNotFoundError(f"Error when concatenating relative paths: {file_path}")
 
         if file_path.is_dir():
             continue

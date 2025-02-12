@@ -6,15 +6,12 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 import os
 from pathlib import Path
 
-# Third party libraries
 import pytest
 from git import Actor, Repo
 
-# First party libraries
 from tsfpga import REPO_ROOT, TSFPGA_DOC
 from tsfpga.git_utils import find_git_files, get_git_commit, git_commands_are_available
 from tsfpga.system_utils import create_directory, create_file, system_is_windows
@@ -73,10 +70,7 @@ def test_git_commands_are_available_should_pass():
 
 
 def test_git_commands_are_available_with_invalid_directory_should_fail():
-    if system_is_windows():
-        path_outside_of_repo = "c:/"
-    else:
-        path_outside_of_repo = "/"
+    path_outside_of_repo = "c:/" if system_is_windows() else "/"
 
     assert not git_commands_are_available(directory=path_outside_of_repo)
 
@@ -99,10 +93,6 @@ def git_commit_with_local_changes_test(tmp_path):
     return TestGitCommitWithLocalChanges()
 
 
-# False positive for pytest fixtures
-# pylint: disable=redefined-outer-name
-
-
 def test_get_git_commit_with_local_changes(git_commit_with_local_changes_test):
     assert get_git_commit(directory=git_commit_with_local_changes_test.repo_path).endswith(
         " (local changes present)"
@@ -110,10 +100,7 @@ def test_get_git_commit_with_local_changes(git_commit_with_local_changes_test):
 
 
 def test_get_git_commit_with_env_variable_and_local_changes(git_commit_with_local_changes_test):
-    if "GIT_COMMIT" in os.environ:
-        old_env = os.environ["GIT_COMMIT"]
-    else:
-        old_env = None
+    old_env = os.environ.get("GIT_COMMIT", None)
 
     sha = "54849b5a8152b07e0809b8f90fc24d54262cb4d6"
     os.environ["GIT_COMMIT"] = sha

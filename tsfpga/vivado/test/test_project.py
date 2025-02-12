@@ -6,21 +6,20 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-# Third party libraries
 import pytest
 
-# First party libraries
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
 from tsfpga.constraint import Constraint
 from tsfpga.module import BaseModule
 from tsfpga.system_utils import create_directory, create_file
 from tsfpga.vivado.generics import StringGenericValue
 from tsfpga.vivado.project import VivadoNetlistProject, VivadoProject, copy_and_combine_dicts
+
+# ruff: noqa: ARG002
 
 
 def test_casting_to_string():
@@ -40,7 +39,7 @@ Generics:   -
         modules=[],
         part="",
         top="apa",
-        generics=dict(hest=True, zebra=3, foo=StringGenericValue("/home/test.vhd")),
+        generics={"hest": True, "zebra": 3, "foo": StringGenericValue("/home/test.vhd")},
     )
     assert (
         str(project)
@@ -74,7 +73,7 @@ def test_modules_list_should_be_copied():
 
 
 def test_static_generics_dictionary_should_be_copied():
-    generics = dict(apa=3)
+    generics = {"apa": 3}
     proj = VivadoProject(name="name", modules=[], part="part", generics=generics)
 
     generics["apa"] = False
@@ -178,63 +177,63 @@ def test_copy_and_combine_dict_with_both_arguments_none():
 
 
 def test_copy_and_combine_dict_with_first_argument_valid():
-    dict_first = dict(first=1)
+    dict_first = {"first": 1}
 
     result = copy_and_combine_dicts(dict_first, None)
-    assert result == dict(first=1)
-    assert dict_first == dict(first=1)
+    assert result == {"first": 1}
+    assert dict_first == {"first": 1}
 
     dict_first["first_dummy"] = True
-    assert result == dict(first=1)
+    assert result == {"first": 1}
 
 
 def test_copy_and_combine_dict_with_second_argument_valid():
-    dict_second = dict(second=2)
+    dict_second = {"second": 2}
 
     result = copy_and_combine_dicts(None, dict_second)
-    assert result == dict(second=2)
-    assert dict_second == dict(second=2)
+    assert result == {"second": 2}
+    assert dict_second == {"second": 2}
 
     dict_second["second_dummy"] = True
-    assert result == dict(second=2)
+    assert result == {"second": 2}
 
 
 def test_copy_and_combine_dict_with_both_arguments_valid():
-    dict_first = dict(first=1)
-    dict_second = dict(second=2)
+    dict_first = {"first": 1}
+    dict_second = {"second": 2}
 
     result = copy_and_combine_dicts(dict_first, dict_second)
-    assert result == dict(first=1, second=2)
-    assert dict_first == dict(first=1)
-    assert dict_second == dict(second=2)
+    assert result == {"first": 1, "second": 2}
+    assert dict_first == {"first": 1}
+    assert dict_second == {"second": 2}
 
     dict_first["first_dummy"] = True
     dict_second["second_dummy"] = True
-    assert result == dict(first=1, second=2)
+    assert result == {"first": 1, "second": 2}
 
 
 def test_copy_and_combine_dict_with_both_arguments_valid_and_same_key():
-    dict_first = dict(first=1, common=3)
-    dict_second = dict(second=2, common=4)
+    dict_first = {"first": 1, "common": 3}
+    dict_second = {"second": 2, "common": 4}
 
     result = copy_and_combine_dicts(dict_first, dict_second)
-    assert result == dict(first=1, second=2, common=4)
-    assert dict_first == dict(first=1, common=3)
-    assert dict_second == dict(second=2, common=4)
+    assert result == {"first": 1, "second": 2, "common": 4}
+    assert dict_first == {"first": 1, "common": 3}
+    assert dict_second == {"second": 2, "common": 4}
 
     dict_first["first_dummy"] = True
     dict_second["second_dummy"] = True
-    assert result == dict(first=1, second=2, common=4)
+    assert result == {"first": 1, "second": 2, "common": 4}
 
 
 @pytest.fixture
 def vivado_project_test(tmp_path):
-    class VivadoProjectTest:  # pylint: disable=too-many-instance-attributes
+    class VivadoProjectTest:
         def __init__(self):
             self.project_path = tmp_path / "projects" / "apa" / "project"
             self.output_path = tmp_path / "projects" / "apa"
             self.ip_cache_path = MagicMock()
-            self.build_time_generics = dict(enable=True)
+            self.build_time_generics = {"enable": True}
             self.num_threads = 4
             self.run_index = 3
             self.synth_only = False
@@ -253,13 +252,13 @@ def vivado_project_test(tmp_path):
                 )
 
         def build(self, project):
-            with patch(
-                "tsfpga.vivado.project.run_vivado_tcl", autospec=True
-            ) as self.mocked_run_vivado_tcl, patch(
-                "tsfpga.vivado.project.VivadoProject._get_size", autospec=True
-            ) as _, patch(
-                "tsfpga.vivado.project.shutil.copy2", autospec=True
-            ) as _:
+            with (
+                patch(
+                    "tsfpga.vivado.project.run_vivado_tcl", autospec=True
+                ) as self.mocked_run_vivado_tcl,
+                patch("tsfpga.vivado.project.VivadoProject._get_size", autospec=True) as _,
+                patch("tsfpga.vivado.project.shutil.copy2", autospec=True) as _,
+            ):
                 create_file(self.project_path / "apa.xpr")
                 return project.build(
                     project_path=self.project_path,
@@ -272,10 +271,6 @@ def vivado_project_test(tmp_path):
                 )
 
     return VivadoProjectTest()
-
-
-# False positive for pytest fixtures
-# pylint: disable=redefined-outer-name
 
 
 def test_default_pre_create_hook_should_pass(vivado_project_test):
@@ -291,7 +286,7 @@ def test_project_pre_create_hook_returning_false_should_fail_and_not_call_vivado
     vivado_project_test,
 ):
     class CustomVivadoProject(VivadoProject):
-        def pre_create(self, **kwargs):  # pylint: disable=unused-argument
+        def pre_create(self, **kwargs):
             return False
 
     assert not vivado_project_test.create(CustomVivadoProject(name="apa", modules=[], part=""))
@@ -299,14 +294,14 @@ def test_project_pre_create_hook_returning_false_should_fail_and_not_call_vivado
 
 
 def test_create_should_call_pre_create_with_correct_parameters(vivado_project_test):
-    project = VivadoProject(name="apa", modules=[], part="", generics=dict(apa=123), hest=456)
+    project = VivadoProject(name="apa", modules=[], part="", generics={"apa": 123}, hest=456)
     with patch("tsfpga.vivado.project.VivadoProject.pre_create") as mocked_pre_create:
         vivado_project_test.create(project, zebra=789)
     mocked_pre_create.assert_called_once_with(
         project_path=vivado_project_test.project_path,
         ip_cache_path=vivado_project_test.ip_cache_path,
         part="",
-        generics=dict(apa=123),
+        generics={"apa": 123},
         hest=456,
         zebra=789,
     )
@@ -353,7 +348,7 @@ def test_project_pre_build_hook_returning_false_should_fail_and_not_call_vivado_
     vivado_project_test,
 ):
     class CustomVivadoProject(VivadoProject):
-        def pre_build(self, **kwargs):  # pylint: disable=unused-argument
+        def pre_build(self, **kwargs):
             return False
 
     build_result = vivado_project_test.build(CustomVivadoProject(name="apa", modules=[], part=""))
@@ -363,7 +358,7 @@ def test_project_pre_build_hook_returning_false_should_fail_and_not_call_vivado_
 
 def test_project_post_build_hook_returning_false_should_fail(vivado_project_test):
     class CustomVivadoProject(VivadoProject):
-        def post_build(self, **kwargs):  # pylint: disable=unused-argument
+        def post_build(self, **kwargs):
             return False
 
     build_result = vivado_project_test.build(CustomVivadoProject(name="apa", modules=[], part=""))
@@ -373,26 +368,27 @@ def test_project_post_build_hook_returning_false_should_fail(vivado_project_test
 
 def test_project_build_hooks_should_be_called_with_correct_parameters(vivado_project_test):
     project = VivadoProject(
-        name="apa", modules=[], part="", generics=dict(static_generic=2), apa=123
+        name="apa", modules=[], part="", generics={"static_generic": 2}, apa=123
     )
-    with patch("tsfpga.vivado.project.VivadoProject.pre_build") as mocked_pre_build, patch(
-        "tsfpga.vivado.project.VivadoProject.post_build"
-    ) as mocked_post_build:
+    with (
+        patch("tsfpga.vivado.project.VivadoProject.pre_build") as mocked_pre_build,
+        patch("tsfpga.vivado.project.VivadoProject.post_build") as mocked_post_build,
+    ):
         vivado_project_test.build(project)
 
-    arguments = dict(
-        project_path=vivado_project_test.project_path,
-        output_path=vivado_project_test.output_path,
-        run_index=vivado_project_test.run_index,
-        generics=copy_and_combine_dicts(
-            dict(static_generic=2), vivado_project_test.build_time_generics
+    arguments = {
+        "project_path": vivado_project_test.project_path,
+        "output_path": vivado_project_test.output_path,
+        "run_index": vivado_project_test.run_index,
+        "generics": copy_and_combine_dicts(
+            {"static_generic": 2}, vivado_project_test.build_time_generics
         ),
-        synth_only=vivado_project_test.synth_only,
-        from_impl=vivado_project_test.from_impl,
-        num_threads=vivado_project_test.num_threads,
-        other_parameter="hest",
-        apa=123,
-    )
+        "synth_only": vivado_project_test.synth_only,
+        "from_impl": vivado_project_test.from_impl,
+        "num_threads": vivado_project_test.num_threads,
+        "other_parameter": "hest",
+        "apa": 123,
+    }
     mocked_pre_build.assert_called_once_with(**arguments)
 
     arguments.update(build_result=unittest.mock.ANY)
@@ -428,51 +424,51 @@ def test_different_generic_combinations(mocked_vivado_tcl, vivado_project_test):
     assert kwargs["generics"] == {}
 
     # Only build time generics
-    vivado_project_test.build_time_generics = dict(runtime="value")
+    vivado_project_test.build_time_generics = {"runtime": "value"}
     build_result = vivado_project_test.build(VivadoProject(name="apa", modules=[], part=""))
     assert build_result.success
     _, kwargs = mocked_vivado_tcl.return_value.build.call_args
-    assert kwargs["generics"] == dict(runtime="value")
+    assert kwargs["generics"] == {"runtime": "value"}
 
     # Static and build time generics
-    vivado_project_test.build_time_generics = dict(runtime="value")
+    vivado_project_test.build_time_generics = {"runtime": "value"}
     build_result = vivado_project_test.build(
-        VivadoProject(name="apa", modules=[], part="", generics=dict(static="a value"))
+        VivadoProject(name="apa", modules=[], part="", generics={"static": "a value"})
     )
     assert build_result.success
     _, kwargs = mocked_vivado_tcl.return_value.build.call_args
-    assert kwargs["generics"] == dict(runtime="value", static="a value")
+    assert kwargs["generics"] == {"runtime": "value", "static": "a value"}
 
     # Same key in both static and build time generic. Should prefer build time.
-    vivado_project_test.build_time_generics = dict(static_and_runtime="build value")
+    vivado_project_test.build_time_generics = {"static_and_runtime": "build value"}
     build_result = vivado_project_test.build(
         VivadoProject(
-            name="apa", modules=[], part="", generics=dict(static_and_runtime="static value")
+            name="apa", modules=[], part="", generics={"static_and_runtime": "static value"}
         )
     )
     assert build_result.success
     _, kwargs = mocked_vivado_tcl.return_value.build.call_args
-    assert kwargs["generics"] == dict(static_and_runtime="build value")
+    assert kwargs["generics"] == {"static_and_runtime": "build value"}
 
     # Only static generics
     vivado_project_test.build_time_generics = None
     build_result = vivado_project_test.build(
-        VivadoProject(name="apa", modules=[], part="", generics=dict(runtime="a value"))
+        VivadoProject(name="apa", modules=[], part="", generics={"runtime": "a value"})
     )
     assert build_result.success
     _, kwargs = mocked_vivado_tcl.return_value.build.call_args
-    assert kwargs["generics"] == dict(runtime="a value")
+    assert kwargs["generics"] == {"runtime": "a value"}
 
 
 def test_build_time_generics_are_copied(vivado_project_test):
-    vivado_project_test.build_time_generics = dict(runtime="value")
+    vivado_project_test.build_time_generics = {"runtime": "value"}
     with patch("tsfpga.vivado.project.VivadoTcl", autospec=True) as mocked_vivado_tcl:
         mocked_vivado_tcl.return_value.build.return_value = ""
         build_result = vivado_project_test.build(
-            VivadoProject(name="apa", modules=[], part="", generics=dict(static="a value"))
+            VivadoProject(name="apa", modules=[], part="", generics={"static": "a value"})
         )
     assert build_result.success
-    assert vivado_project_test.build_time_generics == dict(runtime="value")
+    assert vivado_project_test.build_time_generics == {"runtime": "value"}
 
 
 def test_modules_are_deep_copied_before_pre_create_hook(vivado_project_test):
@@ -513,13 +509,15 @@ def test_get_size_is_called_correctly(vivado_project_test):
         The project.build() call is very similar to _build() method in this class, but it mocks
         the _get_size() method in a different way.
         """
-        with patch(
-            "tsfpga.vivado.project.run_vivado_tcl", autospec=True
-        ) as vivado_project_test.mocked_run_vivado_tcl, patch(
-            "tsfpga.vivado.project.HierarchicalUtilizationParser.get_size", autospec=True
-        ) as mocked_get_size, patch(
-            "tsfpga.vivado.project.shutil.copy2", autospec=True
-        ) as _:
+        with (
+            patch(
+                "tsfpga.vivado.project.run_vivado_tcl", autospec=True
+            ) as vivado_project_test.mocked_run_vivado_tcl,
+            patch(
+                "tsfpga.vivado.project.HierarchicalUtilizationParser.get_size", autospec=True
+            ) as mocked_get_size,
+            patch("tsfpga.vivado.project.shutil.copy2", autospec=True) as _,
+        ):
             # Only the first return value will be used if we are in synth_only
             mocked_get_size.side_effect = ["synth_size", "impl_size"]
 
@@ -563,15 +561,16 @@ def test_netlist_build_should_set_logic_level_distribution(vivado_project_test):
         The project.build() call is very similar to _build() method in this class, except it
         also mocks the _get_logic_level_distribution() method.
         """
-        with patch(
-            "tsfpga.vivado.project.run_vivado_tcl", autospec=True
-        ) as vivado_project_test.mocked_run_vivado_tcl, patch(
-            "tsfpga.vivado.project.VivadoProject._get_size", autospec=True
-        ) as _, patch(
-            "tsfpga.vivado.project.shutil.copy2", autospec=True
-        ) as _, patch(
-            "tsfpga.vivado.project.LogicLevelDistributionParser.get_table", autospec=True
-        ) as mocked_get_table:
+        with (
+            patch(
+                "tsfpga.vivado.project.run_vivado_tcl", autospec=True
+            ) as vivado_project_test.mocked_run_vivado_tcl,
+            patch("tsfpga.vivado.project.VivadoProject._get_size", autospec=True) as _,
+            patch("tsfpga.vivado.project.shutil.copy2", autospec=True) as _,
+            patch(
+                "tsfpga.vivado.project.LogicLevelDistributionParser.get_table", autospec=True
+            ) as mocked_get_table,
+        ):
             mocked_get_table.return_value = "logic_table"
 
             build_result = project.build(

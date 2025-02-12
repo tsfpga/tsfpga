@@ -6,10 +6,8 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Third party libraries
 import pytest
 
-# First party libraries
 from tsfpga.math_utils import (
     to_binary_nibble_string,
     to_binary_string,

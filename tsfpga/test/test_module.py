@@ -6,14 +6,11 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 from pathlib import Path
 from unittest.mock import ANY, MagicMock, patch
 
-# Third party libraries
 import pytest
 
-# First party libraries
 from tsfpga.module import BaseModule, get_module, get_modules
 from tsfpga.system_utils import create_directory, create_file
 
@@ -37,19 +34,19 @@ def test_add_vunit_config_name():
     )
     test.reset_mock()
 
-    module.add_vunit_config(test=test, generics=dict(apa="hest", foo="bar"))
+    module.add_vunit_config(test=test, generics={"apa": "hest", "foo": "bar"})
     test.add_config.assert_called_once_with(
         name="apa_hest.foo_bar",
-        generics=dict(apa="hest", foo="bar"),
+        generics={"apa": "hest", "foo": "bar"},
         pre_config=None,
         post_check=None,
     )
     test.reset_mock()
 
-    module.add_vunit_config(test=test, name="zebra", generics=dict(apa="hest", foo="bar"))
+    module.add_vunit_config(test=test, name="zebra", generics={"apa": "hest", "foo": "bar"})
     test.add_config.assert_called_once_with(
         name="zebra.apa_hest.foo_bar",
-        generics=dict(apa="hest", foo="bar"),
+        generics={"apa": "hest", "foo": "bar"},
         pre_config=None,
         post_check=None,
     )
@@ -245,18 +242,20 @@ def test_can_cast_to_string_without_error():
 
 def test_test_case_name():
     assert (
-        BaseModule.test_case_name(generics=dict(apa=3, hest_zebra="foo")) == "apa_3.hest_zebra_foo"
+        BaseModule.test_case_name(generics={"apa": 3, "hest_zebra": "foo"})
+        == "apa_3.hest_zebra_foo"
     )
     assert (
-        BaseModule.test_case_name(name="foo", generics=dict(apa=3, hest_zebra="bar"))
+        BaseModule.test_case_name(name="foo", generics={"apa": 3, "hest_zebra": "bar"})
         == "foo.apa_3.hest_zebra_bar"
     )
 
 
 def test_getting_registers_calls_registers_hook(tmp_path):
-    with patch("tsfpga.module.from_toml", autospec=True) as from_toml, patch(
-        "tsfpga.module.BaseModule.registers_hook", autospec=True
-    ) as registers_hook:
+    with (
+        patch("tsfpga.module.from_toml", autospec=True) as from_toml,
+        patch("tsfpga.module.BaseModule.registers_hook", autospec=True) as registers_hook,
+    ):
         create_file(tmp_path / "a" / "regs_a.toml")
         module = BaseModule(path=tmp_path / "a", library_name="a")
         registers = module.registers
@@ -266,9 +265,10 @@ def test_getting_registers_calls_registers_hook(tmp_path):
         registers_hook.assert_called_once()
         assert registers is not None
 
-    with patch("tsfpga.module.from_toml", autospec=True) as from_toml, patch(
-        "tsfpga.module.BaseModule.registers_hook", autospec=True
-    ) as registers_hook:
+    with (
+        patch("tsfpga.module.from_toml", autospec=True) as from_toml,
+        patch("tsfpga.module.BaseModule.registers_hook", autospec=True) as registers_hook,
+    ):
         module = BaseModule(path=tmp_path / "b", library_name="b")
         registers = module.registers
 
@@ -319,10 +319,6 @@ def get_modules_test(tmp_path):
     return GetModulesTest()
 
 
-# False positive for pytest fixtures
-# pylint: disable=redefined-outer-name
-
-
 def test_get_module(get_modules_test):
     module = get_module(name="a", modules_folder=get_modules_test.modules_folder)
     assert module.name == "a"
@@ -364,29 +360,29 @@ def test_name_filtering_include(get_modules_test):
     modules = get_modules(
         modules_folders=get_modules_test.modules_folders, names_include=["a", "b"]
     )
-    assert set(module.name for module in modules) == set(["a", "b"])
+    assert {module.name for module in modules} == {"a", "b"}
 
 
 def test_name_filtering_avoid(get_modules_test):
     modules = get_modules(get_modules_test.modules_folder, names_avoid=["a", "b"])
-    assert set(module.name for module in modules) == set(["c"])
+    assert {module.name for module in modules} == {"c"}
 
 
 def test_name_filtering_include_and_avoid(get_modules_test):
     modules = get_modules(
         get_modules_test.modules_folder, names_include=["a", "c"], names_avoid=["b", "c"]
     )
-    assert set(module.name for module in modules) == set(["a"])
+    assert {module.name for module in modules} == {"a"}
 
 
 def test_library_name_does_not_have_lib_suffix(get_modules_test):
     modules = get_modules(get_modules_test.modules_folder)
-    assert set(module.library_name for module in modules) == set(["a", "b", "c"])
+    assert {module.library_name for module in modules} == {"a", "b", "c"}
 
 
 def test_library_name_has_lib_suffix(get_modules_test):
     modules = get_modules(get_modules_test.modules_folder, library_name_has_lib_suffix=True)
-    assert set(module.library_name for module in modules) == set(["a_lib", "b_lib", "c_lib"])
+    assert {module.library_name for module in modules} == {"a_lib", "b_lib", "c_lib"}
 
 
 def test_stray_file_can_exist_in_modules_folder_without_error(get_modules_test):
@@ -417,7 +413,7 @@ class Module(BaseModule):
         elif module.name == "c":
             assert isinstance(module, BaseModule)
         else:
-            assert False
+            raise AssertionError
 
 
 @patch("tsfpga.module.from_toml", autospec=True)
@@ -448,7 +444,7 @@ def test_register_toml_file_parsed_only_once_when_getting_synthesis_files(
 @patch("tsfpga.module.VhdlSimulationWaitUntilPackageGenerator.create_if_needed", autospec=True)
 def test_register_toml_file_parsed_only_once_when_getting_simulation_files(
     create6, create5, create4, create3, create2, create1, from_toml, tmp_path
-):  # pylint: disable=too-many-arguments
+):
     toml_file = create_file(tmp_path / "a" / "regs_a.toml")
 
     module = get_modules(tmp_path).get("a")
@@ -473,7 +469,7 @@ def test_register_toml_file_parsed_only_once_when_getting_simulation_files(
 @patch("tsfpga.module.VhdlSimulationWaitUntilPackageGenerator.create_if_needed", autospec=True)
 def test_register_toml_file_parsed_only_once_when_getting_mixed_files(
     create6, create5, create4, create3, create2, create1, from_toml, tmp_path
-):  # pylint: disable=too-many-arguments
+):
     toml_file = create_file(tmp_path / "a" / "regs_a.toml")
 
     module = get_modules(tmp_path).get("a")

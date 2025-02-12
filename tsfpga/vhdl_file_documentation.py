@@ -6,13 +6,15 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
-import re
-from pathlib import Path
-from typing import Optional
+from __future__ import annotations
 
-# First party libraries
+import re
+from typing import TYPE_CHECKING
+
 from tsfpga.system_utils import read_file
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 SEPARATOR_LINE_LENGTH = 100
 VHDL_COMMENT_SEPARATOR = "-- " + ("-" * (SEPARATOR_LINE_LENGTH - 3))
@@ -30,7 +32,7 @@ class VhdlFileDocumentation:
         """
         self._vhd_file_path = vhd_file_path
 
-    def get_header_rst(self) -> Optional[str]:
+    def get_header_rst(self) -> str | None:
         """
         Get the contents of the VHDL file's header. This means everything that is in the comment
         block at the start of the file, after the copyright notice.
@@ -65,9 +67,7 @@ class VhdlFileDocumentation:
 
         return text
 
-    def get_symbolator_component(  # pylint: disable=too-many-locals,too-many-statements
-        self,
-    ) -> Optional[str]:
+    def get_symbolator_component(self) -> str | None:  # noqa: C901
         """
         Return a string with a ``component`` declaration equivalent to the ``entity`` declaration
         within the file. (We use entity's but symbolator requires component's).
@@ -97,7 +97,7 @@ class VhdlFileDocumentation:
 
         vhdl = read_file(self._vhd_file_path)
 
-        def replace_comment(match):  # type: ignore
+        def replace_comment(match: re.Match) -> str:
             match_group = match.group(1)
             if (
                 match_group
@@ -155,7 +155,7 @@ class VhdlFileDocumentation:
             r"\s*(.+?)?\s*(\)\s*;\s*)?"
             # Port block
             r"port\s*\(\s*(.+?)\s*"
-            #
+            # Closing.
             r"\)\s*;\s*$",
             re.IGNORECASE | re.DOTALL,
         )
@@ -168,7 +168,8 @@ class VhdlFileDocumentation:
         if match.group(2) and match.group(3):
             # Entity declaration contains both generics and ports
             generics = match.group(1)
-            assert generics.lower().startswith("generic")
+            if not generics.lower().startswith("generic"):
+                raise ValueError("Expected start of generic block")
 
             strip_generics_open = re.compile(r"generic\s*\(", re.IGNORECASE)
             generics = strip_generics_open.sub(repl="", string=generics)
@@ -205,16 +206,11 @@ class VhdlFileDocumentation:
 
         ports = clean_up_declarations(ports)
 
-        if generics:
-            generics_code = f"  generic ({generics}\n  );\n"
-        else:
-            generics_code = ""
+        generics_code = f"  generic ({generics}\n  );\n" if generics else ""
 
         ports_code = f"  port (\n    {ports}\n  );"
 
-        component = f"""\
+        return f"""\
 component {entity_name} is
 {generics_code}{ports_code}
 end component;"""
-
-        return component

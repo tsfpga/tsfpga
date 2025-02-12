@@ -6,24 +6,24 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
+from __future__ import annotations
+
 import fnmatch
 import time
 from pathlib import Path
 from threading import Lock
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable
 
-# Third party libraries
-from vunit.color_printer import COLOR_PRINTER, NO_COLOR_PRINTER
+from vunit.color_printer import COLOR_PRINTER, NO_COLOR_PRINTER, ColorPrinter
 from vunit.test.list import TestList
 from vunit.test.report import TestReport, TestResult
 from vunit.test.runner import TestRunner
 
-# First party libraries
 from tsfpga.system_utils import create_directory, read_last_lines_of_file
 
 if TYPE_CHECKING:
-    # Local folder libraries
+    from collections.abc import Iterable
+
     from .module_list import ModuleList
     from .vivado import build_result
     from .vivado.project import VivadoProject
@@ -37,11 +37,11 @@ class BuildProjectList:
 
     def __init__(
         self,
-        modules: "ModuleList",
+        modules: ModuleList,
         project_filters: list[str],
         include_netlist_not_top_builds: bool = False,
         no_color: bool = False,
-    ):
+    ) -> None:
         """
         Arguments:
             modules: Module objects that can define build projects.
@@ -90,7 +90,12 @@ class BuildProjectList:
 
         return result
 
-    def create(self, projects_path: Path, num_parallel_builds: int, **kwargs: Any) -> bool:
+    def create(
+        self,
+        projects_path: Path,
+        num_parallel_builds: int,
+        **kwargs: Any,  # noqa: ANN401
+    ) -> bool:
         """
         Create build project on disk for all the projects in the list.
 
@@ -118,7 +123,10 @@ class BuildProjectList:
         )
 
     def create_unless_exists(
-        self, projects_path: Path, num_parallel_builds: int, **kwargs: Any
+        self,
+        projects_path: Path,
+        num_parallel_builds: int,
+        **kwargs: Any,  # noqa: ANN401
     ) -> bool:
         """
         Create build project for all the projects in the list, unless the project already
@@ -158,9 +166,9 @@ class BuildProjectList:
         projects_path: Path,
         num_parallel_builds: int,
         num_threads_per_build: int,
-        output_path: Optional[Path] = None,
-        collect_artifacts: Optional[Callable[["VivadoProject", Path], bool]] = None,
-        **kwargs: Any,
+        output_path: Path | None = None,
+        collect_artifacts: Callable[[VivadoProject, Path], bool] | None = None,
+        **kwargs: Any,  # noqa: ANN401
     ) -> bool:
         """
         Build all the projects in the list.
@@ -223,7 +231,7 @@ class BuildProjectList:
 
     @staticmethod
     def get_build_project_output_path(
-        project: "VivadoProject", projects_path: Path, output_path: Optional[Path] = None
+        project: VivadoProject, projects_path: Path, output_path: Path | None = None
     ) -> Path:
         """
         Find where build artifacts will be placed for a project.
@@ -244,9 +252,7 @@ class BuildProjectList:
         Return:
             True if everything went well.
         """
-        build_wrappers = []
-        for project in self.projects:
-            build_wrappers.append(BuildProjectOpenWrapper(project))
+        build_wrappers = [BuildProjectOpenWrapper(project=project) for project in self.projects]
 
         return self._run_build_wrappers(
             projects_path=projects_path,
@@ -258,11 +264,9 @@ class BuildProjectList:
     def _run_build_wrappers(
         self,
         projects_path: Path,
-        build_wrappers: Union[
-            list["BuildProjectCreateWrapper"],
-            list["BuildProjectBuildWrapper"],
-            list["BuildProjectOpenWrapper"],
-        ],
+        build_wrappers: list[BuildProjectCreateWrapper]
+        | list[BuildProjectBuildWrapper]
+        | list[BuildProjectOpenWrapper],
         num_parallel_builds: int,
     ) -> bool:
         if not build_wrappers:
@@ -298,11 +302,7 @@ class BuildProjectList:
         if builds_are_build_step:
             # The length of the build summary depends on if we are working with netlist builds or
             # regular ones, so set the length given by one of the project objects.
-            # Ignore typing error that 'Create' or 'Open' build wrappers do not have
-            # 'build_result_report_length'. We only end up here if it is a Build.
-            report_length_lines = build_wrappers[
-                0
-            ].build_result_report_length  # type: ignore[union-attr]
+            report_length_lines = build_wrappers[0].build_result_report_length
             report.set_report_length(report_length_lines=report_length_lines)
 
         # If all are OK then we should print the resource utilization numbers.
@@ -314,7 +314,7 @@ class BuildProjectList:
 
     def _iterate_projects(
         self, project_filters: list[str], include_netlist_not_top_builds: bool
-    ) -> Iterable["VivadoProject"]:
+    ) -> Iterable[VivadoProject]:
         available_projects = []
         for module in self._modules:
             available_projects += module.get_build_projects()
@@ -342,12 +342,20 @@ class BuildProjectCreateWrapper:
     Mimics a VUnit test object.
     """
 
-    def __init__(self, project: "VivadoProject", **kwargs: Any) -> None:
+    def __init__(
+        self,
+        project: VivadoProject,
+        **kwargs: Any,  # noqa: ANN401
+    ) -> None:
         self.name = project.name
         self._project = project
         self._create_arguments = kwargs
 
-    def run(self, output_path: Path, read_output: Any) -> bool:  # pylint: disable=unused-argument
+    def run(
+        self,
+        output_path: Path,
+        read_output: Any,  # noqa: ANN401, ARG002
+    ) -> bool:
         """
         VUnit test runner sends another argument "read_output" which we don't use.
         """
@@ -363,16 +371,20 @@ class BuildProjectBuildWrapper:
 
     def __init__(
         self,
-        project: "VivadoProject",
-        collect_artifacts: Optional[Callable[..., bool]],
-        **kwargs: Any,
+        project: VivadoProject,
+        collect_artifacts: Callable[..., bool] | None,
+        **kwargs: Any,  # noqa: ANN401
     ) -> None:
         self.name = project.name
         self._project = project
         self._collect_artifacts = collect_artifacts
         self._build_arguments = kwargs
 
-    def run(self, output_path: Path, read_output: Any) -> bool:  # pylint: disable=unused-argument
+    def run(
+        self,
+        output_path: Path,
+        read_output: Any,  # noqa: ANN401, ARG002
+    ) -> bool:
         """
         VUnit test runner sends another argument "read_output" which we don't use.
         """
@@ -384,18 +396,17 @@ class BuildProjectBuildWrapper:
             return build_result.success
 
         # Proceed to artifact collection only if build succeeded.
-        if self._collect_artifacts:
-            if not self._collect_artifacts(
-                project=self._project, output_path=self._build_arguments["output_path"]
-            ):
-                build_result.success = False
+        if self._collect_artifacts and not self._collect_artifacts(
+            project=self._project, output_path=self._build_arguments["output_path"]
+        ):
+            build_result.success = False
 
         # Print size at the absolute end
         self._print_build_result(build_result=build_result)
         return build_result.success
 
     @staticmethod
-    def _print_build_result(build_result: "build_result.BuildResult") -> None:
+    def _print_build_result(build_result: build_result.BuildResult) -> None:
         build_report = build_result.report()
         if build_report:
             # Add an empty line before the build result report, to have margin in how many lines are
@@ -437,11 +448,15 @@ class BuildProjectOpenWrapper:
     Mimics a VUnit test object.
     """
 
-    def __init__(self, project: "VivadoProject") -> None:
+    def __init__(self, project: VivadoProject) -> None:
         self.name = project.name
         self._project = project
 
-    def run(self, output_path: Path, read_output: Any) -> bool:  # pylint: disable=unused-argument
+    def run(
+        self,
+        output_path: Path,
+        read_output: Any,  # noqa: ANN401, ARG002
+    ) -> bool:
         """
         VUnit test runner sends another argument "read_output" which we don't use.
         """
@@ -455,7 +470,10 @@ class BuildRunner(TestRunner):
     base class, but some behavior is overridden.
     """
 
-    def _create_test_mapping_file(self, test_suites: Any) -> None:
+    def _create_test_mapping_file(
+        self,
+        test_suites: Any,  # noqa: ANN401
+    ) -> None:
         """
         Overloaded from super class.
 
@@ -504,13 +522,17 @@ class ThreadSafeCollectArtifacts:
         self._collect_artifacts = collect_artifacts
         self._lock = Lock()
 
-    def collect_artifacts(self, project: "VivadoProject", output_path: Path) -> bool:
+    def collect_artifacts(self, project: VivadoProject, output_path: Path) -> bool:
         with self._lock:
             return self._collect_artifacts(project=project, output_path=output_path)
 
 
 class BuildReport(TestReport):
-    def add_result(self, *args: Any, **kwargs: Any) -> None:
+    def add_result(
+        self,
+        *args: Any,  # noqa: ANN401
+        **kwargs: Any,  # noqa: ANN401
+    ) -> None:
         """
         Overloaded from super class.
 
@@ -549,7 +571,7 @@ class BuildReport(TestReport):
         elif result.failed:
             self._printer.write("fail", fg="ri")
         else:
-            assert False
+            raise AssertionError
 
         count_summary = f"pass={len(passed)} fail={len(failed)} total={total_tests}"
         self._printer.write(f" ({count_summary}) {result.name} ({result.time:.1f} seconds)\n")
@@ -558,11 +580,13 @@ class BuildReport(TestReport):
 class BuildResult(TestResult):
     report_length_lines = None
 
-    def _print_output(self, printer: Any, num_lines: int) -> None:
+    def _print_output(
+        self,
+        printer: ColorPrinter,
+        num_lines: int,
+    ) -> None:
         """
         Print the last lines from the output file.
-
-        The ``printer`` argument should of type ``ColorPrinter`` from VUnit.
         """
         output_tail = read_last_lines_of_file(Path(self._output_file_name), num_lines=num_lines)
         printer.write(output_tail)
@@ -573,14 +597,14 @@ class BuildResult(TestResult):
         """
         self.report_length_lines = report_length_lines
 
-    # pylint: disable=arguments-differ
-    def print_status(  # type: ignore[override]
-        self, printer: Any, padding: int = 0, **kwargs: dict[str, Any]
+    def print_status(
+        self,
+        printer: ColorPrinter,
+        padding: int = 0,
+        **kwargs: dict[str, Any],
     ) -> None:
         """
         Overloaded from super class.
-
-        The ``printer`` argument should of type ``ColorPrinter`` from VUnit.
 
         This method is called for each build when it should print its result in the "Summary" at
         the end when all builds have finished.

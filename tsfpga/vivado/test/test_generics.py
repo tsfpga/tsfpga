@@ -6,10 +6,8 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Third party libraries
 import pytest
 
-# First party libraries
 from tsfpga.vivado.generics import (
     BitVectorGenericValue,
     StringGenericValue,
@@ -37,7 +35,7 @@ def test_float_generics():
 def test_bit_vector_generics():
     assert get_vivado_tcl_generic_value(BitVectorGenericValue("1010")) == "4'b1010"
 
-    with pytest.raises(ValueError) as exception_info:
+    with pytest.raises(TypeError) as exception_info:
         BitVectorGenericValue(1010)
     assert str(exception_info.value) == (
         "Expected BitVectorGenericValue value to be of type str."
@@ -55,7 +53,7 @@ def test_bit_vector_generics():
 def test_string_generics():
     assert get_vivado_tcl_generic_value(StringGenericValue("apa")) == '"apa"'
 
-    with pytest.raises(ValueError) as exception_info:
+    with pytest.raises(TypeError) as exception_info:
         StringGenericValue(3)
     assert str(exception_info.value) == (
         "Expected StringGenericValue value to be of type str."
@@ -71,21 +69,21 @@ def test_string_generics():
 
 
 def test_unsupported_generic_type():
-    with pytest.raises(ValueError) as exception_info:
-        get_vivado_tcl_generic_value(dict(name="value"))
+    with pytest.raises(TypeError) as exception_info:
+        get_vivado_tcl_generic_value({"name": "value"})
     assert (
         str(exception_info.value)
         == "Unsupported type for generic. Got type=\"<class 'dict'>\", value=\"{'name': 'value'}\"."
     )
 
-    with pytest.raises(ValueError) as exception_info:
+    with pytest.raises(TypeError) as exception_info:
         get_vivado_tcl_generic_value("/home/test.vhd")
     assert str(exception_info.value) == (
         'Unsupported type for generic. Got type="<class \'str\'>", value="/home/test.vhd".'
         " Please use either of the explicit types StringGenericValue or BitVectorGenericValue."
     )
 
-    with pytest.raises(ValueError) as exception_info:
+    with pytest.raises(TypeError) as exception_info:
         get_vivado_tcl_generic_value("01101")
     assert str(exception_info.value) == (
         'Unsupported type for generic. Got type="<class \'str\'>", value="01101".'

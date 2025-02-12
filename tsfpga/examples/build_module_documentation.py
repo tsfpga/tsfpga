@@ -6,7 +6,6 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 import shutil
 import sys
 from pathlib import Path
@@ -16,7 +15,6 @@ THIS_DIR = Path(__file__).parent
 REPO_ROOT = THIS_DIR.parent.parent.resolve()
 sys.path.insert(0, str(REPO_ROOT))
 
-# First party libraries
 from tsfpga.about import REPOSITORY_URL
 from tsfpga.examples.example_env import TSFPGA_EXAMPLES_TEMP_DIR, get_tsfpga_example_modules
 from tsfpga.module_documentation import ModuleDocumentation

@@ -6,7 +6,6 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# First party libraries
 from tsfpga.system_utils import create_file
 from tsfpga.vhdl_file_documentation import VHDL_COMMENT_SEPARATOR, VhdlFileDocumentation
 

@@ -6,29 +6,27 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
+from __future__ import annotations
+
 import argparse
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Type
+from typing import TYPE_CHECKING, Any
 
-# Third party libraries
 import hdl_registers
 from vunit.ui import VUnit
 from vunit.vivado.vivado import add_from_compile_order_file, create_compile_order_file
 from vunit.vunit_cli import VUnitCLI
 
-# First party libraries
 import tsfpga
 import tsfpga.create_vhdl_ls_config
 from tsfpga.git_simulation_subset import GitSimulationSubset
 from tsfpga.module_list import ModuleList
 from tsfpga.vivado.common import get_vivado_path
 from tsfpga.vivado.ip_cores import VivadoIpCores
-from tsfpga.vivado.project import VivadoIpCoreProject
 from tsfpga.vivado.simlib import VivadoSimlib
 
 if TYPE_CHECKING:
-    # First party libraries
+    from tsfpga.vivado.project import VivadoIpCoreProject
     from tsfpga.vivado.simlib_common import VivadoSimlibCommon
 
 
@@ -45,8 +43,8 @@ def get_arguments_cli(default_output_path: Path) -> VUnitCLI:
     # Print default values when doing --help
     cli.parser.formatter_class = argparse.ArgumentDefaultsHelpFormatter
 
-    # Set the supplied default value for VUnit output path. pylint: disable=protected-access
-    for action in cli.parser._actions:
+    # Set the supplied default value for VUnit output path.
+    for action in cli.parser._actions:  # noqa: SLF001
         if action.dest == "output_path":
             action.default = default_output_path / "vunit_out"
             break
@@ -119,11 +117,11 @@ class SimulationProject:
     def add_modules(
         self,
         modules: ModuleList,
-        modules_no_test: Optional[ModuleList] = None,
+        modules_no_test: ModuleList | None = None,
         include_vhdl_files: bool = True,
         include_verilog_files: bool = True,
         include_systemverilog_files: bool = True,
-        **setup_vunit_kwargs: Any,
+        **setup_vunit_kwargs: Any,  # noqa: ANN401
     ) -> None:
         """
         Add module source files to the VUnit project.
@@ -174,7 +172,7 @@ class SimulationProject:
                     **setup_vunit_kwargs,
                 )
 
-    def add_vivado_simlib(self) -> Optional["VivadoSimlibCommon"]:
+    def add_vivado_simlib(self) -> VivadoSimlibCommon | None:
         """
         Add Vivado simlib to the VUnit project, unless instructed not to by ``args``.
         Will compile simlib if necessary.
@@ -189,7 +187,7 @@ class SimulationProject:
             output_path=self.args.output_path_vivado, force_compile=self.args.simlib_compile
         )
 
-    def _add_simlib(self, output_path: Path, force_compile: bool) -> "VivadoSimlibCommon":
+    def _add_simlib(self, output_path: Path, force_compile: bool) -> VivadoSimlibCommon:
         """
         Add Vivado simlib to the VUnit project. Compile if needed.
 
@@ -223,8 +221,8 @@ class SimulationProject:
         self,
         modules: ModuleList,
         vivado_part_name: str = "xc7z020clg400-1",
-        vivado_ip_core_project_class: Optional[Type[VivadoIpCoreProject]] = None,
-    ) -> Optional[Path]:
+        vivado_ip_core_project_class: type[VivadoIpCoreProject] | None = None,
+    ) -> Path | None:
         """
         Generate IP cores from the modules, unless instructed not to by ``args``.
         When running with a commercial simulator they will be added to the VUnit project.
@@ -269,7 +267,7 @@ class SimulationProject:
         output_path: Path,
         force_generate: bool,
         part_name: str,
-        vivado_project_class: Optional[Type[VivadoIpCoreProject]] = None,
+        vivado_project_class: type[VivadoIpCoreProject] | None = None,
     ) -> tuple[Path, Path]:
         """
         Generate Vivado IP core files that are to be added to the VUnit project.
@@ -306,7 +304,7 @@ class SimulationProject:
         return vivado_ip_cores.compile_order_file, vivado_ip_cores.project_directory
 
 
-class NoVcsDiffTestsFound(Exception):
+class NoVcsDiffTestsFound(Exception):  # noqa: N818
     """
     Raised by :meth:`.find_git_test_filter` when no tests are found due to no
     VHDL-related git diff.
@@ -316,10 +314,10 @@ class NoVcsDiffTestsFound(Exception):
 def find_git_test_filter(
     args: argparse.Namespace,
     repo_root: Path,
-    modules: "ModuleList",
-    modules_no_test: Optional["ModuleList"] = None,
+    modules: ModuleList,
+    modules_no_test: ModuleList | None = None,
     reference_branch: str = "origin/main",
-    **setup_vunit_kwargs: Any,
+    **setup_vunit_kwargs: Any,  # noqa: ANN401
 ) -> argparse.Namespace:
     """
     Construct a VUnit test filter that will run all test cases that are affected by git changes.
@@ -371,7 +369,7 @@ def find_git_test_filter(
     ).find_subset()
 
     if not testbenches_to_run:
-        raise NoVcsDiffTestsFound()
+        raise NoVcsDiffTestsFound
 
     # Override the test pattern argument to VUnit.
     args.test_patterns = []
@@ -390,7 +388,7 @@ def create_vhdl_ls_configuration(
     output_path: Path,
     modules: ModuleList,
     vunit_proj: VUnit,
-    ip_core_vivado_project_directory: Optional[Path] = None,
+    ip_core_vivado_project_directory: Path | None = None,
 ) -> None:
     """
     Create a configuration file (``vhdl_ls.toml``) for the rust_hdl VHDL Language Server
@@ -412,16 +410,18 @@ def create_vhdl_ls_configuration(
         ip_core_vivado_project_directory: Vivado IP core files in this location will be added.
     """
     # Add some files needed when doing hdl-registers development.
+    # But only if they currently exist in the file system, to avoid vhdl_ls warning about
+    # missing files.
     hdl_register_repo_root = Path(hdl_registers.__file__).parent.parent
-    additional_files = []
-    for path in [
-        hdl_register_repo_root / "tests" / "functional" / "simulation",
-        hdl_register_repo_root / "generated" / "vunit_out" / "generated_register",
-        hdl_register_repo_root / "doc" / "sphinx" / "rst" / "generator" / "sim",
-    ]:
-        # Add only if they exist. To avoid vhdl_ls warning about missing files.
-        if path.exists():
-            additional_files.append((path / "*.vhd", "example"))
+    additional_files = [
+        (path / "*.vhd", "example")
+        for path in [
+            hdl_register_repo_root / "tests" / "functional" / "simulation",
+            hdl_register_repo_root / "generated" / "vunit_out" / "generated_register",
+            hdl_register_repo_root / "doc" / "sphinx" / "rst" / "generator" / "sim",
+        ]
+        if path.exists()
+    ]
 
     try:
         vivado_location = get_vivado_path()

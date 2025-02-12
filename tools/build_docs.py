@@ -6,25 +6,23 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 import argparse
 import shutil
 import sys
+from contextlib import suppress
 from pathlib import Path
 from unittest.mock import patch
-from xml.etree import ElementTree
+from xml.etree import ElementTree as ET
 
-# Third party libraries
 from pybadges import badge
 
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install.
 REPO_ROOT = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(REPO_ROOT))
 
-# Import before others since it modifies PYTHONPATH. pylint: disable=unused-import
-import tsfpga.examples.example_pythonpath  # noqa: F401
+# Import before others since it modifies PYTHONPATH.
+import tsfpga.examples.example_pythonpath
 
-# First party libraries
 import tsfpga
 from tsfpga.about import WEBSITE_URL, get_readme_rst, get_short_slogan
 from tsfpga.module import get_module
@@ -154,11 +152,9 @@ def generate_vivado_scripts() -> None:
             project_path=project_path, ip_cache_path=GENERATED_SPHINX / "vivado_ip_cache"
         )
         create_file(project_path / "artyz7.xpr")
-        try:
+        # Expected when it can not find utilization reports to parse.
+        with suppress(FileNotFoundError):
             project.build(project_path=project_path, output_path=project_path)
-        except FileNotFoundError:
-            # Expected when it can not find utilization reports to parse.
-            pass
 
 
 def generate_sphinx_index() -> None:
@@ -235,7 +231,7 @@ def build_python_coverage_badge(output_path: Path) -> None:
     coverage_xml = tsfpga.TSFPGA_GENERATED / "python_coverage.xml"
     assert coverage_xml.exists(), "Run pytest with coverage before building documentation"
 
-    xml_root = ElementTree.parse(coverage_xml).getroot()
+    xml_root = ET.parse(coverage_xml).getroot()  # noqa: S314
     line_coverage = int(round(float(xml_root.attrib["line-rate"]) * 100))
     assert line_coverage > 50, f"Coverage is way low: {line_coverage}. Something is wrong."
     color = BADGE_COLOR_RIGHT if line_coverage >= 80 else "red"
@@ -256,9 +252,9 @@ def copy_python_coverage_to_html_output() -> None:
     delete(html_output_path)
 
     coverage_html = tsfpga.TSFPGA_GENERATED / "python_coverage_html"
-    assert (
-        coverage_html / "index.html"
-    ).exists(), "Run pytest with coverage before building documentation"
+    assert (coverage_html / "index.html").exists(), (
+        "Run pytest with coverage before building documentation"
+    )
 
     shutil.copytree(coverage_html, html_output_path)
 

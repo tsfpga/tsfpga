@@ -6,14 +6,11 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 import io
 from unittest.mock import Mock, patch
 
-# Third party libraries
 import pytest
 
-# First party libraries
 from tsfpga.vivado.build_result import BuildResult
 from tsfpga.vivado.build_result_checker import (
     DspBlocks,

@@ -6,20 +6,20 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
-from pathlib import Path
-from typing import TYPE_CHECKING, Any, Iterable, Optional
+from __future__ import annotations
 
-# First party libraries
+from typing import TYPE_CHECKING, Any
+
 from tsfpga.hdl_file import HdlFile
 from tsfpga.system_utils import create_file
 
-# Local folder libraries
 from .common import to_tcl_path
 from .generics import get_vivado_tcl_generic_value
 
 if TYPE_CHECKING:
-    # First party libraries
+    from collections.abc import Iterable
+    from pathlib import Path
+
     from tsfpga.build_step_tcl_hook import BuildStepTclHook
     from tsfpga.constraint import Constraint
     from tsfpga.module_list import ModuleList
@@ -40,24 +40,23 @@ class VivadoTcl:
     ) -> None:
         self.name = name
 
-    # pylint: disable=too-many-arguments
-    def create(
+    def create(  # noqa: PLR0913
         self,
         project_folder: Path,
-        modules: "ModuleList",
+        modules: ModuleList,
         part: str,
         top: str,
         run_index: int,
-        generics: Optional[dict[str, str]] = None,
-        constraints: Optional[list["Constraint"]] = None,
-        tcl_sources: Optional[list[Path]] = None,
-        build_step_hooks: Optional[list["BuildStepTclHook"]] = None,
-        ip_cache_path: Optional[Path] = None,
+        generics: dict[str, str] | None = None,
+        constraints: list[Constraint] | None = None,
+        tcl_sources: list[Path] | None = None,
+        build_step_hooks: list[BuildStepTclHook] | None = None,
+        ip_cache_path: Path | None = None,
         disable_io_buffers: bool = True,
         # Add no sources other than IP cores
         ip_cores_only: bool = False,
         # Will be passed on to module functions. Enables parameterization of e.g. IP cores.
-        other_arguments: Optional[dict[str, Any]] = None,
+        other_arguments: dict[str, Any] | None = None,
     ) -> str:
         generics = {} if generics is None else generics
         other_arguments = {} if other_arguments is None else other_arguments
@@ -105,9 +104,7 @@ exit
 """
         return tcl
 
-    def _add_module_source_files(
-        self, modules: "ModuleList", other_arguments: dict[str, Any]
-    ) -> str:
+    def _add_module_source_files(self, modules: ModuleList, other_arguments: dict[str, Any]) -> str:
         if len(modules) == 0:
             return ""
 
@@ -162,7 +159,7 @@ exit
         return f"{{{files_string}}}"
 
     @staticmethod
-    def _add_tcl_sources(tcl_sources: Optional[list[Path]]) -> str:
+    def _add_tcl_sources(tcl_sources: list[Path] | None) -> str:
         if tcl_sources is None or len(tcl_sources) == 0:
             return ""
 
@@ -175,7 +172,7 @@ exit
         return f"{tcl}\n"
 
     @staticmethod
-    def _add_ip_cores(modules: "ModuleList", other_arguments: dict[str, Any]) -> str:
+    def _add_ip_cores(modules: ModuleList, other_arguments: dict[str, Any]) -> str:
         tcl = ""
         for module in modules:
             for ip_core_file in module.get_ip_core_files(**other_arguments):
@@ -201,13 +198,13 @@ exit
 """
 
     def _add_build_step_hooks(
-        self, build_step_hooks: Optional[list["BuildStepTclHook"]], project_folder: Path
+        self, build_step_hooks: list[BuildStepTclHook] | None, project_folder: Path
     ) -> str:
         if build_step_hooks is None or len(build_step_hooks) == 0:
             return ""
 
         # There can be many hooks for the same step. Reorganize them into a dict.
-        hook_steps: dict[str, list["BuildStepTclHook"]] = {}
+        hook_steps: dict[str, list[BuildStepTclHook]] = {}
         for build_step_hook in build_step_hooks:
             if build_step_hook.hook_step in hook_steps:
                 hook_steps[build_step_hook.hook_step].append(build_step_hook)
@@ -275,7 +272,7 @@ foreach run [get_runs {run_wildcard}] {{
 """
 
     @staticmethod
-    def _add_generics(generics: Optional[dict[str, Any]]) -> str:
+    def _add_generics(generics: dict[str, Any] | None) -> str:
         """
         Generics are set according to this weird format:
         https://www.xilinx.com/support/answers/52217.html
@@ -297,10 +294,10 @@ set_property "generic" {{{generics_string}}} [current_fileset]
 
     @staticmethod
     def _iterate_constraints(
-        modules: "ModuleList",
-        constraints: Optional[list["Constraint"]],
+        modules: ModuleList,
+        constraints: list[Constraint] | None,
         other_arguments: dict[str, Any],
-    ) -> Iterable["Constraint"]:
+    ) -> Iterable[Constraint]:
         for module in modules:
             yield from module.get_scoped_constraints(**other_arguments)
 
@@ -308,7 +305,7 @@ set_property "generic" {{{generics_string}}} [current_fileset]
             yield from constraints
 
     @staticmethod
-    def _add_constraints(constraints: list["Constraint"]) -> str:
+    def _add_constraints(constraints: list[Constraint]) -> str:
         if len(constraints) == 0:
             return ""
 
@@ -335,13 +332,13 @@ set_property "generic" {{{generics_string}}} [current_fileset]
 
         return f"{tcl}\n"
 
-    def build(
+    def build(  # noqa: PLR0913
         self,
         project_file: Path,
         output_path: Path,
         num_threads: int,
         run_index: int,
-        generics: Optional[dict[str, Any]] = None,
+        generics: dict[str, Any] | None = None,
         synth_only: bool = False,
         from_impl: bool = False,
         impl_explore: bool = False,
@@ -475,7 +472,7 @@ if {${should_exit} eq 1} {
         return tcl
 
     @staticmethod
-    def _run(run: str, num_threads: int, to_step: Optional[str] = None) -> str:
+    def _run(run: str, num_threads: int, to_step: str | None = None) -> str:
         to_step = "" if to_step is None else f' -to_step "{to_step}"'
 
         tcl = f"""
@@ -561,11 +558,9 @@ if {${build_succeeded} eq 0} {
         """
         xsa_file = to_tcl_path(output_path / f"{self.name}.xsa")
 
-        tcl = f"""
+        return f"""
 # ------------------------------------------------------------------------------
 puts "Creating hardware platform {xsa_file}..."
 write_hw_platform -fixed -force -quiet -include_bit {{{xsa_file}}}
 
 """
-
-        return tcl

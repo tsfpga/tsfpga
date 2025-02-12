@@ -6,16 +6,14 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 from unittest.mock import MagicMock, patch
 
-# First party libraries
 from tsfpga.git_simulation_subset import GitSimulationSubset
 from tsfpga.module import get_modules
 from tsfpga.system_utils import create_file
 
 
-def test_find_subset(tmp_path):  # pylint: disable=too-many-statements,too-many-locals
+def test_find_subset(tmp_path):  # noqa: PLR0915
     """
     Set up a scenario with a few files that have diffs and a few files that do not.
     TBs without diffs will be set up so that it depends on the source file that
@@ -66,7 +64,7 @@ def test_find_subset(tmp_path):  # pylint: disable=too-many-statements,too-many-
 
                 return [diff1, diff2]
 
-            assert False
+            raise AssertionError
 
         head_commit.diff.side_effect = diff_commit
 
@@ -127,7 +125,7 @@ def test_find_subset(tmp_path):  # pylint: disable=too-many-statements,too-many-
                 # be listed by find_subset().
                 return [source_file_tb_vhd3_with_no_diff]
 
-            assert False
+            raise AssertionError
 
         vunit_proj.get_implementation_subset.side_effect = get_implementation_subset
 

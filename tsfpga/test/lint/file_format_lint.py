@@ -6,13 +6,10 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 from pathlib import Path
 
-# Third party libraries
 import pytest
 
-# First party libraries
 from tsfpga import DEFAULT_FILE_ENCODING
 from tsfpga.system_utils import create_file
 
@@ -23,22 +20,22 @@ def open_file_with_encoding(file: Path) -> None:
     If that fails, i.e. if it contains non-ASCII characters, print information and raise exception.
     """
     try:
-        with open(file, encoding="ascii") as file_handle:
+        with file.open(encoding="ascii") as file_handle:
             file_handle.read()
 
-    except UnicodeDecodeError as exception:
+    except UnicodeDecodeError:
         print(file)
-        with open(file, encoding="utf8") as file_handle:
+        with file.open(encoding="utf8") as file_handle:
             lines = file_handle.readlines()
 
         for line_idx, line in enumerate(lines):
             for character in line:
                 try:
                     character.encode("ascii")
-                except UnicodeEncodeError:
+                except UnicodeEncodeError:  # noqa: PERF203
                     print(f"Character {character} on line {line_idx + 1} is not ASCII")
 
-        raise exception
+        raise
 
 
 def check_file_ends_with_newline(file: Path) -> bool:
@@ -46,12 +43,11 @@ def check_file_ends_with_newline(file: Path) -> bool:
     Return True if ``file`` ends with newline.
     """
     test_ok = True
-    with open(file, encoding=DEFAULT_FILE_ENCODING) as file_handle:
+    with file.open(encoding=DEFAULT_FILE_ENCODING) as file_handle:
         file_data = file_handle.read()
-        if len(file_data) != 0:
-            if file_data[-1] != "\n":
-                print(f"File {file} didn't end with newline")
-                test_ok = False
+        if len(file_data) != 0 and file_data[-1] != "\n":
+            print(f"File {file} didn't end with newline")
+            test_ok = False
 
     return test_ok
 
@@ -61,7 +57,7 @@ def check_file_for_tab_character(file: Path) -> bool:
     Return True of ``file`` does not contain any TAB character.
     """
     test_ok = True
-    with open(file, encoding=DEFAULT_FILE_ENCODING) as file_handle:
+    with file.open(encoding=DEFAULT_FILE_ENCODING) as file_handle:
         for idx, line in enumerate(file_handle.readlines()):
             if "\t" in line:
                 test_ok = False
@@ -74,7 +70,7 @@ def check_file_for_carriage_return(file: Path) -> bool:
     Return True if ``file`` does not contain any carriage return (CR).
     """
     test_ok = True
-    with open(file, encoding=DEFAULT_FILE_ENCODING, newline="") as file_handle:
+    with file.open(encoding=DEFAULT_FILE_ENCODING, newline="") as file_handle:
         if "\r" in file_handle.read():
             test_ok = False
             print(f"Windows style line breaks (\\r\\n aka CR/LF) in {file}")
@@ -87,7 +83,7 @@ def check_file_for_trailing_whitespace(file: Path) -> bool:
     Return True if ``file`` does not contain any trailing whitespace.
     """
     test_ok = True
-    with open(file, encoding=DEFAULT_FILE_ENCODING) as file_handle:
+    with file.open(encoding=DEFAULT_FILE_ENCODING) as file_handle:
         for idx, line in enumerate(file_handle.readlines()):
             if " \n" in line:
                 test_ok = False
@@ -103,7 +99,7 @@ def check_file_for_line_length(file_path: Path, max_length: int = 100) -> bool:
     max_length_with_newline = max_length + 1
     test_ok = True
 
-    with open(file_path, encoding=DEFAULT_FILE_ENCODING) as file_handle:
+    with file_path.open(encoding=DEFAULT_FILE_ENCODING) as file_handle:
         lines = file_handle.readlines()
         for line_number, line in enumerate(lines):
             line_length = len(line)
@@ -122,7 +118,7 @@ def test_open_file_with_encoding_should_raise_exception_on_bad_file(tmp_path: Pa
     Sanity check that the function we use actually triggers on bad files.
     """
     file = tmp_path / "temp_file_for_test.txt"
-    with open(file, "w", encoding="utf-8") as file_handle:
+    with file.open("w", encoding="utf-8") as file_handle:
         # Swedish word for island = non-ASCII character
         data = "\N{LATIN CAPITAL LETTER O WITH DIAERESIS}"
         file_handle.write(data)

@@ -6,13 +6,10 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 from unittest.mock import MagicMock
 
-# Third party libraries
 import pytest
 
-# First party libraries
 from tsfpga.build_project_list import BuildProjectList
 from tsfpga.module import BaseModule
 from tsfpga.system_utils import create_directory
@@ -21,7 +18,6 @@ from tsfpga.vivado.project import BuildResult, VivadoProject
 
 @pytest.fixture
 def build_project_list_test():
-    # pylint: disable=too-many-instance-attributes
     class TestBuildProjectList:
         @staticmethod
         def _get_mocks(name, is_netlist_build):
@@ -46,10 +42,6 @@ def build_project_list_test():
             self.modules = [self.module_one, self.module_two, self.module_three, self.module_four]
 
     return TestBuildProjectList()
-
-
-# False positive for pytest fixtures
-# pylint: disable=redefined-outer-name
 
 
 def test_can_list_without_error(build_project_list_test):

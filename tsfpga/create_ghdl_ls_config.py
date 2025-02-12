@@ -6,24 +6,20 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
-# Local folder libraries
 from .system_utils import create_file, path_relative_to
 
 if TYPE_CHECKING:
-    # Third party libraries
     from vunit.ui import VUnit
 
-    # Local folder libraries
     from .module_list import ModuleList
     from .vivado.simlib_common import VivadoSimlibCommon
 
 
-def create_ghdl_ls_configuration(
+def create_ghdl_ls_configuration(  # noqa: C901
     output_path: Path,
     modules: "ModuleList",
     vunit_proj: "VUnit",
@@ -49,18 +45,17 @@ def create_ghdl_ls_configuration(
     def get_relative_path(path: Path) -> Path:
         return path_relative_to(path=path, other=output_path)
 
-    data = dict(options=dict(ghdl_analysis=[]), files=[])
+    data = {"options": {"ghdl_analysis": []}, "files": []}
 
     def add_compiled_library(path: Path) -> None:
         relative_path = get_relative_path(path)
-        data["options"]["ghdl_analysis"].append(f"-P{relative_path}")  # type: ignore[index]
+        data["options"]["ghdl_analysis"].append(f"-P{relative_path}")
 
-    data["options"]["ghdl_analysis"] += [  # type: ignore[index]
-        "--std=08",
-    ]
+    data["options"]["ghdl_analysis"] += ["--std=08"]
 
-    # pylint: disable=protected-access
-    compiled_vunit_libraries_path = Path(vunit_proj._output_path) / "ghdl" / "libraries"
+    compiled_vunit_libraries_path = (
+        Path(vunit_proj._output_path) / "ghdl" / "libraries"  # noqa: SLF001
+    )
     for compiled_library_path in compiled_vunit_libraries_path.glob("*"):
         add_compiled_library(compiled_library_path)
 
@@ -87,8 +82,6 @@ def create_ghdl_ls_configuration(
         files.add(Path(source_file.name).resolve())
 
     for file_path in files:
-        data["files"].append(  # type: ignore[attr-defined]
-            dict(file=str(get_relative_path(file_path)), language="vhdl")
-        )
+        data["files"].append({"file": str(get_relative_path(file_path)), "language": "vhdl"})
 
     create_file(output_path / "hdl-prj.json", json.dumps(data))

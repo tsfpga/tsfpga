@@ -11,10 +11,8 @@ Import this file in order to have the default locations of the hdl-registers/hdl
 and vunit/vunit repos added to PYTHONPATH.
 """
 
-# Standard libraries
 import sys
 
-# First party libraries
 import tsfpga
 
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install.

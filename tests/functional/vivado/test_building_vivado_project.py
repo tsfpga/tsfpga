@@ -6,13 +6,10 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 import sys
 
-# Third party libraries
 import pytest
 
-# First party libraries
 import tsfpga
 from tsfpga.constraint import Constraint
 from tsfpga.examples.example_env import get_hdl_modules
@@ -43,7 +40,7 @@ def test_building_artyz7_project(tmp_path):
 
 @pytest.fixture
 def basic_project_test(tmp_path):
-    class BasicProjectTest:  # pylint: disable=too-many-instance-attributes
+    class BasicProjectTest:
         def __init__(self):
             self.module_folder = tmp_path / "modules" / "apa"
             self.project_folder = tmp_path / "vivado"
@@ -110,7 +107,7 @@ create_clock -period 4 -name "clk_out" [get_ports "clk_out"]
             """
             Files that should exist when a project has been synthesized.
             """
-            return self.netlist_synthesis_files + [self.runs_folder / "synth_2" / "report_ssn.html"]
+            return [*self.netlist_synthesis_files, self.runs_folder / "synth_2" / "report_ssn.html"]
 
         @property
         def build_files(self):
@@ -169,10 +166,6 @@ end architecture;
                 assert path.exists(), path
 
     return BasicProjectTest()
-
-
-# False positive for pytest fixtures
-# pylint: disable=redefined-outer-name
 
 
 def test_create_project(basic_project_test):

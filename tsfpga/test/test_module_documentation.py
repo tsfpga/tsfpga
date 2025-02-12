@@ -6,19 +6,14 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 from unittest.mock import MagicMock
 
-# Third party libraries
 import pytest
 from hdl_registers.register_list import RegisterList
 
-# First party libraries
 from tsfpga.module import BaseModule
 from tsfpga.module_documentation import ModuleDocumentation
 from tsfpga.system_utils import create_file
-
-# pylint: disable=redefined-outer-name
 
 
 @pytest.fixture
@@ -49,7 +44,7 @@ def test_documentation_header_with_no_overview_and_no_registers(module_documenta
 
 
 def test_documentation_header_with_overview_and_registers(module_documentation):
-    # pylint: disable=protected-access
+    # ruff: noqa: SLF001
     module = module_documentation._module
     module._registers = MagicMock(spec=RegisterList)
     module._registers.register_objects = MagicMock(spec=list)
@@ -77,7 +72,7 @@ def test_submodule_documentation_with_file_exclude(module_documentation):
 -- -------------------------------------------------------------------------------------------------
 
 """
-    # pylint: disable=protected-access
+
     excluded_vhd = create_file(
         module_documentation._module.path / "rtl" / "excluded.vhd", contents=data
     )
@@ -100,7 +95,7 @@ def test_submodule_documentation_with_folder_exclude(module_documentation):
 -- -------------------------------------------------------------------------------------------------
 
 """
-    # pylint: disable=protected-access
+
     create_file(module_documentation._module.path / "rtl" / "excluded.vhd", contents=data)
 
     rst = module_documentation.get_submodule_rst(heading_character="-", heading_character_2="_")
@@ -123,7 +118,7 @@ def test_include_sim_but_not_test_folder(module_documentation):
 -- -------------------------------------------------------------------------------------------------
 
 """
-    # pylint: disable=protected-access
+
     create_file(module_documentation._module.path / "sim" / "bfm.vhd", contents=data)
 
     data = """\
@@ -134,7 +129,7 @@ def test_include_sim_but_not_test_folder(module_documentation):
 -- -------------------------------------------------------------------------------------------------
 
 """
-    # pylint: disable=protected-access
+
     create_file(module_documentation._module.path / "test" / "tb.vhd", contents=data)
 
     rst = module_documentation.get_submodule_rst(heading_character="-", heading_character_2="_")

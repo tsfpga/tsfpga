@@ -6,14 +6,12 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
-from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from __future__ import annotations
 
-# Third party libraries
+from typing import TYPE_CHECKING
+
 from hdl_registers.generator.html.page import HtmlPageGenerator
 
-# First party libraries
 from tsfpga.vivado.build_result_checker import (
     DspBlocks,
     Ffs,
@@ -28,14 +26,14 @@ from tsfpga.vivado.build_result_checker import (
     Uram,
 )
 
-# Local folder libraries
 from .about import WEBSITE_URL
 from .system_utils import create_file, file_is_in_directory, read_file
 from .vhdl_file_documentation import VhdlFileDocumentation
 from .vivado.project import VivadoNetlistProject
 
 if TYPE_CHECKING:
-    # Local folder libraries
+    from pathlib import Path
+
     from .hdl_file import HdlFile
     from .module import BaseModule
 
@@ -48,9 +46,9 @@ class ModuleDocumentation:
 
     def __init__(
         self,
-        module: "BaseModule",
-        repository_url: Optional[str] = None,
-        repository_name: Optional[str] = None,
+        module: BaseModule,
+        repository_url: str | None = None,
+        repository_name: str | None = None,
     ) -> None:
         """
         Arguments:
@@ -65,9 +63,8 @@ class ModuleDocumentation:
         self._repository_url = repository_url
         self._repository_name = repository_name
 
-        assert (repository_url is None) == (
-            repository_name is None
-        ), "Both or none of the repository arguments must be set"
+        if (repository_url is None) != (repository_name is None):
+            raise ValueError("Both or none of the repository arguments must be set")
 
     def get_overview_rst(self) -> str:
         """
@@ -131,8 +128,8 @@ Register code is generated using `hdl-registers <https://hdl-registers.com>`_{to
         self,
         heading_character: str,
         heading_character_2: str,
-        exclude_files: Optional[set[Path]] = None,
-        exclude_module_folders: Optional[list[str]] = None,
+        exclude_files: set[Path] | None = None,
+        exclude_module_folders: list[str] | None = None,
     ) -> str:
         """
         Get RST code with documentation of the different sub-modules (files) of the module.
@@ -163,14 +160,16 @@ Register code is generated using `hdl-registers <https://hdl-registers.com>`_{to
         ):
             netlist_build_base_name = f"{self._module.library_name}.{vhdl_file_path.stem}"
 
-            netlist_builds = []
             # Include all netlist builds whose project name matches this file
-            for project in all_builds:
-                if isinstance(project, VivadoNetlistProject) and (
+            netlist_builds = [
+                project
+                for project in all_builds
+                if isinstance(project, VivadoNetlistProject)
+                and (
                     project.name == netlist_build_base_name
                     or project.name.startswith(f"{netlist_build_base_name}.")
-                ):
-                    netlist_builds.append(project)
+                )
+            ]
 
             rst += self._get_vhdl_file_rst(
                 vhdl_file_path=vhdl_file_path,
@@ -181,7 +180,7 @@ Register code is generated using `hdl-registers <https://hdl-registers.com>`_{to
 
         return rst
 
-    def get_rst_document(self, exclude_module_folders: Optional[list[str]] = None) -> str:
+    def get_rst_document(self, exclude_module_folders: list[str] | None = None) -> str:
         """
         Get a complete RST document with the content of :meth:`.get_overview_rst`,
         :meth:`.get_register_rst`, and :meth:`.get_submodule_rst`, as well as a top level heading.
@@ -226,7 +225,7 @@ Register code is generated using `hdl-registers <https://hdl-registers.com>`_{to
             exclude_module_folders=exclude_module_folders,
         )
 
-        rst = f"""\
+        return f"""\
 
 .. _module_{self._module.name}:
 
@@ -244,10 +243,8 @@ This document contains technical documentation for the ``{self._module.name}`` m
 {submodule_rst}
 """
 
-        return rst
-
     def create_rst_document(
-        self, output_path: Path, exclude_module_folders: Optional[list[str]] = None
+        self, output_path: Path, exclude_module_folders: list[str] | None = None
     ) -> None:
         """
         Create an ``.rst`` file in ``output_path`` with the content from :meth:`.get_rst_document`.
@@ -267,7 +264,7 @@ This document contains technical documentation for the ``{self._module.name}`` m
         create_file(output_path / f"{self._module.name}.rst", contents=rst)
 
     def _get_vhdl_files(
-        self, exclude_files: Optional[set[Path]], exclude_folders: list[Path]
+        self, exclude_files: set[Path] | None, exclude_folders: list[Path]
     ) -> list[Path]:
         """
         Get VHDL files that shall be included in the documentation, in order.
@@ -277,11 +274,8 @@ This document contains technical documentation for the ``{self._module.name}`` m
             files_avoid=exclude_files, include_verilog=False, include_systemverilog=False
         )
 
-        def file_should_be_included(hdl_file: "HdlFile") -> bool:
-            if file_is_in_directory(hdl_file.path, exclude_folders):
-                return False
-
-            return True
+        def file_should_be_included(hdl_file: HdlFile) -> bool:
+            return not file_is_in_directory(hdl_file.path, exclude_folders)
 
         vhdl_file_paths = [
             hdl_file.path for hdl_file in hdl_files if file_should_be_included(hdl_file)
@@ -291,16 +285,14 @@ This document contains technical documentation for the ``{self._module.name}`` m
         def sort_key(path: Path) -> str:
             return path.name
 
-        vhdl_files = sorted(vhdl_file_paths, key=sort_key)
-
-        return vhdl_files
+        return sorted(vhdl_file_paths, key=sort_key)
 
     def _get_vhdl_file_rst(
         self,
         vhdl_file_path: Path,
         heading_character: str,
         heading_character_2: str,
-        netlist_builds: list["VivadoNetlistProject"],
+        netlist_builds: list[VivadoNetlistProject],
     ) -> str:
         """
         Get reStructuredText documentation for a VHDL file.
@@ -332,7 +324,7 @@ This document contains technical documentation for the ``{self._module.name}`` m
         heading = f"{vhdl_file_path.name}"
         heading_underline = heading_character * len(heading)
 
-        rst = f"""
+        return f"""
 .. _{self._module.name}.{entity_name}:
 
 {heading}
@@ -346,8 +338,6 @@ This document contains technical documentation for the ``{self._module.name}`` m
 
 {resource_utilization_rst}
 """
-
-        return rst
 
     @staticmethod
     def _get_symbolator_rst(vhdl_file_documentation: VhdlFileDocumentation) -> str:
@@ -364,8 +354,8 @@ This document contains technical documentation for the ``{self._module.name}`` m
 
         return rst
 
-    def _get_resource_utilization_rst(  # pylint: disable=too-many-locals,too-many-branches
-        self, entity_name: str, heading_character: str, netlist_builds: list["VivadoNetlistProject"]
+    def _get_resource_utilization_rst(  # noqa: C901
+        self, entity_name: str, heading_character: str, netlist_builds: list[VivadoNetlistProject]
     ) -> str:
         # First, loop over all netlist builds for this module and assemble information
         build_generics = []
@@ -454,7 +444,7 @@ generic configuration.
                 # Add a note to the table about this.
                 # This occurs e.g. in the 'register_file' and 'fifo' modules.
                 if netlist_builds[build_idx].top != entity_name:
-                    if generic_strings:
+                    if generic_strings:  # noqa: SIM108
                         # If there is already something in the generic column, this note shall be
                         # placed on a new line.
                         leader = "\n\n      "
@@ -472,11 +462,7 @@ generic configuration.
                 rst += "\n"
 
                 for checker_name in sorted_checker_names:
-                    checker_value = (
-                        build_checkers[build_idx][checker_name]
-                        if checker_name in build_checkers[build_idx]
-                        else ""
-                    )
+                    checker_value = build_checkers[build_idx].get(checker_name, "")
                     rst += f"    - {checker_value}\n"
 
         return rst

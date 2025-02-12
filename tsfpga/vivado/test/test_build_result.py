@@ -6,14 +6,13 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# First party libraries
 from tsfpga.vivado.build_result import BuildResult
 
 
 def test_size_summary():
     build_result = BuildResult(name="apa")
 
-    build_result.synthesis_size = dict(LUT=3, FFs=4)
+    build_result.synthesis_size = {"LUT": 3, "FFs": 4}
     expected = """\
 Size of apa after synthesis:
 {
@@ -22,7 +21,7 @@ Size of apa after synthesis:
 }"""
     assert build_result.size_summary() == expected
 
-    build_result.implementation_size = dict(LUT=8, FFs=9)
+    build_result.implementation_size = {"LUT": 8, "FFs": 9}
     expected = """\
 Size of apa after implementation:
 {
@@ -35,7 +34,7 @@ Size of apa after implementation:
 def test_report():
     build_result = BuildResult(name="apa")
 
-    build_result.synthesis_size = dict(LUT=3, FFs=4)
+    build_result.synthesis_size = {"LUT": 3, "FFs": 4}
     expected = """\
 Size of apa after synthesis:
 {
@@ -71,7 +70,7 @@ Logic level distribution:
 
 def test_maximum_logic_level_should_be_none_if_no_logic_level_distribution_is_set():
     build_result = BuildResult(name="apa")
-    build_result.synthesis_size = dict(LUT=3, FFs=4)
+    build_result.synthesis_size = {"LUT": 3, "FFs": 4}
 
     # maximum_logic_level is calculated based on the logic_level_distribution, which is not set
     # in this test case

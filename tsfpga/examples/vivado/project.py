@@ -6,11 +6,9 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
 from pathlib import Path
 from typing import Any
 
-# First party libraries
 from tsfpga.vivado.project import VivadoNetlistProject, VivadoProject
 
 THIS_DIR = Path(__file__).parent
@@ -22,8 +20,10 @@ class TsfpgaExampleVivadoProject(VivadoProject):
     Shows how to override and extend the base behavior.
     """
 
-    def pre_create(  # type: ignore[override]  # pylint: disable=arguments-differ
-        self, generics: dict[str, Any], **kwargs: Any
+    def pre_create(
+        self,
+        generics: dict[str, Any],
+        **kwargs: Any,  # noqa: ANN401
     ) -> bool:
         """
         Override parent method to add custom behavior.
@@ -40,8 +40,10 @@ class TsfpgaExampleVivadoNetlistProject(VivadoNetlistProject):
     Shows how to override and extend the base behavior.
     """
 
-    def pre_create(  # type: ignore[override]  # pylint: disable=arguments-differ
-        self, generics: dict[str, Any], **kwargs: Any
+    def pre_create(
+        self,
+        generics: dict[str, Any],
+        **kwargs: Any,  # noqa: ANN401
     ) -> bool:
         """
         Override parent method to add custom behavior.

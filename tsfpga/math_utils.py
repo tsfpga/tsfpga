@@ -26,7 +26,7 @@ def to_binary_string(value: int, result_width: int) -> str:
     # Cast to binary, pad with zeros on the left.
     formatting_string = f"{{:0{result_width}b}}"
     padded_binary_string = formatting_string.format(value)
-    assert len(padded_binary_string) == result_width
+    assert len(padded_binary_string) == result_width  # noqa: S101
 
     return padded_binary_string
 
@@ -55,7 +55,7 @@ def to_binary_nibble_string(value: int, result_width_bits: int) -> str:
     # Cast to binary, pad with zeros on the left, separate every fourth character.
     formatting_string = f"{{:0{result_width}_b}}"
     result = formatting_string.format(value)
-    assert len(result) == result_width
+    assert len(result) == result_width  # noqa: S101
 
     return result
 
@@ -82,7 +82,7 @@ def to_hex_string(value: int, result_width_bits: int) -> str:
     # Cast to hex, pad with zeros on the left.
     formatting_string = f"{{:0{result_width_nibbles}X}}"
     result = formatting_string.format(value)
-    assert len(result) == result_width_nibbles
+    assert len(result) == result_width_nibbles  # noqa: S101
 
     return result
 
@@ -106,20 +106,22 @@ def to_hex_byte_string(value: int, result_width_bits: int) -> str:
     hex_string = to_hex_string(value=value, result_width_bits=result_width_bits)
 
     result_width_nibbles = (result_width_bits + 4 - 1) // 4
-    assert len(hex_string) % result_width_nibbles == 0, hex_string
+    assert len(hex_string) % result_width_nibbles == 0, hex_string  # noqa: S101
 
     byte_strings = []
     if result_width_nibbles % 2 == 1:
         byte_strings.append(hex_string[0])
-    for i in range(result_width_nibbles % 2, result_width_nibbles, 2):
-        byte_strings.append(hex_string[i : i + 2])
+
+    byte_strings.extend(
+        hex_string[i : i + 2] for i in range(result_width_nibbles % 2, result_width_nibbles, 2)
+    )
 
     result = "_".join(byte_strings)
 
     result_width_bytes = (result_width_bits + 8 - 1) // 8
     num_separators = result_width_bytes - 1
     result_width = result_width_nibbles + num_separators
-    assert len(result) == result_width, result
+    assert len(result) == result_width, result  # noqa: S101
 
     return result
 

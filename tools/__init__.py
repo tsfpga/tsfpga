@@ -5,6 +5,3 @@
 # https://tsfpga.com
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
-
-# Import before others since it modifies PYTHONPATH.
-import tsfpga.examples.example_pythonpath  # noqa: F401

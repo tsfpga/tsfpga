@@ -11,14 +11,12 @@
 # 'simulate.py', 'build_fpga.py' and 'build_docs.py'.
 # --------------------------------------------------------------------------------------------------
 
-# First party libraries
-# pylint: disable=unused-import
-import tsfpga  # noqa: F401
-import tsfpga.build_project_list  # noqa: F401
-import tsfpga.examples.build_fpga_utils  # noqa: F401
-import tsfpga.examples.simulation_utils  # noqa: F401
-import tsfpga.git_utils  # noqa: F401
-import tsfpga.system_utils  # noqa: F401
+import tsfpga
+import tsfpga.build_project_list
+import tsfpga.examples.build_fpga_utils
+import tsfpga.examples.simulation_utils
+import tsfpga.git_utils
+import tsfpga.system_utils
 import tsfpga.tools.sphinx_doc  # noqa: F401
 
 

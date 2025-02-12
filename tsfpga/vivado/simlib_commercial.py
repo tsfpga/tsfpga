@@ -6,19 +6,17 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# Standard libraries
-from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from __future__ import annotations
 
-# First party libraries
+from pathlib import Path
+from typing import TYPE_CHECKING, ClassVar
+
 from tsfpga.system_utils import create_file
 
-# Local folder libraries
 from .common import run_vivado_tcl, to_tcl_path
 from .simlib_common import VivadoSimlibCommon
 
 if TYPE_CHECKING:
-    # Third party libraries
     from vunit.sim_if import SimulatorInterface
     from vunit.ui import VUnit
 
@@ -28,7 +26,7 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
     Handle Vivado simlib with a commercial simulator.
     """
 
-    library_names = ["unisim", "secureip", "unimacro", "unifast", "xpm"]
+    library_names: ClassVar = ["unisim", "secureip", "unimacro", "unifast", "xpm"]
 
     _tcl = (
         "set_param general.maxthreads 8\n"
@@ -46,11 +44,11 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
 
     def __init__(
         self,
-        vivado_path: Optional[Path],
+        vivado_path: Path | None,
         output_path: Path,
-        vunit_proj: "VUnit",
-        simulator_interface: "SimulatorInterface",
-    ):
+        vunit_proj: VUnit,
+        simulator_interface: SimulatorInterface,
+    ) -> None:
         """
         Arguments:
             output_path: The compiled simlib will be placed here.
@@ -65,7 +63,7 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
 
         self._vunit_proj = vunit_proj
 
-    def _get_simulator_name(self, simulator_interface: "SimulatorInterface") -> str:
+    def _get_simulator_name(self, simulator_interface: SimulatorInterface) -> str:
         """
         Used to get the "-simulator" argument to the Vivado "compile_simlib" function.
         In some cases Vivado needs a different simulator name than what is used in VUnit.
@@ -118,6 +116,7 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
         """
         for library_name in self.library_names:
             library_path = self.output_path / library_name
-            assert library_path.exists(), library_path
+            if not library_path.exists():
+                raise FileNotFoundError(f"Library path not found: {library_path}")
 
             self._vunit_proj.add_external_library(library_name, library_path)
