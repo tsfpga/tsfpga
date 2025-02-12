@@ -6,9 +6,11 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+from __future__ import annotations
+
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from .system_utils import create_file, path_relative_to
 
@@ -21,9 +23,9 @@ if TYPE_CHECKING:
 
 def create_ghdl_ls_configuration(  # noqa: C901
     output_path: Path,
-    modules: "ModuleList",
-    vunit_proj: "VUnit",
-    simlib: Optional["VivadoSimlibCommon"] = None,
+    modules: ModuleList,
+    vunit_proj: VUnit,
+    simlib: VivadoSimlibCommon | None = None,
 ) -> None:
     """
     Create a configuration file (hdl-prj.json) for the vhdl-lsp VHDL Language Server
