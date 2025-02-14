@@ -18,13 +18,12 @@ from tsfpga.module import BaseModule
 
 if TYPE_CHECKING:
     from tsfpga.hdl_file import HdlFile
-    from tsfpga.vivado.project import VivadoProject
 
 THIS_FILE = Path(__file__)
 
 
 class Module(BaseModule):
-    def get_build_projects(self) -> list[VivadoProject]:
+    def get_build_projects(self) -> list[TsfpgaExampleVivadoProject]:
         projects = []
 
         modules = get_hdl_modules() + get_tsfpga_example_modules()
