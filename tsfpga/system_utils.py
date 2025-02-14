@@ -15,6 +15,7 @@ from os.path import commonpath, relpath
 from pathlib import Path
 from platform import system
 from shutil import rmtree
+from sys import modules
 from typing import TYPE_CHECKING
 
 from tsfpga import DEFAULT_FILE_ENCODING
@@ -216,6 +217,7 @@ def load_python_module(file: Path) -> ModuleType:
         raise RuntimeError(f"Could not load the Python module: {file}")
 
     module = importlib.util.module_from_spec(spec=spec)
+    modules[python_module_name] = module
     spec.loader.exec_module(module=module)
 
     return module
