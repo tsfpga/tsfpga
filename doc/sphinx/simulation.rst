@@ -3,17 +3,29 @@
 Simulation flow
 ===============
 
-This page shows how to run simulations using tsfpga and VUnit.
+tsfpga makes HDL simulation easier, faster and more scalable by
 
-As far as simulations go tsfpga can be seen as a layer on top of VUnit.
-tsfpga helps manage the inputs to the simulation project: source files, test benches,
-:ref:`test configurations <local_configuration>`,
-:ref:`register code generation <integration_hdl_registers>`,
-:ref:`IP cores <vivado_ip_cores>`, :ref:`simlib <vivado_simlib>`, etc.
-All features of VUnit are available as they are, and all simulators are supported
-(ghdl as well as commercial).
+1. Automatically
+   :ref:`detecting and adding sources, testbenches and IP cores <minimal_simulate_py>`.
+2. Automatically
+   :ref:`compiling and version controlling Vivado simulation libraries <vivado_simlib>`.
+3. Automatically :ref:`compiling and version controlling IP cores <vivado_ip_cores>`.
+4. Providing a :ref:`convenient way to set up local test configurations <local_configuration>`.
+5. Providing a way to
+   :ref:`simulate only git changes and their dependencies <git_simulation_subset>`.
+6. Making sure that
+   :ref:`generated register code is up-to-date before each simulation <integration_hdl_registers>`.
+
+A Python script based on tsfpga replaces any Makefile, simulator "DO file", GUI clicking, or other
+legacy system for simulation.
+It is perfect for Continuous Integration (CI) as well as test-driven development on your desktop.
+
+Actual compilation and test execution is done by VUnit and your simulator (ghdl or commercial).
+tsfpga can be seen as a layer on top of VUnit that helps manage the inputs to the
+simulation project.
 
 
+.. _minimal_simulate_py:
 
 Minimal simulate.py example
 ---------------------------
@@ -56,7 +68,7 @@ This includes source files and packages as well as test files.
 If you use :ref:`register code generation <integration_hdl_registers>`, the call will generate a new
 VHDL package so that you are always simulating with an up-to-date register definition.
 
-Actually even this example is not truly minimal.
+Even this little example is not truly minimal.
 The call to :meth:`module.setup_vunit() <.BaseModule.setup_vunit>` does nothing in default setup,
 but is used to set up :ref:`local configuration of test cases <local_configuration>` later.
 
@@ -70,11 +82,12 @@ If you want to dive into a more realistic example have a look at
 <https://github.com/tsfpga/tsfpga/blob/main/tsfpga/examples/simulate.py>`__ in the repo.
 Or continue reading this document for an explanation of the mechanisms.
 
-This file handles things like
+The example simulation script linked above handles things like
 
 * Only a subset of sources available when using a non-commercial simulator
 * Compile :ref:`Vivado simlib <vivado_simlib>` and :ref:`Vivado IP cores <vivado_ip_cores>`
-* Adding ``hdl-modules`` as modules that shall be compiled, but who's tests shall not be run.
+* Adding `hdl-modules <https://hdl-modules.com>`__ as modules that shall be compiled,
+  but who's tests shall not be run.
 
 
 
@@ -84,7 +97,7 @@ Local configuration of test cases
 ---------------------------------
 
 Running test cases in a few different configurations via generics is a common design pattern.
-This can be achieved in tsfpga by creating a file ``module_<name>.py`` in the root of the
+This can be achieved in tsfpga by creating a file ``module_<name>.py`` file in the root of the
 module folder.
 
 Say for example that we want to set some generics for a FIFO testbench, located in a module called
@@ -114,13 +127,13 @@ This will result in the tests
     fifo.tb_fifo.width_24.depth_16.all
     fifo.tb_fifo.width_24.depth_1024.all
 
-So what happens here is that we created a class ``Module`` that inherits from :class:`.BaseModule`.
-In this class we override the ``setup_vunit()`` method, which does nothing in the super class, to
+The example above creates a class ``Module`` that inherits from :class:`.BaseModule`.
+In this class we override the ``setup_vunit()`` method (which does nothing in the super class) to
 set up our simulation configurations.
 The :func:`.get_modules` call used in our ``simulate.py`` will recognize that this module has a
 Python file to set up it's own class.
 When creating module objects the function will then use the user-specified class for this module.
-Later in ``simulate.py`` when ``setup_vunit()`` is run, the code we specified above will be run.
+Later in ``simulate.py`` when ``setup_vunit()`` is run, the code in our class above will be run.
 
 .. note::
     Note that the class must be called exactly ``Module``.
@@ -149,7 +162,7 @@ The compilation with GHDL is very fast (5 seconds), but for commercial simulator
 slow (10 minutes).
 
 All implementations are interface compatible with the :class:`.VivadoSimlibCommon` class.
-They will only do a recompile when necessary (new Vivado or simulator version, etc.).
+They will only do a recompile when necessary (new Vivado version, new simulator version, etc.).
 
 Adding simlib to a simulation project using this class is achieved by simply doing:
 

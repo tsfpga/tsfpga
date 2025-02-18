@@ -3,13 +3,20 @@
 FPGA build flow
 ===============
 
-Tsfpga enables a build flow where many builds can be executed in parallel from the same script call.
+tsfpga makes FPGA builds easier, faster and more scalable by
+
+1. Automatically
+   :ref:`detecting and adding source files, constraints, IP cores, etc <example_build_py>`.
+2. Making it possible to run :ref:`multiple builds in parallel <example_build_py>`.
+3. Providing a very :ref:`simple Python API for setting up builds <example_project_class>`.
+4. Generating :ref:`all necessary TCL code <generated_tcl>`.
+
+A Python script based on tsfpga replaces any Makefile, TCL script, or GUI clicking for FPGA builds.
+It is perfect for Continuous Integration (CI) as well as development builds on your desktop.
+
+tsfpga enables a build flow where many builds can be executed in parallel from the same script call.
 Any module can :ref:`set up build projects <example_project_class>` using its ``module_*.py``.
 All project configuration is located in the module, not in any central script.
-
-The build project is represented using a :class:`Python class <.VivadoProject>` that abstracts all
-settings and operations.
-
 
 
 .. _example_build_py:
@@ -122,13 +129,13 @@ a list of :class:`build project objects <.VivadoProject>`.
 .. literalinclude:: ../../tsfpga/examples/modules/artyz7/module_artyz7.py
    :caption: Example project creation
    :language: python
-   :lines: 9-78
+   :lines: 9-82
    :linenos:
 
 There is a lot going on here, so lets go through what happens in ``get_build_projects()``.
 
 
-Line 17: Get modules
+Line 21: Get modules
 ____________________
 
 Firstly we need to get a list of modules that shall be included in the build project.
@@ -151,17 +158,19 @@ many places.
 
 
 
-Line 20-22: TCL files
+Line 24-26: TCL files
 _____________________
 
-This module has a sub-folder ``tcl`` which contains pinning and a block design.
+This module has a sub-folder
+`tcl <https://github.com/tsfpga/tsfpga/tree/main/tsfpga/examples/modules/artyz7/tcl>`__
+which contains pinning and a block design.
 The block design, which is added to the :class:`.VivadoProject` as a TCL source is simply
 represented using it's path.
 The pinning on the other hand, which is used as a constraint in Vivado, must be represented using
 the :class:`.Constraint` class.
 
 
-Line 24-68: Creating project objects
+Line 28-68: Creating project objects
 ____________________________________
 
 The sources gathered are then use to create project objects that are appended to the ``projects``
@@ -209,6 +218,7 @@ It can be inspected to see if the run passed or failed, and what the resource ut
 build is.
 
 
+.. _generated_tcl:
 
 Example generated TCL
 ---------------------
