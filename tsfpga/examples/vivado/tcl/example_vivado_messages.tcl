@@ -28,17 +28,11 @@ set_msg_config -new_severity "ERROR" -id "Synth 8-327"
 # Motivation: An undriven pin that is used, is probably a mistake in the code.
 set_msg_config -new_severity "ERROR" -id "Synth 8-3295"
 
-# Message: Terminal has IOB constraint set to TRUE, but it is either not
-#     connected to a FLOP element or the connected FLOP element could not be brought into the I/O.
-# Motivation: This warning appears only if we have specifically instructed the tool to use IOB,
-#     in which case failure to achieve that is an error.
-set_msg_config -new_severity "ERROR" -id "Place 30-722"
-
 # Couple of messages related to multi-driver nets or pins.
 # Motivation: Driving from multiple sources is in most cases a mistake in the code.
 #     We do our best to avoid this already by always using unresolved types.
 #     Perhaps there is a use case out there in some exotic design, hence we keep the message raise
-#     of this here in the example.
+#     here in the example and not in the main file.
 set_msg_config -new_severity "ERROR" -id "Opt 31-80"
 set_msg_config -new_severity "ERROR" -id "Route 35-14"
 set_msg_config -new_severity "ERROR" -id "Synth 8-6859"

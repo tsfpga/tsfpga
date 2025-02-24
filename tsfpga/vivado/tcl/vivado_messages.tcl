@@ -5,7 +5,7 @@
 # https://tsfpga.com
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
-# Set the severity of various Vivado mesages
+# Set the severity of various Vivado messages
 #
 # A lot of WARNINGs from Vivado are not interesting. They should be suppressed as to not clutter
 # the logs. This is achieved by lowering their severity to INFO.
@@ -95,3 +95,10 @@ set_msg_config -new_severity "ERROR" -id "Synth 8-614"
 #     constraint file.
 #     If we don't raise the severity, the build will continue silently.
 set_msg_config -new_severity "ERROR" -id "Common 17-1548"
+
+# Raise from CRITICAL WARNING.
+# Message: Terminal has IOB constraint set to TRUE, but it is either not
+#     connected to a FLOP element or the connected FLOP element could not be brought into the I/O.
+# Motivation: This warning appears only if we have specifically instructed the tool to use IOB,
+#     in which case failure to achieve that is an error.
+set_msg_config -new_severity "ERROR" -id "Place 30-722"
