@@ -20,22 +20,26 @@ if TYPE_CHECKING:
     from git.objects.tree import Tree
 
 
-def get_git_commit(directory: Path) -> str:
+def get_git_commit(directory: Path, use_rst_annotation: bool = False) -> str:
     """
     Get a string describing the current git commit.
     E.g. ``"abcdef0123"`` or ``"12345678 (local changes present)"``.
 
     Arguments:
         directory: The directory where git commands will be run.
+        use_rst_annotation: Use reStructuredText literal annotation for the SHA value.
 
     Return:
         Git commit information.
     """
-    git_commit = get_git_sha(directory=directory)
-    if git_local_changes_present(directory=directory):
-        git_commit += " (local changes present)"
+    annotation = "``" if use_rst_annotation else ""
+    git_sha = get_git_sha(directory=directory)
+    result = f"{annotation}{git_sha}{annotation}"
 
-    return git_commit
+    if git_local_changes_present(directory=directory):
+        result += " (local changes present)"
+
+    return result
 
 
 def get_git_sha(directory: Path) -> str:

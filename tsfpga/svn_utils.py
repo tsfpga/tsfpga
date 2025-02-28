@@ -19,17 +19,20 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-def get_svn_revision_information(cwd: Path | None = None) -> str:
+def get_svn_revision_information(cwd: Path | None = None, use_rst_annotation: bool = False) -> str:
     """
     Get a string describing the current SVN commit.
     E.g. ``"r1234"`` or ``"r1234 (local changes present)"``.
 
     Arguments:
         cwd: The directory where SVN commands will be run.
+        use_rst_annotation: Use reStructuredText literal annotation for the revision value.
     """
     check_that_svn_commands_are_available(cwd=cwd)
 
-    result = f"r{get_svn_revision(cwd=cwd)}"
+    annotation = "``" if use_rst_annotation else ""
+    revision = f"r{get_svn_revision(cwd=cwd)}"
+    result = f"{annotation}{revision}{annotation}"
 
     if svn_local_changes_are_present(cwd=cwd):
         result += " (local changes present)"
