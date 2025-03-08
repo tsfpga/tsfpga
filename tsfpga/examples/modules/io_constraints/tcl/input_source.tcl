@@ -50,7 +50,7 @@ set clock [
 ]
 puts "Created clock: ${clock}";
 
-# set_input_jitter ${clock} ${clock_jitter_ns};
+set_input_jitter ${clock} ${clock_jitter_ns};
 
 set clock_trace_delay_min_ns [expr 0.9 * ${clock_trace_delay_ns}];
 set clock_trace_delay_max_ns [expr 1.1 * ${clock_trace_delay_ns}];
@@ -58,7 +58,7 @@ puts "Clock trace delay between ${clock_trace_delay_min_ns} and ${clock_trace_de
 
 # ---------------------------------------------------------------------------------
 # Timing of peripheral device. From XXXX.pdf page NN.
-# Device uses a "valid after clock" model, formulation #2 in the article.
+# Device uses a "valid window around clock" model, formulation #1 in the article.
 # ---------------------------------------------------------------------------------
 # Time before the clock edge when the peripheral data pin is guaranteed
 # to hold a valid value.
