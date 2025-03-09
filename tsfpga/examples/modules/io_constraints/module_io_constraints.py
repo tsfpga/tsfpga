@@ -23,7 +23,9 @@ class Module(BaseModule):
         modules = get_hdl_modules() + get_tsfpga_example_modules()
         part = "xc7z020clg400-1"
 
-        constraints = [Constraint(self.path / "tcl" / "input_source.tcl", used_in="impl")]
+        constraints = [
+            Constraint(self.path / "tcl" / "input_source_synchronous.tcl", used_in="impl"),
+        ]
         block_design = modules.get("artyz7").path / "tcl" / "block_design.tcl"
 
         return [

@@ -35,9 +35,24 @@ set clock_jitter_ns 0.01;
 set iostandard "LVCMOS33";
 
 # ---------------------------------------------------------------------------------
+# Timing of peripheral device. From XXXX.pdf page NN.
+# Device uses a "valid window around clock" model formulation of setup/hold.
+# ---------------------------------------------------------------------------------
+# Time before the clock edge when the peripheral data pin is guaranteed
+# to hold a valid value.
+set peripheral_setup_ns 1.5;
+# Time after the clock edge when the peripheral data pin might assume
+# an invalid value.
+set peripheral_hold_ns 6.8;
+
+# Converted to SDC notation per <LINK>.
+set peripheral_min ${peripheral_hold_ns};
+set peripheral_max [expr ${clock_period_ns} - ${peripheral_setup_ns}];
+
+# ---------------------------------------------------------------------------------
 # Create and constrain clock.
 # ---------------------------------------------------------------------------------
-set clock_port [get_ports "in_source_clock"];
+set clock_port [get_ports "input_source_synchronous_clock"];
 puts "Constraining ${clock_port} to ${clock_pin}";
 set_property "PACKAGE_PIN" ${clock_pin} ${clock_port};
 set_property "IOSTANDARD" ${iostandard} ${clock_port};
@@ -56,26 +71,12 @@ set clock_trace_delay_min_ns [expr 0.9 * ${clock_trace_delay_ns}];
 set clock_trace_delay_max_ns [expr 1.1 * ${clock_trace_delay_ns}];
 puts "Clock trace delay between ${clock_trace_delay_min_ns} and ${clock_trace_delay_max_ns} ns.";
 
-# ---------------------------------------------------------------------------------
-# Timing of peripheral device. From XXXX.pdf page NN.
-# Device uses a "valid window around clock" model, formulation #1 in the article.
-# ---------------------------------------------------------------------------------
-# Time before the clock edge when the peripheral data pin is guaranteed
-# to hold a valid value.
-set peripheral_setup_ns 1.5;
-# Time after the clock edge when the peripheral data pin might assume
-# an invalid value.
-set peripheral_hold_ns 6.8;
-
-set peripheral_min ${peripheral_hold_ns};
-set peripheral_max [expr ${clock_period_ns} - ${peripheral_setup_ns}];
-
 # ------------------------------------------------------------------------------
 # Constrain data signals.
 # ------------------------------------------------------------------------------
 for {set data_index 0} {${data_index} < [llength ${data_pins}]} {incr data_index} {
   set data_pin [lindex ${data_pins} ${data_index}];
-  set data_port [get_ports "in_source_data[${data_index}]"];
+  set data_port [get_ports "input_source_synchronous_data[${data_index}]"];
   puts "Constraining ${data_port} to ${data_pin}";
   set_property "PACKAGE_PIN" ${data_pin} ${data_port};
   set_property "IOSTANDARD" ${iostandard} ${data_port};

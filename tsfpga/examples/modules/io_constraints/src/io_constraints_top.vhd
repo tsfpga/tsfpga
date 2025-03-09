@@ -28,8 +28,8 @@ use artyz7.block_design_pkg.all;
 
 entity io_constraints_top is
   port (
-    in_source_clock : in std_ulogic;
-    in_source_data : in std_ulogic_vector(3 downto 0);
+    input_source_synchronous_clock : in std_ulogic;
+    input_source_synchronous_data : in std_ulogic_vector(3 downto 0);
     --# {{}}
     ddr : inout zynq7000_ddr_t;
     fixed_io : inout zynq7000_fixed_io_t
@@ -49,21 +49,21 @@ architecture a of io_constraints_top is
 begin
 
   ------------------------------------------------------------------------------
-  source_synchronous_input_block : block
-    signal in_source_data_p1 : std_ulogic_vector(in_source_data'range) := (others => '0');
+  input_source_synchronous_block : block
+    signal data_p1 : std_ulogic_vector(input_source_synchronous_data'range) := (others => '0');
   begin
 
-    in_source_data_p1 <= in_source_data when rising_edge(in_source_clock);
+    data_p1 <= input_source_synchronous_data when rising_edge(input_source_synchronous_clock);
 
 
     -----------------------------------------------------------------------
     resync_twophase_inst : entity resync.resync_twophase
       generic map (
-        width => in_source_data_p1'length
+        width => data_p1'length
       )
       port map (
-        clk_in => in_source_clock,
-        data_in => in_source_data_p1,
+        clk_in => input_source_synchronous_clock,
+        data_in => data_p1,
         --
         clk_out => pl_clk,
         data_out => m_gp0_s2m.read.r.data(3 downto 0)
@@ -92,6 +92,5 @@ begin
       );
 
   end block;
-
 
 end architecture;
