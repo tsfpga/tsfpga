@@ -18,14 +18,15 @@ set data_pins {
   "M14"
 };
 set data_trace_delays_ns {
-  3.021
-  2.876
-  2.992
-  3.004
+  0.762
+  0.789
+  0.831
+  0.804
 }
 
 set clock_pin "H16";
-set clock_trace_delay_ns 2.937;
+set clock_trace_delay_ns 0.779;
+
 # From peripheral device datasheet XXXX.pdf page NN.
 set clock_period_ns 8.0;
 set clock_jitter_ns 0.01;
@@ -40,14 +41,22 @@ set iostandard "LVCMOS33";
 # ---------------------------------------------------------------------------------
 # Time before the clock edge when the peripheral data pin is guaranteed
 # to hold a valid value.
-set peripheral_setup_ns 1.5;
+set peripheral_setup_ns 1.3;
 # Time after the clock edge when the peripheral data pin might assume
 # an invalid value.
-set peripheral_hold_ns 6.8;
+set peripheral_hold_ns 3.7;
 
 # Converted to SDC notation per <LINK>.
 set peripheral_min ${peripheral_hold_ns};
 set peripheral_max [expr ${clock_period_ns} - ${peripheral_setup_ns}];
+puts "Peripheral min ${peripheral_min} ns, max ${peripheral_max} ns.";
+
+# ---------------------------------------------------------------------------------
+# Timing of the gate drivers on the data signals between the peripheral and the FPGA.
+# From YYYY.pdf page NN.
+# ---------------------------------------------------------------------------------
+set driver_latency_min_ns 1.5;
+set driver_latency_max_ns 2.2;
 
 # ---------------------------------------------------------------------------------
 # Create and constrain clock.
@@ -92,15 +101,17 @@ for {set data_index 0} {${data_index} < [llength ${data_pins}]} {incr data_index
 
   set data_min [expr \
     ${peripheral_min} \
+    + ${driver_latency_min_ns} \
     + ${data_trace_delay_min_ns} \
     - ${clock_trace_delay_max_ns}
   ];
   set data_max [expr \
     ${peripheral_max} \
+    + ${driver_latency_max_ns} \
     + ${data_trace_delay_max_ns} \
     - ${clock_trace_delay_min_ns}
   ];
-  puts "Constraint: min ${data_min}, max ${data_max}.";
+  puts "Final constraint: min ${data_min}, max ${data_max}.";
 
   set invalid_window_ns [expr ${data_max} - ${data_min}];
   set valid_window_ns [expr ${clock_period_ns} - ${invalid_window_ns}];
