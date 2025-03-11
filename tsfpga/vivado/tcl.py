@@ -325,9 +325,9 @@ set_property "generic" {{{generics_string}}} [current_fileset]
                 f'"{constraint.processing_order.upper()}" {get_file}\n'
             )
 
-            if constraint.used_in == "impl":
+            if not constraint.used_in_synthesis:
                 tcl += f'set_property "USED_IN_SYNTHESIS" false {get_file}\n'
-            elif constraint.used_in == "synth":
+            if not constraint.used_in_implementation:
                 tcl += f'set_property "USED_IN_IMPLEMENTATION" false {get_file}\n'
 
         return f"{tcl}\n"
