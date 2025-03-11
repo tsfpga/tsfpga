@@ -24,7 +24,7 @@ class Module(BaseModule):
         part = "xc7z020clg400-1"
 
         constraints = [
-            Constraint(self.path / "tcl" / "input_source_synchronous.tcl", used_in="impl"),
+            Constraint(self.path / "tcl" / "input_source_synchronous.tcl", used_in_synthesis=False),
         ]
         block_design = modules.get("artyz7").path / "tcl" / "block_design.tcl"
 
