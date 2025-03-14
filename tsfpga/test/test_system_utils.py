@@ -17,6 +17,7 @@ from tsfpga.system_utils import (
     delete,
     file_is_in_directory,
     path_relative_to,
+    prepend_file,
     read_file,
     read_last_lines_of_file,
     run_command,
@@ -139,6 +140,21 @@ def test_read_last_lines_of_file_with_empty_file(tmp_path):
     data = "\n"
     file = create_file(tmp_path / "data.txt", contents=data)
     assert read_last_lines_of_file(file, num_lines=10) == data
+
+
+def test_prepend_file(tmp_path):
+    assert (
+        read_file(
+            prepend_file(
+                file_path=create_file(tmp_path / "data.txt", contents="data"), text="hello\nmy_"
+            )
+        )
+        == "hello\nmy_data"
+    )
+
+
+def test_prepend_file_with_empty_file(tmp_path):
+    assert read_file(prepend_file(file_path=create_file(tmp_path / "data.txt"), text="a")) == "a"
 
 
 def test_run_command_called_with_nonexisting_binary_should_raise_exception():
