@@ -416,9 +416,9 @@ def create_vhdl_ls_configuration(
     additional_files = [
         (path / "*.vhd", "example")
         for path in [
-            hdl_register_repo_root / "tests" / "functional" / "simulation",
+            hdl_register_repo_root / "tests" / "functional" / "simulation" / "vhdl",
             hdl_register_repo_root / "generated" / "vunit_out" / "generated_register",
-            hdl_register_repo_root / "doc" / "sphinx" / "rst" / "generator" / "sim",
+            hdl_register_repo_root / "doc" / "sphinx" / "rst" / "generator" / "example_counter",
         ]
         if path.exists()
     ]
