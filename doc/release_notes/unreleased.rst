@@ -1,1 +1,3 @@
-Nothing here yet.
+Added
+
+* Add :func:`.prepend_file`.

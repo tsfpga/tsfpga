@@ -86,6 +86,21 @@ def read_last_lines_of_file(file: Path, num_lines: int) -> str:
     return "".join(result_lines[-num_lines:])
 
 
+def prepend_file(file_path: Path, text: str) -> Path:
+    """
+    Insert the ``text`` at the beginning of the file, before any existing content.
+
+    Returns:
+        The original file path.
+    """
+    with file_path.open("r+") as file_handle:
+        existing_content = file_handle.read()
+        file_handle.seek(0)
+        file_handle.write(text + existing_content)
+
+    return file_path
+
+
 def delete(path: Path, wait_until_deleted: bool = False) -> Path:
     """
     Delete a file or directory from the filesystem.
