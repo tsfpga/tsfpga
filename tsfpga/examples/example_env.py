@@ -34,7 +34,7 @@ def get_default_registers() -> list[Register]:
     Default registers for tsfpga examples.
     """
     return [
-        Register("config", 0, REGISTER_MODES["r_w"], "Configuration register."),
+        Register("conf", 0, REGISTER_MODES["r_w"], "Configuration register."),
         Register(
             "command",
             1,
