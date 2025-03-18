@@ -6,6 +6,9 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 # Constraints for source-synchronous input ports.
+# See also the HDL code in 'io_constraints_top.vhd'.
+# This is an example file that illustrates the constraints discussed in this article:
+# https://linkedin.com/pulse/io-timing-constraints-fpgaasic-1-source-synchronous-input-lukas-vik-0xslf
 # --------------------------------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------------
@@ -37,17 +40,16 @@ set iostandard "LVCMOS33";
 
 # ---------------------------------------------------------------------------------
 # Timing of peripheral device. From XXXX.pdf page NN.
-# Device uses a "valid window around clock" model formulation of setup/hold.
+# Device uses a "valid window around clock" model for setup/hold.
 # ---------------------------------------------------------------------------------
-# Time before the clock edge when the peripheral data pin is guaranteed
-# to hold a valid value.
+# Time before the clock edge when the peripheral data pin is guaranteed to hold a valid value.
 set peripheral_setup_ns 1.3;
-# Time after the clock edge when the peripheral data pin might assume
-# an invalid value.
+# Time after the clock edge when the peripheral data pin might assume an invalid value.
 set peripheral_hold_ns 3.7;
 
 # Converted to SDC notation per the article:
-# linkedin.com/pulse/io-timing-constraints-fpgaasic-1-source-synchronous-input-lukas-vik-0xslf
+# https://linkedin.com/pulse/io-timing-constraints-fpgaasic-1-source-synchronous-input-lukas-vik-0xslf
+set peripheral_min ${peripheral_hold_ns};
 set peripheral_max [expr ${clock_period_ns} - ${peripheral_setup_ns}];
 puts "Peripheral min ${peripheral_min} ns, max ${peripheral_max} ns.";
 

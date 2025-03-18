@@ -21,6 +21,9 @@ use common.common_pkg.all;
 
 library ddr_buffer;
 
+library mmcm_wrapper;
+use mmcm_wrapper.mmcm_wrapper_pkg.all;
+
 use work.artyz7_top_pkg.all;
 use work.artyz7_register_record_pkg.all;
 use work.block_design_pkg.all;
@@ -242,13 +245,18 @@ begin
 
 
   ------------------------------------------------------------------------------
-  mmcm_wrapper_inst : entity work.mmcm_wrapper
+  mmcm_wrapper_inst : entity mmcm_wrapper.mmcm_wrapper
     generic map (
-      clk_frequency_hz => pl_clk_frequency_hz
+      input_clk_frequency_hz => pl_clk_frequency_hz,
+      -- Parameterization and instantiation from AMD Vivado clocking wizard IP with
+      -- settings 100 MHz -> 25 MHz.
+      multiply => 9.125,
+      divide => 1,
+      output_divide => (0=>36.5, others=>mmcm_output_divide_disabled)
     )
     port map (
-      clk => pl_clk,
-      clk_div4 => pl_clk_div4
+      input_clk => pl_clk,
+      result0_clk => pl_clk_div4
     );
 
 
