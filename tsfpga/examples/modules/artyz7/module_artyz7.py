@@ -94,7 +94,6 @@ class Module(BaseModule):
         point is included in documentation.
         """
         files_to_avoid = {
-            self.path / "src" / "mmcm_wrapper.vhd",
             self.path / "src" / "artyz7_top.vhd",
             self.path / "test" / "tb_artyz7_top.vhd",
         }
