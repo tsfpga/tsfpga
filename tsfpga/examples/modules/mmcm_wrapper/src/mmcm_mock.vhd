@@ -20,20 +20,18 @@ use work.mmcm_wrapper_pkg.all;
 
 entity mmcm_mock is
   generic (
-    settings : mmcm_settings_t
+    attributes : mmcm_attributes_t
   );
   port (
-    result_clk : out std_ulogic_vector(settings.outputs'range) := (others => '0');
+    result_clk : out std_ulogic_vector(attributes.outputs'range) := (others => '0');
     locked : out std_ulogic := '0'
   );
 end entity;
 
 architecture a of mmcm_mock is
 
-  constant input_clk_period : time := to_time(value_s=>settings.input_clk_period_ns / 1.0e9);
-
   -- Must be greater than any negative phase shift, since 'transport' can not handle negative times.
-  constant startup_delay : time := 5 * input_clk_period;
+  constant startup_delay : time := 5 * attributes.input_period;
   constant locked_delay : time := 2 * startup_delay;
 
 begin
@@ -45,20 +43,17 @@ begin
   result_clk_gen : for result_index in result_clk'range generate
 
     ------------------------------------------------------------------------------
-    is_enabled_gen : if settings.outputs(result_index).is_enabled generate
-      constant period : time := to_time(value_s=>settings.outputs(result_index).period_ns / 1.0e9);
-
-      -- Note that this number can be negative.
-      constant phase_shift : time := to_time(
-        value_s=>settings.outputs(result_index).phase_shift_ns / 1.0e9
+    is_enabled_gen : if attributes.outputs(result_index).is_enabled generate
+      -- Note that the phase shift value in the attribute can be negative.
+      -- But the addition result here should always be positive.
+      constant phase_shift_and_delay : time := (
+        startup_delay + attributes.outputs(result_index).phase_shift
       );
-      -- But this one should always be positive.
-      constant phase_shift_and_delay : time := startup_delay + phase_shift;
 
       signal base_clock : std_ulogic := '0';
     begin
 
-      base_clock <= not base_clock after period / 2;
+      base_clock <= not base_clock after attributes.outputs(result_index).period / 2;
 
       result_clk(result_index) <= transport base_clock after phase_shift_and_delay;
 

@@ -26,26 +26,7 @@ use work.mmcm_wrapper_pkg.all;
 
 entity mmcm_wrapper is
   generic (
-    input_clk_frequency_hz : real;
-    -- MMCM input clock division.
-    -- Called 'CLKFBOUT_MULT_F' in the Vivado Clocking Wizard and in the primitive component.
-    -- Called 'M' in AMD document UG472.
-    multiply : real range 2.0 to 64.0;
-    -- MMCM input clock multiplication.
-    -- Called 'DIVCLK_DIVIDE' in the Vivado Clocking Wizard and in the primitive component.
-    -- Called 'D' in AMD document UG472.
-    divide : positive range 1 to 106;
-    -- MMCM output clock division, one value for each result clock.
-    -- Called 'CLKOUT*_DIVIDE' in the Vivado Clocking Wizard and in the primitive component.
-    -- Called 'O' in AMD document UG472.
-    -- Note that only index zero may be a non-integer value.
-    -- Leaving either of these values at its default value of zero will make that result
-    -- clock disabled. The actual value that the user sets has to be 1 or greater.
-    output_divide : mmcm_output_divide_vec_t(6 downto 0) := (others => mmcm_output_divide_disabled);
-    -- Optionally enable phase shift of the result clocks.
-    -- Specify each value either in nanoseconds or in degrees (not both).
-    output_phase_shift_ns : real_vec_t(6 downto 0) := (others => 0.0);
-    output_phase_shift_degrees : real_vec_t(6 downto 0) := (others => 0.0);
+    parameters : mmcm_parameters_t;
     -- Optionally enable the use of a mock MMCM.
     -- This is useful for simulation where the MMCM primitive is not available.
     -- It will also be a lot faster in terms of execution time.
@@ -77,99 +58,45 @@ begin
 
   ----------------------------------------------------------------------------
   mmcm_block : block
+    constant attributes : mmcm_attributes_t := calculate_attributes(parameters);
 
-    constant mmcm_f_vco_hz : real := input_clk_frequency_hz * multiply / real(divide);
-
-    impure function calculate_settings return mmcm_settings_t is
-      variable result : mmcm_settings_t := (
-        input_clk_period_ns => 1.0e9 / input_clk_frequency_hz,
-        multiply => multiply,
-        divide => divide,
-        outputs => (others => mmcm_clock_settings_init)
-      );
-    begin
-      for result_index in result.outputs'range loop
-        result.outputs(result_index).is_enabled := (
-          output_divide(result_index) /= mmcm_output_divide_disabled
-        );
-
-        if result.outputs(result_index).is_enabled then
-          result.outputs(result_index).output_divide := output_divide(result_index);
-
-          result.outputs(result_index).frequency_hz := mmcm_f_vco_hz / output_divide(result_index);
-          result.outputs(result_index).period_ns := (
-            1.0e9 / result.outputs(result_index).frequency_hz
-          );
-
-          if output_phase_shift_ns(result_index) /= 0.0 then
-            assert output_phase_shift_degrees(result_index) = 0.0
-              report "Specify phase shift either in ns or degrees, NOT both"
-              severity failure;
-
-            result.outputs(result_index).phase_shift_ns := output_phase_shift_ns(result_index);
-            result.outputs(result_index).phase_shift_degrees := (
-              360.0 * output_phase_shift_ns(result_index) / result.outputs(result_index).period_ns
-            );
-
-          elsif output_phase_shift_degrees(result_index) /= 0.0 then
-            assert output_phase_shift_ns(result_index) = 0.0
-              report "Specify phase shift either in ns or degrees, NOT both"
-              severity failure;
-
-            result.outputs(result_index).phase_shift_degrees := output_phase_shift_degrees(
-              result_index
-            );
-            result.outputs(result_index).phase_shift_ns := (
-              result.outputs(result_index).period_ns
-              * output_phase_shift_degrees(result_index)
-              / 360.0
-            );
-          end if;
-        else
-          -- Default generic value in the primitive instance.
-          result.outputs(result_index).output_divide := 1.0;
-        end if;
-      end loop;
-
-      return result;
-    end function;
-    constant settings : mmcm_settings_t := calculate_settings;
-
-    signal result_clk_int : std_ulogic_vector(settings.outputs'range) := (others => '0');
-
+    signal result_clk_int : std_ulogic_vector(attributes.outputs'range) := (others => '0');
   begin
 
     ----------------------------------------------------------------------------
     print_info : process
+      constant mmcm_f_vco_hz : real := (
+        attributes.input_frequency_hz * attributes.multiply / real(attributes.divide)
+      );
     begin
       report (
         "MMCM synthesis from input frequency "
-        & real'image(input_clk_frequency_hz)
+        & real'image(attributes.input_frequency_hz)
         & " Hz ("
-        & real'image(settings.input_clk_period_ns)
+        & real'image(attributes.input_period_ns)
         & " ns) to VCO frequency "
         & real'image(mmcm_f_vco_hz)
         & " Hz."
       );
 
-      for result_index in settings.outputs'range loop
-        if settings.outputs(result_index).is_enabled then
+      for result_index in attributes.outputs'range loop
+        if attributes.outputs(result_index).is_enabled then
           report "--------------------------------";
           report "MMCM output " & integer'image(result_index);
 
           report (
             " - Frequency "
-            & real'image(settings.outputs(result_index).frequency_hz)
+            & real'image(attributes.outputs(result_index).frequency_hz)
             & " Hz ("
-            & real'image(settings.outputs(result_index).period_ns)
+            & real'image(attributes.outputs(result_index).period_ns)
             & " ns)."
           );
 
-          if settings.outputs(result_index).phase_shift_degrees /= 0.0 then
+          if attributes.outputs(result_index).phase_shift_degrees /= 0.0 then
             report (" - Phase shift "
-              & real'image(settings.outputs(result_index).phase_shift_degrees)
+              & real'image(attributes.outputs(result_index).phase_shift_degrees)
               & " degrees ("
-              & real'image(output_phase_shift_ns(result_index))
+              & real'image(attributes.outputs(result_index).phase_shift_ns)
               & " ns)."
             );
           end if;
@@ -186,7 +113,7 @@ begin
       ----------------------------------------------------------------------------
       mmcm_mock_inst : entity work.mmcm_mock
         generic map (
-          settings => settings
+          attributes => attributes
         )
         port map (
           result_clk => result_clk_int,
@@ -202,7 +129,7 @@ begin
       -- when unisim is not available.
       mmcm_primitive_inst : mmcm_primitive
         generic map (
-          settings => settings
+          attributes => attributes
         )
         port map (
           input_clk => input_clk,
@@ -219,6 +146,8 @@ begin
     result4_clk <= result_clk_int(4);
     result5_clk <= result_clk_int(5);
     result6_clk <= result_clk_int(6);
+
+    assert result_clk_int'length = 7 report "Vector to flattened wrong count" severity failure;
 
   end block;
 
