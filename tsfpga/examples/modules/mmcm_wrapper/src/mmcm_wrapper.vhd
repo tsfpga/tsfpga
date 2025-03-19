@@ -198,7 +198,9 @@ begin
     else generate
 
       ----------------------------------------------------------------------------
-      mmcm_primitive_inst : entity work.mmcm_primitive
+      -- Use black-box component instantiation so this code can be used even
+      -- when unisim is not available.
+      mmcm_primitive_inst : mmcm_primitive
         generic map (
           settings => settings
         )
