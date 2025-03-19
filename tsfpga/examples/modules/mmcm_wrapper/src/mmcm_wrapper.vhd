@@ -16,9 +16,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-library common;
-use common.types_pkg.all;
-
 library resync;
 
 use work.mmcm_wrapper_pkg.all;

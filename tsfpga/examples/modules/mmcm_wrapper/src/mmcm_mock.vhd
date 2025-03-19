@@ -11,10 +11,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-library common;
-use common.time_pkg.all;
-use common.types_pkg.all;
-
 use work.mmcm_wrapper_pkg.all;
 
 
