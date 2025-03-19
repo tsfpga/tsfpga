@@ -82,6 +82,26 @@ begin
 
   ------------------------------------------------------------------------------
   input_system_synchronous_block : block
+    constant mmcm_parameters : mmcm_parameters_t := (
+      input_frequency_hz => 125.0e6,
+      -- Parameterization from AMD Vivado clocking wizard IP with
+      -- settings 125 MHz -> 125 MHz and the below phase shift.
+      multiply => 8.0,
+      divide => 1,
+      output_divide => (0=>8.0, others=>mmcm_output_divide_disabled),
+      -- Looking at the printouts from the constraint script, the 'max' value is 2.46 and
+      -- the size of the valid window is 3.42.
+      -- This would place the center of the window at 4.17 ns, which is equivalent to
+      -- (4.17 / 8) * 360 = 188 degrees.
+      -- However, looking at the 'report_timing -setup/hold' output, the paths that the clock
+      -- and data take do not add the same delay, so we need to adjust the phase shift.
+      -- Analyzing the data places the center of the valid window around 6 ns or 270 degrees.
+      -- This can also be found simply by trial and error.
+      -- As long as the constraint is correct, we don't have to be super scientific in how
+      -- we find the appropriate phase shift.
+      output_phase_shift_degrees => (0=>270.0, others=>0.0)
+    );
+
     signal capture_clock : std_ulogic := '0';
     signal data_p1 : std_ulogic_vector(input_system_synchronous_data'range) := (others => '0');
   begin
@@ -93,23 +113,7 @@ begin
     ------------------------------------------------------------------------------
     mmcm_wrapper_inst : entity mmcm_wrapper.mmcm_wrapper
       generic map (
-        input_clk_frequency_hz => 125.0e6,
-        -- Parameterization from AMD Vivado clocking wizard IP with
-        -- settings 125 MHz -> 125 MHz and the below phase shift.
-        multiply => 8.0,
-        divide => 1,
-        output_divide => (0=>8.0, others=>mmcm_output_divide_disabled),
-        -- Looking at the printouts from the constraint script, the 'max' value is 2.46 and
-        -- the size of the valid window is 3.42.
-        -- This would place the center of the window at 4.17 ns, which is equivalent to
-        -- (4.17 / 8) * 360 = 188 degrees.
-        -- However, looking at the 'report_timing -setup/hold' output, the paths that the clock
-        -- and data take do not add the same delay, so we need to adjust the phase shift.
-        -- Analyzing the data places the center of the valid window around 6 ns or 270 degrees.
-        -- This can also be found simply by trial and error.
-        -- As long as the constraint is correct, we don't have to be super scientific in how
-        -- we find the appropriate phase shift.
-        output_phase_shift_degrees => (0=>270.0, others=>0.0)
+        parameters => mmcm_parameters
       )
       port map (
         input_clk => input_system_synchronous_clock,

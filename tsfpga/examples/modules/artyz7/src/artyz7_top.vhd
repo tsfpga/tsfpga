@@ -245,19 +245,29 @@ begin
 
 
   ------------------------------------------------------------------------------
-  mmcm_wrapper_inst : entity mmcm_wrapper.mmcm_wrapper
-    generic map (
-      input_clk_frequency_hz => pl_clk_frequency_hz,
+  mmcm_block : block
+    constant parameters : mmcm_parameters_t := (
+      input_frequency_hz => pl_clk_frequency_hz,
       -- Parameterization and instantiation from AMD Vivado clocking wizard IP with
       -- settings 100 MHz -> 25 MHz.
       multiply => 9.125,
       divide => 1,
-      output_divide => (0=>36.5, others=>mmcm_output_divide_disabled)
-    )
-    port map (
-      input_clk => pl_clk,
-      result0_clk => pl_clk_div4
+      output_divide => (0=>36.5, others=>mmcm_output_divide_disabled),
+      output_phase_shift_degrees => (others => 0.0)
     );
+  begin
+
+    ------------------------------------------------------------------------------
+    mmcm_wrapper_inst : entity mmcm_wrapper.mmcm_wrapper
+      generic map (
+        parameters => parameters
+      )
+      port map (
+        input_clk => pl_clk,
+        result0_clk => pl_clk_div4
+      );
+
+  end block;
 
 
   ------------------------------------------------------------------------------
