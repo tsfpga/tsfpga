@@ -102,3 +102,15 @@ set_msg_config -new_severity "ERROR" -id "Common 17-1548"
 # Motivation: This warning appears only if we have specifically instructed the tool to use IOB,
 #     in which case failure to achieve that is an error.
 set_msg_config -new_severity "ERROR" -id "Place 30-722"
+
+# Raise from CRITICAL WARNING.
+# Message: Hook script file <PATH> does not exist
+# Motivation: Indicates an error in the setup of the project.
+#     Since a script that the user expects to run will not be run, that is a critical error.
+set_msg_config -new_severity "ERROR" -id "Project 1-1965"
+
+# Raise from WARNING.
+# Message: Unable to set the pre hook file <PATH> for run step Write Bitstream, as path is invalid.
+# Motivation: Could be that the file does not exists or maybe the path is formatted wrong.
+#     Either ways it's a critical error.
+set_msg_config -new_severity "ERROR" -id "Runs 36-526"
