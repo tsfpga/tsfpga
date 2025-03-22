@@ -32,13 +32,13 @@ use work.block_design_pkg.all;
 
 entity block_design_mock is
   port (
+    pl_clk : out std_ulogic := '0';
+    --# {{}}
     m_gp0_m2s : out axi_m2s_t;
     m_gp0_s2m : in axi_s2m_t;
     --# {{}}
     s_hp0_m2s : in axi_m2s_t;
-    s_hp0_s2m : out axi_s2m_t;
-    --# {{}}
-    pl_clk : out std_ulogic := '0'
+    s_hp0_s2m : out axi_s2m_t
   );
 end entity;
 
