@@ -223,25 +223,19 @@ begin
 
 
   ------------------------------------------------------------------------------
-  block_design : block
-  begin
-
-    ------------------------------------------------------------------------------
-    block_design_inst : entity work.block_design_wrapper
-      port map (
-        m_gp0_m2s => m_gp0_m2s,
-        m_gp0_s2m => m_gp0_s2m,
-        --
-        s_hp0_m2s => s_hp0_m2s,
-        s_hp0_s2m => s_hp0_s2m,
-        --
-        pl_clk => pl_clk,
-        --
-        ddr => ddr,
-        fixed_io => fixed_io
-      );
-
-  end block;
+  block_design_inst : entity work.block_design_wrapper
+    port map (
+      pl_clk => pl_clk,
+      --
+      m_gp0_m2s => m_gp0_m2s,
+      m_gp0_s2m => m_gp0_s2m,
+      --
+      s_hp0_m2s => s_hp0_m2s,
+      s_hp0_s2m => s_hp0_s2m,
+      --
+      ddr => ddr,
+      fixed_io => fixed_io
+    );
 
 
   ------------------------------------------------------------------------------

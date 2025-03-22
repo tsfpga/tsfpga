@@ -7,17 +7,12 @@
 -- -------------------------------------------------------------------------------------------------
 
 library ieee;
-use ieee.numeric_std.all;
 use ieee.std_logic_1164.all;
 
 library axi;
 use axi.axi_pkg.all;
 
-library axi_lite;
-use axi_lite.axi_lite_pkg.all;
-
 library common;
-use common.common_pkg.all;
 use common.attribute_pkg.all;
 
 library resync;
@@ -48,9 +43,6 @@ architecture a of io_constraints_top is
 
   signal m_gp0_m2s : axi_m2s_t := axi_m2s_init;
   signal m_gp0_s2m : axi_s2m_t := axi_s2m_init;
-
-  signal s_hp0_m2s : axi_m2s_t := axi_m2s_init;
-  signal s_hp0_s2m : axi_s2m_t := axi_s2m_init;
 
 begin
 
@@ -139,24 +131,15 @@ begin
 
 
   ------------------------------------------------------------------------------
-  block_design : block
-  begin
-
-    ------------------------------------------------------------------------------
-    block_design_inst : entity artyz7.block_design_wrapper
-      port map (
-        m_gp0_m2s => m_gp0_m2s,
-        m_gp0_s2m => m_gp0_s2m,
-        --
-        s_hp0_m2s => s_hp0_m2s,
-        s_hp0_s2m => s_hp0_s2m,
-        --
-        pl_clk => pl_clk,
-        --
-        ddr => ddr,
-        fixed_io => fixed_io
-      );
-
-  end block;
+  block_design_inst : entity artyz7.block_design_wrapper
+    port map (
+      pl_clk => pl_clk,
+      --
+      m_gp0_m2s => m_gp0_m2s,
+      m_gp0_s2m => m_gp0_s2m,
+      --
+      ddr => ddr,
+      fixed_io => fixed_io
+    );
 
 end architecture;

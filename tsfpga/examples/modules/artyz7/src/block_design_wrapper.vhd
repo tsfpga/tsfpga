@@ -22,13 +22,13 @@ use work.block_design_wrapper_pkg.block_design;
 
 entity block_design_wrapper is
   port (
+    pl_clk : out std_ulogic := '0';
+    --# {{}}
     m_gp0_m2s : out axi_m2s_t := axi_m2s_init;
     m_gp0_s2m : in axi_s2m_t;
     --# {{}}
-    s_hp0_m2s : in axi_m2s_t;
+    s_hp0_m2s : in axi_m2s_t := axi_m2s_init;
     s_hp0_s2m : out axi_s2m_t := axi_s2m_init;
-    --# {{}}
-    pl_clk : out std_ulogic := '0';
     --# {{}}
     ddr : inout zynq7000_ddr_t;
     fixed_io : inout zynq7000_fixed_io_t
