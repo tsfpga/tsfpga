@@ -60,34 +60,32 @@ puts "Peripheral min ${peripheral_min} ns, max ${peripheral_max} ns.";
 # Calculate trace delays based on length estimates and a pessimistic range
 # for signal propagation speed.
 # ---------------------------------------------------------------------------------
-# The speed at which electricity propagates in copper, expressed in m/s.
-# https://en.wikipedia.org/wiki/Velocity_factor#Typical_velocity_factors
+# The speed at which light propagates in a vacuum, expressed in m/s.
 set speed_of_light_m_s 299792458.0;
-set propagation_speed_min_m_s [expr ${speed_of_light_m_s} * 0.3];
-set propagation_speed_max_m_s [expr ${speed_of_light_m_s} * 1.0];
+# The speed at which electricity propagates in copper.
+# https://en.wikipedia.org/wiki/Velocity_factor#Typical_velocity_factors
+# Converted to cm/ns for convenience in the calculations below
+set speed_of_light_cm_ns [expr ${speed_of_light_m_s} / pow(10.0, 7.0)];
+set propagation_speed_min_cm_ns [expr ${speed_of_light_cm_ns} * 0.3];
+set propagation_speed_max_cm_ns [expr ${speed_of_light_cm_ns} * 1.0];
 
-# Multiply by 10**7 for the conversion cm / (m/s) = cs -> ns.
-set data_trace_delay_min_ns [
-  expr pow(10.0, 7.0) * ${data_trace_lengths_min_cm} / ${propagation_speed_max_m_s}
-];
-set data_trace_delay_max_ns [
-  expr pow(10.0, 7.0) * ${data_trace_lengths_max_cm} / ${propagation_speed_min_m_s}
-];
+set data_trace_delay_min_ns [expr ${data_trace_lengths_min_cm} / ${propagation_speed_max_cm_ns}];
+set data_trace_delay_max_ns [expr ${data_trace_lengths_max_cm} / ${propagation_speed_min_cm_ns}];
 puts "Data trace delay between ${data_trace_delay_min_ns} and ${data_trace_delay_max_ns} ns.";
 
 set clock_to_peripheral_trace_delay_min_ns [
-  expr pow(10.0, 7.0) * ${clock_to_peripheral_trace_length_min_cm} / ${propagation_speed_max_m_s}
+  expr ${clock_to_peripheral_trace_length_min_cm} / ${propagation_speed_max_cm_ns}
 ];
 set clock_to_peripheral_trace_delay_max_ns [
-  expr pow(10.0, 7.0) * ${clock_to_peripheral_trace_length_max_cm} / ${propagation_speed_min_m_s}
+  expr ${clock_to_peripheral_trace_length_max_cm} / ${propagation_speed_min_cm_ns}
 ];
 puts "Clock-to-peripheral trace delay between ${clock_to_peripheral_trace_delay_min_ns} and ${clock_to_peripheral_trace_delay_max_ns} ns.";
 
 set clock_to_fpga_trace_delay_min_ns [
-  expr pow(10.0, 7.0) * ${clock_to_fpga_trace_length_min_cm} / ${propagation_speed_max_m_s}
+  expr ${clock_to_fpga_trace_length_min_cm} / ${propagation_speed_max_cm_ns}
 ];
 set clock_to_fpga_trace_delay_max_ns [
-  expr pow(10.0, 7.0) * ${clock_to_fpga_trace_length_max_cm} / ${propagation_speed_min_m_s}
+  expr ${clock_to_fpga_trace_length_max_cm} / ${propagation_speed_min_cm_ns}
 ];
 puts "Clock-to-FPGA trace delay between ${clock_to_fpga_trace_delay_min_ns} and ${clock_to_fpga_trace_delay_max_ns} ns.";
 
