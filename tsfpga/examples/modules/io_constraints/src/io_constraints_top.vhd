@@ -85,7 +85,8 @@ begin
       -- the size of the valid window is 3.42.
       -- This would place the center of the window at 4.17 ns, which is equivalent to
       -- (4.17 / 8) * 360 = 188 degrees.
-      -- However, looking at the 'report_timing -setup/hold' output, the paths that the clock
+      -- The implementation timing fails with this shift however.
+      -- Looking at the 'report_timing -setup/hold' output, the paths that the clock
       -- and data take do not add the same delay, so we need to adjust the phase shift.
       -- Analyzing the data places the center of the valid window around 6 ns or 270 degrees.
       -- This can also be found simply by trial and error.
@@ -98,10 +99,6 @@ begin
     signal data_p1 : std_ulogic_vector(input_system_synchronous_data'range) := (others => '0');
   begin
 
-    -- Register will be placed in IOB thanks to attribute we set in the constraint file.
-    data_p1 <= input_system_synchronous_data when rising_edge(capture_clock);
-
-
     ------------------------------------------------------------------------------
     mmcm_wrapper_inst : entity mmcm_wrapper.mmcm_wrapper
       generic map (
@@ -111,6 +108,10 @@ begin
         input_clk => input_system_synchronous_clock,
         result0_clk => capture_clock
       );
+
+
+    -- Register will be placed in IOB thanks to attribute we set in the constraint file.
+    data_p1 <= input_system_synchronous_data when rising_edge(capture_clock);
 
 
     -----------------------------------------------------------------------
