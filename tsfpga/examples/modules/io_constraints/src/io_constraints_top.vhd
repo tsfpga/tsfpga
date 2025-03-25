@@ -47,6 +47,9 @@ architecture a of io_constraints_top is
 begin
 
   ------------------------------------------------------------------------------
+  -- See the constraints file 'input_source_synchronous.tcl' and the article
+  -- https://linkedin.com/pulse/io-timing-constraints-fpgaasic-1-source-synchronous-input-lukas-vik-0xslf
+  -- for details.
   input_source_synchronous_block : block
     signal data_p1 : std_ulogic_vector(input_source_synchronous_data'range) := (others => '0');
   begin
@@ -73,6 +76,9 @@ begin
 
 
   ------------------------------------------------------------------------------
+  -- See the constraints file 'input_system_synchronous.tcl' and the article
+  -- https://www.linkedin.com/pulse/io-timing-constraints-fpgaasic-2-system-synchronous-input-lukas-vik-gpnkf
+  -- for details.
   input_system_synchronous_block : block
     constant mmcm_parameters : mmcm_parameters_t := (
       input_frequency_hz => 125.0e6,

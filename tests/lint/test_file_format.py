@@ -94,6 +94,8 @@ def test_no_checked_in_files_have_too_long_lines():
         TSFPGA_TCL / "check_timing.tcl",
         # From Vivado, not modified by us
         TSFPGA_EXAMPLE_MODULES / "artyz7" / "tcl" / "block_design.tcl",
+        # Long link.
+        TSFPGA_EXAMPLE_MODULES / "io_constraints" / "src" / "io_constraints_top.vhd",
         # Impossible to break TCL syntax, and long link.
         TSFPGA_EXAMPLE_MODULES / "io_constraints" / "tcl" / "input_source_synchronous.tcl",
         TSFPGA_EXAMPLE_MODULES / "io_constraints" / "tcl" / "input_system_synchronous.tcl",
