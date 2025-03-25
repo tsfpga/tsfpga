@@ -8,7 +8,7 @@
 # Constraints for system-synchronous input ports.
 # See also the HDL code in 'io_constraints_top.vhd'.
 # This is an example file that illustrates the constraints discussed in this article:
-# <LINK>
+# https://www.linkedin.com/pulse/io-timing-constraints-fpgaasic-2-system-synchronous-input-lukas-vik-gpnkf
 # --------------------------------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ set peripheral_setup_ns 1.3;
 set peripheral_hold_ns 6.3;
 
 # Converted to SDC notation per the article:
-# <LINK>
+# https://www.linkedin.com/pulse/io-timing-constraints-fpgaasic-2-system-synchronous-input-lukas-vik-gpnkf
 set peripheral_min [expr ${peripheral_hold_ns} - ${clock_period_ns}];
 set peripheral_max [expr ${peripheral_setup_ns}];
 puts "Peripheral min ${peripheral_min} ns, max ${peripheral_max} ns.";
