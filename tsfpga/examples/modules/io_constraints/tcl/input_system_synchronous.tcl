@@ -129,7 +129,9 @@ puts "Created clock: ${clock}";
 set_input_jitter ${clock} ${clock_jitter_ns};
 
 # ------------------------------------------------------------------------------
-# Apply MMCM attribute.
+# Apply attribute to the phase-shifting MMCM that creates the capture clock.
+# Recommended when introducing skew between two clocks to meet timing.
+# # https://docs.amd.com/r/en-US/ug906-vivado-design-analysis/MMCM/PLL-Phase-Shift-Modes
 # ------------------------------------------------------------------------------
 set mmcm_wrapper_inst "input_system_synchronous_block.mmcm_wrapper_inst"
 set mmcm_primitive_inst "${mmcm_wrapper_inst}/mmcm_block.mock_or_mmcm_gen.mmcm_primitive_inst"
