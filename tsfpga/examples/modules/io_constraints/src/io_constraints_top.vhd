@@ -78,21 +78,28 @@ begin
       input_frequency_hz => 125.0e6,
       -- Parameterization from AMD Vivado clocking wizard IP with
       -- settings 125 MHz -> 125 MHz and the below phase shift.
-      multiply => 8.0,
+      multiply => 6.0,
       divide => 1,
-      output_divide => (0=>8.0, others=>mmcm_output_divide_disabled),
+      output_divide => (0=>6.0, others=>mmcm_output_divide_disabled),
       -- Looking at the printouts from the constraint script, the 'max' value is 2.46 and
       -- the size of the valid window is 3.42.
       -- This would place the center of the window at 4.17 ns, which is equivalent to
       -- (4.17 / 8) * 360 = 188 degrees.
-      -- The implementation timing fails with this shift however.
-      -- Looking at the 'report_timing -setup/hold' output, the paths that the clock
-      -- and data take do not add the same delay, so we need to adjust the phase shift.
-      -- Analyzing the data places the center of the valid window around 6 ns or 270 degrees.
-      -- This can also be found simply by trial and error.
-      -- As long as the constraint is correct, we don't have to be super scientific in how
-      -- we find the appropriate phase shift.
-      output_phase_shift_degrees => (0=>270.0, others=>0.0)
+      -- But the paths that the clock and data take to the capture FF do not add to the same delay.
+      -- The clock goes through more buffers and more routing delay, and the MMCM
+      -- subtracts roughly 5 ns.
+      -- Reasoning about the necessary phase shift based on the min/max values
+      -- is not really useful.
+      -- I would instead recommend trail and error.
+      -- As long as we are confident that the constraint is correct, we don't have to be super
+      -- scientific in how we find the appropriate phase shift.
+      -- In Vivado you can do e.g.
+      --   set_property "CLKOUT0_PHASE" -95 [get_cells "<path>/MMCME2_ADV_inst"]
+      -- on an implemented design to test a new shift without rebuilding.
+      -- After changing the shift a new timing report will show the updated setup/hold skew.
+      -- With this method and some trial and error you can find the phase shift that places the
+      -- clock edge in the middle of the valid data window at the FF.
+      output_phase_shift_degrees => (0=>-90.0, others=>0.0)
     );
 
     signal capture_clock : std_ulogic := '0';
