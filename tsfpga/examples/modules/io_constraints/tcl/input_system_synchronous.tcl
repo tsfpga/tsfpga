@@ -128,6 +128,15 @@ puts "Created clock: ${clock}";
 
 set_input_jitter ${clock} ${clock_jitter_ns};
 
+# ------------------------------------------------------------------------------
+# Apply MMCM attribute.
+# ------------------------------------------------------------------------------
+set mmcm_wrapper_inst "input_system_synchronous_block.mmcm_wrapper_inst"
+set mmcm_primitive_inst "${mmcm_wrapper_inst}/mmcm_block.mock_or_mmcm_gen.mmcm_primitive_inst"
+set mmcm_inst [get_cells "${mmcm_primitive_inst}/MMCME2_ADV_inst"];
+puts "MMCM instance: ${mmcm_inst}";
+
+set_property "PHASESHIFT_MODE" "LATENCY" ${mmcm_inst};
 
 # ------------------------------------------------------------------------------
 # Constrain data signals.
