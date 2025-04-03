@@ -45,9 +45,11 @@ set iostandard "LVCMOS33";
 # Timing of peripheral device. From XXXX.pdf page NN.
 # Device uses a "valid window after clock" model for setup/hold.
 # ---------------------------------------------------------------------------------
-# Time after clock edge that the peripheral data pin is guaranteed to hold a valid value.
+# Time after the clock edge reaches the peripheral when its data pin is guaranteed
+# to hold a valid value.
 set peripheral_setup_ns 1.3;
-# Time after the clock edge when the peripheral data pin might assume an invalid value.
+# Time after the clock edge reaches the peripheral when its data pin might assume
+# an invalid value.
 set peripheral_hold_ns 6.3;
 
 # Converted to SDC notation per the article:

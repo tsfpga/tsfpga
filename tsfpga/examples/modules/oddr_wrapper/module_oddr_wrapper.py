@@ -27,7 +27,7 @@ class Module(BaseModule):
         """
         Exclude files that depend on unisim.
         """
-        files_to_avoid = {self.path / "src" / "mmcm_primitive.vhd"}
+        files_to_avoid = {self.path / "src" / "oddr_primitive.vhd"}
 
         if not include_unisim:
             files_avoid = files_to_avoid if files_avoid is None else files_avoid | files_to_avoid
