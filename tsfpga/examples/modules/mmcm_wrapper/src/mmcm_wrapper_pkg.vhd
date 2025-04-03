@@ -107,7 +107,8 @@ package mmcm_wrapper_pkg is
 
   ------------------------------------------------------------------------------
   -- Component for the MMCM primitive wrapper so it can be instantiated as a block box,
-  -- meaning our design can be simulated even when we don't have access to Vivado simlib.
+  -- meaning our design can be simulated even when we don't have access to
+  -- Vivado simulation libraries.
   component mmcm_primitive is
     generic (
       -- Should be given by the 'calculate_attributes()' function based on a

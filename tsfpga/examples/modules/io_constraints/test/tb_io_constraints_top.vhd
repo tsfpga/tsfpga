@@ -18,6 +18,7 @@ use artyz7.block_design_pkg.all;
 
 entity tb_io_constraints_top is
   generic (
+    mock_unisim : boolean := false;
     runner_cfg : string
   );
 end entity;
@@ -29,6 +30,9 @@ architecture tb of tb_io_constraints_top is
 
   signal input_system_synchronous_clock : std_ulogic := '0';
   signal input_system_synchronous_data : std_ulogic_vector(3 downto 0) := (others => '0');
+
+  signal input_sink_synchronous_clock : std_ulogic := '0';
+  signal input_sink_synchronous_data : std_ulogic_vector(3 downto 0) := (others => '0');
 
   signal ddr : zynq7000_ddr_t;
   signal fixed_io : zynq7000_fixed_io_t;
@@ -58,12 +62,18 @@ begin
 
   ------------------------------------------------------------------------------
   dut : entity work.io_constraints_top
+    generic map (
+      mock_unisim => mock_unisim
+    )
     port map (
       input_source_synchronous_clock => input_source_synchronous_clock,
       input_source_synchronous_data => input_source_synchronous_data,
       --
       input_system_synchronous_clock => input_system_synchronous_clock,
       input_system_synchronous_data => input_system_synchronous_data,
+      --
+      input_sink_synchronous_clock => input_sink_synchronous_clock,
+      input_sink_synchronous_data => input_sink_synchronous_data,
       --
       ddr => ddr,
       fixed_io => fixed_io

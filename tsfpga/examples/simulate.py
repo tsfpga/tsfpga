@@ -17,7 +17,6 @@ sys.path.insert(0, str(REPO_ROOT))
 import tsfpga.examples.example_pythonpath
 
 import tsfpga
-import tsfpga.create_vhdl_ls_config
 from tsfpga.create_ghdl_ls_config import create_ghdl_ls_configuration
 from tsfpga.examples.example_env import (
     TSFPGA_EXAMPLES_TEMP_DIR,
