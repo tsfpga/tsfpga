@@ -6,7 +6,7 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 # Constraints for source-synchronous input ports.
-# See also the HDL code in 'io_constraints_top.vhd'.
+# See the HDL code in the 'io_constraints_top.vhd' file in the 'src' folder also for details.
 # This is an example file that illustrates the constraints discussed in this article:
 # https://linkedin.com/pulse/io-timing-constraints-fpgaasic-1-source-synchronous-input-lukas-vik-0xslf
 # --------------------------------------------------------------------------------------------------

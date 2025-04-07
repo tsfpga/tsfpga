@@ -6,7 +6,7 @@
 -- https://github.com/tsfpga/tsfpga
 -- -------------------------------------------------------------------------------------------------
 -- Example FPGA top-level that showcases different input/output interfaces.
--- See the corresponding constraint files also for details.
+-- See the corresponding constraint files in the 'tcl' folder also for details.
 -- -------------------------------------------------------------------------------------------------
 
 library ieee;

@@ -6,7 +6,7 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 # Constraints for sink-synchronous input ports.
-# See also the HDL code in 'io_constraints_top.vhd'.
+# See the HDL code in the 'io_constraints_top.vhd' file in the 'src' folder also for details.
 # This is an example file that illustrates the constraints discussed in this article:
 # <LINK TODO>
 # --------------------------------------------------------------------------------------------------
