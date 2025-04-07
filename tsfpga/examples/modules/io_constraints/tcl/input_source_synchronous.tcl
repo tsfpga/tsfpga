@@ -25,7 +25,7 @@ set data_trace_delays_ns {
   0.789
   0.831
   0.804
-}
+};
 
 set clock_pin "H16";
 set clock_trace_delay_ns 0.779;
@@ -75,7 +75,7 @@ set clock [
     -name [get_property "NAME" ${clock_port}] \
     -period ${clock_period_ns} \
     ${clock_port}
-]
+];
 puts "Created clock: ${clock}";
 
 set_input_jitter ${clock} ${clock_jitter_ns};
@@ -119,7 +119,7 @@ for {set data_index 0} {${data_index} < [llength ${data_pins}]} {incr data_index
 
   set invalid_window_ns [expr ${data_max} - ${data_min}];
   set valid_window_ns [expr ${clock_period_ns} - ${invalid_window_ns}];
-  puts "Valid window ${valid_window_ns} ns (invalid ${invalid_window_ns} ns)."
+  puts "Valid window ${valid_window_ns} ns (invalid ${invalid_window_ns} ns).";
 
   set_input_delay -clock ${clock} -min ${data_min} ${data_port};
   set_input_delay -clock ${clock} -max ${data_max} ${data_port};

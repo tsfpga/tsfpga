@@ -110,7 +110,7 @@ puts "Final constraint: min ${data_min}, max ${data_max}.";
 
 set invalid_window_ns [expr ${data_max} - ${data_min}];
 set valid_window_ns [expr ${clock_period_ns} - ${invalid_window_ns}];
-puts "Valid window ${valid_window_ns} ns (invalid ${invalid_window_ns} ns)."
+puts "Valid window ${valid_window_ns} ns (invalid ${invalid_window_ns} ns).";
 
 # ---------------------------------------------------------------------------------
 # Create and constrain clock.
@@ -125,7 +125,7 @@ set clock [
     -name [get_property "NAME" ${clock_port}] \
     -period ${clock_period_ns} \
     ${clock_port}
-]
+];
 puts "Created clock: ${clock}";
 
 set_input_jitter ${clock} ${clock_jitter_ns};
@@ -135,8 +135,8 @@ set_input_jitter ${clock} ${clock_jitter_ns};
 # Recommended when introducing skew between two clocks to meet timing.
 # # https://docs.amd.com/r/en-US/ug906-vivado-design-analysis/MMCM/PLL-Phase-Shift-Modes
 # ------------------------------------------------------------------------------
-set mmcm_wrapper_inst "input_system_synchronous_block.mmcm_wrapper_inst"
-set mmcm_primitive_inst "${mmcm_wrapper_inst}/mmcm_block.mock_or_mmcm_gen.mmcm_primitive_inst"
+set mmcm_wrapper_inst "input_system_synchronous_block.mmcm_wrapper_inst";
+set mmcm_primitive_inst "${mmcm_wrapper_inst}/mmcm_block.mock_or_mmcm_gen.mmcm_primitive_inst";
 set mmcm_inst [get_cells "${mmcm_primitive_inst}/MMCME2_ADV_inst"];
 puts "MMCM instance: ${mmcm_inst}";
 

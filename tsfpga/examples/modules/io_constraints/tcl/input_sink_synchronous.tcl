@@ -25,7 +25,7 @@ set data_trace_delays_ns {
   0.887
   0.904
   0.863
-}
+};
 
 set clock_pin "V16";
 set clock_trace_delay_ns 0.913;
@@ -76,7 +76,7 @@ set clock_name [
     -source ${oddr_pin} \
     -divide_by 1 \
     ${clock_port}
-]
+];
 set clock [get_clocks ${clock_name}];
 puts "Created clock: ${clock}.";
 
@@ -108,7 +108,7 @@ for {set data_index 0} {${data_index} < [llength ${data_pins}]} {incr data_index
 
   set invalid_window_ns [expr ${data_max} - ${data_min}];
   set valid_window_ns [expr ${clock_period_ns} - ${invalid_window_ns}];
-  puts "Valid window ${valid_window_ns} ns (invalid ${invalid_window_ns} ns)."
+  puts "Valid window ${valid_window_ns} ns (invalid ${invalid_window_ns} ns).";
 
   # Note that constraint is applied relative to the 'output' clock (not the 'capture' clock).
   set_input_delay -clock ${clock} -min ${data_min} ${data_port};
