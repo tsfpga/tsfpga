@@ -8,7 +8,7 @@
 # Constraints for sink-synchronous input ports.
 # See the HDL code in the 'io_constraints_top.vhd' file in the 'src' folder also for details.
 # This is an example file that illustrates the constraints discussed in this article:
-# <LINK TODO>
+# https://www.linkedin.com/pulse/io-timing-constraints-fpgaasic-3-sink-synchronous-input-lukas-vik-iuxuf/
 # --------------------------------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------------

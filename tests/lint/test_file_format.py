@@ -99,6 +99,7 @@ def test_no_checked_in_files_have_too_long_lines():
         # Impossible to break TCL syntax, and long link.
         TSFPGA_EXAMPLE_MODULES / "io_constraints" / "tcl" / "input_source_synchronous.tcl",
         TSFPGA_EXAMPLE_MODULES / "io_constraints" / "tcl" / "input_system_synchronous.tcl",
+        TSFPGA_EXAMPLE_MODULES / "io_constraints" / "tcl" / "input_sink_synchronous.tcl",
     ]
     for file_path in files_to_test(exclude_directories=excludes):
         test_ok &= check_file_for_line_length(file_path=file_path)

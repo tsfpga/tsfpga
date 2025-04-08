@@ -160,7 +160,7 @@ begin
 
   ------------------------------------------------------------------------------
   -- See the constraints file 'input_sink_synchronous.tcl' and the article
-  -- <LINK TODO>
+  -- https://www.linkedin.com/pulse/io-timing-constraints-fpgaasic-3-sink-synchronous-input-lukas-vik-iuxuf/
   -- for details.
   input_sink_synchronous_block : block
     signal data_p1 : std_ulogic_vector(input_sink_synchronous_data'range) := (others => '0');
