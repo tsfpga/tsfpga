@@ -42,6 +42,7 @@ entity mmcm_wrapper is
     --# {{}}
     -- Clock must be assigned in order to get the 'locked' signal.
     -- Can be one of the result clocks or any other clock.
+    -- If 'locked' is not used, the port can be left unassigned.
     status_clk : in std_ulogic := '0';
     locked : out std_ulogic := '0'
   );

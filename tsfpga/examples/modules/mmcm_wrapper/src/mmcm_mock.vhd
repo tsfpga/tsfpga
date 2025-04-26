@@ -40,7 +40,7 @@ begin
 
     ------------------------------------------------------------------------------
     is_enabled_gen : if attributes.outputs(result_index).is_enabled generate
-      -- Note that the phase shift value in the attribute can be negative.
+      -- Note that the clock phase shift value in the attribute can be negative.
       -- But the addition result here should always be positive.
       constant phase_shift_and_delay : time := (
         startup_delay + attributes.outputs(result_index).phase_shift

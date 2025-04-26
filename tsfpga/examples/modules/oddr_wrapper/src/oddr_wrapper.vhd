@@ -10,7 +10,7 @@
 -- the clock to the pin directly.
 -- This is since the clock signal never has to leave the FPGA-internal clock network.
 --
--- Benchmarking a sink-synchronous interface, the setup+hold slack window was 0.8 ns larger
+-- Benchmarking a sink-synchronous input interface, the setup+hold slack window was 0.8 ns larger
 -- when using an ODDR compared to assigning the pin directly.
 -- -------------------------------------------------------------------------------------------------
 

@@ -20,7 +20,7 @@ package oddr_wrapper_pkg is
   -- Vivado simulation libraries.
   component oddr_primitive is
     generic (
-      num_output_clocks : positive := 1
+      num_output_clocks : positive
     );
     port (
       internal_clock : in std_ulogic;
