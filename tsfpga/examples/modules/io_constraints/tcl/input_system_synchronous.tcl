@@ -64,10 +64,11 @@ puts "Peripheral min ${peripheral_min} ns, max ${peripheral_max} ns.";
 # ---------------------------------------------------------------------------------
 # The speed at which light propagates in a vacuum, expressed in m/s.
 set speed_of_light_m_s 299792458.0;
-# The speed at which electricity propagates in copper.
-# https://en.wikipedia.org/wiki/Velocity_factor#Typical_velocity_factors
 # Converted to cm/ns for convenience in the calculations below
 set speed_of_light_cm_ns [expr ${speed_of_light_m_s} / pow(10.0, 7.0)];
+
+# The speed at which electricity propagates in copper.
+# https://en.wikipedia.org/wiki/Velocity_factor#Typical_velocity_factors
 set propagation_speed_min_cm_ns [expr ${speed_of_light_cm_ns} * 0.3];
 set propagation_speed_max_cm_ns [expr ${speed_of_light_cm_ns} * 1.0];
 
