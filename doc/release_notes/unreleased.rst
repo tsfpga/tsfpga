@@ -1,1 +1,1 @@
-Nothing here yet.
+Bump hdl-registers version requirement.
