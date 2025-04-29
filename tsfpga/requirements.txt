@@ -1,4 +1,4 @@
 GitPython
-hdl-registers>= 6.0.0
+hdl-registers>=8.0.0
 rtoml
 vunit_hdl
