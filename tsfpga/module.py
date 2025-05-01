@@ -605,25 +605,25 @@ class BaseModule:
 
         return test_case_name
 
-    def add_vunit_config(
+    def add_vunit_config(  # noqa: PLR0913
         self,
         test: Test | TestBench,
         name: str | None = None,
         generics: dict[str, Any] | None = None,
         set_random_seed: bool | int | None = False,
+        count: int = 1,
         pre_config: Callable[..., bool] | None = None,
         post_check: Callable[..., bool] | None = None,
     ) -> None:
         """
-        Add a VUnit test configuration.
-        Wrapper that sets a suitable name and can set a random seed generic.
+        Convenient wrapper to add VUnit test configuration(s).
 
         Arguments:
             test: VUnit test or testbench object.
-            name: Optional designated name for this config. Will be used to form the name of
-                the config together with the ``generics`` value.
-            generics: Generic values that will be applied to the testbench entity. The values
-                will also be used to form the name of the config.
+            name: Optional designated name for this config.
+                Will be used to form the name of the config together with the ``generics`` value.
+            generics: Generic values that will be applied to the testbench entity.
+                The values will also be used to form the name of the config.
             set_random_seed: Controls setting of the ``seed`` generic:
 
                 * When this argument is not assigned, or assigned ``False``, the generic will not
@@ -635,12 +635,23 @@ class BaseModule:
 
                 If the generic is to be set it must exist in the testbench entity, and should have
                 VHDL type ``natural``.
+
+                .. deprecated:: 13.2.2
+                    Use VUnit mechanism for random seed instead rather than this clunky variant.
+            count: Number of times to setup the same test configuration.
+                Is useful for testbenches that randomize their behavior based on the VUnit seed.
             pre_config: Function to be run before the test.
                 See `VUnit documentation <https://vunit.github.io/py/ui.html>`_ for details.
             post_check: Function to be run after the test.
                 See `VUnit documentation <https://vunit.github.io/py/ui.html>`_ for details.
         """
         generics = {} if generics is None else generics
+
+        if set_random_seed != False:  # noqa: E712
+            print(
+                f"DEPRECATED: {self.__class__.__name__}.add_vunit_config() argument "
+                "'set_random_seed' is deprecated and will be removed."
+            )
 
         # Note that "bool" is a sub-class of "int" in python, so isinstance(set_random_seed, int)
         # returns True if it is an integer or a bool.
@@ -653,13 +664,22 @@ class BaseModule:
         elif isinstance(set_random_seed, int):
             generics["seed"] = set_random_seed
 
-        name = self.test_case_name(name=name, generics=generics)
-        # VUnit does not allow an empty name, which can happen if both 'name' and 'generics' to
-        # this method are None, but the user sets for example a 'pre_config'.
-        # Avoid this error mode by setting a default name when it happens.
-        name = "test" if name == "" else name
+        base_name = self.test_case_name(name=name, generics=generics)
 
-        test.add_config(name=name, generics=generics, pre_config=pre_config, post_check=post_check)
+        for count_index in range(count):
+            if base_name == "":
+                # VUnit does not allow an empty name, which can happen if both 'name' and 'generics'
+                # to this method are 'None', but the user sets for example a 'pre_config'.
+                # Avoid this error mode by setting the count index, even if count is 1.
+                name = str(count_index)
+            elif count > 1:
+                name = f"{base_name}.{count_index}"
+            else:
+                name = base_name
+
+            test.add_config(
+                name=name, generics=generics, pre_config=pre_config, post_check=post_check
+            )
 
     def __str__(self) -> str:
         return f"{self.name}:{self.path}"

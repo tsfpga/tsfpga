@@ -24,7 +24,7 @@ def test_add_vunit_config_name():
 
     module.add_vunit_config(test=test, pre_config=pre_config, post_check=post_check)
     test.add_config.assert_called_once_with(
-        name="test", generics={}, pre_config=pre_config, post_check=post_check
+        name="0", generics={}, pre_config=pre_config, post_check=post_check
     )
     test.reset_mock()
 
@@ -58,10 +58,10 @@ def test_add_vunit_config_random_seed():
 
     # No seed at all
     module.add_vunit_config(test=test)
-    assert "generics" not in test.add_config.call_args
+    assert not test.add_config.call_args.kwargs["generics"]
 
     module.add_vunit_config(test=test, set_random_seed=False)
-    assert "generics" not in test.add_config.call_args
+    assert not test.add_config.call_args.kwargs["generics"]
 
     # No seed, with generics set
     module.add_vunit_config(test=test, generics={"apa": "whatever"})
@@ -88,6 +88,36 @@ def test_add_vunit_config_random_seed():
     # If a value is already set it will be overwritten
     module.add_vunit_config(test=test, generics={"seed": -5}, set_random_seed=True)
     assert test.add_config.call_args.kwargs["generics"]["seed"] != -5
+
+
+def test_add_vunit_config_count_1():
+    module = BaseModule(path=Path(), library_name="")
+    test = MagicMock()
+
+    module.add_vunit_config(test=test, count=1)
+    assert test.add_config.call_count == 1
+    assert test.add_config.call_args.kwargs["name"] == "0"
+
+    module.add_vunit_config(test=test, name="apa")
+    assert test.add_config.call_args.kwargs["name"] == "apa"
+
+
+def test_add_vunit_config_count_2():
+    module = BaseModule(path=Path(), library_name="")
+    test = MagicMock()
+
+    module.add_vunit_config(test=test, count=2)
+    assert test.add_config.call_count == 2
+    assert test.add_config.call_args_list[0].kwargs["name"] == "0"
+    assert test.add_config.call_args_list[1].kwargs["name"] == "1"
+
+    module.add_vunit_config(test=test, name="apa", count=2)
+    assert test.add_config.call_args_list[2].kwargs["name"] == "apa.0"
+    assert test.add_config.call_args_list[3].kwargs["name"] == "apa.1"
+
+    module.add_vunit_config(test=test, generics={"apa": True}, count=2)
+    assert test.add_config.call_args_list[4].kwargs["name"] == "apa_True.0"
+    assert test.add_config.call_args_list[5].kwargs["name"] == "apa_True.1"
 
 
 def test_file_list_filtering(tmp_path):
