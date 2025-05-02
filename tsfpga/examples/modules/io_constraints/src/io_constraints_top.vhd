@@ -45,6 +45,9 @@ entity io_constraints_top is
     input_sink_synchronous_clock : out std_ulogic := '0';
     input_sink_synchronous_data : in std_ulogic_vector(3 downto 0);
     --# {{}}
+    output_source_synchronous_clock : out std_ulogic := '0';
+    output_source_synchronous_data : out std_ulogic_vector(3 downto 0) := (others => '0');
+    --# {{}}
     ddr : inout zynq7000_ddr_t;
     fixed_io : inout zynq7000_fixed_io_t
   );
@@ -184,6 +187,59 @@ begin
 
     -- Assign the data to something that will not get stripped by synthesis.
     m_gp0_s2m.read.r.data(11 downto 8) <= data_p1 when rising_edge(pl_clk);
+
+  end block;
+
+
+  ------------------------------------------------------------------------------
+  -- See the constraints file 'output_source_synchronous.tcl' and the article
+  -- <LINK TODO>
+  -- for details.
+  output_source_synchronous_block : block
+    -- See comments in the 'input_system_synchronous' block for details.
+    constant mmcm_parameters : mmcm_parameters_t := (
+      input_frequency_hz => pl_clk_frequency_hz,
+      multiply => 6.0,
+      divide => 1,
+      output_divide => (0=>6.0, others=>mmcm_output_divide_disabled),
+      output_phase_shift_degrees => (0=>-142.5, others=>0.0)
+    );
+
+    signal launch_clock : std_ulogic := '0';
+    signal data : std_ulogic_vector(output_source_synchronous_data'range) := (others => '0');
+  begin
+
+    ------------------------------------------------------------------------------
+    -- Use the ODDR primitive for better jitter properties.
+    -- Could also just assign 'output_source_synchronous_clock <= pl_clk;' directly,
+    -- would technically work but our valid timing window would be smaller.
+    oddr_wrapper_inst : entity oddr_wrapper.oddr_wrapper
+      generic map (
+        use_mock => mock_unisim
+      )
+      port map (
+        internal_clock => pl_clk,
+        output_clocks(0) => output_source_synchronous_clock
+      );
+
+
+    ------------------------------------------------------------------------------
+    mmcm_wrapper_inst : entity mmcm_wrapper.mmcm_wrapper
+      generic map (
+        parameters => mmcm_parameters,
+        use_mock => mock_unisim
+      )
+      port map (
+        input_clk => pl_clk,
+        result0_clk => launch_clock
+      );
+
+
+    -- Register will be placed in IOB thanks to attribute we set in the constraint file.
+    output_source_synchronous_data <= data when rising_edge(launch_clock);
+
+    -- Assign some data that will not get stripped by synthesis.
+    data <= m_gp0_m2s.write.w.data(3 downto 0) when rising_edge(pl_clk);
 
   end block;
 
