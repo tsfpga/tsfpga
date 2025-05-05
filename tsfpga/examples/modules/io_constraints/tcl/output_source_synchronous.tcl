@@ -108,8 +108,8 @@ for {set data_index 0} {${data_index} < [llength ${data_pins}]} {incr data_index
   ];
   puts "Final constraint: max ${data_max}, min ${data_min}.";
 
-  set invalid_window_ns [expr ${data_max} - ${data_min}];
-  set valid_window_ns [expr ${clock_period_ns} - ${invalid_window_ns}];
+  set valid_window_ns [expr ${data_max} - ${data_min}];
+  set invalid_window_ns [expr ${clock_period_ns} - ${valid_window_ns}];
   puts "Valid window ${valid_window_ns} ns (invalid ${invalid_window_ns} ns).";
 
   set_output_delay -clock ${clock} -max ${data_max} ${data_port};
