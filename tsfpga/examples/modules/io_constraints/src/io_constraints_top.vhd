@@ -202,7 +202,7 @@ begin
       multiply => 6.0,
       divide => 1,
       output_divide => (0=>6.0, others=>mmcm_output_divide_disabled),
-      output_phase_shift_degrees => (0=>-142.5, others=>0.0)
+      output_phase_shift_degrees => (0=>-157.5, others=>0.0)
     );
 
     signal launch_clock : std_ulogic := '0';
