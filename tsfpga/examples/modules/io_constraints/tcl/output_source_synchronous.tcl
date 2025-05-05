@@ -35,29 +35,7 @@ set clock_trace_delay_ns 0.713;
 set iostandard "LVCMOS33";
 
 # ---------------------------------------------------------------------------------
-# Timing of peripheral device. From XXXX.pdf page NN.
-# Device uses a "valid window around clock" model for its timing requirement.
-# ---------------------------------------------------------------------------------
-# Time before the clock edge when data must hold a valid value.
-set peripheral_setup_ns 1.3;
-# Time after the clock edge when data is allowed to go invalid.
-set peripheral_hold_ns 3.7;
-
-# Converted to SDC notation per the article:
-# <LINK TODO>
-set peripheral_max_ns ${peripheral_setup_ns};
-set peripheral_min_ns [expr - ${peripheral_hold_ns}];
-puts "Peripheral max ${peripheral_max_ns} ns, min ${peripheral_min_ns} ns.";
-
-# ---------------------------------------------------------------------------------
-# Calculate pessimistic range for clock trace delay.
-# ---------------------------------------------------------------------------------
-set clock_trace_delay_min_ns [expr 0.9 * ${clock_trace_delay_ns}];
-set clock_trace_delay_max_ns [expr 1.1 * ${clock_trace_delay_ns}];
-puts "Clock trace delay between ${clock_trace_delay_min_ns} and ${clock_trace_delay_max_ns} ns.";
-
-# ---------------------------------------------------------------------------------
-# Create and constrain clock.
+# Create and constrain output clock.
 # ---------------------------------------------------------------------------------
 set clock_port [get_ports "output_source_synchronous_clock"];
 puts "Constraining ${clock_port} to ${clock_pin}";
@@ -84,6 +62,41 @@ puts "Created clock: ${clock}.";
 
 set clock_period_ns [get_property "PERIOD" ${clock}];
 puts "Clock period: ${clock_period_ns} ns.";
+
+# ---------------------------------------------------------------------------------
+# Timing of peripheral device. From XXXX.pdf page NN.
+# Device uses a "valid window around clock" model for its timing requirement.
+# ---------------------------------------------------------------------------------
+# Time before the clock edge when data must hold a valid value.
+set peripheral_setup_ns 1.3;
+# Time after the clock edge when data is allowed to go invalid.
+set peripheral_hold_ns 3.7;
+
+# Converted to SDC notation per the article:
+# <LINK TODO>
+# Note that it is shifted by plus one clock period, to get reasonable values that meet timing.
+set peripheral_max_ns [expr ${clock_period_ns} + ${peripheral_setup_ns}];
+set peripheral_min_ns [expr ${clock_period_ns} - ${peripheral_hold_ns}];
+puts "Peripheral max ${peripheral_max_ns} ns, min ${peripheral_min_ns} ns.";
+
+# ---------------------------------------------------------------------------------
+# Calculate pessimistic range for clock trace delay.
+# ---------------------------------------------------------------------------------
+set clock_trace_delay_min_ns [expr 0.9 * ${clock_trace_delay_ns}];
+set clock_trace_delay_max_ns [expr 1.1 * ${clock_trace_delay_ns}];
+puts "Clock trace delay between ${clock_trace_delay_min_ns} and ${clock_trace_delay_max_ns} ns.";
+
+# ------------------------------------------------------------------------------
+# Apply attribute to the phase-shifting MMCM that creates the launch clock.
+# Recommended when introducing skew between two clocks to meet timing.
+# https://docs.amd.com/r/en-US/ug906-vivado-design-analysis/MMCM/PLL-Phase-Shift-Modes
+# ------------------------------------------------------------------------------
+set mmcm_wrapper_inst "output_source_synchronous_block.mmcm_wrapper_inst";
+set mmcm_primitive_inst "${mmcm_wrapper_inst}/mmcm_block.mock_or_mmcm_gen.mmcm_primitive_inst";
+set mmcm_inst [get_cells "${mmcm_primitive_inst}/MMCME2_ADV_inst"];
+puts "MMCM instance: ${mmcm_inst}";
+
+set_property "PHASESHIFT_MODE" "LATENCY" ${mmcm_inst};
 
 # ------------------------------------------------------------------------------
 # Constrain data signals.
