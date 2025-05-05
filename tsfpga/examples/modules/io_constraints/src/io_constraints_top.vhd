@@ -63,7 +63,7 @@ architecture a of io_constraints_top is
 begin
 
   ------------------------------------------------------------------------------
-  -- See the constraints file 'input_source_synchronous.tcl' and the article
+  -- See the constraints file 'input_source_synchronous.tcl' in the 'tcl' folder, and the article
   -- https://linkedin.com/pulse/io-timing-constraints-fpgaasic-1-source-synchronous-input-lukas-vik-0xslf
   -- for details.
   input_source_synchronous_block : block
@@ -92,7 +92,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  -- See the constraints file 'input_system_synchronous.tcl' and the article
+  -- See the constraints file 'input_system_synchronous.tcl' in the 'tcl' folder, and the article
   -- https://www.linkedin.com/pulse/io-timing-constraints-fpgaasic-2-system-synchronous-input-lukas-vik-gpnkf
   -- for details.
   input_system_synchronous_block : block
@@ -162,7 +162,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  -- See the constraints file 'input_sink_synchronous.tcl' and the article
+  -- See the constraints file 'input_sink_synchronous.tcl' in the 'tcl' folder, and the article
   -- https://www.linkedin.com/pulse/io-timing-constraints-fpgaasic-3-sink-synchronous-input-lukas-vik-iuxuf/
   -- for details.
   input_sink_synchronous_block : block
@@ -192,7 +192,7 @@ begin
 
 
   ------------------------------------------------------------------------------
-  -- See the constraints file 'output_source_synchronous.tcl' and the article
+  -- See the constraints file 'output_source_synchronous.tcl' in the 'tcl' folder, and the article
   -- <LINK TODO>
   -- for details.
   output_source_synchronous_block : block
