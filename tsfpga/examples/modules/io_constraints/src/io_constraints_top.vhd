@@ -193,7 +193,7 @@ begin
 
   ------------------------------------------------------------------------------
   -- See the constraints file 'output_source_synchronous.tcl' in the 'tcl' folder, and the article
-  -- <LINK TODO>
+  -- https://www.linkedin.com/pulse/io-timing-constraints-fpgaasic-4-source-synchronous-output-lukas-vik-fudxc
   -- for details.
   output_source_synchronous_block : block
     -- See comments in the 'input_system_synchronous' block for details.
