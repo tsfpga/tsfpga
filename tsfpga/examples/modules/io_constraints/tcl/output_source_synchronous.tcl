@@ -8,7 +8,7 @@
 # Constraints for source-synchronous output ports.
 # See the HDL code in the 'io_constraints_top.vhd' file in the 'src' folder also for details.
 # This is an example file that illustrates the constraints discussed in this article:
-# <LINK TODO>
+# https://www.linkedin.com/pulse/io-timing-constraints-fpgaasic-4-source-synchronous-output-lukas-vik-fudxc
 # --------------------------------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ set peripheral_setup_ns 1.3;
 set peripheral_hold_ns 3.7;
 
 # Converted to SDC notation per the article:
-# <LINK TODO>
+# https://www.linkedin.com/pulse/io-timing-constraints-fpgaasic-4-source-synchronous-output-lukas-vik-fudxc
 # Note that it is shifted by plus one clock period, to get reasonable values that meet timing.
 set peripheral_max_ns [expr ${clock_period_ns} + ${peripheral_setup_ns}];
 set peripheral_min_ns [expr ${clock_period_ns} - ${peripheral_hold_ns}];
