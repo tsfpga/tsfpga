@@ -55,7 +55,7 @@ begin
     variable rnd : RandomPType;
   begin
     test_runner_setup(runner, runner_cfg);
-    rnd.InitSeed(rnd'instance_name);
+    rnd.InitSeed(get_string_seed(runner_cfg));
 
     if run("test_register_read_write") then
       write_reg(net, 0, beef, base_address => regs_base_addresses(resync_ext_regs_idx));

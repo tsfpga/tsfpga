@@ -72,7 +72,7 @@ begin
     variable rnd : RandomPType;
   begin
     test_runner_setup(runner, runner_cfg);
-    rnd.InitSeed(rnd'instance_name);
+    rnd.InitSeed(get_string_seed(runner_cfg));
 
     if run("test_ddr_buffer") then
       check_ddr_buffer_status_counter_equal(net=>net, expected=>0);
