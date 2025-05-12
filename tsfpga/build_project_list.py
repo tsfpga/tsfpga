@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import fnmatch
 import time
+from abc import ABC, abstractmethod
 from pathlib import Path
 from threading import Lock
 from typing import TYPE_CHECKING, Any, Callable
@@ -336,10 +337,34 @@ class BuildProjectList:
                             break
 
 
-class BuildProjectCreateWrapper:
+class BuildProjectWrapper(ABC):
+    """
+    Mimics a VUnit test case object.
+    """
+
+    def get_seed(self) -> str:
+        """
+        Required since VUnit version 5.0.0.dev6, where a 'get_seed' method was added
+        to the 'TestSuiteWrapper' class, which calls a 'get_seed' method expected to be implemented
+        in the test case object.
+        This mechanism is not used by tsfpga, but is required in order to avoid errors.
+        Adding a dummy implementation like this makes sure it works with older as well as newer
+        versions of VUnit.
+        """
+        return ""
+
+    @abstractmethod
+    def run(
+        self,
+        output_path: Path,
+        read_output: Any,  # noqa: ANN401
+    ) -> bool:
+        pass
+
+
+class BuildProjectCreateWrapper(BuildProjectWrapper):
     """
     Wrapper to create a build project, for usage in the build runner.
-    Mimics a VUnit test object.
     """
 
     def __init__(
@@ -357,16 +382,15 @@ class BuildProjectCreateWrapper:
         read_output: Any,  # noqa: ANN401, ARG002
     ) -> bool:
         """
-        VUnit test runner sends another argument "read_output" which we don't use.
+        Argument 'read_output' sent by VUnit test runner is unused by us.
         """
         this_projects_path = Path(output_path) / "project"
         return self._project.create(project_path=this_projects_path, **self._create_arguments)
 
 
-class BuildProjectBuildWrapper:
+class BuildProjectBuildWrapper(BuildProjectWrapper):
     """
     Wrapper to build a project, for usage in the build runner.
-    Mimics a VUnit test object.
     """
 
     def __init__(
@@ -386,7 +410,7 @@ class BuildProjectBuildWrapper:
         read_output: Any,  # noqa: ANN401, ARG002
     ) -> bool:
         """
-        VUnit test runner sends another argument "read_output" which we don't use.
+        Argument 'read_output' sent by VUnit test runner is unused by us.
         """
         this_projects_path = Path(output_path) / "project"
         build_result = self._project.build(project_path=this_projects_path, **self._build_arguments)
@@ -442,10 +466,9 @@ class BuildProjectBuildWrapper:
         return length_of_size_report
 
 
-class BuildProjectOpenWrapper:
+class BuildProjectOpenWrapper(BuildProjectWrapper):
     """
     Wrapper to open a build project, for usage in the build runner.
-    Mimics a VUnit test object.
     """
 
     def __init__(self, project: VivadoProject) -> None:
@@ -458,7 +481,7 @@ class BuildProjectOpenWrapper:
         read_output: Any,  # noqa: ANN401, ARG002
     ) -> bool:
         """
-        VUnit test runner sends another argument "read_output" which we don't use.
+        Argument 'read_output' sent by VUnit test runner is unused by us.
         """
         this_projects_path = Path(output_path) / "project"
         return self._project.open(project_path=this_projects_path)
