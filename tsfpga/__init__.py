@@ -24,7 +24,7 @@ TSFPGA_EXAMPLE_MODULES = TSFPGA_EXAMPLES / "modules"
 # Default encoding when opening files
 DEFAULT_FILE_ENCODING = "utf-8"
 
-__version__ = "13.2.3-dev"
+__version__ = "13.2.3"
 
 # We have the slogan in one place only, instead of repeating it here in a proper docstring.
 __doc__ = get_short_slogan()
