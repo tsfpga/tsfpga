@@ -14,17 +14,29 @@ from tsfpga.hdl_file import HdlFile
 
 
 def test_file_endings():
-    assert HdlFile.file_endings == (".vhd", ".vhdl", ".v", ".vh", ".sv", ".svh")
+    assert HdlFile.file_endings == (
+        ".vhd",
+        ".vhdl",
+        ".vho",
+        ".v",
+        ".vp",
+        ".vo",
+        ".vh",
+        ".sv",
+        ".svp",
+        ".svh",
+    )
 
 
 def test_file_type():
     assert HdlFile(Path("file.vhd")).type == HdlFile.Type.VHDL
-    assert HdlFile(Path("file.vhdl")).type == HdlFile.Type.VHDL
+    assert HdlFile(Path("FILE.VHDL")).type == HdlFile.Type.VHDL
 
     assert HdlFile(Path("file.v")).type == HdlFile.Type.VERILOG_SOURCE
     assert HdlFile(Path("file.vh")).type == HdlFile.Type.VERILOG_HEADER
 
     assert HdlFile(Path("file.sv")).type == HdlFile.Type.SYSTEMVERILOG_SOURCE
+    assert HdlFile(Path("FILE.SVP")).type == HdlFile.Type.SYSTEMVERILOG_SOURCE
     assert HdlFile(Path("file.svh")).type == HdlFile.Type.SYSTEMVERILOG_HEADER
 
 

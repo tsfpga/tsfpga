@@ -29,10 +29,10 @@ class HdlFile:
 
     # Decides which file endings are associated with which file type.
     file_endings_mapping: ClassVar = {
-        Type.VHDL: (".vhd", ".vhdl"),
-        Type.VERILOG_SOURCE: (".v",),
+        Type.VHDL: (".vhd", ".vhdl", ".vho"),
+        Type.VERILOG_SOURCE: (".v", ".vp", ".vo"),
         Type.VERILOG_HEADER: (".vh",),
-        Type.SYSTEMVERILOG_SOURCE: (".sv",),
+        Type.SYSTEMVERILOG_SOURCE: (".sv", ".svp"),
         Type.SYSTEMVERILOG_HEADER: (".svh",),
     }
 
@@ -51,7 +51,7 @@ class HdlFile:
         self._path = path
 
         for file_type, file_endings in self.file_endings_mapping.items():
-            if path.name.endswith(file_endings):
+            if path.suffix.lower() in file_endings:
                 self._type = file_type
                 break
         else:
