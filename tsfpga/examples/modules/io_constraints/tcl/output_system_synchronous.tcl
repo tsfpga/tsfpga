@@ -103,13 +103,13 @@ for {set data_index 0} {${data_index} < [llength ${data_pins}]} {incr data_index
     ${peripheral_max_ns} \
     + ${data_trace_delay_max_ns} \
     + ${clock_to_fpga_trace_delay_max_ns} \
-    - ${clock_trace_delay_min_ns}
+    - ${clock_to_peripheral_trace_delay_min_ns}
   ];
   set data_min [expr \
     ${peripheral_min_ns} \
     + ${data_trace_delay_min_ns} \
     + ${clock_to_fpga_trace_delay_min_ns} \
-    - ${clock_trace_delay_max_ns}
+    - ${clock_to_peripheral_trace_delay_max_ns}
   ];
   puts "Final constraint: max ${data_max}, min ${data_min}.";
 

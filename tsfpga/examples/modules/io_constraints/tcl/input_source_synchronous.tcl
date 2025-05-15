@@ -104,13 +104,13 @@ for {set data_index 0} {${data_index} < [llength ${data_pins}]} {incr data_index
   puts "Trace delay between ${data_trace_delay_min_ns} and ${data_trace_delay_max_ns} ns.";
 
   set data_min [expr \
-    ${peripheral_min} \
+    ${peripheral_min_ns} \
     + ${driver_latency_min_ns} \
     + ${data_trace_delay_min_ns} \
     - ${clock_trace_delay_max_ns}
   ];
   set data_max [expr \
-    ${peripheral_max} \
+    ${peripheral_max_ns} \
     + ${driver_latency_max_ns} \
     + ${data_trace_delay_max_ns} \
     - ${clock_trace_delay_min_ns}
