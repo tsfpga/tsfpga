@@ -48,6 +48,9 @@ entity io_constraints_top is
     output_source_synchronous_clock : out std_ulogic := '0';
     output_source_synchronous_data : out std_ulogic_vector(3 downto 0) := (others => '0');
     --# {{}}
+    output_system_synchronous_clock : in std_ulogic := '0';
+    output_system_synchronous_data : out std_ulogic_vector(3 downto 0) := (others => '0');
+    --# {{}}
     ddr : inout zynq7000_ddr_t;
     fixed_io : inout zynq7000_fixed_io_t
   );
@@ -240,6 +243,34 @@ begin
 
     -- Assign some data that will not get stripped by synthesis.
     data <= m_gp0_m2s.write.w.data(3 downto 0) when rising_edge(pl_clk);
+
+  end block;
+
+
+  ------------------------------------------------------------------------------
+  -- See the constraints file 'output_system_synchronous.tcl' in the 'tcl' folder, and the article
+  -- <LINK TODO>
+  -- for details.
+  output_system_synchronous_block : block
+    signal data : std_ulogic_vector(output_system_synchronous_data'range) := (others => '0');
+  begin
+
+    -----------------------------------------------------------------------
+    resync_twophase_inst : entity resync.resync_twophase
+      generic map (
+        width => data'length
+      )
+      port map (
+        clk_in => pl_clk,
+        -- Assign some data that will not get stripped by synthesis.
+        data_in => m_gp0_m2s.write.w.data(7 downto 4),
+        --
+        clk_out => output_system_synchronous_clock,
+        data_out => data
+      );
+
+    -- Register will be placed in IOB thanks to attribute we set in the constraint file.
+    output_system_synchronous_data <= data when rising_edge(output_system_synchronous_clock);
 
   end block;
 

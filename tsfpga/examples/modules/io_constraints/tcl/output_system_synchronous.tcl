@@ -5,32 +5,33 @@
 # https://tsfpga.com
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
-# Constraints for source-synchronous input ports.
+# Constraints for system-synchronous output ports.
 # See the HDL code in the 'io_constraints_top.vhd' file in the 'src' folder also for details.
 # This is an example file that illustrates the constraints discussed in this article:
-# https://linkedin.com/pulse/io-timing-constraints-fpgaasic-1-source-synchronous-input-lukas-vik-0xslf
+# <LINK TODO>
 # --------------------------------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------------
-# Physical properties. Trace delays from <PCB tool>, board revision NN, YYYY-MM-DD.
+# Physical properties.
 # ---------------------------------------------------------------------------------
 set data_pins {
-  "R14"
-  "P14"
-  "N16"
-  "M14"
+  "T16"
+  "U17"
+  "V15"
+  "W15"
 };
 set data_trace_delays_ns {
-  0.762
-  0.789
-  0.831
-  0.804
+  0.672
+  0.879
+  0.381
+  0.408
 };
 
-set clock_pin "H16";
-set clock_trace_delay_ns 0.779;
+set clock_pin "U14";
+set clock_to_fpga_trace_delay_ns 0.179;
+set clock_to_peripheral_trace_delay_ns 0.779;
 
-# From peripheral device datasheet XXXX.pdf page NN.
+# From crystal oscillator datasheet XXXX.pdf page NN.
 set clock_period_ns 8.0;
 set clock_jitter_ns 0.01;
 
@@ -40,32 +41,35 @@ set iostandard "LVCMOS33";
 
 # ---------------------------------------------------------------------------------
 # Timing of peripheral device. From XXXX.pdf page NN.
-# Device uses a "valid window around clock" model for setup/hold.
+# Device uses a "invalid window around clock" model for setup/hold.
 # ---------------------------------------------------------------------------------
-# Time before the peripheral clock edge when its data pin is guaranteed to hold
-# a valid value.
+# Time before the clock edge when data is allowed to go invalid.
 set peripheral_setup_ns 1.3;
-# Time after the peripheral clock edge when its data pin might assume an
-# invalid value.
+# Time after the clock edge when data must hold a valid value.
 set peripheral_hold_ns 3.7;
 
 # Converted to SDC notation per the article:
-# https://linkedin.com/pulse/io-timing-constraints-fpgaasic-1-source-synchronous-input-lukas-vik-0xslf
-set peripheral_min_ns ${peripheral_hold_ns};
-set peripheral_max_ns [expr ${clock_period_ns} - ${peripheral_setup_ns}];
-puts "Peripheral min ${peripheral_min_ns} ns, max ${peripheral_max_ns} ns.";
+# <LINK TODO>
+set peripheral_max_ns [expr - ${peripheral_hold_ns}];
+set peripheral_min_ns [expr ${peripheral_setup_ns} - ${clock_period_ns}];
+puts "Peripheral max ${peripheral_max_ns} ns, min ${peripheral_min_ns} ns.";
+
 
 # ---------------------------------------------------------------------------------
-# Timing of the gate drivers on the data signals between the peripheral and the FPGA.
-# From YYYY.pdf page NN.
+# Calculate pessimistic range for clock trace delay.
 # ---------------------------------------------------------------------------------
-set driver_latency_min_ns 1.5;
-set driver_latency_max_ns 2.2;
+set clock_to_fpga_trace_delay_min_ns [expr 0.9 * ${clock_to_fpga_trace_delay_ns}];
+set clock_to_fpga_trace_delay_max_ns [expr 1.1 * ${clock_to_fpga_trace_delay_ns}];
+puts "Clock-to-FPGA trace delay between ${clock_to_fpga_trace_delay_min_ns} and ${clock_to_fpga_trace_delay_max_ns} ns.";
+
+set clock_to_peripheral_trace_delay_min_ns [expr 0.9 * ${clock_to_peripheral_trace_delay_ns}];
+set clock_to_peripheral_trace_delay_max_ns [expr 1.1 * ${clock_to_peripheral_trace_delay_ns}];
+puts "Clock-to-peripheral trace delay between ${clock_to_peripheral_trace_delay_min_ns} and ${clock_to_peripheral_trace_delay_max_ns} ns.";
 
 # ---------------------------------------------------------------------------------
 # Create and constrain clock.
 # ---------------------------------------------------------------------------------
-set clock_port [get_ports "input_source_synchronous_clock"];
+set clock_port [get_ports "output_system_synchronous_clock"];
 puts "Constraining ${clock_port} to ${clock_pin}";
 set_property "PACKAGE_PIN" ${clock_pin} ${clock_port};
 set_property "IOSTANDARD" ${iostandard} ${clock_port};
@@ -80,47 +84,39 @@ puts "Created clock: ${clock}";
 
 set_input_jitter ${clock} ${clock_jitter_ns};
 
-set clock_trace_delay_min_ns [expr 0.9 * ${clock_trace_delay_ns}];
-set clock_trace_delay_max_ns [expr 1.1 * ${clock_trace_delay_ns}];
-puts "Clock trace delay between ${clock_trace_delay_min_ns} and ${clock_trace_delay_max_ns} ns.";
-
 # ------------------------------------------------------------------------------
 # Constrain data signals.
 # ------------------------------------------------------------------------------
 for {set data_index 0} {${data_index} < [llength ${data_pins}]} {incr data_index} {
   set data_pin [lindex ${data_pins} ${data_index}];
-  set data_port [get_ports "input_source_synchronous_data[${data_index}]"];
+  set data_port [get_ports "output_system_synchronous_data[${data_index}]"];
   puts "Constraining ${data_port} to ${data_pin}";
   set_property "PACKAGE_PIN" ${data_pin} ${data_port};
   set_property "IOSTANDARD" ${iostandard} ${data_port};
   set_property "IOB" "TRUE" ${data_port};
 
-  # To avoid a ZHOLD_DELAY block that Vivado inserts erroneously in this particular case.
-  # Should not be normally necessary.
-  set_property "IOBDELAY" "NONE" [get_nets ${data_port}];
-
   set data_trace_delay_min_ns [expr 0.9 * [lindex ${data_trace_delays_ns} ${data_index}]];
   set data_trace_delay_max_ns [expr 1.1 * [lindex ${data_trace_delays_ns} ${data_index}]];
-  puts "Trace delay between ${data_trace_delay_min_ns} and ${data_trace_delay_max_ns} ns.";
+  puts "Data trace delay between ${data_trace_delay_min_ns} and ${data_trace_delay_max_ns} ns.";
 
-  set data_min [expr \
-    ${peripheral_min_ns} \
-    + ${driver_latency_min_ns} \
-    + ${data_trace_delay_min_ns} \
-    - ${clock_trace_delay_max_ns}
-  ];
   set data_max [expr \
     ${peripheral_max_ns} \
-    + ${driver_latency_max_ns} \
     + ${data_trace_delay_max_ns} \
-    - ${clock_trace_delay_min_ns}
+    + ${clock_to_fpga_trace_delay_max_ns} \
+    - ${clock_to_peripheral_trace_delay_min_ns}
   ];
-  puts "Final constraint: min ${data_min}, max ${data_max}.";
+  set data_min [expr \
+    ${peripheral_min_ns} \
+    + ${data_trace_delay_min_ns} \
+    + ${clock_to_fpga_trace_delay_min_ns} \
+    - ${clock_to_peripheral_trace_delay_max_ns}
+  ];
+  puts "Final constraint: max ${data_max}, min ${data_min}.";
 
-  set invalid_window_ns [expr ${data_max} - ${data_min}];
-  set valid_window_ns [expr ${clock_period_ns} - ${invalid_window_ns}];
+  set valid_window_ns [expr ${data_max} - ${data_min}];
+  set invalid_window_ns [expr ${clock_period_ns} - ${valid_window_ns}];
   puts "Valid window ${valid_window_ns} ns (invalid ${invalid_window_ns} ns).";
 
-  set_input_delay -clock ${clock} -min ${data_min} ${data_port};
-  set_input_delay -clock ${clock} -max ${data_max} ${data_port};
+  set_output_delay -clock ${clock} -max ${data_max} ${data_port};
+  set_output_delay -clock ${clock} -min ${data_min} ${data_port};
 }
