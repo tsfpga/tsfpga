@@ -67,15 +67,15 @@ begin
         attributes.input_frequency_hz * attributes.multiply / real(attributes.divide)
       );
     begin
+      report "MMCM synthesis";
       report (
-        "MMCM synthesis from input frequency "
+        " - Input frequency "
         & real'image(attributes.input_frequency_hz)
         & " Hz ("
         & real'image(attributes.input_period_ns)
-        & " ns) to VCO frequency "
-        & real'image(mmcm_f_vco_hz)
-        & " Hz."
+        & " ns)"
       );
+      report  " - VCO frequency " & real'image(mmcm_f_vco_hz) & " Hz.";
 
       for result_index in attributes.outputs'range loop
         if attributes.outputs(result_index).is_enabled then
@@ -91,7 +91,8 @@ begin
           );
 
           if attributes.outputs(result_index).phase_shift_degrees /= 0.0 then
-            report (" - Phase shift "
+            report (
+              " - Phase shift "
               & real'image(attributes.outputs(result_index).phase_shift_degrees)
               & " degrees ("
               & real'image(attributes.outputs(result_index).phase_shift_ns)
