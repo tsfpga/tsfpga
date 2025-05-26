@@ -54,9 +54,9 @@ set peripheral_hold_ns 6.3;
 
 # Converted to SDC notation per the article:
 # https://www.linkedin.com/pulse/io-timing-constraints-fpgaasic-2-system-synchronous-input-lukas-vik-gpnkf
-set peripheral_min [expr ${peripheral_hold_ns} - ${clock_period_ns}];
-set peripheral_max [expr ${peripheral_setup_ns}];
-puts "Peripheral min ${peripheral_min} ns, max ${peripheral_max} ns.";
+set peripheral_min_ns [expr ${peripheral_hold_ns} - ${clock_period_ns}];
+set peripheral_max_ns ${peripheral_setup_ns};
+puts "Peripheral min ${peripheral_min_ns} ns, max ${peripheral_max_ns} ns.";
 
 # ---------------------------------------------------------------------------------
 # Calculate trace delays based on length estimates and a pessimistic range
@@ -96,13 +96,13 @@ puts "Clock-to-FPGA trace delay between ${clock_to_fpga_trace_delay_min_ns} and 
 # Calculate data input constraints.
 # ------------------------------------------------------------------------------
 set data_min [expr \
-  ${peripheral_min} \
+  ${peripheral_min_ns} \
   + ${data_trace_delay_min_ns} \
   + ${clock_to_peripheral_trace_delay_min_ns} \
   - ${clock_to_fpga_trace_delay_max_ns}
 ];
 set data_max [expr \
-  ${peripheral_max} \
+  ${peripheral_max_ns} \
   + ${data_trace_delay_max_ns} \
   + ${clock_to_peripheral_trace_delay_max_ns} \
   - ${clock_to_fpga_trace_delay_min_ns}
