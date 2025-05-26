@@ -34,6 +34,9 @@ class Module(BaseModule):
             Constraint(
                 self.path / "tcl" / "output_source_synchronous.tcl", used_in_synthesis=False
             ),
+            Constraint(
+                self.path / "tcl" / "output_system_synchronous.tcl", used_in_synthesis=False
+            ),
         ]
         block_design = modules.get("artyz7").path / "tcl" / "block_design.tcl"
 

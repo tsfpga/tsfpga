@@ -48,6 +48,9 @@ entity io_constraints_top is
     output_source_synchronous_clock : out std_ulogic := '0';
     output_source_synchronous_data : out std_ulogic_vector(3 downto 0) := (others => '0');
     --# {{}}
+    output_system_synchronous_clock : in std_ulogic := '0';
+    output_system_synchronous_data : out std_ulogic_vector(3 downto 0) := (others => '0');
+    --# {{}}
     ddr : inout zynq7000_ddr_t;
     fixed_io : inout zynq7000_fixed_io_t
   );
@@ -116,7 +119,10 @@ begin
       -- As long as we are confident that the constraint is correct, we don't have to be super
       -- scientific in how we find the appropriate phase shift.
       -- In Vivado you can do e.g.
-      --   set_property "CLKOUT0_PHASE" -95 [get_cells "<path>/MMCME2_ADV_inst"]
+      --   set mmcm_wrapper "input_system_synchronous_block.mmcm_wrapper_inst"
+      --   set mmcm_primitive "${mmcm_wrapper}/mmcm_block.mock_or_mmcm_gen.mmcm_primitive_inst"
+      --   set mmcm [get_cells "${mmcm_primitive}/MMCME2_ADV_inst"]
+      --   set_property "CLKOUT0_PHASE" -95 ${mmcm}
       -- on an implemented design to test a new shift without rebuilding.
       -- After changing the shift a new timing report will show the updated setup/hold skew.
       -- With this method and some trial and error you can find the phase shift that places the
@@ -240,6 +246,57 @@ begin
 
     -- Assign some data that will not get stripped by synthesis.
     data <= m_gp0_m2s.write.w.data(3 downto 0) when rising_edge(pl_clk);
+
+  end block;
+
+
+  ------------------------------------------------------------------------------
+  -- See the constraints file 'output_system_synchronous.tcl' in the 'tcl' folder, and the article
+  -- <LINK TODO>
+  -- for details.
+  output_system_synchronous_block : block
+    constant mmcm_parameters : mmcm_parameters_t := (
+      input_frequency_hz => 125.0e6,
+      -- Parameterization from AMD Vivado clocking wizard IP with
+      -- settings 125 MHz -> 125 MHz and the below phase shift.
+      multiply => 6.0,
+      divide => 1,
+      output_divide => (0=>6.0, others=>mmcm_output_divide_disabled),
+      output_phase_shift_degrees => (0=>30.0, others=>0.0)
+    );
+
+    signal launch_clock : std_ulogic := '0';
+    signal data : std_ulogic_vector(output_system_synchronous_data'range) := (others => '0');
+  begin
+
+    ------------------------------------------------------------------------------
+    mmcm_wrapper_inst : entity mmcm_wrapper.mmcm_wrapper
+      generic map (
+        parameters => mmcm_parameters,
+        use_mock => mock_unisim
+      )
+      port map (
+        input_clk => output_system_synchronous_clock,
+        result0_clk => launch_clock
+      );
+
+
+    -----------------------------------------------------------------------
+    resync_twophase_inst : entity resync.resync_twophase
+      generic map (
+        width => data'length
+      )
+      port map (
+        clk_in => pl_clk,
+        -- Assign some data that will not get stripped by synthesis.
+        data_in => m_gp0_m2s.write.w.data(7 downto 4),
+        --
+        clk_out => launch_clock,
+        data_out => data
+      );
+
+    -- Register will be placed in IOB thanks to attribute we set in the constraint file.
+    output_system_synchronous_data <= data when rising_edge(launch_clock);
 
   end block;
 
