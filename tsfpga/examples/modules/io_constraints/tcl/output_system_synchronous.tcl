@@ -55,7 +55,6 @@ set peripheral_max_ns [expr ${clock_period_ns} - ${peripheral_setup_ns}];
 set peripheral_min_ns ${peripheral_hold_ns};
 puts "Peripheral max ${peripheral_max_ns} ns, min ${peripheral_min_ns} ns.";
 
-
 # ---------------------------------------------------------------------------------
 # Calculate pessimistic range for clock trace delay.
 # ---------------------------------------------------------------------------------
