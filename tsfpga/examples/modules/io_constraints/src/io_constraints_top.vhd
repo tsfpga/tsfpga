@@ -252,7 +252,7 @@ begin
 
   ------------------------------------------------------------------------------
   -- See the constraints file 'output_system_synchronous.tcl' in the 'tcl' folder, and the article
-  -- <LINK TODO>
+  -- https://www.linkedin.com/pulse/io-timing-constraints-fpgaasic-5-system-synchronous-output-lukas-vik-bv86f
   -- for details.
   output_system_synchronous_block : block
     constant mmcm_parameters : mmcm_parameters_t := (

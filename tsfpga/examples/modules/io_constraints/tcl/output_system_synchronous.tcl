@@ -8,7 +8,7 @@
 # Constraints for system-synchronous output ports.
 # See the HDL code in the 'io_constraints_top.vhd' file in the 'src' folder also for details.
 # This is an example file that illustrates the constraints discussed in this article:
-# <LINK TODO>
+# https://www.linkedin.com/pulse/io-timing-constraints-fpgaasic-5-system-synchronous-output-lukas-vik-bv86f
 # --------------------------------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------------
@@ -49,7 +49,7 @@ set peripheral_hold_ns 1.2;
 set peripheral_setup_ns 5.4;
 
 # Converted to SDC notation per the article:
-# <LINK TODO>
+# https://www.linkedin.com/pulse/io-timing-constraints-fpgaasic-5-system-synchronous-output-lukas-vik-bv86f
 # Note that it is shifted by plus one clock period, to get reasonable values that meet timing.
 set peripheral_max_ns [expr ${clock_period_ns} - ${peripheral_setup_ns}];
 set peripheral_min_ns ${peripheral_hold_ns};
