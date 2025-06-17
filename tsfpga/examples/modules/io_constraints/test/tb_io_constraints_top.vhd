@@ -34,6 +34,15 @@ architecture tb of tb_io_constraints_top is
   signal input_sink_synchronous_clock : std_ulogic := '0';
   signal input_sink_synchronous_data : std_ulogic_vector(3 downto 0) := (others => '0');
 
+  signal output_source_synchronous_clock : std_ulogic := '0';
+  signal output_source_synchronous_data : std_ulogic_vector(3 downto 0) := (others => '0');
+
+  signal output_system_synchronous_clock : std_ulogic := '0';
+  signal output_system_synchronous_data : std_ulogic_vector(3 downto 0) := (others => '0');
+
+  signal output_sink_synchronous_clock : std_ulogic := '0';
+  signal output_sink_synchronous_data : std_ulogic_vector(3 downto 0) := (others => '0');
+
   signal ddr : zynq7000_ddr_t;
   signal fixed_io : zynq7000_fixed_io_t;
 
@@ -45,6 +54,8 @@ begin
 
   input_source_synchronous_clock <= not input_source_synchronous_clock after clock_period / 2;
   input_system_synchronous_clock <= not input_system_synchronous_clock after clock_period / 2;
+  output_system_synchronous_clock <= not output_system_synchronous_clock after clock_period / 2;
+  output_sink_synchronous_clock <= not output_sink_synchronous_clock after clock_period / 2;
 
 
   ------------------------------------------------------------------------------
@@ -74,6 +85,15 @@ begin
       --
       input_sink_synchronous_clock => input_sink_synchronous_clock,
       input_sink_synchronous_data => input_sink_synchronous_data,
+      --
+      output_source_synchronous_clock => output_source_synchronous_clock,
+      output_source_synchronous_data => output_source_synchronous_data,
+      --
+      output_system_synchronous_clock => output_system_synchronous_clock,
+      output_system_synchronous_data => output_system_synchronous_data,
+      --
+      output_sink_synchronous_clock => output_sink_synchronous_clock,
+      output_sink_synchronous_data => output_sink_synchronous_data,
       --
       ddr => ddr,
       fixed_io => fixed_io
