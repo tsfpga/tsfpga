@@ -48,8 +48,11 @@ entity io_constraints_top is
     output_source_synchronous_clock : out std_ulogic := '0';
     output_source_synchronous_data : out std_ulogic_vector(3 downto 0) := (others => '0');
     --# {{}}
-    output_system_synchronous_clock : in std_ulogic := '0';
+    output_system_synchronous_clock : in std_ulogic;
     output_system_synchronous_data : out std_ulogic_vector(3 downto 0) := (others => '0');
+    --# {{}}
+    output_sink_synchronous_clock : in std_ulogic;
+    output_sink_synchronous_data : out std_ulogic_vector(3 downto 0) := (others => '0');
     --# {{}}
     ddr : inout zynq7000_ddr_t;
     fixed_io : inout zynq7000_fixed_io_t
@@ -297,6 +300,57 @@ begin
 
     -- Register will be placed in IOB thanks to attribute we set in the constraint file.
     output_system_synchronous_data <= data when rising_edge(launch_clock);
+
+  end block;
+
+
+  ------------------------------------------------------------------------------
+  -- See the constraints file 'output_sink_synchronous.tcl' in the 'tcl' folder, and the article
+  -- <LINK TODO>
+  -- for details.
+  output_sink_synchronous_block : block
+    constant mmcm_parameters : mmcm_parameters_t := (
+      input_frequency_hz => 125.0e6,
+      -- Parameterization from AMD Vivado clocking wizard IP with
+      -- settings 125 MHz -> 125 MHz and the below phase shift.
+      multiply => 6.0,
+      divide => 1,
+      output_divide => (0=>6.0, others=>mmcm_output_divide_disabled),
+      output_phase_shift_degrees => (0=>262.5, others=>0.0)
+    );
+
+    signal launch_clock : std_ulogic := '0';
+    signal data : std_ulogic_vector(output_sink_synchronous_data'range) := (others => '0');
+  begin
+
+    ------------------------------------------------------------------------------
+    mmcm_wrapper_inst : entity mmcm_wrapper.mmcm_wrapper
+      generic map (
+        parameters => mmcm_parameters,
+        use_mock => mock_unisim
+      )
+      port map (
+        input_clk => output_sink_synchronous_clock,
+        result0_clk => launch_clock
+      );
+
+
+    -----------------------------------------------------------------------
+    resync_twophase_inst : entity resync.resync_twophase
+      generic map (
+        width => data'length
+      )
+      port map (
+        clk_in => pl_clk,
+        -- Assign some data that will not get stripped by synthesis.
+        data_in => m_gp0_m2s.write.w.data(7 downto 4),
+        --
+        clk_out => launch_clock,
+        data_out => data
+      );
+
+    -- Register will be placed in IOB thanks to attribute we set in the constraint file.
+    output_sink_synchronous_data <= data when rising_edge(launch_clock);
 
   end block;
 
