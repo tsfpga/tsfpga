@@ -62,8 +62,7 @@ def get_git_sha(directory: Path) -> str:
 
     # Import fails if "git" executable is not available, hence it can not be on top level.
     # This function should only be called if git is available.
-
-    from git.repo import Repo
+    from git.repo import Repo  # noqa: PLC0415
 
     repo = Repo(directory, search_parent_directories=True)
     return repo.head.commit.hexsha[0:sha_length]
@@ -81,8 +80,7 @@ def git_local_changes_present(directory: Path) -> bool:
     """
     # Import fails if "git" executable is not available, hence it can not be on top level.
     # This function should only be called if git is available.
-
-    from git.repo import Repo
+    from git.repo import Repo  # noqa: PLC0415
 
     repo = Repo(directory, search_parent_directories=True)
 
@@ -94,8 +92,8 @@ def git_commands_are_available(directory: Path) -> bool:
     True if "git" command executable is available, and ``directory`` is in a valid git repo.
     """
     try:
-        from git import InvalidGitRepositoryError
-        from git.repo import Repo
+        from git import InvalidGitRepositoryError  # noqa: PLC0415
+        from git.repo import Repo  # noqa: PLC0415
     except ImportError:
         return False
 
@@ -127,8 +125,7 @@ def find_git_files(
     """
     # Import fails if "git" executable is not available, hence it can not be on top level.
     # This function should only be called if git is available.
-
-    from git.repo import Repo
+    from git.repo import Repo  # noqa: PLC0415
 
     exclude_directories = (
         []
