@@ -8,7 +8,7 @@
 # Constraints for sink-synchronous output ports.
 # See the HDL code in the 'io_constraints_top.vhd' file in the 'src' folder also for details.
 # This is an example file that illustrates the constraints discussed in this article:
-# <LINK TODO>
+# https://www.linkedin.com/pulse/io-timing-constraints-fpgaasic-6-sink-synchronous-output-lukas-vik-yod6f
 # --------------------------------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ set peripheral_setup_ns 1.4;
 set peripheral_hold_ns 1.2;
 
 # Converted to SDC notation per the article:
-# <LINK TODO>
+# https://www.linkedin.com/pulse/io-timing-constraints-fpgaasic-6-sink-synchronous-output-lukas-vik-yod6f
 # Note that it is shifted by minus one clock period, to get reasonable values that meet timing.
 set peripheral_max_ns [expr ${peripheral_setup_ns} - ${clock_period_ns}];
 set peripheral_min_ns [expr - ${peripheral_hold_ns} - ${clock_period_ns}];
