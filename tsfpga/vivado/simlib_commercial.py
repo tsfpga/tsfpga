@@ -24,6 +24,9 @@ if TYPE_CHECKING:
 class VivadoSimlibCommercial(VivadoSimlibCommon):
     """
     Handle Vivado simlib with a commercial simulator.
+
+    Do not instantiate this class directly.
+    Use factory class :class:`.VivadoSimlib` instead.
     """
 
     library_names: ClassVar = ["unisim", "secureip", "unimacro", "unifast", "xpm"]
@@ -50,18 +53,17 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
         simulator_interface: SimulatorInterface,
     ) -> None:
         """
-        Arguments:
-            output_path: The compiled simlib will be placed here.
-            vunit_proj: The VUnit project that is used to run simulation.
-            simulator_interface: A VUnit SimulatorInterface object.
-            vivado_path: Path to Vivado executable.
+        See superclass :class:`.VivadoSimlibCommon` constructor for details.
         """
         self._simulator_folder = Path(simulator_interface.find_prefix())
         self._simulator_name = self._get_simulator_name(simulator_interface=simulator_interface)
 
-        super().__init__(vivado_path=vivado_path, output_path=output_path)
-
-        self._vunit_proj = vunit_proj
+        super().__init__(
+            vivado_path=vivado_path,
+            output_path=output_path,
+            vunit_proj=vunit_proj,
+            simulator_interface=simulator_interface,
+        )
 
     def _get_simulator_name(self, simulator_interface: SimulatorInterface) -> str:
         """
@@ -109,14 +111,3 @@ class VivadoSimlibCommercial(VivadoSimlibCommon):
         """
         simulator_version = self._simulator_folder.parent.name
         return self._format_version(f"{self._simulator_name}_{simulator_version}")
-
-    def _add_to_vunit_project(self) -> None:
-        """
-        Add the compiled simlib to your VUnit project.
-        """
-        for library_name in self.library_names:
-            library_path = self.output_path / library_name
-            if not library_path.exists():
-                raise FileNotFoundError(f"Library path not found: {library_path}")
-
-            self._vunit_proj.add_external_library(library_name, library_path)

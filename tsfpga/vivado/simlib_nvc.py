@@ -21,17 +21,16 @@ if TYPE_CHECKING:
     from vunit.ui import VUnit
 
 
-class VivadoSimlibGhdl(VivadoSimlibOpenSource):
+class VivadoSimlibNvc(VivadoSimlibOpenSource):
     """
-    Handle Vivado simlib with GHDL.
+    Handle Vivado simlib with NVC.
 
     Do not instantiate this class directly.
     Use factory class :class:`.VivadoSimlib` instead.
     """
 
-    # GHDL compilation crashes if its 'workdir' folder does not exist as the analyze command
-    # is executed.
-    _create_library_folder_before_compile = True
+    # NVC compilation gives a warning if the folder exist when the analyze command is executed.
+    _create_library_folder_before_compile = False
 
     def __init__(
         self,
@@ -43,7 +42,7 @@ class VivadoSimlibGhdl(VivadoSimlibOpenSource):
         """
         See superclass :class:`.VivadoSimlibCommon` constructor for details.
         """
-        self.ghdl_binary = Path(simulator_interface.find_prefix()) / "ghdl"
+        self.nvc_binary = Path(simulator_interface.find_prefix()) / "nvc"
 
         super().__init__(
             vivado_path=vivado_path,
@@ -52,22 +51,25 @@ class VivadoSimlibGhdl(VivadoSimlibOpenSource):
             simulator_interface=simulator_interface,
         )
 
-    def _execute_compile(self, output_path: Path, library_name: str, vhd_files: list[str]) -> None:
+    def _execute_compile(
+        self,
+        output_path: Path,  # noqa: ARG002
+        library_name: str,
+        vhd_files: list[str],
+    ) -> None:
         cmd = [
-            str(self.ghdl_binary),
-            "-a",
-            "--ieee=synopsys",
-            "--std=08",
-            f"--workdir={output_path}",
-            f"-P{self.output_path / 'unisim'}",
-            "-fexplicit",
-            "-frelaxed-rules",
-            "--no-vital-checks",
-            "--warn-binding",
-            "--mb-comments",
+            str(self.nvc_binary),
             f"--work={library_name}",
-            *vhd_files,
+            "--std=2008",
+            "-M",
+            "64m",
         ]
+        if library_name != "unisim":
+            cmd.append(
+                f"--map=unisim:{self.output_path / 'unisim'}",
+            )
+
+        cmd += ["-a", *vhd_files]
 
         run_command(cmd, cwd=self.output_path)
 
@@ -75,15 +77,15 @@ class VivadoSimlibGhdl(VivadoSimlibOpenSource):
         """
         Return simulator version tag as a string.
         """
-        cmd = [str(self.ghdl_binary), "--version"]
+        cmd = [str(self.nvc_binary), "--version"]
         output = run_command(cmd, capture_output=True).stdout
 
-        match_develop = re.search(pattern=r"^GHDL (\S+) \((\S+)\).*", string=output)
-        if match_develop is not None:
-            return self._format_version(f"ghdl_{match_develop.group(1)}_{match_develop.group(2)}")
-
-        match_release = re.search(pattern=r"^GHDL (\S+).*", string=output)
+        match_release = re.search(pattern=r"^nvc (\S+) \(Using.*", string=output)
         if match_release is not None:
-            return self._format_version(f"ghdl_{match_release.group(1)}")
+            return self._format_version(f"nvc_{match_release.group(1)}")
 
-        raise ValueError(f"Could not find GHDL version string: {output}")
+        match_develop = re.search(pattern=r"^nvc (\S+) \((\S+)\) \(Using.*", string=output)
+        if match_develop is not None:
+            return self._format_version(f"nvc_{match_develop.group(1)}_{match_develop.group(2)}")
+
+        raise ValueError(f"Could not find NVC version string: {output}")
