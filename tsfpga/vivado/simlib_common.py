@@ -14,7 +14,7 @@ from abc import ABC, abstractmethod
 from shutil import make_archive
 from typing import TYPE_CHECKING
 
-from tsfpga.system_utils import create_file, delete
+from tsfpga.system_utils import create_directory, create_file
 from tsfpga.vivado.common import get_vivado_version
 
 from .common import get_vivado_path
@@ -22,32 +22,53 @@ from .common import get_vivado_path
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from vunit.sim_if import SimulatorInterface
+    from vunit.ui import VUnit
+
 
 class VivadoSimlibCommon(ABC):
     """
-    Class for handling Vivado simlib used for simulation. Keeps track of when a
-    (re)compile is needed.
+    Class for handling Vivado simlib used for simulation.
+    Keeps track of when a (re)compile is needed.
 
     This is a base class that defines an interface and some common methods.
-    See subclasses for details: :class:`.VivadoSimlibGhdl`, :class:`.VivadoSimlibCommercial`.
+    See subclasses for details: :class:`.VivadoSimlibOpenSource`, :class:`.VivadoSimlibCommercial`.
+
+    Do not instantiate this class directly.
+    Use factory class :class:`.VivadoSimlib` instead.
     """
 
-    # The version of this class. Can be bumped to force a re-compile if e.g. the TCL script changes
-    # or the output folder structure is updated.
+    # The version of this class.
+    # Can be bumped to force a re-compile if e.g. the TCL script changes or the output folder
+    # structure is updated.
     _format_version_id = 4
 
-    # Set in subclass to a list of strings. The libraries that shall be compiled and added to
-    # VUnit project.
+    # Set in subclass to a list of strings.
+    # The libraries that shall be compiled and added to VUnit project.
     library_names: list[str]
 
-    def __init__(self, vivado_path: Path | None, output_path: Path) -> None:
+    def __init__(
+        self,
+        vivado_path: Path | None,
+        output_path: Path,
+        vunit_proj: VUnit,
+        simulator_interface: SimulatorInterface,  # noqa: ARG002
+    ) -> None:
         """
         Call from subclass. Do not instantiate this class directly.
+
+        Arguments:
+            vivado_path: Path to Vivado executable.
+            output_path: The compiled simlib will be placed here.
+            vunit_proj: The VUnit project that is used to run simulation.
+            simulator_interface: A VUnit SimulatorInterface object.
         """
         self._vivado_path = get_vivado_path(vivado_path)
         self._libraries_path = (self._vivado_path.parent.parent / "data" / "vhdl" / "src").resolve()
 
         self.output_path = output_path.resolve() / self._get_version_tag()
+
+        self._vunit_proj = vunit_proj
 
     def compile_if_needed(self) -> bool:
         """
@@ -86,7 +107,7 @@ class VivadoSimlibCommon(ABC):
         # Delete any existing artifacts, which might be fully or partially compiled.
         # This also deletes the "done" token file if it exists.
         # Specifically GHDL compilation fails if there are existing compiled artifacts
-        delete(self.output_path)
+        create_directory(self.output_path, empty=True)
 
         print(f"Compiling Vivado simlib from {self._libraries_path} into {self.output_path}...")
         self._compile()
@@ -104,14 +125,12 @@ class VivadoSimlibCommon(ABC):
         """
         Add the compiled simlib to your VUnit project.
         """
-        self._add_to_vunit_project()
+        for library_name in self.library_names:
+            library_path = self.output_path / library_name
+            if not library_path.exists():
+                raise FileNotFoundError(f"Library path does not exist: {library_path}")
 
-    @abstractmethod
-    def _add_to_vunit_project(self) -> None:
-        """
-        Add the compiled simlib to your VUnit project.
-        Overload in a subclass.
-        """
+            self._vunit_proj.add_external_library(library_name=library_name, path=library_path)
 
     @property
     def artifact_name(self) -> str:

@@ -111,28 +111,32 @@ def test_should_compile_file_by_file_on_windows_but_not_on_linux(simlib_test):
 
     def run_test(is_windows, expected_calls):
         with (
-            patch.object(simlib_test.vivado_simlib, "_execute_ghdl", autospec=True) as execute_ghdl,
+            patch.object(
+                simlib_test.vivado_simlib, "_execute_compile", autospec=True
+            ) as execute_ghdl,
             patch(
-                "tsfpga.vivado.simlib_ghdl.system_is_windows", autospec=True
+                "tsfpga.vivado.simlib_open_source.system_is_windows", autospec=True
             ) as system_is_windows,
         ):
             system_is_windows.return_value = is_windows
 
-            simlib_test.vivado_simlib._compile_ghdl(vhd_files=vhd_files, library_name=library_name)
+            simlib_test.vivado_simlib._compile_library(
+                vhd_files=vhd_files, library_name=library_name
+            )
 
             assert execute_ghdl.call_args_list == expected_calls
 
-    def get_expected_call(files):
+    def get_expected_call(vhd_files):
         return call(
-            workdir=simlib_test.vivado_simlib.output_path / library_name,
+            output_path=simlib_test.vivado_simlib.output_path / library_name,
             library_name=library_name,
-            files=files,
+            vhd_files=vhd_files,
         )
 
     # One call with many files on e.g. Linux.
     expected_calls = [
         get_expected_call(
-            files=[
+            vhd_files=[
                 str(vhd_files[0]),
                 str(vhd_files[1]),
             ]
@@ -142,7 +146,7 @@ def test_should_compile_file_by_file_on_windows_but_not_on_linux(simlib_test):
 
     # Many calls with individual file on Windows.
     expected_calls = [
-        get_expected_call(files=[str(vhd_files[0])]),
-        get_expected_call(files=[str(vhd_files[1])]),
+        get_expected_call(vhd_files=[str(vhd_files[0])]),
+        get_expected_call(vhd_files=[str(vhd_files[1])]),
     ]
     run_test(is_windows=True, expected_calls=expected_calls)

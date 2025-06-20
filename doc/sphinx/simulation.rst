@@ -20,7 +20,8 @@ A Python script based on tsfpga replaces any Makefile, simulator "DO file", GUI 
 legacy system for simulation.
 It is perfect for Continuous Integration (CI) as well as test-driven development on your desktop.
 
-Actual compilation and test execution is done by VUnit and your simulator (ghdl or commercial).
+Actual compilation and test execution is done by VUnit and your simulator
+(open source or commercial).
 tsfpga can be seen as a layer on top of VUnit that helps manage the inputs to the
 simulation project.
 
@@ -155,13 +156,13 @@ Compiled Vivado simulation libraries (unisim, xpm, etc.) are often needed in the
 The :class:`.VivadoSimlib` class provides an easy interface for handling simlib.
 
 There are different implementations depending on the simulator currently in use.
-The implementation for commercial simulators will compile simlib by calling Vivado with a TCL script
-containing a ``compile_simlib ...`` call.
-For GHDL the implementation contains hard coded ghdl compile calls of the needed files.
-The compilation with GHDL is very fast (5 seconds), but for commercial simulators it is very
-slow (10 minutes).
+The implementation for commercial simulators will call the ``compile_simlib ...`` command in Vivado.
+For open-source simulators (GHDL and NVC), the implementation contains hard-coded compile calls for
+the needed files.
+The compilation with GHDL/NVC is very fast (5 seconds), but for commercial simulators it is very
+slow (10+ minutes).
 
-All implementations are interface compatible with the :class:`.VivadoSimlibCommon` class.
+All implementations are API-compatible with the :class:`.VivadoSimlibCommon` class.
 They will only do a recompile when necessary (new Vivado version, new simulator version, etc.).
 
 Adding simlib to a simulation project using this class is achieved by simply doing:
