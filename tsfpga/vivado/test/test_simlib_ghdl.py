@@ -111,20 +111,22 @@ def test_should_compile_file_by_file_on_windows_but_not_on_linux(simlib_test):
 
     def run_test(is_windows, expected_calls):
         with (
-            patch.object(simlib_test.vivado_simlib, "_execute_ghdl", autospec=True) as execute_ghdl,
+            patch.object(
+                simlib_test.vivado_simlib, "_execute_compile", autospec=True
+            ) as execute_ghdl,
             patch(
-                "tsfpga.vivado.simlib_ghdl.system_is_windows", autospec=True
+                "tsfpga.vivado.simlib_open_source.system_is_windows", autospec=True
             ) as system_is_windows,
         ):
             system_is_windows.return_value = is_windows
 
-            simlib_test.vivado_simlib._compile_ghdl(vhd_files=vhd_files, library_name=library_name)
+            simlib_test.vivado_simlib._compile_files(vhd_files=vhd_files, library_name=library_name)
 
             assert execute_ghdl.call_args_list == expected_calls
 
     def get_expected_call(files):
         return call(
-            workdir=simlib_test.vivado_simlib.output_path / library_name,
+            output_path=simlib_test.vivado_simlib.output_path / library_name,
             library_name=library_name,
             files=files,
         )
