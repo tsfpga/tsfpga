@@ -15,7 +15,7 @@ import tsfpga
 from tsfpga.system_utils import run_command
 
 
-@pytest.mark.parametrize("vunit_simulator", ["modelsim", "rivierapro", "ghdl"])
+@pytest.mark.parametrize("vunit_simulator", ["modelsim", "rivierapro", "ghdl", "nvc"])
 def test_hdl_compilation(vunit_simulator, tmp_path):
     """
     Compile all the HDL code, no Vivado involvement. This is a subset of 'test_hdl_test_cases',
@@ -36,13 +36,13 @@ def test_hdl_compilation(vunit_simulator, tmp_path):
     run_command(cmd=command, cwd=tmp_path, env=env)
 
 
-@pytest.mark.parametrize("vunit_simulator", ["modelsim", "rivierapro", "ghdl"])
+@pytest.mark.parametrize("vunit_simulator", ["modelsim", "rivierapro", "ghdl", "nvc"])
 def test_hdl_test_cases(vunit_simulator, tmp_path):
     """
     Compile all the HDL code and run all tests that do not contain IP cores. No Vivado involvement.
     """
     # Only one license seat for Modelsim and Riviera-PRO
-    num_threads = 1 if vunit_simulator != "ghdl" else 12
+    num_threads = 12 if vunit_simulator in ["ghdl", "nvc"] else 1
     command = [
         sys.executable,
         str(tsfpga.TSFPGA_EXAMPLES / "simulate.py"),
@@ -59,7 +59,7 @@ def test_hdl_test_cases(vunit_simulator, tmp_path):
     run_command(cmd=command, cwd=tmp_path, env=env)
 
 
-@pytest.mark.parametrize("vunit_simulator", ["modelsim", "rivierapro", "ghdl"])
+@pytest.mark.parametrize("vunit_simulator", ["modelsim", "rivierapro", "ghdl", "nvc"])
 def test_simlib_compilation_and_ip_core_test_cases(vunit_simulator, tmp_path):
     """
     Compile simlib and generate IP core files. Run the test cases that depend on IP cores.

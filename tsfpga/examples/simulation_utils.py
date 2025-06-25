@@ -112,7 +112,7 @@ class SimulationProject:
             self.vunit_proj.enable_location_preprocessing()
             self.vunit_proj.enable_check_preprocessing()
 
-        self.has_commercial_simulator = self.vunit_proj.get_simulator_name() != "ghdl"
+        self.has_commercial_simulator = self.vunit_proj.get_simulator_name() not in ["ghdl", "nvc"]
 
     def add_modules(
         self,
