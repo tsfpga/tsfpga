@@ -605,6 +605,19 @@ class BaseModule:
 
         return test_case_name
 
+    def netlist_build_name(self, name: str, generics: dict[str, Any] | None = None) -> str:
+        """
+        Construct a string suitable for naming a netlist build project.
+
+        Arguments:
+            name: Base name.
+            generics: Dictionary of values that will be included in the name.
+
+        Return:
+            For example ``LibraryName.MyBaseName.GenericA_ValueA.GenericB_ValueB``.
+        """
+        return self.test_case_name(name=f"{self.library_name}.{name}", generics=generics)
+
     def add_vunit_config(  # noqa: PLR0913
         self,
         test: Test | TestBench,
