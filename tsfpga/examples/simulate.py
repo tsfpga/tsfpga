@@ -24,11 +24,10 @@ from tsfpga.examples.example_env import (
     get_tsfpga_example_modules,
 )
 from tsfpga.examples.simulation_utils import (
-    NoVcsDiffTestsFound,
     SimulationProject,
     create_vhdl_ls_configuration,
-    find_git_test_filter,
     get_arguments_cli,
+    set_git_test_pattern,
 )
 
 
@@ -41,22 +40,17 @@ def main() -> None:
     cli = get_arguments_cli(default_output_path=TSFPGA_EXAMPLES_TEMP_DIR)
     args = cli.parse_args()
 
+    simulation_project = SimulationProject(args=args)
+
     modules = get_tsfpga_example_modules()
     modules_no_test = get_hdl_modules()
 
-    if args.vcs_minimal:
-        try:
-            args = find_git_test_filter(
-                args=args,
-                repo_root=tsfpga.REPO_ROOT,
-                modules=modules,
-                modules_no_test=modules_no_test,
-            )
-        except NoVcsDiffTestsFound:
-            print("Nothing to run. Appears to be no VHDL-related git diff.")
-            return
+    if args.vcs_minimal and not set_git_test_pattern(
+        args=args, vunit_proj=simulation_project.vunit_proj, modules=modules
+    ):
+        # No git diff. Don't run anything.
+        return
 
-    simulation_project = SimulationProject(args=args)
     ip_core_vivado_project_directory = simulation_project.add_vivado_ip_cores(
         modules=modules + modules_no_test
     )
