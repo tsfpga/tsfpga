@@ -20,11 +20,14 @@ from tsfpga.vivado.project import BuildResult, VivadoProject
 def build_project_list_test():
     class TestBuildProjectList:
         @staticmethod
-        def _get_mocks(name, is_netlist_build):
+        def _get_mocks(name, is_netlist_build=False):
             project = MagicMock(spec=VivadoProject)
             project.name = name
             project.__str__.return_value = f"MockProject {name}"
             project.is_netlist_build = is_netlist_build
+
+            # Note that his has 'success' set to True by default.
+            project.build.return_value = BuildResult(name=name)
 
             module = MagicMock(spec=BaseModule)
             module.name = name
@@ -33,11 +36,15 @@ def build_project_list_test():
             return module, project
 
         def __init__(self):
-            self.module_one, self.project_one = self._get_mocks("one", False)
-            self.module_two, self.project_two = self._get_mocks("two", False)
+            self.module_one, self.project_one = self._get_mocks(name="one")
+            self.module_two, self.project_two = self._get_mocks(name="two")
 
-            self.module_three, self.project_three = self._get_mocks("three", True)
-            self.module_four, self.project_four = self._get_mocks("four", True)
+            self.module_three, self.project_three = self._get_mocks(
+                name="three", is_netlist_build=True
+            )
+            self.module_four, self.project_four = self._get_mocks(
+                name="four", is_netlist_build=True
+            )
 
             self.modules = [self.module_one, self.module_two, self.module_three, self.module_four]
 

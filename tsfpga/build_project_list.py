@@ -147,7 +147,9 @@ class BuildProjectList:
         """
         build_wrappers = []
         for project in self.projects:
-            if not (projects_path / project.name / "project").exists():
+            if not self.get_build_project_path(
+                project=project, projects_path=projects_path
+            ).exists():
                 build_wrapper = BuildProjectCreateWrapper(project, **kwargs)
                 build_wrappers.append(build_wrapper)
 
@@ -204,7 +206,7 @@ class BuildProjectList:
         """
         if collect_artifacts:
             thread_safe_collect_artifacts = ThreadSafeCollectArtifacts(
-                collect_artifacts
+                collect_artifacts=collect_artifacts
             ).collect_artifacts
         else:
             thread_safe_collect_artifacts = None
@@ -229,6 +231,14 @@ class BuildProjectList:
             build_wrappers=build_wrappers,
             num_parallel_builds=num_parallel_builds,
         )
+
+    @staticmethod
+    def get_build_project_path(project: VivadoProject, projects_path: Path) -> Path:
+        """
+        Find where the project files for a specific project will be placed.
+        Arguments are the same as for :meth:`.create`.
+        """
+        return projects_path / project.name / "project"
 
     @staticmethod
     def get_build_project_output_path(
@@ -384,8 +394,8 @@ class BuildProjectCreateWrapper(BuildProjectWrapper):
         """
         Argument 'read_output' sent by VUnit test runner is unused by us.
         """
-        this_projects_path = Path(output_path) / "project"
-        return self._project.create(project_path=this_projects_path, **self._create_arguments)
+        this_project_path = Path(output_path) / "project"
+        return self._project.create(project_path=this_project_path, **self._create_arguments)
 
 
 class BuildProjectBuildWrapper(BuildProjectWrapper):
@@ -412,20 +422,20 @@ class BuildProjectBuildWrapper(BuildProjectWrapper):
         """
         Argument 'read_output' sent by VUnit test runner is unused by us.
         """
-        this_projects_path = Path(output_path) / "project"
-        build_result = self._project.build(project_path=this_projects_path, **self._build_arguments)
+        this_project_path = Path(output_path) / "project"
+        build_result = self._project.build(project_path=this_project_path, **self._build_arguments)
 
         if not build_result.success:
-            self._print_build_result(build_result)
+            self._print_build_result(build_result=build_result)
             return build_result.success
 
         # Proceed to artifact collection only if build succeeded.
-        if self._collect_artifacts and not self._collect_artifacts(
-            project=self._project, output_path=self._build_arguments["output_path"]
-        ):
-            build_result.success = False
+        if self._collect_artifacts is not None:
+            build_result.success &= self._collect_artifacts(
+                project=self._project, output_path=self._build_arguments["output_path"]
+            )
 
-        # Print size at the absolute end
+        # Print size at the absolute end.
         self._print_build_result(build_result=build_result)
         return build_result.success
 
@@ -483,8 +493,8 @@ class BuildProjectOpenWrapper(BuildProjectWrapper):
         """
         Argument 'read_output' sent by VUnit test runner is unused by us.
         """
-        this_projects_path = Path(output_path) / "project"
-        return self._project.open(project_path=this_projects_path)
+        this_project_path = Path(output_path) / "project"
+        return self._project.open(project_path=this_project_path)
 
 
 class BuildRunner(TestRunner):
@@ -541,7 +551,7 @@ class ThreadSafeCollectArtifacts:
     example projects which are identical and quite fast (roughly three minutes).
     """
 
-    def __init__(self, collect_artifacts: Callable[..., bool]) -> None:
+    def __init__(self, collect_artifacts: Callable[[VivadoProject, Path], bool]) -> None:
         self._collect_artifacts = collect_artifacts
         self._lock = Lock()
 

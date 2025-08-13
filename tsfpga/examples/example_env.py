@@ -6,11 +6,11 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-from __future__ import annotations
-
 """
 Common functions and definitions in the example build environment.
 """
+
+from __future__ import annotations
 
 from typing import TYPE_CHECKING
 

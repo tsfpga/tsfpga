@@ -296,10 +296,7 @@ class VivadoProject:
         # Send all available arguments that are reasonable to use in pre-create and module getter
         # functions. Prefer run-time values over the static.
         all_arguments = copy_and_combine_dicts(self.other_arguments, other_arguments)
-        all_arguments.update(
-            generics=self.static_generics,
-            part=self.part,
-        )
+        all_arguments.update(generics=self.static_generics, part=self.part)
 
         if not self.pre_create(
             project_path=project_path, ip_cache_path=ip_cache_path, **all_arguments
