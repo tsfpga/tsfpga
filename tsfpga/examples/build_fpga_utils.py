@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+from shutil import copy2, make_archive
 from typing import TYPE_CHECKING, Callable
 
 from hdl_registers.generator.c.header import CHeaderGenerator
@@ -20,7 +21,7 @@ from hdl_registers.generator.html.page import HtmlPageGenerator
 from hdl_registers.generator.python.accessor import PythonAccessorGenerator
 from hdl_registers.generator.python.pickle import PythonPickleGenerator
 
-from tsfpga.system_utils import create_directory
+from tsfpga.system_utils import create_directory, delete
 
 if TYPE_CHECKING:
     from tsfpga.build_project_list import BuildProjectList
@@ -33,7 +34,8 @@ def arguments(default_temp_dir: Path) -> argparse.Namespace:
     Setup of arguments for the example build flow.
 
     Arguments:
-        default_temp_dir: Default value for output paths.
+        default_temp_dir: Default value for output paths
+            (can be overridden by command line argument).
     """
     parser = argparse.ArgumentParser(
         "Create, synth and build an FPGA project",
@@ -136,7 +138,7 @@ def setup_and_run(  # noqa: C901, PLR0911
     collect_artifacts_function: Callable[[VivadoProject, Path], bool] | None,
 ) -> int:
     """
-    Setup and execute build projects.
+    Example of a function to setup and execute build projects.
     As instructed by the arguments.
 
     Arguments:
@@ -148,7 +150,9 @@ def setup_and_run(  # noqa: C901, PLR0911
             Will be run after a successful implementation build.
             The function must return ``True`` if successful and ``False`` otherwise.
             It will receive the ``project`` and ``output_path`` as arguments.
+
             Can be ``None`` if no special artifact collection operation shall be run.
+            Which is typically the case for synthesis-only builds such as netlist builds.
 
     Return:
         0 if everything passed, otherwise non-zero.
@@ -171,7 +175,7 @@ def setup_and_run(  # noqa: C901, PLR0911
         return 0
 
     if args.collect_artifacts_only:
-        # We have to assume that the project exists if the user sent this argument.
+        # We have to assume that the projects exist if the user sent this argument.
         # The 'collect_artifacts_function' call below will probably fail if it does not.
         create_ok = True
 
@@ -204,13 +208,15 @@ def setup_and_run(  # noqa: C901, PLR0911
         assert collect_artifacts_function is not None, "No artifact collection available"
 
         for project in projects.projects:
-            # Assign the arguments in the exact same way as the call to 'projects.build()' below.
+            # Assign the arguments in the exact same way as within the call to
+            # 'projects.build()' below.
             # Ensures that the correct output path is used in all scenarios.
-            project_build_output_path = projects.get_build_project_output_path(
-                project=project, projects_path=args.projects_path, output_path=args.output_path
+            assert collect_artifacts_function(
+                project=project,
+                output_path=projects.get_build_project_output_path(
+                    project=project, projects_path=args.projects_path, output_path=args.output_path
+                ),
             )
-            # Collect artifacts function must return True.
-            assert collect_artifacts_function(project, project_build_output_path)
 
         return 0
 
@@ -232,7 +238,9 @@ def setup_and_run(  # noqa: C901, PLR0911
 
 def generate_register_artifacts(modules: ModuleList, output_path: Path) -> None:
     """
-    Generate register artifacts from the given modules.
+    Example of a function to generate register artifacts from the given modules.
+    Will generate pretty much all register artifacts available.
+    In your own build flow you might want to only generate a subset of these.
 
     Arguments:
         modules: Registers from these modules will be included.
@@ -255,3 +263,33 @@ def generate_register_artifacts(modules: ModuleList, output_path: Path) -> None:
 
             PythonPickleGenerator(module.registers, output_path / "python").create()
             PythonAccessorGenerator(module.registers, output_path / "python").create()
+
+
+def collect_artifacts(project: VivadoProject, output_path: Path) -> bool:
+    """
+    Example of a function to collect build artifacts.
+    Will create a zip file with the bitstream, hardware definition (.xsa) and register artifacts.
+
+    Arguments:
+        project: Project object that has been built, and who's artifacts shall now be collected.
+        output_path: Path to the build output. Artifact zip will be placed here as well.
+
+    Return:
+        True if everything went well.
+    """
+    version = "0.0.0"
+    release_dir = create_directory(output_path / f"{project.name}-{version}", empty=True)
+    print(f"Creating release in {release_dir.resolve()}.zip")
+
+    generate_register_artifacts(modules=project.modules, output_path=release_dir / "registers")
+    copy2(output_path / f"{project.name}.bit", release_dir)
+    copy2(output_path / f"{project.name}.bin", release_dir)
+    if (output_path / f"{project.name}.xsa").exists():
+        copy2(output_path / f"{project.name}.xsa", release_dir)
+
+    make_archive(str(release_dir), "zip", release_dir)
+
+    # Remove folder so that only zip remains
+    delete(release_dir)
+
+    return True
