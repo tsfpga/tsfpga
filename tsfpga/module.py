@@ -255,16 +255,6 @@ class BaseModule:
         return self.path / "regs_src"
 
     @property
-    def sim_folders(self) -> list[Path]:
-        """
-        Files with simulation models (the ``sim`` folder) will be gathered from these folders.
-        """
-        return [
-            self.path / "sim",
-            self.register_simulation_folder,
-        ]
-
-    @property
     def register_simulation_folder(self) -> Path:
         """
         Generated register artifacts that are needed for simulation will be placed in this folder.
@@ -276,10 +266,17 @@ class BaseModule:
         """
         Testbench files will be gathered from these folders.
         """
-        return [
-            self.path / "test",
-            self.path / "rtl" / "tb",
-        ]
+        return [self.path / "test", self.path / "rtl" / "tb"]
+
+    @property
+    def sim_folders(self) -> list[Path]:
+        """
+        Files with simulation models will be gathered from these folders.
+
+        When testbenches from this module are excluded, these simulation model files will still be
+        included and can be used by other modules.
+        """
+        return [self.path / "sim", self.register_simulation_folder]
 
     def get_synthesis_files(
         self,
