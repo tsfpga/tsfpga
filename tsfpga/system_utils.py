@@ -177,12 +177,22 @@ def file_is_in_directory(file_path: Path, directories: list[Path]) -> bool:
 def path_relative_to(path: Path, other: Path) -> Path:
     """
     Return a relative path from ``other`` to ``path``.
-    This function works even if ``path`` is not inside a ``other`` folder.
+    This function works even if ``path`` is not inside the ``other`` folder.
 
-    Note Path.relative_to() does not support the use case where e.g. readme.md should get
-    relative path "../readme.md". Hence we have to use os.path.
+    Note 'Path.relative_to()' does not support the use case where e.g. readme.md should get
+    relative path "../readme.md".
+    Hence we have to use os.path.
+    Starting from Python 3.12, however, we can use Path.relative_to() with the 'walk_up' flag.
+    When Python 3.11 is deprecated, we can simplify this function.
     """
-    return Path(relpath(str(path), str(other)))
+    try:
+        relative_str = relpath(str(path), str(other))
+    except ValueError:
+        # It fails on Windows if the two paths are on different drives.
+        # In that case, we return the original path.
+        return path
+
+    return Path(relative_str)
 
 
 def run_command(

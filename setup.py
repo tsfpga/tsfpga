@@ -19,7 +19,6 @@ sys.path.insert(0, str(REPO_ROOT))
 
 import tsfpga
 from tsfpga.about import REPOSITORY_URL, WEBSITE_URL, get_readme_rst, get_short_slogan
-from tsfpga.system_utils import path_relative_to
 
 REQUIREMENTS_TXT = tsfpga.TSFPGA_PATH / "requirements.txt"
 REQUIREMENTS_DEVELOP_TXT = tsfpga.TSFPGA_PATH / "requirements_develop.txt"
@@ -131,7 +130,7 @@ def get_package_data() -> list[str]:
     files = get_package_files(tsfpga.TSFPGA_PATH)
 
     # Specify path relative to the tsfpga python package folder
-    return [str(path_relative_to(file_path, tsfpga.TSFPGA_PATH)) for file_path in files]
+    return [str(file_path.relative_to(tsfpga.TSFPGA_PATH)) for file_path in files]
 
 
 def get_package_files(folder: Path) -> list[Path]:

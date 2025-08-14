@@ -21,6 +21,7 @@ from tsfpga.system_utils import (
     read_file,
     read_last_lines_of_file,
     run_command,
+    system_is_windows,
 )
 
 
@@ -108,6 +109,21 @@ def test_path_relative_to():
         path_relative_to(this_file, parent / "whatever")
         == Path("..") / this_dir.name / this_file.name
     )
+
+
+@pytest.mark.skipif(not system_is_windows(), reason="Path manipulation is different on Windows")
+def test_path_relative_to_on_different_windows_drive():
+    path = Path("C:/apa/hest.vhd")
+    other = Path("D:/zebra")
+
+    assert path_relative_to(path, other) == path
+
+
+def test_path_relative_to_on_different_linux_mount():
+    path = Path("/home/apa/hest.vhd")
+    other = Path("/mnt/zebra")
+
+    assert path_relative_to(path, other) == Path("../../home/apa/hest.vhd")
 
 
 def test_read_last_lines_of_file_with_short_file(tmp_path):
