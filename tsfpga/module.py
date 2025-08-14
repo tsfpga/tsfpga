@@ -78,65 +78,42 @@ class BaseModule:
         self._default_registers = default_registers
         self._registers: RegisterList | None = None
 
-    @staticmethod
-    def _get_file_list(
-        folders: list[Path],
-        file_endings: str | tuple[str, ...],
-        files_include: set[Path] | None = None,
-        files_avoid: set[Path] | None = None,
-    ) -> list[Path]:
+    @property
+    def test_folders(self) -> list[Path]:
         """
-        Return a list of files given a list of folders.
-
-        Arguments:
-            folders: The folders to search.
-            file_endings: File endings to include.
-            files_include: Optionally filter to only include these files.
-            files_avoid: Optionally filter to discard these files.
-        """
-        files = []
-        for folder in folders:
-            for path in folder.glob("*"):
-                if not path.is_file():
-                    continue
-
-                if not path.name.lower().endswith(file_endings):
-                    continue
-
-                if files_include is not None and path not in files_include:
-                    continue
-
-                if files_avoid is not None and path in files_avoid:
-                    continue
-
-                files.append(path)
-
-        return files
-
-    def _get_hdl_file_list(
-        self,
-        folders: list[Path],
-        files_include: set[Path] | None = None,
-        files_avoid: set[Path] | None = None,
-        include_vhdl_files: bool = True,
-        include_verilog_files: bool = True,
-        include_systemverilog_files: bool = True,
-    ) -> list[HdlFile]:
-        """
-        Return a list of HDL file objects.
+        Testbench files will be gathered from these folders.
         """
         return [
-            HdlFile(path=file_path)
-            for file_path in self._get_file_list(
-                folders=folders,
-                file_endings=get_hdl_file_endings(
-                    include_vhdl=include_vhdl_files,
-                    include_verilog=include_verilog_files,
-                    include_systemverilog=include_systemverilog_files,
-                ),
-                files_include=files_include,
-                files_avoid=files_avoid,
-            )
+            self.path / "test",
+            self.path / "rtl" / "tb",
+        ]
+
+    @property
+    def sim_folders(self) -> list[Path]:
+        """
+        Source code files with simulation models will be gathered from these folders.
+
+        Theses are always included in the simulation project.
+        When testbenches from this module are excluded, these simulation model files will still be
+        included and can be used by other modules.
+        """
+        return [
+            self.path / "sim",
+            self.register_simulation_folder,
+        ]
+
+    @property
+    def synthesis_folders(self) -> list[Path]:
+        """
+        Synthesis/implementation source code files will be gathered from these folders.
+        """
+        return [
+            self.path,
+            self.path / "src",
+            self.path / "rtl",
+            self.path / "hdl" / "rtl",
+            self.path / "hdl" / "package",
+            self.register_synthesis_folder,
         ]
 
     @property
@@ -145,6 +122,21 @@ class BaseModule:
         The path to this module's register data file (which may or may not exist).
         """
         return self.path / f"regs_{self.name}.toml"
+
+    @property
+    def register_simulation_folder(self) -> Path:
+        """
+        Generated register artifacts that are needed for simulation will be placed in this folder.
+        """
+        return self.path / "regs_sim"
+
+    @property
+    def register_synthesis_folder(self) -> Path:
+        """
+        Generated register artifacts that are needed for synthesis/implementation will be
+        placed in this folder.
+        """
+        return self.path / "regs_src"
 
     @property
     def registers(self) -> RegisterList | None:
@@ -166,154 +158,37 @@ class BaseModule:
         self.registers_hook()
         return self._registers
 
-    def registers_hook(self) -> None:
+    def setup_vunit(
+        self,
+        vunit_proj: VUnit,
+        **kwargs: Any,  # noqa: ANN401
+    ) -> None:
         """
-        Will be called directly after creating this module's registers from
-        the TOML definition file.
-        If the TOML file does not exist this hook will still be called, but the module's registers
-        will be ``None``.
-
-        This is a good place if you want to add or modify some registers from Python.
-        Override this method and implement the desired behavior in a subclass.
+        Setup local configuration of this module's test benches.
 
         .. Note::
             This default method does nothing.
-            Shall be overridden by modules that utilize this mechanism.
-        """
-
-    def create_register_synthesis_files(self) -> None:
-        """
-        Create the register artifacts that are needed for synthesis/implementation.
-
-        If this module does not have registers, this method does nothing.
-        """
-        if self.registers is not None:
-            if self.create_register_package:
-                VhdlRegisterPackageGenerator(
-                    register_list=self.registers, output_folder=self.register_synthesis_folder
-                ).create_if_needed()
-
-            if self.create_record_package:
-                VhdlRecordPackageGenerator(
-                    register_list=self.registers, output_folder=self.register_synthesis_folder
-                ).create_if_needed()
-
-            if self.create_axi_lite_wrapper:
-                VhdlAxiLiteWrapperGenerator(
-                    register_list=self.registers, output_folder=self.register_synthesis_folder
-                ).create_if_needed()
-
-    def create_register_simulation_files(self) -> None:
-        """
-        Create the register artifacts that are needed for simulation.
-        Does not create the synthesis files, which are also technically needed for simulation.
-        So a call to :meth:`.create_register_synthesis_files` must also be done.
-
-        If this module does not have registers, this method does nothing.
-        """
-        if self.registers is not None:
-            if self.create_simulation_read_write_package:
-                VhdlSimulationReadWritePackageGenerator(
-                    register_list=self.registers, output_folder=self.register_simulation_folder
-                ).create_if_needed()
-
-            if self.create_simulation_check_package:
-                VhdlSimulationCheckPackageGenerator(
-                    register_list=self.registers, output_folder=self.register_simulation_folder
-                ).create_if_needed()
-
-            if self.create_simulation_wait_until_package:
-                VhdlSimulationWaitUntilPackageGenerator(
-                    register_list=self.registers, output_folder=self.register_simulation_folder
-                ).create_if_needed()
-
-    @property
-    def synthesis_folders(self) -> list[Path]:
-        """
-        Synthesis/implementation source code files will be gathered from these folders.
-        """
-        return [
-            self.path,
-            self.path / "src",
-            self.path / "rtl",
-            self.path / "hdl" / "rtl",
-            self.path / "hdl" / "package",
-            self.register_synthesis_folder,
-        ]
-
-    @property
-    def register_synthesis_folder(self) -> Path:
-        """
-        Generated register artifacts that are needed for synthesis/implementation will be
-        placed in this folder.
-        """
-        return self.path / "regs_src"
-
-    @property
-    def register_simulation_folder(self) -> Path:
-        """
-        Generated register artifacts that are needed for simulation will be placed in this folder.
-        """
-        return self.path / "regs_sim"
-
-    @property
-    def test_folders(self) -> list[Path]:
-        """
-        Testbench files will be gathered from these folders.
-        """
-        return [self.path / "test", self.path / "rtl" / "tb"]
-
-    @property
-    def sim_folders(self) -> list[Path]:
-        """
-        Source code files with simulation models will be gathered from these folders.
-
-        Are always included in the simulation project.
-        When testbenches from this module are excluded, these simulation model files will still be
-        included and can be used by other modules.
-        """
-        return [self.path / "sim", self.register_simulation_folder]
-
-    def get_synthesis_files(
-        self,
-        files_include: set[Path] | None = None,
-        files_avoid: set[Path] | None = None,
-        include_vhdl_files: bool = True,
-        include_verilog_files: bool = True,
-        include_systemverilog_files: bool = True,
-        **kwargs: Any,  # noqa: ANN401, ARG002
-    ) -> list[HdlFile]:
-        """
-        Get a list of files that shall be included in a synthesis project.
-
-        See :meth:`.get_simulation_files` for instructions on how to use ``files_include``
-        and ``files_avoid``.
+            Should be overridden by modules that have any test benches that operate via generics.
 
         Arguments:
-            files_include: Optionally filter to only include these files.
-            files_avoid: Optionally filter to discard these files.
-            include_vhdl_files: Optionally disable inclusion of files with VHDL
-                file endings.
-            include_verilog_files: Optionally disable inclusion of files with Verilog
-                file endings.
-            include_systemverilog_files: Optionally disable inclusion of files with SystemVerilog
-                file endings.
-            kwargs: Further parameters that can be sent by build flow to control what
-                files are included.
+            vunit_proj: The VUnit project that is used to run simulation.
+            kwargs: Use this to pass an arbitrary list of arguments from your ``simulate.py``
+                to the module where you set up your tests.
+                This could be, e.g., data dimensions, location of test files, etc.
+        """
+
+    def get_build_projects(self) -> list[VivadoProject]:
+        """
+        Get FPGA build projects defined by this module.
+
+        .. Note::
+            This default method does nothing.
+            Should be overridden by modules that set up build projects.
 
         Return:
-            Files that should be included in a synthesis project.
+            FPGA build projects.
         """
-        self.create_register_synthesis_files()
-
-        return self._get_hdl_file_list(
-            folders=self.synthesis_folders,
-            files_include=files_include,
-            files_avoid=files_avoid,
-            include_vhdl_files=include_vhdl_files,
-            include_verilog_files=include_verilog_files,
-            include_systemverilog_files=include_systemverilog_files,
-        )
+        return []
 
     def get_simulation_files(
         self,
@@ -380,7 +255,7 @@ class BaseModule:
 
         return synthesis_files + test_files
 
-    def get_documentation_files(
+    def get_synthesis_files(
         self,
         files_include: set[Path] | None = None,
         files_avoid: set[Path] | None = None,
@@ -390,11 +265,7 @@ class BaseModule:
         **kwargs: Any,  # noqa: ANN401, ARG002
     ) -> list[HdlFile]:
         """
-        Get a list of files that shall be included in a documentation build.
-
-        It will return all files from the module except testbenches and any generated
-        register package.
-        Overwrite in a subclass if you want to change this behavior.
+        Get a list of files that shall be included in a synthesis project.
 
         See :meth:`.get_simulation_files` for instructions on how to use ``files_include``
         and ``files_avoid``.
@@ -408,26 +279,18 @@ class BaseModule:
                 file endings.
             include_systemverilog_files: Optionally disable inclusion of files with SystemVerilog
                 file endings.
-            kwargs: Further parameters that can be sent by documentation build flow to control what
+            kwargs: Further parameters that can be sent by build flow to control what
                 files are included.
 
         Return:
-            Files that should be included in documentation.
+            Files that should be included in a synthesis project.
         """
-        # Do not include generated register code in the documentation.
-        files_to_avoid = set(
-            self._get_file_list(
-                folders=[self.register_synthesis_folder, self.register_simulation_folder],
-                file_endings=HdlFile.file_endings,
-            )
-        )
-        if files_avoid:
-            files_to_avoid |= files_avoid
+        self.create_register_synthesis_files()
 
         return self._get_hdl_file_list(
-            folders=self.synthesis_folders + self.sim_folders,
+            folders=self.synthesis_folders,
             files_include=files_include,
-            files_avoid=files_to_avoid,
+            files_avoid=files_avoid,
             include_vhdl_files=include_vhdl_files,
             include_verilog_files=include_verilog_files,
             include_systemverilog_files=include_systemverilog_files,
@@ -517,24 +380,119 @@ class BaseModule:
 
         return constraints
 
-    def setup_vunit(
+    def get_documentation_files(
         self,
-        vunit_proj: VUnit,
-        **kwargs: Any,  # noqa: ANN401
-    ) -> None:
+        files_include: set[Path] | None = None,
+        files_avoid: set[Path] | None = None,
+        include_vhdl_files: bool = True,
+        include_verilog_files: bool = True,
+        include_systemverilog_files: bool = True,
+        **kwargs: Any,  # noqa: ANN401, ARG002
+    ) -> list[HdlFile]:
         """
-        Setup local configuration of this module's test benches.
+        Get a list of files that shall be included in a documentation build.
+
+        It will return all files from the module except testbenches and any generated
+        register package.
+        Overwrite in a subclass if you want to change this behavior.
+
+        See :meth:`.get_simulation_files` for instructions on how to use ``files_include``
+        and ``files_avoid``.
+
+        Arguments:
+            files_include: Optionally filter to only include these files.
+            files_avoid: Optionally filter to discard these files.
+            include_vhdl_files: Optionally disable inclusion of files with VHDL
+                file endings.
+            include_verilog_files: Optionally disable inclusion of files with Verilog
+                file endings.
+            include_systemverilog_files: Optionally disable inclusion of files with SystemVerilog
+                file endings.
+            kwargs: Further parameters that can be sent by documentation build flow to control what
+                files are included.
+
+        Return:
+            Files that should be included in documentation.
+        """
+        # Do not include generated register code in the documentation.
+        files_to_avoid = set(
+            self._get_file_list(
+                folders=[self.register_synthesis_folder, self.register_simulation_folder],
+                file_endings=HdlFile.file_endings,
+            )
+        )
+        if files_avoid:
+            files_to_avoid |= files_avoid
+
+        return self._get_hdl_file_list(
+            folders=self.synthesis_folders + self.sim_folders,
+            files_include=files_include,
+            files_avoid=files_to_avoid,
+            include_vhdl_files=include_vhdl_files,
+            include_verilog_files=include_verilog_files,
+            include_systemverilog_files=include_systemverilog_files,
+        )
+
+    def registers_hook(self) -> None:
+        """
+        Will be called directly after creating this module's registers from
+        the TOML definition file in :meth:`.registers`.
+        If the TOML file does not exist this hook will still be called, but the module's registers
+        will be ``None``.
+
+        This is a good place if you want to add or modify some registers from Python.
+        Override this method and implement the desired behavior in a subclass.
 
         .. Note::
             This default method does nothing.
-            Should be overridden by modules that have any test benches that operate via generics.
-
-        Arguments:
-            vunit_proj: The VUnit project that is used to run simulation.
-            kwargs: Use this to pass an arbitrary list of arguments from your ``simulate.py``
-                to the module where you set up your tests.
-                This could be, e.g., data dimensions, location of test files, etc.
+            Shall be overridden by modules that utilize this mechanism.
         """
+
+    def create_register_simulation_files(self) -> None:
+        """
+        Create the register artifacts that are needed for simulation.
+        Does not create the synthesis files, which are also technically needed for simulation.
+        So a call to :meth:`.create_register_synthesis_files` must also be done.
+
+        If this module does not have registers, this method does nothing.
+        """
+        if self.registers is not None:
+            if self.create_simulation_read_write_package:
+                VhdlSimulationReadWritePackageGenerator(
+                    register_list=self.registers, output_folder=self.register_simulation_folder
+                ).create_if_needed()
+
+            if self.create_simulation_check_package:
+                VhdlSimulationCheckPackageGenerator(
+                    register_list=self.registers, output_folder=self.register_simulation_folder
+                ).create_if_needed()
+
+            if self.create_simulation_wait_until_package:
+                VhdlSimulationWaitUntilPackageGenerator(
+                    register_list=self.registers, output_folder=self.register_simulation_folder
+                ).create_if_needed()
+
+    def create_register_synthesis_files(self) -> None:
+        """
+        Create the register artifacts that are needed for synthesis/implementation.
+
+        If this module does not have registers, this method does nothing.
+        """
+        if self.registers is not None:
+            if self.create_register_package:
+                VhdlRegisterPackageGenerator(
+                    register_list=self.registers, output_folder=self.register_synthesis_folder
+                ).create_if_needed()
+
+            if self.create_record_package:
+                VhdlRecordPackageGenerator(
+                    register_list=self.registers, output_folder=self.register_synthesis_folder
+                ).create_if_needed()
+
+            if self.create_axi_lite_wrapper:
+                VhdlAxiLiteWrapperGenerator(
+                    register_list=self.registers, output_folder=self.register_synthesis_folder
+                ).create_if_needed()
 
     def pre_build(
         self,
@@ -542,7 +500,7 @@ class BaseModule:
         **kwargs: Any,  # noqa: ANN401, ARG002
     ) -> bool:
         """
-        Will be called before an FPGA build is run.
+        Will be called by the build flow before the EDA build tool is called.
         A typical use case for this mechanism is to set a register constant or default value
         based on the generics that are passed to the project.
         Could also be used to, e.g., generate BRAM init files based on project information, etc.
@@ -562,58 +520,6 @@ class BaseModule:
         """
         return True
 
-    def get_build_projects(self) -> list[VivadoProject]:
-        """
-        Get FPGA build projects defined by this module.
-
-        .. Note::
-            This default method does nothing.
-            Should be overridden by modules that set up build projects.
-
-        Return:
-            FPGA build projects.
-        """
-        return []
-
-    @staticmethod
-    def test_case_name(name: str | None = None, generics: dict[str, Any] | None = None) -> str:
-        """
-        Construct a string suitable for naming test cases.
-        Is typically used only internally by :meth:`.add_vunit_config`, could be a private method,
-        but there might be use cases where this is called in a child class.
-
-        Note that this method can return an empty string if both arguments are ``None``.
-
-        Arguments:
-            name: Optional base name.
-            generics: Dictionary of values that will be included in the name.
-
-        Return:
-            For example ``MyBaseName.GenericA_ValueA.GenericB_ValueB``.
-        """
-        test_case_name = name if name else ""
-
-        if generics:
-            generics_string = ".".join([f"{key}_{value}" for key, value in generics.items()])
-
-            test_case_name = f"{name}.{generics_string}" if test_case_name else generics_string
-
-        return test_case_name
-
-    def netlist_build_name(self, name: str, generics: dict[str, Any] | None = None) -> str:
-        """
-        Construct a string suitable for naming a netlist build project.
-        Call from :meth:`.get_build_projects` in a child class.
-
-        Arguments:
-            name: Base name.
-            generics: Dictionary of values that will be included in the name.
-
-        Return:
-            For example ``LibraryName.MyBaseName.GenericA_ValueA.GenericB_ValueB``.
-        """
-        return self.test_case_name(name=f"{self.library_name}.{name}", generics=generics)
-
     def add_vunit_config(  # noqa: PLR0913
         self,
         test: Test | TestBench,
@@ -626,6 +532,7 @@ class BaseModule:
     ) -> None:
         """
         Convenient wrapper to add VUnit test configuration(s).
+        Call from :meth:`.setup_vunit` in a child class.
 
         Arguments:
             test: VUnit test or testbench object.
@@ -689,6 +596,106 @@ class BaseModule:
             test.add_config(
                 name=name, generics=generics, pre_config=pre_config, post_check=post_check
             )
+
+    @staticmethod
+    def test_case_name(name: str | None = None, generics: dict[str, Any] | None = None) -> str:
+        """
+        Construct a string suitable for naming test cases.
+        Is typically used only internally by :meth:`.add_vunit_config`, could be a private method,
+        but there might be use cases where this is called in a child class.
+
+        Note that this method can return an empty string if both arguments are ``None``.
+
+        Arguments:
+            name: Optional base name.
+            generics: Dictionary of values that will be included in the name.
+
+        Return:
+            For example ``MyBaseName.GenericA_ValueA.GenericB_ValueB``.
+        """
+        test_case_name = name if name else ""
+
+        if generics:
+            generics_string = ".".join([f"{key}_{value}" for key, value in generics.items()])
+
+            test_case_name = f"{name}.{generics_string}" if test_case_name else generics_string
+
+        return test_case_name
+
+    def netlist_build_name(self, name: str, generics: dict[str, Any] | None = None) -> str:
+        """
+        Construct a string suitable for naming a netlist build project.
+        Call from :meth:`.get_build_projects` in a child class.
+
+        Arguments:
+            name: Base name.
+            generics: Dictionary of values that will be included in the name.
+
+        Return:
+            For example ``LibraryName.MyBaseName.GenericA_ValueA.GenericB_ValueB``.
+        """
+        return self.test_case_name(name=f"{self.library_name}.{name}", generics=generics)
+
+    @staticmethod
+    def _get_file_list(
+        folders: list[Path],
+        file_endings: str | tuple[str, ...],
+        files_include: set[Path] | None = None,
+        files_avoid: set[Path] | None = None,
+    ) -> list[Path]:
+        """
+        Return a list of files given a list of folders.
+
+        Arguments:
+            folders: The folders to search.
+            file_endings: File endings to include.
+            files_include: Optionally filter to only include these files.
+            files_avoid: Optionally filter to discard these files.
+        """
+        files = []
+        for folder in folders:
+            for path in folder.glob("*"):
+                if not path.is_file():
+                    continue
+
+                if not path.name.lower().endswith(file_endings):
+                    continue
+
+                if files_include is not None and path not in files_include:
+                    continue
+
+                if files_avoid is not None and path in files_avoid:
+                    continue
+
+                files.append(path)
+
+        return files
+
+    def _get_hdl_file_list(
+        self,
+        folders: list[Path],
+        files_include: set[Path] | None = None,
+        files_avoid: set[Path] | None = None,
+        include_vhdl_files: bool = True,
+        include_verilog_files: bool = True,
+        include_systemverilog_files: bool = True,
+    ) -> list[HdlFile]:
+        """
+        Return a list of HDL file objects.
+        """
+        return [
+            HdlFile(path=file_path)
+            for file_path in self._get_file_list(
+                folders=folders,
+                file_endings=get_hdl_file_endings(
+                    include_vhdl=include_vhdl_files,
+                    include_verilog=include_verilog_files,
+                    include_systemverilog=include_systemverilog_files,
+                ),
+                files_include=files_include,
+                files_avoid=files_avoid,
+            )
+        ]
 
     def __str__(self) -> str:
         return f"{self.name}:{self.path}"
