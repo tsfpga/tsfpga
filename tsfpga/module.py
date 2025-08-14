@@ -26,7 +26,7 @@ from hdl_registers.generator.vhdl.simulation.wait_until_package import (
 from hdl_registers.parser.toml import from_toml
 
 from tsfpga.constraint import Constraint
-from tsfpga.hdl_file import HdlFile
+from tsfpga.hdl_file import HdlFile, get_hdl_file_endings
 from tsfpga.ip_core_file import IpCoreFile
 from tsfpga.module_list import ModuleList
 from tsfpga.system_utils import load_python_module
@@ -86,7 +86,7 @@ class BaseModule:
         files_avoid: set[Path] | None = None,
     ) -> list[Path]:
         """
-        Returns a list of files given a list of folders.
+        Return a list of files given a list of folders.
 
         Arguments:
             folders: The folders to search.
@@ -96,20 +96,20 @@ class BaseModule:
         """
         files = []
         for folder in folders:
-            for file in folder.glob("*"):
-                if not file.is_file():
+            for path in folder.glob("*"):
+                if not path.is_file():
                     continue
 
-                if not file.name.lower().endswith(file_endings):
+                if not path.name.lower().endswith(file_endings):
                     continue
 
-                if files_include is not None and file not in files_include:
+                if files_include is not None and path not in files_include:
                     continue
 
-                if files_avoid is not None and file in files_avoid:
+                if files_avoid is not None and path in files_avoid:
                     continue
 
-                files.append(file)
+                files.append(path)
 
         return files
 
@@ -125,21 +125,15 @@ class BaseModule:
         """
         Return a list of HDL file objects.
         """
-        file_endings: tuple[str, ...] = ()
-        if include_vhdl_files:
-            file_endings += HdlFile.file_endings_mapping[HdlFile.Type.VHDL]
-        if include_verilog_files:
-            file_endings += HdlFile.file_endings_mapping[HdlFile.Type.VERILOG_SOURCE]
-            file_endings += HdlFile.file_endings_mapping[HdlFile.Type.VERILOG_HEADER]
-        if include_systemverilog_files:
-            file_endings += HdlFile.file_endings_mapping[HdlFile.Type.SYSTEMVERILOG_SOURCE]
-            file_endings += HdlFile.file_endings_mapping[HdlFile.Type.SYSTEMVERILOG_HEADER]
-
         return [
             HdlFile(path=file_path)
             for file_path in self._get_file_list(
                 folders=folders,
-                file_endings=file_endings,
+                file_endings=get_hdl_file_endings(
+                    include_vhdl=include_vhdl_files,
+                    include_verilog=include_verilog_files,
+                    include_systemverilog=include_systemverilog_files,
+                ),
                 files_include=files_include,
                 files_avoid=files_avoid,
             )
@@ -189,7 +183,8 @@ class BaseModule:
 
     def create_register_synthesis_files(self) -> None:
         """
-        Create the register artifacts that are needed for synthesis.
+        Create the register artifacts that are needed for synthesis/implementation.
+
         If this module does not have registers, this method does nothing.
         """
         if self.registers is not None:
@@ -211,7 +206,7 @@ class BaseModule:
     def create_register_simulation_files(self) -> None:
         """
         Create the register artifacts that are needed for simulation.
-        Does not create the implementation files, which are also technically needed for simulation.
+        Does not create the synthesis files, which are also technically needed for simulation.
         So a call to :meth:`.create_register_synthesis_files` must also be done.
 
         If this module does not have registers, this method does nothing.
@@ -271,8 +266,9 @@ class BaseModule:
     @property
     def sim_folders(self) -> list[Path]:
         """
-        Files with simulation models will be gathered from these folders.
+        Source code files with simulation models will be gathered from these folders.
 
+        Are always included in the simulation project.
         When testbenches from this module are excluded, these simulation model files will still be
         included and can be used by other modules.
         """
@@ -290,12 +286,8 @@ class BaseModule:
         """
         Get a list of files that shall be included in a synthesis project.
 
-        The ``files_include`` and ``files_avoid`` arguments can be used to filter what files are
-        included.
-        This can be useful in many situations, e.g. when encrypted files of files that include an
-        IP core shall be avoided.
-        It is recommended to overload this function in a subclass in your ``module_*.py``,
-        and call this super method with the arguments supplied.
+        See :meth:`.get_simulation_files` for instructions on how to use ``files_include``
+        and ``files_avoid``.
 
         Arguments:
             files_include: Optionally filter to only include these files.
@@ -334,12 +326,18 @@ class BaseModule:
         **kwargs: Any,  # noqa: ANN401
     ) -> list[HdlFile]:
         """
-        See :meth:`.get_synthesis_files` for instructions on how to use ``files_include``
-        and ``files_avoid``.
+        Get a list of files that shall be included in a simulation project.
+
+        The ``files_include`` and ``files_avoid`` arguments can be used to filter what files are
+        included.
+        This can be useful in many situations, e.g. when encrypted files of files that include an
+        IP core shall be avoided.
+        It is recommended to overload this function in a subclass in your ``module_*.py``,
+        and call this super method with the arguments supplied.
 
         Arguments:
-            include_tests: When ``False``, the ``test`` files are not included
-                (the ``sim`` files are always included).
+            include_tests: When ``False``, testbenches (``test`` files) are not included.
+                The ``sim`` files are always included.
             files_include: Optionally filter to only include these files.
             files_avoid: Optionally filter to discard these files.
             include_vhdl_files: Optionally disable inclusion of files with VHDL
@@ -398,6 +396,9 @@ class BaseModule:
         register package.
         Overwrite in a subclass if you want to change this behavior.
 
+        See :meth:`.get_simulation_files` for instructions on how to use ``files_include``
+        and ``files_avoid``.
+
         Arguments:
             files_include: Optionally filter to only include these files.
             files_avoid: Optionally filter to discard these files.
@@ -439,12 +440,13 @@ class BaseModule:
         **kwargs: Any,  # noqa: ANN401, ARG002
     ) -> list[IpCoreFile]:
         """
-        Get IP cores for this module.
+        Get the IP cores of this module.
 
         Note that the :class:`.ip_core_file.IpCoreFile` class accepts a ``variables`` argument that
-        can be used to parameterize IP core creation. By overloading this method in a subclass
-        you can pass on ``kwargs`` arguments from the build/simulation flow to
-        :class:`.ip_core_file.IpCoreFile` creation to achieve this parameterization.
+        can be used to parameterize IP core creation.
+        By overloading this method in a subclass, you can pass on ``kwargs`` arguments from the
+        build/simulation flow to :class:`.ip_core_file.IpCoreFile` creation to achieve
+        this parameterization.
 
         Arguments:
             files_include: Optionally filter to only include these files.
@@ -455,15 +457,14 @@ class BaseModule:
         Return:
             The IP cores for this module.
         """
-        folders = [
-            self.path / "ip_cores",
-        ]
-        file_endings = "tcl"
+        # Could be made into a class property, like e.g. 'synthesis_folders', if any user needs it.
+        folders = [self.path / "ip_cores"]
+
         return [
-            IpCoreFile(ip_core_file)
-            for ip_core_file in self._get_file_list(
+            IpCoreFile(path=path)
+            for path in self._get_file_list(
                 folders=folders,
-                file_endings=file_endings,
+                file_endings=".tcl",
                 files_include=files_include,
                 files_avoid=files_avoid,
             )
@@ -476,7 +477,7 @@ class BaseModule:
         **kwargs: Any,  # noqa: ANN401, ARG002
     ) -> list[Constraint]:
         """
-        Constraints that shall be applied to a certain entity within this module.
+        Get the constraints that shall be applied to a certain entity within this module.
 
         Arguments:
             files_include: Optionally filter to only include these files.
@@ -487,15 +488,16 @@ class BaseModule:
         Return:
             The constraints.
         """
+        # Could be made into a class property, like e.g. 'synthesis_folders', if any user needs it.
         folders = [
             self.path / "scoped_constraints",
             self.path / "entity_constraints",
             self.path / "hdl" / "constraints",
         ]
-        file_endings = ("tcl", "xdc")
+
         constraint_files = self._get_file_list(
             folders=folders,
-            file_endings=file_endings,
+            file_endings=(".tcl", ".xdc"),
             files_include=files_include,
             files_avoid=files_avoid,
         )
@@ -524,14 +526,14 @@ class BaseModule:
         Setup local configuration of this module's test benches.
 
         .. Note::
-            This default method does nothing. Should be overridden by modules that have
-            any test benches that operate via generics.
+            This default method does nothing.
+            Should be overridden by modules that have any test benches that operate via generics.
 
         Arguments:
             vunit_proj: The VUnit project that is used to run simulation.
             kwargs: Use this to pass an arbitrary list of arguments from your ``simulate.py``
-                to the module where you set up your tests. This could be, e.g., data dimensions,
-                location of test files, etc.
+                to the module where you set up your tests.
+                This could be, e.g., data dimensions, location of test files, etc.
         """
 
     def pre_build(
@@ -540,14 +542,14 @@ class BaseModule:
         **kwargs: Any,  # noqa: ANN401, ARG002
     ) -> bool:
         """
-        Will be called before an FPGA build is run. A typical use case for this
-        mechanism is to set a register constant or default value based on the generics that
-        are passed to the project. Could also be used to, e.g., generate BRAM init files
-        based on project information, etc.
+        Will be called before an FPGA build is run.
+        A typical use case for this mechanism is to set a register constant or default value
+        based on the generics that are passed to the project.
+        Could also be used to, e.g., generate BRAM init files based on project information, etc.
 
         .. Note::
-            This default method does nothing. Should be overridden by modules that
-            utilize this mechanism.
+            This default method does nothing.
+            Should be overridden by modules that utilize this mechanism.
 
         Arguments:
             project: The project that is being built.
@@ -565,8 +567,8 @@ class BaseModule:
         Get FPGA build projects defined by this module.
 
         .. Note::
-            This default method does nothing. Should be overridden by modules that set up
-            build projects.
+            This default method does nothing.
+            Should be overridden by modules that set up build projects.
 
         Return:
             FPGA build projects.
@@ -577,6 +579,10 @@ class BaseModule:
     def test_case_name(name: str | None = None, generics: dict[str, Any] | None = None) -> str:
         """
         Construct a string suitable for naming test cases.
+        Is typically used only internally by :meth:`.add_vunit_config`, could be a private method,
+        but there might be use cases where this is called in a child class.
+
+        Note that this method can return an empty string if both arguments are ``None``.
 
         Arguments:
             name: Optional base name.
@@ -597,6 +603,7 @@ class BaseModule:
     def netlist_build_name(self, name: str, generics: dict[str, Any] | None = None) -> str:
         """
         Construct a string suitable for naming a netlist build project.
+        Call from :meth:`.get_build_projects` in a child class.
 
         Arguments:
             name: Base name.
@@ -612,8 +619,8 @@ class BaseModule:
         test: Test | TestBench,
         name: str | None = None,
         generics: dict[str, Any] | None = None,
-        set_random_seed: bool | int | None = False,
         count: int = 1,
+        set_random_seed: bool | int | None = False,
         pre_config: Callable[..., bool] | None = None,
         post_check: Callable[..., bool] | None = None,
     ) -> None:
@@ -626,6 +633,8 @@ class BaseModule:
                 Will be used to form the name of the config together with the ``generics`` value.
             generics: Generic values that will be applied to the testbench entity.
                 The values will also be used to form the name of the config.
+            count: Number of times to setup the same test configuration.
+                Is useful for testbenches that randomize their behavior based on the VUnit seed.
             set_random_seed: Controls setting of the ``seed`` generic:
 
                 * When this argument is not assigned, or assigned ``False``, the generic will not
@@ -640,8 +649,6 @@ class BaseModule:
 
                 .. deprecated:: 13.2.2
                     Use VUnit mechanism for random seed instead rather than this clunky variant.
-            count: Number of times to setup the same test configuration.
-                Is useful for testbenches that randomize their behavior based on the VUnit seed.
             pre_config: Function to be run before the test.
                 See `VUnit documentation <https://vunit.github.io/py/ui.html>`_ for details.
             post_check: Function to be run after the test.
@@ -705,7 +712,7 @@ def get_modules(
             be searched.
         names_include: If specified, only modules with these names will be included.
         names_avoid: If specified, modules with these names will be discarded.
-        library_name_has_lib_suffix: If set, the library name will be ``<module name>_lib``,
+        library_name_has_lib_suffix: If set, the VHDL library name will be ``<module name>_lib``,
             otherwise it is just ``<module name>``.
         default_registers: Default registers.
 
@@ -757,7 +764,7 @@ def get_module(
         modules_folder: The path to the folder containing modules.
         modules_folders: Optionally, you can specify many folders with modules that will all
             be searched.
-        library_name_has_lib_suffix: If set, the library name will be ``<module name>_lib``,
+        library_name_has_lib_suffix: If set, the VHDL library name will be ``<module name>_lib``,
             otherwise it is just ``<module name>``.
         default_registers: Default registers.
 

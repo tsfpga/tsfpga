@@ -25,8 +25,8 @@ class IpCoreFile:
             path: Path to the TCL script that creates the IP.
                 Should typically end in .tcl.
             variables: These name/value variable pairs will be set in TCL before
-                the IP core ``.tcl`` file is sourced. This makes it possible to parameterize the IP
-                core creation.
+                the IP core ``.tcl`` file is sourced.
+                This makes it possible to parameterize the IP core creation.
 
                 .. note::
                     This is a "kwargs" style argument. You can pass any number of named arguments.
