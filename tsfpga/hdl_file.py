@@ -78,3 +78,33 @@ class HdlFile:
 
     def __repr__(self) -> str:
         return str(self)
+
+
+def get_hdl_file_endings(
+    include_vhdl: bool = True, include_verilog: bool = True, include_systemverilog: bool = True
+) -> tuple[str, ...]:
+    """
+    Return all file endings for the specified programming languages.
+
+    Arguments:
+        include_vhdl: Optionally exclude VHDL.
+        include_verilog: Optionally exclude Verilog.
+        include_systemverilog: Optionally exclude SystemVerilog.
+
+    Returns:
+        For example (".vhd", ".v")
+    """
+    result: tuple[str, ...] = ()
+
+    if include_vhdl:
+        result += HdlFile.file_endings_mapping[HdlFile.Type.VHDL]
+
+    if include_verilog:
+        result += HdlFile.file_endings_mapping[HdlFile.Type.VERILOG_SOURCE]
+        result += HdlFile.file_endings_mapping[HdlFile.Type.VERILOG_HEADER]
+
+    if include_systemverilog:
+        result += HdlFile.file_endings_mapping[HdlFile.Type.SYSTEMVERILOG_SOURCE]
+        result += HdlFile.file_endings_mapping[HdlFile.Type.SYSTEMVERILOG_HEADER]
+
+    return result
