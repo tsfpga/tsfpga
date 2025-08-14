@@ -420,7 +420,7 @@ class BaseModule:
         files_to_avoid = set(
             self._get_file_list(
                 folders=[self.register_synthesis_folder, self.register_simulation_folder],
-                file_endings="vhd",
+                file_endings=HdlFile.file_endings,
             )
         )
         if files_avoid:
