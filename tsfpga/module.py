@@ -193,14 +193,6 @@ class BaseModule:
         If this module does not have registers, this method does nothing.
         """
         if self.registers is not None:
-            # Delete any old file that might exist so we don't have multiple and
-            # outdated definitions.
-            # This package location was used before the separate register folders were introduced,
-            # back when we only created one register artifact.
-            old_regs_pkg = self.path / f"{self.name}_regs_pkg.vhd"
-            if old_regs_pkg.exists():
-                old_regs_pkg.unlink()
-
             if self.create_register_package:
                 VhdlRegisterPackageGenerator(
                     register_list=self.registers, output_folder=self.register_synthesis_folder
