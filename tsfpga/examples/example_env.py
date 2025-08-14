@@ -71,7 +71,7 @@ def get_tsfpga_example_modules(
     Arguments will be passed on to :func:`.get_modules`.
     """
     return get_modules(
-        modules_folders=[tsfpga.TSFPGA_EXAMPLE_MODULES],
+        modules_folder=tsfpga.TSFPGA_EXAMPLE_MODULES,
         names_include=names_include,
         names_avoid=names_avoid,
         library_name_has_lib_suffix=False,
