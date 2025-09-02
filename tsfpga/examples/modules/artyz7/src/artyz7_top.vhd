@@ -31,6 +31,9 @@ use work.block_design_pkg.all;
 
 entity artyz7_top is
   generic (
+    -- Random build ID used to distinguish between builds.
+    build_id : natural;
+    -- Unused. Used for test only.
     is_in_simulation : boolean := false
   );
   port (
@@ -139,11 +142,15 @@ begin
     -- Set up some registers to be in same clock domain as AXI port,
     -- and some to be in another clock domain.
     constant clocks_are_the_same : boolean_vector(regs_base_addresses'range) := (
+      artyz7_regs_idx => true,
       resync_ext_regs_idx => false,
       resync_pl_regs_idx => true,
       resync_pl_div4_regs_idx => false,
       ddr_buffer_regs_idx => true
     );
+
+    signal artyz7_regs_up : artyz7_regs_up_t := artyz7_regs_up_init;
+    signal artyz7_regs_down : artyz7_regs_down_t := artyz7_regs_down_init;
   begin
 
     ------------------------------------------------------------------------------
@@ -157,6 +164,7 @@ begin
         axi_m2s => m_gp0_m2s,
         axi_s2m => m_gp0_s2m,
         --
+        clk_axi_lite_vec(artyz7_regs_idx) => '0',
         clk_axi_lite_vec(resync_ext_regs_idx) => ext_clk,
         clk_axi_lite_vec(resync_pl_regs_idx) => '0',
         clk_axi_lite_vec(resync_pl_div4_regs_idx) => pl_clk_div4,
@@ -164,6 +172,24 @@ begin
         axi_lite_m2s_vec => regs_m2s,
         axi_lite_s2m_vec => regs_s2m
       );
+
+
+    ------------------------------------------------------------------------------
+    artyz7_register_file_axi_lite_inst : entity work.artyz7_register_file_axi_lite
+      port map (
+        clk => pl_clk,
+        --
+        axi_lite_m2s => regs_m2s(artyz7_regs_idx),
+        axi_lite_s2m => regs_s2m(artyz7_regs_idx),
+        --
+        regs_up => artyz7_regs_up,
+        regs_down => artyz7_regs_down
+      );
+
+    artyz7_regs_up.build_id <= std_logic_vector(
+      to_unsigned(build_id, artyz7_regs_up.build_id'length)
+    );
+
 
     ------------------------------------------------------------------------------
     resync_ext_artyz7_register_file_axi_lite_inst : entity work.artyz7_register_file_axi_lite

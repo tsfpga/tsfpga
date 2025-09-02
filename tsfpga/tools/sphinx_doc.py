@@ -131,13 +131,17 @@ class Release:
         return f"{time.day} {time:%B} {time.year}".lower()
 
 
-def build_sphinx(build_path: Path, output_path: Path) -> None:
+def build_sphinx(
+    build_path: Path, output_path: Path, turn_warnings_into_errors: bool = True
+) -> None:
     """
     Execute sphinx on command line to build HTML documentation.
 
     Arguments:
         build_path: The location that contains ``conf.py`` and ``index.rst``.
         output_path: Where to place the generated HTML.
+        turn_warnings_into_errors: Needed while Pygments has a bug when rendering TCL.
+            Will be removed in the future without API deprecation warning.
     """
     # Since we set the working directory when making the system call, paths must be absolute.
     build_path = build_path.resolve()
@@ -149,13 +153,14 @@ def build_sphinx(build_path: Path, output_path: Path) -> None:
         sys.executable,
         "-m",
         "sphinx",
-        # Turn warnings into errors.
-        "-W",
         # Show full traceback upon error.
         "-T",
         str(build_path),
         str(output_path),
     ]
+    if turn_warnings_into_errors:
+        cmd.append("-W")
+
     try:
         run_command(cmd, cwd=build_path, capture_output=True)
     except CalledProcessError as exception:

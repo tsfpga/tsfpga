@@ -90,6 +90,7 @@ begin
   ------------------------------------------------------------------------------
   dut : entity work.artyz7_top
     generic map (
+      build_id => 0,
       is_in_simulation => true
     )
     port map (
