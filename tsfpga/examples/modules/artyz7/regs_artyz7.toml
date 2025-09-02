@@ -1,4 +1,9 @@
 ################################################################################
+build_id.mode = "r"
+build_id.description = "Random build ID that can be used to distinguish between builds."
+
+
+################################################################################
 [resync]
 
 type = "register_array"

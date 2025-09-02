@@ -23,6 +23,9 @@ sys.path.insert(0, str(REPO_ROOT))
 # Import before others since it modifies PYTHONPATH.
 import tsfpga.examples.example_pythonpath
 
+from hdl_registers.generator.cpp.interface import CppInterfaceGenerator
+from hdl_registers.generator.html.page import HtmlPageGenerator
+
 import tsfpga
 from tsfpga.about import WEBSITE_URL, get_readme_rst, get_short_slogan
 from tsfpga.module import get_module
@@ -63,7 +66,13 @@ def main() -> None:
 
     generate_sphinx_index()
 
-    build_sphinx(build_path=SPHINX_DOC, output_path=GENERATED_SPHINX_HTML)
+    build_sphinx(
+        build_path=SPHINX_DOC,
+        output_path=GENERATED_SPHINX_HTML,
+        # Due to Pygments warning in TCL related to the equals sign in
+        # set_property "generic" {a=1337} [current_fileset].
+        turn_warnings_into_errors=False,
+    )
 
     if args.skip_coverage:
         return
@@ -147,14 +156,32 @@ def generate_vivado_scripts() -> None:
     module = get_module(name="artyz7", modules_folder=tsfpga.TSFPGA_EXAMPLE_MODULES)
     project = module.get_build_projects()[0]
 
-    with patch("tsfpga.vivado.project.run_vivado_tcl", autospec=True):
+    with (
+        patch(
+            "tsfpga.examples.vivado.project.get_vivado_version", autospec=True
+        ) as get_vivado_version,
+        patch("tsfpga.vivado.project.run_vivado_tcl", autospec=True),
+    ):
         project.create(
             project_path=project_path, ip_cache_path=GENERATED_SPHINX / "vivado_ip_cache"
         )
         create_file(project_path / "artyz7.xpr")
+
+        get_vivado_version.return_value = "2025.1"
+
         # Expected when it can not find utilization reports to parse.
         with suppress(FileNotFoundError):
             project.build(project_path=project_path, output_path=project_path)
+
+    top_module = project.modules.get(module_name="artyz7")
+    CppInterfaceGenerator(
+        register_list=top_module.registers,
+        output_folder=project_path / "registers" / "cpp" / "include",
+    ).create_if_needed()
+    HtmlPageGenerator(
+        register_list=top_module.registers,
+        output_folder=project_path / "registers" / "html",
+    ).create_if_needed()
 
 
 def generate_sphinx_index() -> None:

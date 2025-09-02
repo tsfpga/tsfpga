@@ -94,3 +94,50 @@ They all have default value ``True`` in :class:`.BaseModule`.
 * ``create_simulation_wait_until_package``, controls whether
   :class:`VhdlSimulationWaitUntilPackageGenerator <hdl_registers.generator.vhdl.simulation.wait_until_package.VhdlSimulationWaitUntilPackageGenerator>`
   is generated into the register simulation folder of the module.
+
+
+
+Build information for traceability
+----------------------------------
+
+It is quite common to want to include build information in the FPGA bitstream.
+Such as what git commit SHA this FPGA was built from, etc.
+An example of this is available in the repository.
+
+The
+`artyz7 <https://github.com/tsfpga/tsfpga/tree/main/tsfpga/examples/modules/artyz7>`__
+example module is the top module of an example Vivado project.
+It has a
+`build_id register
+<https://github.com/tsfpga/tsfpga/tree/main/tsfpga/examples/modules/artyz7/regs_artyz7.toml>`__
+which has its value
+`assigned via a generic
+<https://github.com/tsfpga/tsfpga/tree/main/tsfpga/examples/modules/artyz7/src/artyz7_top.vhd>`__
+.
+The
+`example Vivado project class
+<https://github.com/tsfpga/tsfpga/tree/main/tsfpga/examples/vivado/project.py>`__
+assigns a random value to this generic for each project that is built or created.
+Apart from that, it sets
+:ref:`register constants <constant_overview>`
+with all the build trace information before each build.
+After a successful build, this information is available in the generated C/C++ header file:
+
+.. literalinclude:: ../../generated/sphinx_rst/projects/artyz7/registers/cpp/include/i_artyz7.h
+  :caption: Excerpt of ``i_artyz7.h`` with build information.
+  :language: C++
+  :linenos:
+  :lines: 30-50
+
+:download:`HTML documentation <../../generated/sphinx_rst/projects/artyz7/registers/html/artyz7_regs.html>`.
+
+The embedded software can check that the ``build_id`` of the register artifact matches the
+build ID it reads from the register in the FPGA.
+If they do not match, it indicates a build flow error, and that the embedded software and FPGA
+might be out of sync.
+If it does match, it can proceed to print the git SHA, date, etc.
+
+Note that there are many other ways of achieving this.
+The example approach shown here has the advantage of very minimal resource utilization, and the
+fact that multiple builds can be run in parallel without interfering with each other in the
+file system.
