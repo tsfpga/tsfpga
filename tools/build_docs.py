@@ -171,7 +171,12 @@ def generate_vivado_scripts() -> None:
 
         # Expected when it can not find utilization reports to parse.
         with suppress(FileNotFoundError):
-            project.build(project_path=project_path, output_path=project_path)
+            project.build(
+                project_path=project_path,
+                output_path=project_path,
+                # Set another generic to showcase in generated code.
+                generics={"num_lanes": 2},
+            )
 
     top_module = project.modules.get(module_name="artyz7")
     CppInterfaceGenerator(

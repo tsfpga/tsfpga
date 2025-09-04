@@ -113,7 +113,7 @@ The value read from the **build_id** register shall be equal to this constant.""
 
         registers.add_constant(
             name="build_generics",
-            value=str(generics),
+            value=", ".join(f"{key}={value}" for key, value in generics.items()),
             description=(
                 "The generic values that were set to the top level when building this FPGA."
                 + hook_note
