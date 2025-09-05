@@ -10,37 +10,31 @@ from tsfpga.vivado.build_result import BuildResult
 
 
 def test_size_summary():
-    build_result = BuildResult(name="apa")
+    build_result = BuildResult(name="apa", synthesis_run_name="")
 
     build_result.synthesis_size = {"LUT": 3, "FFs": 4}
     expected = """\
 Size of apa after synthesis:
-{
-  "LUT": 3,
-  "FFs": 4
-}"""
+ - LUT: 3
+ - FFs: 4"""
     assert build_result.size_summary() == expected
 
     build_result.implementation_size = {"LUT": 8, "FFs": 9}
     expected = """\
 Size of apa after implementation:
-{
-  "LUT": 8,
-  "FFs": 9
-}"""
+ - LUT: 8
+ - FFs: 9"""
     assert build_result.size_summary() == expected
 
 
 def test_report():
-    build_result = BuildResult(name="apa")
+    build_result = BuildResult(name="apa", synthesis_run_name="")
 
     build_result.synthesis_size = {"LUT": 3, "FFs": 4}
     expected = """\
 Size of apa after synthesis:
-{
-  "LUT": 3,
-  "FFs": 4
-}"""
+ - LUT: 3
+ - FFs: 4"""
     assert build_result.report() == expected
 
     # Add a logic level distribution report
@@ -53,10 +47,8 @@ Size of apa after synthesis:
 """
     expected = """\
 Size of apa after synthesis:
-{
-  "LUT": 3,
-  "FFs": 4
-}
+ - LUT: 3
+ - FFs: 4
 Logic level distribution:
 +-----------------+-------------+-----+----+---+----+
 | End Point Clock | Requirement |  0  |  1 | 2 |  3 |
@@ -69,7 +61,7 @@ Logic level distribution:
 
 
 def test_maximum_logic_level_should_be_none_if_no_logic_level_distribution_is_set():
-    build_result = BuildResult(name="apa")
+    build_result = BuildResult(name="apa", synthesis_run_name="")
     build_result.synthesis_size = {"LUT": 3, "FFs": 4}
 
     # maximum_logic_level is calculated based on the logic_level_distribution, which is not set

@@ -23,7 +23,7 @@ from vunit.test.runner import TestRunner
 from tsfpga.system_utils import create_directory, read_last_lines_of_file
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Sequence
 
     from .module_list import ModuleList
     from .vivado import build_result
@@ -36,33 +36,14 @@ class BuildProjectList:
     Enables building many projects in parallel.
     """
 
-    def __init__(
-        self,
-        modules: ModuleList,
-        project_filters: list[str],
-        include_netlist_not_top_builds: bool = False,
-        no_color: bool = False,
-    ) -> None:
+    def __init__(self, projects: Sequence[VivadoProject], no_color: bool = False) -> None:
         """
         Arguments:
-            modules: Module objects that can define build projects.
-            project_filters: Project name filters. Can use wildcards (*). Leave empty for all.
-            include_netlist_not_top_builds: Set True to get only netlist builds,
-                instead of only top level builds.
+            projects: The FPGA build projects that will be executed.
             no_color: Disable color in printouts.
         """
-        self._modules = modules
+        self.projects = projects
         self._no_color = no_color
-
-        self.projects = list(
-            self._iterate_projects(
-                project_filters=project_filters,
-                include_netlist_not_top_builds=include_netlist_not_top_builds,
-            )
-        )
-
-        if not self.projects:
-            print(f"No projects matched this filter: {' '.join(project_filters)}")
 
     def __str__(self) -> str:
         """
@@ -307,14 +288,15 @@ class BuildProjectList:
 
         # True if the builds are for the "build" step (not "create" or "open")
         builds_are_build_step = isinstance(build_wrappers[0], BuildProjectBuildWrapper)
-        # If we are building, we should print the summary that is at the end of the console output.
-        # (however if we are creating or opening a project we should not print anything extra).
-        # However if anything has failed, we should also print.
+
         if builds_are_build_step:
-            # The length of the build summary depends on if we are working with netlist builds or
-            # regular ones, so set the length given by one of the project objects.
-            report_length_lines = build_wrappers[0].build_result_report_length
-            report.set_report_length(report_length_lines=report_length_lines)
+            for build_wrapper in build_wrappers:
+                # Update the 'report' object with info about how many lines to print for each build.
+                # This information is only available after the build has finished.
+                report.set_report_length(
+                    name=build_wrapper.name,
+                    report_length_lines=build_wrapper.report_length_lines,
+                )
 
         # If all are OK then we should print the resource utilization numbers.
         # If not, then we print a few last lines of the log output.
@@ -322,29 +304,6 @@ class BuildProjectList:
             report.print_str()
 
         return all_builds_ok
-
-    def _iterate_projects(
-        self, project_filters: list[str], include_netlist_not_top_builds: bool
-    ) -> Iterable[VivadoProject]:
-        available_projects = []
-        for module in self._modules:
-            available_projects += module.get_build_projects()
-
-        for project in available_projects:
-            if project.is_netlist_build == include_netlist_not_top_builds:
-                if not project_filters:
-                    yield project
-
-                else:
-                    for project_filter in project_filters:
-                        if fnmatch.filter([project.name], project_filter):
-                            yield project
-
-                            # Do not continue with further filters if we have already matched this
-                            # project.
-                            # Multiple filters might match the same project, and multiple objects
-                            # of the same project will break build
-                            break
 
 
 class BuildProjectWrapper(ABC):
@@ -414,6 +373,8 @@ class BuildProjectBuildWrapper(BuildProjectWrapper):
         self._collect_artifacts = collect_artifacts
         self._build_arguments = kwargs
 
+        self._report_length_lines: int | None = None
+
     def run(
         self,
         output_path: Path,
@@ -439,41 +400,21 @@ class BuildProjectBuildWrapper(BuildProjectWrapper):
         self._print_build_result(build_result=build_result)
         return build_result.success
 
-    @staticmethod
-    def _print_build_result(build_result: build_result.BuildResult) -> None:
+    def _print_build_result(self, build_result: build_result.BuildResult) -> None:
         build_report = build_result.report()
+
         if build_report:
-            # Add an empty line before the build result report, to have margin in how many lines are
-            # printed. See the comments in BuildResult for an explanation.
-            print()
             print(build_report)
+            self._report_length_lines = build_report.count("\n") + 1
 
     @property
-    def build_result_report_length(self) -> int:
+    def report_length_lines(self) -> int | None:
         """
-        The number of lines in the build_result report from this project.
+        The number of lines in the ``build_result`` report from this project.
+        A value of ``None`` would indicate a build failure, either in the IDE or in the
+        post-build steps.
         """
-        # The size summary, as returned by tsfpga.vivado.project.BuildResult is a JSON formatted
-        # string with one line for each utilization category.
-        # For Xilinx 7 series, there are 8 categories (Total LUTs, Logic LUTs, LUTRAMs,
-        # SRLs, FFs, RAMB36, RAMB18, DSP Blocks). For UltraScale series there is one
-        # extra (URAM).
-        # Additionally, the size summary contains three extra lines for JSON braces and a title.
-        #
-        # This value is enough lines so the whole summary gets printed to console.
-        # For 7 series, this will mean an extra blank line before the summary.
-        #
-        # This is a hack. Works for now, but is far from reliable.
-        length_of_size_report = 3 + 8 + 1
-
-        if self._project.is_netlist_build:
-            # The logic level distribution report is five lines, plus a title line.
-            # This report is only printed for netlist builds, where there is no configured clock
-            # present. If there were many clocks present in the build, the report would be longer.
-            length_of_logic_level_report = 5 + 1
-            return length_of_size_report + length_of_logic_level_report
-
-        return length_of_size_report
+        return self._report_length_lines
 
 
 class BuildProjectOpenWrapper(BuildProjectWrapper):
@@ -577,12 +518,12 @@ class BuildReport(TestReport):
         self._test_results[result.name] = result
         self._test_names_in_order.append(result.name)
 
-    def set_report_length(self, report_length_lines: int) -> None:
+    def set_report_length(self, name: str, report_length_lines: int | None) -> None:
         """
-        Set the report length for all test results that have been added to the report.
+        Set how many lines shall be printed for this build.
+        Can be ``None`` to indicate that the build failed, and we don't how much to print.
         """
-        for test_result in self._test_results.values():
-            test_result.set_report_length(report_length_lines)
+        self._test_results[name].set_report_length(report_length_lines=report_length_lines)
 
     def print_latest_status(self, total_tests: int) -> None:
         """
@@ -611,7 +552,7 @@ class BuildReport(TestReport):
 
 
 class BuildResult(TestResult):
-    report_length_lines = None
+    _report_length_lines: int | None = None
 
     def _print_output(
         self,
@@ -627,8 +568,9 @@ class BuildResult(TestResult):
     def set_report_length(self, report_length_lines: int) -> None:
         """
         Set how many lines shall be printed when this result is printed.
+        Can be ``None`` to indicate that the build failed, and we don't how much to print.
         """
-        self.report_length_lines = report_length_lines
+        self._report_length_lines = report_length_lines
 
     def print_status(
         self,
@@ -648,20 +590,20 @@ class BuildResult(TestResult):
         writing this is un-released on the VUnit ``master`` branch.
         In order to be compatible with both older and newer versions, we use ``**kwargs`` for this.
         """
-        if self.passed and self.report_length_lines is not None:
+        if self.passed and self._report_length_lines is not None:
             # Build passed, print build summary of the specified length. The length is only
             # set if this is a "build" result (not "create" or "open").
-            self._print_output(printer=printer, num_lines=self.report_length_lines)
+            self._print_output(printer=printer, num_lines=self._report_length_lines)
+
         else:
             # The build failed, which can either be caused by
             # 1. IDE build failure
             # 2. IDE build succeeded, but post build hook, or size checkers failed.
             # 3. Other python error (directory already exists, ...)
             # In the case of IDE build failed, we want a significant portion of the output, to be
-            # able to see an indication of what failed. In the case of size checkers, we want to see
-            # all the printouts from all checkers, to see which one failed. Since there are at most
-            # eight resource categories, it is reasonable to assume that there will never be more
-            # than eight size checkers.
+            # able to see an indication of what failed.
+            # In the case of size checkers, we want to see all the printouts from all checkers,
+            # to see which one failed.
             self._print_output(printer=printer, num_lines=25)
 
         # Print the regular output from the VUnit class.
@@ -669,3 +611,40 @@ class BuildResult(TestResult):
         super().print_status(printer=printer, padding=padding + 2, **kwargs)
         # Add an empty line between each build, for readability.
         printer.write("\n")
+
+
+def get_build_projects(
+    modules: ModuleList, project_filters: list[str], include_netlist_not_full_builds: bool
+) -> list[VivadoProject]:
+    """
+    Get build projects from the given modules that match the given filters.
+    Note that the result of this function is a list of "raw" :class:`.VivadoProject` objects.
+    These are meant to be passed to :class:`.BuildProjectList` for execution.
+
+    Arguments:
+        modules: Module objects that can define build projects.
+        project_filters: Project name filters.
+            Can use wildcards (*).
+            Leave empty for all.
+        include_netlist_not_full_builds:
+            Set True to get only netlist builds, instead of only full top level builds.
+    """
+    result = []
+    for module in modules:
+        for project in module.get_build_projects():
+            if project.is_netlist_build == include_netlist_not_full_builds:
+                if not project_filters:
+                    result.append(project)
+
+                else:
+                    for project_filter in project_filters:
+                        if fnmatch.filter([project.name], project_filter):
+                            result.append(project)
+
+                            # Do not continue with further filters if we have already matched
+                            # this project.
+                            # Multiple filters might match the same project, and we dont't
+                            # want duplicates.
+                            break
+
+    return result

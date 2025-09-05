@@ -42,7 +42,7 @@ if {[string first "Slack (VIOLATED)" [report_bus_skew -no_header -return_string]
 }
 
 
-# This code is duplicated in tcl.py for synthesis.
+# This code is duplicated in 'tcl.py' for synthesis.
 set clock_interaction_report [
   report_clock_interaction -delay_type "min_max" -no_header -return_string
 ]

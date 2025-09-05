@@ -6,5 +6,5 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-# This call is duplicated in tcl.py for synthesis
+# This call is duplicated in 'tcl.py' for synthesis
 report_utilization -hierarchical -hierarchical_depth 4 -file "hierarchical_utilization.rpt"

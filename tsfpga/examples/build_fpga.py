@@ -16,7 +16,7 @@ sys.path.insert(0, str(REPO_ROOT))
 # Import before others since it modifies PYTHONPATH.
 import tsfpga.examples.example_pythonpath  # noqa: F401
 
-from tsfpga.build_project_list import BuildProjectList
+from tsfpga.build_project_list import BuildProjectList, get_build_projects
 from tsfpga.examples.build_fpga_utils import arguments, collect_artifacts, setup_and_run
 from tsfpga.examples.example_env import TSFPGA_EXAMPLES_TEMP_DIR, get_tsfpga_example_modules
 
@@ -28,17 +28,19 @@ def main() -> None:
     """
     args = arguments(default_temp_dir=TSFPGA_EXAMPLES_TEMP_DIR)
     modules = get_tsfpga_example_modules()
-    projects = BuildProjectList(
-        modules=modules,
-        project_filters=args.project_filters,
-        include_netlist_not_top_builds=args.netlist_builds,
+    project_list = BuildProjectList(
+        projects=get_build_projects(
+            modules=modules,
+            project_filters=args.project_filters,
+            include_netlist_not_full_builds=args.netlist_builds,
+        ),
         no_color=args.no_color,
     )
 
     sys.exit(
         setup_and_run(
             modules=modules,
-            projects=projects,
+            project_list=project_list,
             args=args,
             collect_artifacts_function=collect_artifacts,
         )

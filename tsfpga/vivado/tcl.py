@@ -14,7 +14,7 @@ from tsfpga.hdl_file import HdlFile
 from tsfpga.system_utils import create_file
 
 from .common import to_tcl_path
-from .generics import get_vivado_tcl_generic_value
+from .generics import BitVectorGenericValue, StringGenericValue, get_vivado_tcl_generic_value
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -47,7 +47,8 @@ class VivadoTcl:
         part: str,
         top: str,
         run_index: int,
-        generics: dict[str, str] | None = None,
+        generics: dict[str, bool | float | StringGenericValue | BitVectorGenericValue]
+        | None = None,
         constraints: list[Constraint] | None = None,
         tcl_sources: list[Path] | None = None,
         build_step_hooks: list[BuildStepTclHook] | None = None,
@@ -72,7 +73,7 @@ set_property "target_language" "VHDL" [current_project]
         if not ip_cores_only:
             tcl += self._add_module_source_files(modules=modules, other_arguments=other_arguments)
             tcl += self._add_tcl_sources(tcl_sources)
-            tcl += self._add_generics(generics)
+            tcl += self._add_generics(generics=generics)
 
             constraints = list(
                 self._iterate_constraints(
@@ -272,7 +273,13 @@ foreach run [get_runs {run_wildcard}] {{
 """
 
     @staticmethod
-    def _add_generics(generics: dict[str, Any] | None) -> str:
+    def _add_generics(
+        generics: dict[
+            str,
+            bool | float | StringGenericValue | BitVectorGenericValue,
+        ]
+        | None,
+    ) -> str:
         """
         Generics are set according to this weird format:
         https://www.xilinx.com/support/answers/52217.html
@@ -335,14 +342,15 @@ set_property "generic" {{{generics_string}}} [current_fileset]
     def build(  # noqa: PLR0913
         self,
         project_file: Path,
-        output_path: Path,
+        output_path: Path | None,
         num_threads: int,
         run_index: int,
-        generics: dict[str, Any] | None = None,
+        generics: dict[str, bool | float | StringGenericValue | BitVectorGenericValue]
+        | None = None,
         synth_only: bool = False,
         from_impl: bool = False,
         impl_explore: bool = False,
-        analyze_synthesis_timing: bool = True,
+        open_and_analyze_synthesized_design: bool = True,
     ) -> str:
         if impl_explore:
             # For implementation explore, threads are divided to one each per job.
@@ -358,12 +366,16 @@ set_property "generic" {{{generics_string}}} [current_fileset]
         tcl = f"open_project {{{to_tcl_path(project_file)}}}\n"
         tcl += f'set_param "general.maxThreads" {num_threads_general}\n'
         tcl += f'set_param "synth.maxThreads" {num_threads_synth}\n\n'
-        tcl += self._add_generics(generics)
+        tcl += self._add_generics(generics=generics)
 
         if not from_impl:
             synth_run = f"synth_{run_index}"
 
-            tcl += self._synthesis(synth_run, num_threads, analyze_synthesis_timing)
+            tcl += self._synthesis(
+                run=synth_run,
+                num_threads=num_threads,
+                open_and_analyze=open_and_analyze_synthesized_design,
+            )
 
         if not synth_only:
             impl_run = f"impl_{run_index}"
@@ -373,6 +385,8 @@ set_property "generic" {{{generics_string}}} [current_fileset]
             else:
                 tcl += self._run(impl_run, num_threads, to_step="write_bitstream")
 
+            if output_path is None:
+                raise ValueError("Output path must be set for implementation builds.")
             tcl += self._write_hw_platform(output_path)
 
         tcl += """
@@ -381,20 +395,22 @@ exit
 """
         return tcl
 
-    def _synthesis(self, run: str, num_threads: int, analyze_synthesis_timing: bool) -> str:
-        tcl = self._run(run, num_threads)
-        if not analyze_synthesis_timing:
+    def _synthesis(self, run: str, num_threads: int, open_and_analyze: bool) -> str:
+        tcl = self._run(run=run, num_threads=num_threads)
+        if not open_and_analyze:
             return tcl
 
-        # For synthesis flow we perform the timing checks by opening the design. It would have
-        # been more efficient to use a post-synthesis hook (since the design would already be
-        # open), if that mechanism had worked. It seems to be very bugged. So we add the
-        # checkers to the build script.
-        # For implementation, we use a pre-bitstream build hook which seems to work decently.
+        # It would have been more efficient to use post-synthesis hooks (since the design would
+        # already be open), IF that mechanism had worked.
+        # It seems to be very bugged.
+        # So we add all these checks to the build script.
+        # For the implementation step, we use a pre-bitstream build hook which seems to work.
         #
         # Timing checks such as setup/hold/pulse width violations, are not reliable after synthesis,
-        # and should not abort the build as we do below.
+        # and should not abort the build.
         # These need to be checked after implementation.
+        # Checks likes CDC or unhandled clock crossings, however, are reliable after synthesis,
+        # and hence we abort the build below if such issues are found.
         tcl += """
 # ------------------------------------------------------------------------------
 open_run ${run}
@@ -417,12 +433,6 @@ if {${part_supports_ssn} != ""} {
     set output_file [file join ${run_directory} "report_ssn.html"]
     report_ssn -phase -format html -file ${output_file}
 }
-
-
-# ------------------------------------------------------------------------------
-# This call is duplicated in 'report_utilization.tcl' for implementation.
-set output_file [file join ${run_directory} "hierarchical_utilization.rpt"]
-report_utilization -hierarchical -hierarchical_depth 4 -file ${output_file}
 
 
 # ------------------------------------------------------------------------------
@@ -461,6 +471,23 @@ if {[string first "Critical" ${cdc_report}] != -1} {
 
   set should_exit 1
 }
+
+
+# ------------------------------------------------------------------------------
+# The below reports are used heavily by netlist builds, but do not really have a use case for
+# full builds.
+# The calls is very fast though (< 1s even on a decently sized design) so it is fine to run always.
+
+# This call is duplicated in 'report_logic_level_distribution.tcl'.
+set output_file [file join ${run_directory} "logic_level_distribution.rpt"]
+report_design_analysis -logic_level_distribution -file ${output_file}
+
+# This call is duplicated in 'report_utilization.tcl' for implementation.
+set output_file [file join ${run_directory} "hierarchical_utilization.rpt"]
+report_utilization -hierarchical -hierarchical_depth 4 -file ${output_file}
+
+set output_file [file join ${run_directory} "timing.rpt"]
+report_timing -setup -no_header -file ${output_file}
 
 
 # ------------------------------------------------------------------------------

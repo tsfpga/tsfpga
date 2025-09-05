@@ -14,8 +14,8 @@ import pytest
 
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
 from tsfpga.constraint import Constraint
-from tsfpga.module import BaseModule
-from tsfpga.system_utils import create_directory, create_file
+from tsfpga.module import BaseModule, get_modules
+from tsfpga.system_utils import create_directory, create_file, read_file
 from tsfpga.vivado.generics import StringGenericValue
 from tsfpga.vivado.project import VivadoNetlistProject, VivadoProject, copy_and_combine_dicts
 
@@ -143,7 +143,9 @@ def test_build_with_impl_run_should_raise_exception_if_no_output_path_is_given()
     proj = VivadoProject(name="name", modules=[], part="part")
     with pytest.raises(ValueError) as exception_info:
         proj.build("None")
-    assert str(exception_info.value).startswith("Must specify output_path")
+    assert str(exception_info.value) == (
+        "Must specify 'output_path' when doing an implementation build."
+    )
 
 
 def test_top_name():
@@ -230,6 +232,7 @@ def test_copy_and_combine_dict_with_both_arguments_valid_and_same_key():
 def vivado_project_test(tmp_path):
     class VivadoProjectTest:
         def __init__(self):
+            self.modules_path = tmp_path / "modules"
             self.project_path = tmp_path / "projects" / "apa" / "project"
             self.output_path = tmp_path / "projects" / "apa"
             self.ip_cache_path = MagicMock()
@@ -558,7 +561,7 @@ def test_get_size_is_called_correctly(vivado_project_test):
 def test_netlist_build_should_set_logic_level_distribution(vivado_project_test):
     def _build_with_logic_level_distribution(project):
         """
-        The project.build() call is very similar to _build() method in this class, except it
+        The project.build() call is very similar to _build() method in this class, except this one
         also mocks the _get_logic_level_distribution() method.
         """
         with (
@@ -589,10 +592,7 @@ def test_netlist_build_should_set_logic_level_distribution(vivado_project_test):
 
     create_file(vivado_project_test.project_path / "apa.xpr")
     create_file(
-        vivado_project_test.project_path
-        / "apa.runs"
-        / "synth_3"
-        / "logical_level_distribution.rpt",
+        vivado_project_test.project_path / "apa.runs" / "synth_3" / "logic_level_distribution.rpt",
         contents="logic_file",
     )
 
@@ -601,3 +601,154 @@ def test_netlist_build_should_set_logic_level_distribution(vivado_project_test):
 
     project = VivadoProject(name="apa", modules=[], part="")
     _build_with_logic_level_distribution(project=project)
+
+
+def test_netlist_build_auto_detect_clocks(vivado_project_test):
+    create_file(
+        vivado_project_test.modules_path / "hest" / "zebra.vhd",
+        """
+library ieee;
+
+-- entity zebra is
+--   port (
+--     bad_clk : in std_logic;
+--   )
+-- end entity;
+
+-- bad_clk : in std_logic
+entity zebra is
+  -- bad_clk : in std_logic
+  generic (
+    width : positive
+    bad_clk : in std_logic
+  );
+  -- bad_clk : in std_logic
+  port (
+    clk : in std_logic;
+    clock : in std_logic;
+    rst : in std_logic;
+    my_funny_clock : in std_logic;
+    clk_my_funny : in std_logic
+    -- bad_clk : in std_logic;
+    badclk : in std_logic;
+    clockbad : in std_logic
+  )
+  -- bad_clk : in std_logic
+end entity;
+-- bad_clk : in std_logic
+""",
+    )
+
+    project = VivadoNetlistProject(
+        name="apa",
+        modules=get_modules(modules_folder=vivado_project_test.modules_path),
+        part="",
+        top="zebra",
+        analyze_synthesis_timing=True,
+    )
+    vivado_project_test.create(project, analyze_synthesis_timing=True)
+
+    tcl = read_file(vivado_project_test.project_path.parent / "auto_create_zebra_clocks.tcl")
+    assert 'create_clock -name "clk"' in tcl
+    assert 'create_clock -name "clock"' in tcl
+    assert 'create_clock -name "my_funny_clock"' in tcl
+    assert 'create_clock -name "clk_my_funny"' in tcl
+    assert tcl.count("create_clock") == 4
+
+
+def test_netlist_build_auto_detect_clocks_no_file_name_matching_top_should_raise_exception(
+    vivado_project_test,
+):
+    create_file(vivado_project_test.modules_path / "hest" / "apa.vhd", "")
+
+    project = VivadoNetlistProject(
+        name="apa",
+        modules=get_modules(modules_folder=vivado_project_test.modules_path),
+        part="",
+        top="zebra",
+        analyze_synthesis_timing=True,
+    )
+    with pytest.raises(ValueError) as exception_info:
+        vivado_project_test.create(project, analyze_synthesis_timing=True)
+    assert str(exception_info.value) == (
+        'Could not find HDL source file corresponding to top-level "zebra".'
+    )
+
+
+def test_netlist_build_auto_detect_clocks_no_entity_should_raise_exception(
+    vivado_project_test,
+):
+    file_path = create_file(
+        vivado_project_test.modules_path / "hest" / "zebra.vhd",
+        """
+library ieee;
+
+entity apa is
+  port (
+    clk : in std_logic
+  );
+end entity;
+""",
+    )
+
+    project = VivadoNetlistProject(
+        name="apa",
+        modules=get_modules(modules_folder=vivado_project_test.modules_path),
+        part="",
+        top="zebra",
+        analyze_synthesis_timing=True,
+    )
+    with pytest.raises(ValueError) as exception_info:
+        vivado_project_test.create(project, analyze_synthesis_timing=True)
+    assert str(exception_info.value) == (
+        f'Could not find "zebra" entity declaration in "{file_path}".'
+    )
+
+
+def test_netlist_build_result_maximum_frequency(vivado_project_test):
+    def _build_with_slack(analyze_synthesis_timing: bool):
+        """
+        The project.build() call is very similar to _build() method in this class, except this one
+        also mocks the get_slack_ns() method.
+        """
+        project = VivadoNetlistProject(
+            name="apa", modules=[], part="", analyze_synthesis_timing=analyze_synthesis_timing
+        )
+
+        with (
+            patch(
+                "tsfpga.vivado.project.run_vivado_tcl", autospec=True
+            ) as vivado_project_test.mocked_run_vivado_tcl,
+            patch(
+                "tsfpga.vivado.project.VivadoNetlistProject._set_auto_clock_constraint",
+                autospec=True,
+            ) as _,
+            patch(
+                "tsfpga.vivado.project.TimingParser.get_slack_ns", autospec=True
+            ) as mocked_get_slack_ns,
+        ):
+            mocked_get_slack_ns.return_value = 1
+
+            build_result = project.build(
+                project_path=vivado_project_test.project_path,
+                output_path=vivado_project_test.output_path,
+                run_index=vivado_project_test.run_index,
+            )
+
+            if project.open_and_analyze_synthesized_design:
+                mocked_get_slack_ns.assert_called_once_with("timing_file")
+                assert build_result.maximum_synthesis_frequency_hz == 1e9
+            else:
+                mocked_get_slack_ns.assert_not_called()
+                assert build_result.logic_level_distribution is None
+                assert build_result.maximum_logic_level is None
+                assert build_result.maximum_synthesis_frequency_hz is None
+
+    create_file(vivado_project_test.project_path / "apa.xpr")
+    create_file(
+        vivado_project_test.project_path / "apa.runs" / "synth_3" / "timing.rpt",
+        contents="timing_file",
+    )
+
+    _build_with_slack(analyze_synthesis_timing=False)
+    _build_with_slack(analyze_synthesis_timing=True)

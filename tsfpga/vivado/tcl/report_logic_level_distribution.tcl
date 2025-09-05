@@ -6,4 +6,5 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-report_design_analysis -logic_level_distribution -file "logical_level_distribution.rpt"
+# This call is duplicated in 'tcl.py' for cases when the synthesized design is opened.
+report_design_analysis -logic_level_distribution -file "logic_level_distribution.rpt"
