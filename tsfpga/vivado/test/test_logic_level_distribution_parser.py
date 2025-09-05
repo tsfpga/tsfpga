@@ -33,12 +33,39 @@ def test_get_table():
     assert LogicLevelDistributionParser.get_table(report) == expected
 
 
+def test_get_table_multiple():
+    report = """
+
+1. Logic Level Distribution
+---------------------------
+
++-----------------+-------------+-----+----+---+----+
+| End Point Clock | Requirement |  0  |  1 | 2 |  3 |
++-----------------+-------------+-----+----+---+----+
+| clk_fpga_0      | 2.000ns     | 491 | 12 | 1 | 11 |
+| clk_fpga_1      | 3.000ns     | 491 | 12 | 1 | 11 |
++-----------------+-------------+-----+----+---+----+
+* Columns represent the logic levels per end point clock
+** Distribution is for top worst 1000 paths
+"""
+    expected = """\
++-----------------+-------------+-----+----+---+----+
+| End Point Clock | Requirement |  0  |  1 | 2 |  3 |
++-----------------+-------------+-----+----+---+----+
+| clk_fpga_0      | 2.000ns     | 491 | 12 | 1 | 11 |
+| clk_fpga_1      | 3.000ns     | 491 | 12 | 1 | 11 |
++-----------------+-------------+-----+----+---+----+\
+"""
+    assert LogicLevelDistributionParser.get_table(report) == expected
+
+
 def test_get_maximum_logic_level():
     table = """\
 +-----------------+-------------+-----+----+---+----+
 | End Point Clock | Requirement |  0  |  1 | 2 |  3 |
 +-----------------+-------------+-----+----+---+----+
-| clk_fpga_0      | 2.000ns     | 491 | 12 | 1 | 11 |
+| clk_fpga_0      | 2.000ns     | 491 | 12 | 1 |  1 |
+| clk_fpga_1      | 3.000ns     | 491 | 12 | 1 | 11 |
 +-----------------+-------------+-----+----+---+----+\
 """
     assert LogicLevelDistributionParser.get_maximum_logic_level(table) == 3
@@ -48,6 +75,7 @@ def test_get_maximum_logic_level():
 | End Point Clock | Requirement |  0  |  1 | 2 |  7 |
 +-----------------+-------------+-----+----+---+----+
 | clk_fpga_0      | 2.000ns     | 491 | 12 | 1 | 11 |
+| clk_fpga_1      | 3.000ns     | 491 | 12 | 1 |  1 |
 +-----------------+-------------+-----+----+---+----+\
 """
     assert LogicLevelDistributionParser.get_maximum_logic_level(table) == 7

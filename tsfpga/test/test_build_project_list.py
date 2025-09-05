@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from tsfpga.build_project_list import BuildProjectList
+from tsfpga.build_project_list import BuildProjectList, get_build_projects
 from tsfpga.module import BaseModule
 from tsfpga.system_utils import create_directory
 from tsfpga.vivado.project import BuildResult, VivadoProject
@@ -27,7 +27,7 @@ def build_project_list_test():
             project.is_netlist_build = is_netlist_build
 
             # Note that his has 'success' set to True by default.
-            project.build.return_value = BuildResult(name=name)
+            project.build.return_value = BuildResult(name=name, synthesis_run_name="")
 
             module = MagicMock(spec=BaseModule)
             module.name = name
@@ -47,74 +47,77 @@ def build_project_list_test():
             )
 
             self.modules = [self.module_one, self.module_two, self.module_three, self.module_four]
+            self.projects = [
+                self.project_one,
+                self.project_two,
+                self.project_three,
+                self.project_four,
+            ]
 
     return TestBuildProjectList()
 
 
+def test_get_build_projects(build_project_list_test):
+    assert get_build_projects(
+        modules=build_project_list_test.modules,
+        project_filters=[],
+        include_netlist_not_full_builds=True,
+    ) == [
+        build_project_list_test.project_three,
+        build_project_list_test.project_four,
+    ]
+    assert get_build_projects(
+        modules=build_project_list_test.modules,
+        project_filters=[],
+        include_netlist_not_full_builds=False,
+    ) == [
+        build_project_list_test.project_one,
+        build_project_list_test.project_two,
+    ]
+
+    assert get_build_projects(
+        modules=build_project_list_test.modules,
+        project_filters=["thr*", "fou*"],
+        include_netlist_not_full_builds=True,
+    ) == [
+        build_project_list_test.project_three,
+        build_project_list_test.project_four,
+    ]
+
+    # Filter matches 'three' twice, but should only return once.
+    assert get_build_projects(
+        modules=build_project_list_test.modules,
+        project_filters=["three", "*r*"],
+        include_netlist_not_full_builds=True,
+    ) == [
+        build_project_list_test.project_three,
+        build_project_list_test.project_four,
+    ]
+
+
 def test_can_list_without_error(build_project_list_test):
-    list_str = str(BuildProjectList(build_project_list_test.modules, project_filters=[]))
+    list_str = str(BuildProjectList(build_project_list_test.projects))
     assert "one" in list_str
     assert "two" in list_str
 
 
-def test_project_filtering(build_project_list_test):
-    project_list = BuildProjectList(build_project_list_test.modules, project_filters=[])
-    assert len(project_list.projects) == 2
-    assert build_project_list_test.project_one in project_list.projects
-    assert build_project_list_test.project_two in project_list.projects
-
-    project_list = BuildProjectList(
-        build_project_list_test.modules, project_filters=["apa", "*ne", "three", "four"]
-    )
-    assert len(project_list.projects) == 1
-    assert build_project_list_test.project_one in project_list.projects
-
-    project_list = BuildProjectList(
-        build_project_list_test.modules, project_filters=["one", "one", "on*"]
-    )
-    assert len(project_list.projects) == 1
-    assert build_project_list_test.project_one in project_list.projects
-
-    project_list = BuildProjectList(
-        build_project_list_test.modules, project_filters=[], include_netlist_not_top_builds=True
-    )
-    assert len(project_list.projects) == 2
-    assert build_project_list_test.project_three in project_list.projects
-    assert build_project_list_test.project_four in project_list.projects
-
-    project_list = BuildProjectList(
-        build_project_list_test.modules,
-        include_netlist_not_top_builds=True,
-        project_filters=["apa", "one", "two", "thr*"],
-    )
-    assert len(project_list.projects) == 1
-    assert build_project_list_test.project_three in project_list.projects
-
-
 def test_create(build_project_list_test, tmp_path):
-    project_list = BuildProjectList(build_project_list_test.modules, project_filters=["one", "two"])
+    project_list = BuildProjectList(build_project_list_test.projects)
     assert project_list.create(
         projects_path=tmp_path / "projects_path",
         num_parallel_builds=2,
         ip_cache_path=tmp_path / "ip_cache_path",
     )
 
-    build_project_list_test.project_one.create.assert_called_once_with(
-        project_path=tmp_path / "projects_path" / "one" / "project",
-        ip_cache_path=tmp_path / "ip_cache_path",
-    )
-
-    build_project_list_test.project_two.create.assert_called_once_with(
-        project_path=tmp_path / "projects_path" / "two" / "project",
-        ip_cache_path=tmp_path / "ip_cache_path",
-    )
-
-    build_project_list_test.project_three.create.assert_not_called()
-    build_project_list_test.project_four.create.assert_not_called()
+    for project in build_project_list_test.projects:
+        project.create.assert_called_once_with(
+            project_path=tmp_path / "projects_path" / project.name / "project",
+            ip_cache_path=tmp_path / "ip_cache_path",
+        )
 
 
 def test_create_unless_exists(build_project_list_test, tmp_path):
-    project_list = BuildProjectList(build_project_list_test.modules, project_filters=["one"])
+    project_list = BuildProjectList([build_project_list_test.project_one])
     assert project_list.create_unless_exists(
         projects_path=tmp_path / "projects_path",
         num_parallel_builds=2,
@@ -139,13 +142,9 @@ def test_create_unless_exists(build_project_list_test, tmp_path):
     # Still only called once after second create_unless_exists()
     build_project_list_test.project_one.create.assert_called_once()
 
-    build_project_list_test.project_two.create.assert_not_called()
-    build_project_list_test.project_three.create.assert_not_called()
-    build_project_list_test.project_four.create.assert_not_called()
-
 
 def test_build(build_project_list_test, tmp_path):
-    project_list = BuildProjectList(build_project_list_test.modules, project_filters=["one"])
+    project_list = BuildProjectList([build_project_list_test.project_one])
     assert project_list.build(
         projects_path=tmp_path / "projects_path",
         num_parallel_builds=2,
@@ -162,7 +161,7 @@ def test_build(build_project_list_test, tmp_path):
 
 
 def test_build_fail_should_return_false(build_project_list_test, tmp_path):
-    project_list = BuildProjectList(build_project_list_test.modules, project_filters=["one"])
+    project_list = BuildProjectList([build_project_list_test.project_one])
     build_project_list_test.project_one.build.return_value = MagicMock(spec=BuildResult)
     build_project_list_test.project_one.build.return_value.success = False
 
@@ -175,7 +174,7 @@ def test_build_fail_should_return_false(build_project_list_test, tmp_path):
 
 
 def test_build_with_output_path(build_project_list_test, tmp_path):
-    project_list = BuildProjectList(build_project_list_test.modules, project_filters=["one"])
+    project_list = BuildProjectList([build_project_list_test.project_one])
     assert project_list.build(
         projects_path=tmp_path / "projects_path",
         num_parallel_builds=2,
@@ -191,7 +190,7 @@ def test_build_with_output_path(build_project_list_test, tmp_path):
 
 
 def test_build_with_collect_artifacts(build_project_list_test, tmp_path):
-    project_list = BuildProjectList(build_project_list_test.modules, project_filters=["one"])
+    project_list = BuildProjectList([build_project_list_test.project_one])
     collect_artifacts = MagicMock()
     assert project_list.build(
         projects_path=tmp_path / "projects_path",
@@ -207,7 +206,7 @@ def test_build_with_collect_artifacts(build_project_list_test, tmp_path):
 
 
 def test_build_with_collect_artifacts_and_output_path(build_project_list_test, tmp_path):
-    project_list = BuildProjectList(build_project_list_test.modules, project_filters=["one"])
+    project_list = BuildProjectList([build_project_list_test.project_one])
     collect_artifacts = MagicMock()
     assert project_list.build(
         projects_path=tmp_path / "projects_path",
@@ -226,7 +225,7 @@ def test_build_with_collect_artifacts_and_output_path(build_project_list_test, t
 def test_build_with_collect_artifacts_return_false_should_fail_build(
     build_project_list_test, tmp_path
 ):
-    project_list = BuildProjectList(build_project_list_test.modules, project_filters=["one"])
+    project_list = BuildProjectList([build_project_list_test.project_one])
     collect_artifacts = MagicMock()
     collect_artifacts.return_value = False
     assert not project_list.build(
@@ -239,7 +238,7 @@ def test_build_with_collect_artifacts_return_false_should_fail_build(
 
 def test_open(build_project_list_test, tmp_path):
     project_list = BuildProjectList(
-        build_project_list_test.modules, project_filters=[], include_netlist_not_top_builds=True
+        [build_project_list_test.project_three, build_project_list_test.project_four]
     )
     assert project_list.open(projects_path=tmp_path / "projects_path")
 

@@ -403,7 +403,7 @@ def test_analyze_synthesis_settings_on_and_off(vivado_tcl_test):
         output_path=Path(),
         num_threads=1,
         run_index=1,
-        analyze_synthesis_timing=True,
+        open_and_analyze_synthesized_design=True,
     )
     assert "open_run" in tcl
     assert "report_clock_interaction" in tcl
@@ -413,7 +413,7 @@ def test_analyze_synthesis_settings_on_and_off(vivado_tcl_test):
         output_path=Path(),
         num_threads=1,
         run_index=1,
-        analyze_synthesis_timing=False,
+        open_and_analyze_synthesized_design=False,
     )
     # When disabled, the run should not even be opened, which saves time
     assert "open_run" not in tcl

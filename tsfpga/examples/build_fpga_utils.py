@@ -104,7 +104,7 @@ def arguments(default_temp_dir: Path) -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "--num-parallel-builds", type=int, default=8, help="Number of parallel builds to launch"
+        "--num-parallel-builds", type=int, default=8, help="number of parallel builds to launch"
     )
 
     parser.add_argument(
@@ -133,7 +133,7 @@ def arguments(default_temp_dir: Path) -> argparse.Namespace:
 
 def setup_and_run(  # noqa: C901, PLR0911
     modules: ModuleList,
-    projects: BuildProjectList,
+    project_list: BuildProjectList,
     args: argparse.Namespace,
     collect_artifacts_function: Callable[[VivadoProject, Path], bool] | None,
 ) -> int:
@@ -144,7 +144,7 @@ def setup_and_run(  # noqa: C901, PLR0911
     Arguments:
         modules: When running a register generation, registers from these
             modules will be included.
-        projects: These build projects will be built.
+        project_list: These build projects will be built.
         args: Command line argument namespace.
         collect_artifacts_function: Function pointer to a function that collects build artifacts.
             Will be run after a successful implementation build.
@@ -159,7 +159,7 @@ def setup_and_run(  # noqa: C901, PLR0911
         Can be used for system exit code.
     """
     if args.list_only:
-        print(projects)
+        print(project_list)
         return 0
 
     if args.generate_registers_only:
@@ -171,7 +171,7 @@ def setup_and_run(  # noqa: C901, PLR0911
         return 0
 
     if args.open:
-        projects.open(projects_path=args.projects_path)
+        project_list.open(projects_path=args.projects_path)
         return 0
 
     if args.collect_artifacts_only:
@@ -180,14 +180,14 @@ def setup_and_run(  # noqa: C901, PLR0911
         create_ok = True
 
     elif args.use_existing_project:
-        create_ok = projects.create_unless_exists(
+        create_ok = project_list.create_unless_exists(
             projects_path=args.projects_path,
             num_parallel_builds=args.num_parallel_builds,
             ip_cache_path=args.ip_cache_path,
         )
 
     else:
-        create_ok = projects.create(
+        create_ok = project_list.create(
             projects_path=args.projects_path,
             num_parallel_builds=args.num_parallel_builds,
             ip_cache_path=args.ip_cache_path,
@@ -207,20 +207,20 @@ def setup_and_run(  # noqa: C901, PLR0911
     if args.collect_artifacts_only:
         assert collect_artifacts_function is not None, "No artifact collection available"
 
-        for project in projects.projects:
+        for project in project_list.projects:
             # Assign the arguments in the exact same way as within the call to
             # 'projects.build()' below.
             # Ensures that the correct output path is used in all scenarios.
             assert collect_artifacts_function(
                 project=project,
-                output_path=projects.get_build_project_output_path(
+                output_path=project_list.get_build_project_output_path(
                     project=project, projects_path=args.projects_path, output_path=args.output_path
                 ),
             )
 
         return 0
 
-    build_ok = projects.build(
+    build_ok = project_list.build(
         projects_path=args.projects_path,
         num_parallel_builds=args.num_parallel_builds,
         num_threads_per_build=args.num_threads_per_build,

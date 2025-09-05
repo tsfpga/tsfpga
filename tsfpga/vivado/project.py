@@ -8,6 +8,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import re
 import shutil
 from copy import deepcopy
 from pathlib import Path
@@ -16,6 +18,7 @@ from typing import TYPE_CHECKING, Any, NoReturn
 from tsfpga import TSFPGA_TCL
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
 from tsfpga.constraint import Constraint
+from tsfpga.hdl_file import HdlFile
 from tsfpga.system_utils import create_file, read_file
 
 from .build_result import BuildResult
@@ -23,9 +26,11 @@ from .common import run_vivado_gui, run_vivado_tcl
 from .hierarchical_utilization_parser import HierarchicalUtilizationParser
 from .logic_level_distribution_parser import LogicLevelDistributionParser
 from .tcl import VivadoTcl
+from .timing_parser import TimingParser
 
 if TYPE_CHECKING:
     from tsfpga.module_list import ModuleList
+    from tsfpga.vivado.generics import BitVectorGenericValue, StringGenericValue
 
     from .build_result_checker import MaximumLogicLevel, SizeChecker
 
@@ -41,7 +46,8 @@ class VivadoProject:
         modules: ModuleList,
         part: str,
         top: str | None = None,
-        generics: dict[str, Any] | None = None,
+        generics: dict[str, bool | float | StringGenericValue | BitVectorGenericValue]
+        | None = None,
         constraints: list[Constraint] | None = None,
         tcl_sources: list[Path] | None = None,
         build_step_hooks: list[BuildStepTclHook] | None = None,
@@ -123,8 +129,7 @@ class VivadoProject:
 
         # Will be set by subclass when applicable
         self.is_netlist_build = False
-        self.analyze_synthesis_timing = True
-        self.report_logic_level_distribution = False
+        self.open_and_analyze_synthesized_design = True
         self.ip_cores_only = False
 
         self.top = name + "_top" if top is None else top
@@ -196,11 +201,11 @@ class VivadoProject:
             BuildStepTclHook(TSFPGA_TCL / "check_cdc.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE")
         )
 
-        if not self.analyze_synthesis_timing:
-            # In this special case however, the synthesized design is never opened (to save
-            # execution time), meaning 'report_utilization' is not run by the
-            # 'build_vivado_project.tcl' script.
-            # So in order to get a utilization report anyway we add it as a hook.
+        if not self.open_and_analyze_synthesized_design:
+            # In this special case, used only by the fastest netlist builds, the synthesized design
+            # is never opened (to save execution time).
+            # So in order to get access to some design metrics, we need to add hooks instead.
+
             # This mode is exclusively used by netlist builds, which very rarely include IP cores,
             # so it is acceptable that the utilization report might be erroneous with regards to
             # IP cores.
@@ -210,8 +215,10 @@ class VivadoProject:
                 )
             )
 
-        if self.report_logic_level_distribution:
-            # Used by netlist builds
+            # Note that this report is better if generated on an open design, since it will then
+            # list each clock domain separately.
+            # If done like this with a hook, all paths will be on one line, no matter which clock
+            # domain they belong to.
             self.build_step_hooks.append(
                 BuildStepTclHook(
                     TSFPGA_TCL / "report_logic_level_distribution.tcl",
@@ -337,10 +344,10 @@ class VivadoProject:
     def _build_tcl(  # noqa: PLR0913
         self,
         project_path: Path,
-        output_path: Path,
+        output_path: Path | None,
         num_threads: int,
         run_index: int,
-        all_generics: dict[str, Any],
+        all_generics: dict[str, bool | float | StringGenericValue | BitVectorGenericValue],
         synth_only: bool,
         from_impl: bool,
         impl_explore: bool,
@@ -363,7 +370,7 @@ class VivadoProject:
             generics=all_generics,
             synth_only=synth_only,
             from_impl=from_impl,
-            analyze_synthesis_timing=self.analyze_synthesis_timing,
+            open_and_analyze_synthesized_design=self.open_and_analyze_synthesized_design,
             impl_explore=impl_explore,
         )
         create_file(build_vivado_project_tcl, tcl)
@@ -418,7 +425,8 @@ class VivadoProject:
         project_path: Path,
         output_path: Path | None = None,
         run_index: int | None = None,
-        generics: dict[str, Any] | None = None,
+        generics: dict[str, bool | float | StringGenericValue | BitVectorGenericValue]
+        | None = None,
         synth_only: bool = False,
         from_impl: bool = False,
         num_threads: int = 12,
@@ -457,12 +465,12 @@ class VivadoProject:
         """
         synth_only = synth_only or self.is_netlist_build
 
-        if output_path is None and not synth_only:
-            raise ValueError("Must specify output_path when doing an implementation run")
-
         if synth_only:
             print(f"Synthesizing Vivado project in {project_path}")
         else:
+            if output_path is None:
+                raise ValueError("Must specify 'output_path' when doing an implementation build.")
+
             print(f"Building Vivado project in {project_path}, placing artifacts in {output_path}")
 
         # Combine to all available generics. Prefer run-time values over static.
@@ -492,7 +500,7 @@ class VivadoProject:
         # is not an issue.
         self.modules = deepcopy(self.modules)
 
-        result = BuildResult(self.name)
+        result = BuildResult(name=self.name, synthesis_run_name=f"synth_{run_index}")
 
         for module in self.modules:
             if not module.pre_build(project=self, **all_parameters):
@@ -529,33 +537,32 @@ class VivadoProject:
             result.success = False
             return result
 
-        result.synthesis_size = self._get_size(project_path, f"synth_{run_index}")
-        if self.report_logic_level_distribution:
-            result.logic_level_distribution = self._get_logic_level_distribution(
-                project_path, f"synth_{run_index}"
-            )
+        result.synthesis_size = self._get_size(
+            project_path=project_path, run_name=f"synth_{run_index}"
+        )
 
         if not synth_only:
             if self.impl_explore:
                 runs_path = project_path / f"{self.name}.runs"
-                for run in runs_path.iterdir():
-                    if "impl_explore_" in run.resolve().name:
+                for run_path in runs_path.iterdir():
+                    if "impl_explore_" in run_path.name:
                         # Check files for existence, since not all runs may have completed
-                        bit_file = run / f"{self.top}.bit"
-                        bin_file = run / f"{self.top}.bin"
+                        bit_file = run_path / f"{self.top}.bit"
+                        bin_file = run_path / f"{self.top}.bin"
                         if bit_file.exists() or bin_file.exists():
-                            impl_folder = run
-                            run_name = run.resolve().name
+                            result.implementation_run_name = run_path.name
                             break
             else:
-                run_name = f"impl_{run_index}"
-                impl_folder = project_path / f"{self.name}.runs" / run_name
+                result.implementation_run_name = f"impl_{run_index}"
+                impl_folder = project_path / f"{self.name}.runs" / result.implementation_run_name
                 bit_file = impl_folder / f"{self.top}.bit"
                 bin_file = impl_folder / f"{self.top}.bin"
 
             shutil.copy2(bit_file, output_path / f"{self.name}.bit")
             shutil.copy2(bin_file, output_path / f"{self.name}.bin")
-            result.implementation_size = self._get_size(project_path, run_name)
+            result.implementation_size = self._get_size(
+                project_path=project_path, run_name=result.implementation_run_name
+            )
 
         # Send the result object, along with everything else, to the post-build function
         all_parameters.update(build_result=result)
@@ -578,25 +585,31 @@ class VivadoProject:
         """
         return run_vivado_gui(self._vivado_path, self.project_file(project_path))
 
-    def _get_size(self, project_path: Path, run: str) -> dict[str, int]:
+    def _get_size(self, project_path: Path, run_name: str) -> dict[str, int] | None:
         """
-        Reads the hierarchical utilization report and returns the top level size
+        Read the hierarchical utilization report and return the top level size
         for the specified run.
-        """
-        report_as_string = read_file(
-            project_path / f"{self.name}.runs" / run / "hierarchical_utilization.rpt"
-        )
-        return HierarchicalUtilizationParser.get_size(report_as_string)
 
-    def _get_logic_level_distribution(self, project_path: Path, run: str) -> str:
+        Will return ``None`` if the report does not exists.
+        Note that this should happen in only one corner case scenario:
+        When a netlist build project is created with the ``open_and_analyze_synthesized_design``
+        flag set to ``True``, but then being built with the flag off.
+        In this case, the post-synthesis hook that would normally generate the report when
+        the design is not to be opened, is never added to the project.
+        Adding the hook always adds a +20% time penalty to netlist builds where the synthesized
+        design is opened, so that is unacceptable.
+
+        There is definitely a nicer way of solving this.
+        But for now, the user will not get a build summary report printed in this case.
         """
-        Reads the hierarchical utilization report and returns the top level size
-        for the specified run.
-        """
-        report_as_string = read_file(
-            project_path / f"{self.name}.runs" / run / "logical_level_distribution.rpt"
-        )
-        return LogicLevelDistributionParser.get_table(report_as_string)
+        try:
+            report_as_string = read_file(
+                project_path / f"{self.name}.runs" / run_name / "hierarchical_utilization.rpt"
+            )
+        except FileNotFoundError:
+            return None
+
+        return HierarchicalUtilizationParser.get_size(report_as_string)
 
     def __str__(self) -> str:
         result = f"{self.name}\n"
@@ -625,6 +638,8 @@ class VivadoNetlistProject(VivadoProject):
     Used for handling Vivado build of a module without top level pinning.
     """
 
+    _clock_period_ns = 2.0
+
     def __init__(
         self,
         analyze_synthesis_timing: bool = False,
@@ -634,11 +649,11 @@ class VivadoNetlistProject(VivadoProject):
         """
         Arguments:
             analyze_synthesis_timing: Enable analysis of the synthesized design's timing.
-                This will make the build flow open the design, and check for unhandled clock
-                crossings and pulse width violations.
-                Enabling it will add significant build time (can be as much as +40%).
-                Also, in order for clock crossing check to work, the clocks have to be created
-                using a constraint file.
+                This will make the build flow open the design, check for unhandled clock
+                crossings, pulse width violations, etc, and calculate a maximum frequency estimate.
+
+                .. note::
+                    Enabling this will add significant build time (can be as much as +40%).
             build_result_checkers:
                 Checkers that will be executed after a successful build. Is used to automatically
                 check that e.g. resource utilization is not greater than expected.
@@ -647,30 +662,172 @@ class VivadoNetlistProject(VivadoProject):
         super().__init__(**kwargs)
 
         self.is_netlist_build = True
-        self.analyze_synthesis_timing = analyze_synthesis_timing
-        self.report_logic_level_distribution = True
+        self.open_and_analyze_synthesized_design = analyze_synthesis_timing
         self.build_result_checkers = [] if build_result_checkers is None else build_result_checkers
+
+    def create(
+        self,
+        project_path: Path,
+        **kwargs: Any,  # noqa: ANN401
+    ) -> bool:
+        """
+        Create the project.
+
+        Arguments:
+            project_path: Path where the project shall be placed.
+            kwargs: All arguments as accepted by :meth:`.VivadoProject.create`.
+        """
+        # Create and add a TCL for auto-creating clocks.
+        # Whether it is used or not depends on settings, but note that these settings can
+        # change between subsequent builds, so we need to always have the file in place and be part
+        # of the project.
+        tcl_path = create_file(
+            self._get_auto_clock_constraint_path(project_path=project_path), contents="# Unused.\n"
+        )
+        # Add it "early" so that any other user constraints that might be in place
+        # can override the clocks.
+        self.constraints.append(Constraint(file=tcl_path, processing_order="early"))
+
+        if self.open_and_analyze_synthesized_design:
+            self._set_auto_clock_constraint(tcl_path=tcl_path)
+
+        return super().create(project_path=project_path, **kwargs)
 
     def build(
         self,
+        project_path: Path,
         **kwargs: Any,  # noqa: ANN401
     ) -> BuildResult:
         """
         Build the project.
 
         Arguments:
-            kwargs: All arguments as accepted by :meth:`.VivadoProject.build`.
+            project_path: A path containing a Vivado project.
+            kwargs: All other arguments as accepted by :meth:`.VivadoProject.build`.
         """
-        result = super().build(**kwargs)
-        result.success = result.success and self._check_size(result)
+        if self.open_and_analyze_synthesized_design:
+            # Update, since the HDL (and details about clocks) might have changed since last time.
+            self._set_auto_clock_constraint(
+                tcl_path=self._get_auto_clock_constraint_path(project_path=project_path)
+            )
+
+        result = super().build(project_path=project_path, **kwargs)
+
+        if not result.success:
+            print(f'Can not do post-build check for "{self.name}" since it did not succeed.')
+            return result
+
+        result.success = result.success and self._check_size(build_result=result)
+
+        run_path = project_path / f"{self.name}.runs" / result.synthesis_run_name
+
+        if self.open_and_analyze_synthesized_design:
+            with contextlib.suppress(FileNotFoundError):
+                slack_ns = TimingParser.get_slack_ns(read_file(run_path / "timing.rpt"))
+                # Positive slack = margin, meaning we can use a lower period,
+                # meaning higher frequency.
+                # Hence the subtraction.
+                result.maximum_synthesis_frequency_hz = 1e9 / (self._clock_period_ns - slack_ns)
+
+        # See comment in _get_size() for why the try-except is needed.
+        with contextlib.suppress(FileNotFoundError):
+            result.logic_level_distribution = LogicLevelDistributionParser.get_table(
+                read_file(run_path / "logic_level_distribution.rpt")
+            )
 
         return result
 
-    def _check_size(self, build_result: BuildResult) -> bool:
-        if not build_result.success:
-            print(f"Can not do post_build check for {self.name} since it did not succeed.")
-            return False
+    def _get_auto_clock_constraint_path(self, project_path: Path) -> Path:
+        return project_path.parent / f"auto_create_{self.top}_clocks.tcl"
 
+    def _set_auto_clock_constraint(self, tcl_path: Path) -> None:
+        # Try to auto-detect clocks in the top-level file, and create them automatically.
+        top_file = self._find_top_level_file()
+        clock_names = (
+            self._find_vhdl_clock_names(vhdl_file=top_file)
+            if top_file.path.suffix.lower() in HdlFile.file_endings_mapping[HdlFile.Type.VHDL]
+            else []
+        )
+
+        if clock_names:
+            create_clock_tcl = "\n".join(
+                [
+                    f'create_clock -name "{clock_name}" -period {self._clock_period_ns} '
+                    f'[get_ports "{clock_name}"];'
+                    for clock_name in clock_names
+                ]
+            )
+            tcl = f"""\
+# Auto-create the clocks found in the top-level HDL file:
+# {top_file.path}
+{create_clock_tcl}
+"""
+            create_file(tcl_path, tcl)
+
+    def _find_top_level_file(self) -> HdlFile:
+        top_files = [
+            hdl_file
+            for module in self.modules
+            for hdl_file in module.get_synthesis_files()
+            if hdl_file.path.stem == self.top
+        ]
+        if len(top_files) == 0:
+            raise ValueError(
+                f'Could not find HDL source file corresponding to top-level "{self.top}".'
+            )
+        if len(top_files) > 1:
+            raise ValueError(
+                f"Found multiple HDL source files corresponding to "
+                f'top-level "{self.top}": {top_files}.'
+            )
+
+        return top_files[0]
+
+    def _find_vhdl_clock_names(self, vhdl_file: HdlFile) -> list[str]:
+        """
+        Find a list of all clock port names in the VHDL file.
+        It handles all ports that contain "clk" or "clock" in their name as clocks.
+        This magic word can be either in the beginning, middle or end of the port name
+        (separated by underscore).
+        """
+        top_vhd = read_file(vhdl_file.path)
+
+        entity_matches = re.findall(
+            rf"^\s*entity\s+{self.top}\s+is(.+)^\s*end\s+entity",
+            top_vhd,
+            re.DOTALL | re.MULTILINE | re.IGNORECASE,
+        )
+        if len(entity_matches) == 0:
+            raise ValueError(
+                f'Could not find "{self.top}" entity declaration in "{vhdl_file.path}".'
+            )
+        if len(entity_matches) > 1:
+            raise ValueError(
+                f'Found multiple "{self.top}" entity declarations in "{vhdl_file.path}".'
+            )
+
+        entity_vhd = entity_matches[0]
+        port_matches = re.findall(
+            r"^\s*port(\s|\()(.+)$",
+            entity_vhd,
+            re.DOTALL | re.MULTILINE | re.IGNORECASE,
+        )
+
+        if len(port_matches) == 0:
+            raise ValueError(f'Could not find "port" block in "{vhdl_file.path}".')
+        if len(port_matches) > 1:
+            raise ValueError(f'Found multiple "port" blocks in "{vhdl_file.path}".')
+
+        port_vhd = port_matches[0][1]
+        clock_matches = re.findall(
+            r"^\s*(\w+_)?(clk|clock)(_\w+)?\s*:",
+            port_vhd,
+            re.DOTALL | re.MULTILINE | re.IGNORECASE,
+        )
+
+        return [f"{prefix}{clock}{suffix}" for prefix, clock, suffix in clock_matches]
+
+    def _check_size(self, build_result: BuildResult) -> bool:
         success = True
         for build_result_checker in self.build_result_checkers:
             checker_result = build_result_checker.check(build_result)
