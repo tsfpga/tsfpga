@@ -11,7 +11,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from tsfpga.hdl_file import HdlFile
-from tsfpga.system_utils import create_file
 
 from .common import to_tcl_path
 from .generics import BitVectorGenericValue, StringGenericValue, get_vivado_tcl_generic_value
@@ -51,7 +50,7 @@ class VivadoTcl:
         | None = None,
         constraints: list[Constraint] | None = None,
         tcl_sources: list[Path] | None = None,
-        build_step_hooks: list[BuildStepTclHook] | None = None,
+        build_step_hooks: dict[str, tuple[Path, list[BuildStepTclHook]]] | None = None,
         ip_cache_path: Path | None = None,
         disable_io_buffers: bool = True,
         # Add no sources other than IP cores
@@ -81,7 +80,7 @@ set_property "target_language" "VHDL" [current_project]
                 )
             )
             tcl += self._add_constraints(constraints=constraints)
-            tcl += self._add_build_step_hooks(build_step_hooks, project_folder)
+            tcl += self._add_build_step_hooks(build_step_hooks=build_step_hooks)
 
         tcl += self._add_ip_cores(modules=modules, other_arguments=other_arguments)
         tcl += self._add_project_settings()
@@ -199,41 +198,21 @@ exit
 """
 
     def _add_build_step_hooks(
-        self, build_step_hooks: list[BuildStepTclHook] | None, project_folder: Path
+        self, build_step_hooks: dict[str, tuple[Path, list[BuildStepTclHook]]] | None
     ) -> str:
-        if build_step_hooks is None or len(build_step_hooks) == 0:
+        if not build_step_hooks:
             return ""
-
-        # There can be many hooks for the same step. Reorganize them into a dict.
-        hook_steps: dict[str, list[BuildStepTclHook]] = {}
-        for build_step_hook in build_step_hooks:
-            if build_step_hook.hook_step in hook_steps:
-                hook_steps[build_step_hook.hook_step].append(build_step_hook)
-            else:
-                hook_steps[build_step_hook.hook_step] = [build_step_hook]
 
         tcl = """
 # ------------------------------------------------------------------------------
 """
-        for step, hooks in hook_steps.items():
-            # Vivado will only accept one TCL script as hook for each step. So if we want
-            # to add more we have to create a new TCL file, that sources the other files,
-            # and add that as the hook to Vivado.
-            if len(hooks) == 1:
-                tcl_file = hooks[0].tcl_file
-            else:
-                tcl_file = project_folder / ("hook_" + step.replace(".", "_") + ".tcl")
-                source_hooks_tcl = "".join(
-                    [f"source {{{to_tcl_path(hook.tcl_file)}}}\n" for hook in hooks]
-                )
-                create_file(tcl_file, source_hooks_tcl)
-
-            # Add to fileset to enable archive and other project based functionality
+        for step_name, (tcl_file, hooks) in build_step_hooks.items():
+            # Add to file set to enable archive and other project-based functionality
             tcl += f'add_files -fileset "utils_1" -norecurse {{{to_tcl_path(tcl_file)}}}\n'
 
             # Build step hook can only be applied to a run (e.g. impl_1), not on a project basis
             run_wildcard = '"synth_*"' if hooks[0].step_is_synth else '"impl_*"'
-            tcl_block = f'set_property "{step}" {{{to_tcl_path(tcl_file)}}} ${{run}}'
+            tcl_block = f'set_property "{step_name}" {{{to_tcl_path(tcl_file)}}} ${{run}}'
             tcl += self._tcl_for_each_run(run_wildcard=run_wildcard, tcl_block=tcl_block)
 
         return f"{tcl}\n"
@@ -476,7 +455,7 @@ if {[string first "Critical" ${cdc_report}] != -1} {
 # ------------------------------------------------------------------------------
 # The below reports are used heavily by netlist builds, but do not really have a use case for
 # full builds.
-# The calls is very fast though (< 1s even on a decently sized design) so it is fine to run always.
+# The calls are very fast though (< 1s even on a decently sized design) so it is fine to run always.
 
 # This call is duplicated in 'report_logic_level_distribution.tcl'.
 set output_file [file join ${run_directory} "logic_level_distribution.rpt"]

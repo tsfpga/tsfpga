@@ -16,6 +16,8 @@ from tsfpga.build_step_tcl_hook import BuildStepTclHook
 from tsfpga.constraint import Constraint
 from tsfpga.module import BaseModule, get_modules
 from tsfpga.system_utils import create_directory, create_file, read_file
+from tsfpga.test.test_utils import file_contains_string
+from tsfpga.vivado.common import to_tcl_path
 from tsfpga.vivado.generics import StringGenericValue
 from tsfpga.vivado.project import VivadoNetlistProject, VivadoProject, copy_and_combine_dicts
 
@@ -124,19 +126,22 @@ def test_bad_build_step_hooks_type_should_raise_error():
 
 
 def test_create_should_raise_exception_if_project_path_already_exists(tmp_path):
-    create_directory(tmp_path / "projects" / "name")
+    xpr_path = create_file(tmp_path / "project" / "name.xpr")
     proj = VivadoProject(name="name", modules=[], part="part")
     with pytest.raises(ValueError) as exception_info:
-        proj.create(tmp_path / "projects")
-    assert str(exception_info.value).startswith("Folder already exists")
+        proj.create(tmp_path / "project")
+    assert str(exception_info.value) == f'Project "name" already exists: {xpr_path}'
 
 
 def test_build_should_raise_exception_if_project_does_not_exists(tmp_path):
-    create_directory(tmp_path / "projects")
+    project_path = create_directory(tmp_path / "project")
     proj = VivadoProject(name="name", modules=[], part="part")
     with pytest.raises(ValueError) as exception_info:
-        proj.build(tmp_path / "projects", synth_only=True)
-    assert str(exception_info.value).startswith("Project file does not exist")
+        proj.build(project_path, synth_only=True)
+    assert (
+        str(exception_info.value)
+        == f'Project "name" does not exist in the specified location: {project_path / "name.xpr"}'
+    )
 
 
 def test_build_with_impl_run_should_raise_exception_if_no_output_path_is_given():
@@ -165,13 +170,6 @@ def test_project_create(tmp_path):
     with patch("tsfpga.vivado.project.run_vivado_tcl", autospec=True) as _:
         assert VivadoProject(name="apa", modules=[], part="").create(tmp_path / "projects" / "apa")
     assert (tmp_path / "projects" / "apa" / "create_vivado_project.tcl").exists()
-
-
-def test_project_create_should_raise_exception_if_project_path_already_exists(tmp_path):
-    project_path = create_directory(tmp_path / "projects" / "apa")
-    with pytest.raises(ValueError) as exception_info:
-        VivadoProject(name="apa", modules=[], part="").create(project_path)
-    assert str(exception_info.value) == f"Folder already exists: {project_path}"
 
 
 def test_copy_and_combine_dict_with_both_arguments_none():
@@ -504,6 +502,27 @@ def test_modules_are_deep_copied_before_pre_build_hook(vivado_project_test):
     assert module.registers == "Some value"
 
 
+def test_build_step_hooks_with_same_hook_step(vivado_project_test):
+    dummy = BuildStepTclHook(
+        vivado_project_test.modules_path / "dummy.tcl", "STEPS.SYNTH_DESIGN.TCL.PRE"
+    )
+    files = BuildStepTclHook(
+        vivado_project_test.modules_path / "files.tcl", "STEPS.SYNTH_DESIGN.TCL.PRE"
+    )
+
+    project = VivadoProject(name="apa", modules=[], part="", build_step_hooks=[dummy, files])
+    assert vivado_project_test.create(project)
+
+    tcl_path = vivado_project_test.project_path / "hook_STEPS_SYNTH_DESIGN_TCL_PRE.tcl"
+    assert file_contains_string(tcl_path, f"source {{{to_tcl_path(dummy.tcl_file)}}}")
+    assert file_contains_string(tcl_path, f"source {{{to_tcl_path(files.tcl_file)}}}")
+
+    assert file_contains_string(
+        vivado_project_test.project_path / "create_vivado_project.tcl",
+        f'\n  set_property "STEPS.SYNTH_DESIGN.TCL.PRE" {{{to_tcl_path(tcl_path)}}} ${{run}}\n',
+    )
+
+
 def test_get_size_is_called_correctly(vivado_project_test):
     project = VivadoProject(name="apa", modules=[], part="")
 
@@ -648,7 +667,7 @@ end entity;
     )
     vivado_project_test.create(project, analyze_synthesis_timing=True)
 
-    tcl = read_file(vivado_project_test.project_path.parent / "auto_create_zebra_clocks.tcl")
+    tcl = read_file(vivado_project_test.project_path / "auto_create_zebra_clocks.tcl")
     assert 'create_clock -name "clk"' in tcl
     assert 'create_clock -name "clock"' in tcl
     assert 'create_clock -name "my_funny_clock"' in tcl
@@ -723,6 +742,11 @@ def test_netlist_build_result_maximum_frequency(vivado_project_test):
                 "tsfpga.vivado.project.VivadoNetlistProject._set_auto_clock_constraint",
                 autospec=True,
             ) as _,
+            patch("tsfpga.vivado.project.VivadoProject._get_size", autospec=True) as _,
+            patch(
+                "tsfpga.vivado.project.VivadoNetlistProject._get_logic_level_distribution",
+                autospec=True,
+            ) as _,
             patch(
                 "tsfpga.vivado.project.TimingParser.get_slack_ns", autospec=True
             ) as mocked_get_slack_ns,
@@ -740,9 +764,6 @@ def test_netlist_build_result_maximum_frequency(vivado_project_test):
                 assert build_result.maximum_synthesis_frequency_hz == 1e9
             else:
                 mocked_get_slack_ns.assert_not_called()
-                assert build_result.logic_level_distribution is None
-                assert build_result.maximum_logic_level is None
-                assert build_result.maximum_synthesis_frequency_hz is None
 
     create_file(vivado_project_test.project_path / "apa.xpr")
     create_file(
