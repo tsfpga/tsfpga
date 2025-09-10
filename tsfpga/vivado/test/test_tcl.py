@@ -17,7 +17,6 @@ from tsfpga.constraint import Constraint
 from tsfpga.ip_core_file import IpCoreFile
 from tsfpga.module import BaseModule, get_modules
 from tsfpga.system_utils import create_file
-from tsfpga.test.test_utils import file_contains_string
 from tsfpga.vivado.common import to_tcl_path
 from tsfpga.vivado.generics import BitVectorGenericValue, StringGenericValue
 from tsfpga.vivado.tcl import VivadoTcl
@@ -50,49 +49,34 @@ def test_static_generics():
     assert expected in tcl
 
 
-def test_build_step_hooks():
-    dummy = BuildStepTclHook(Path("dummy.tcl"), "STEPS.SYNTH_DESIGN.TCL.PRE")
-    files = BuildStepTclHook(Path("files.tcl"), "STEPS.ROUTE_DESIGN.TCL.PRE")
+def test_build_step_hooks(tmp_path):
+    project_folder = tmp_path / "dummy_project_folder"
+
+    dummy1 = BuildStepTclHook(Path("dummy.tcl"), "STEPS.SYNTH_DESIGN.TCL.PRE")
+    dummy2 = BuildStepTclHook(Path("files.tcl"), "STEPS.ROUTE_DESIGN.TCL.PRE")
+
     tcl = VivadoTcl(name="").create(
         project_folder=Path(),
         modules=[],
         part="part",
         top="",
         run_index=1,
-        build_step_hooks=[dummy, files],
+        build_step_hooks={
+            dummy1.hook_step: (project_folder / "synth.tcl", [dummy1]),
+            dummy2.hook_step: (project_folder / "impl.tcl", [dummy2]),
+        },
     )
 
     assert (
-        f"\n  "
-        f'set_property "STEPS.SYNTH_DESIGN.TCL.PRE" {{{to_tcl_path(dummy.tcl_file)}}} ${{run}}\n'
+        'foreach run [get_runs "synth_*"] {\n  set_property "STEPS.SYNTH_DESIGN.TCL.PRE" {'
+        + to_tcl_path(project_folder / "synth.tcl")
+        + "} ${run}\n"
     ) in tcl
     assert (
-        f"\n  "
-        f'set_property "STEPS.ROUTE_DESIGN.TCL.PRE" {{{to_tcl_path(files.tcl_file)}}} ${{run}}\n'
+        'foreach run [get_runs "impl_*"] {\n  set_property "STEPS.ROUTE_DESIGN.TCL.PRE" {'
+        + to_tcl_path(project_folder / "impl.tcl")
+        + "} ${run}\n"
     ) in tcl
-
-
-def test_build_step_hooks_with_same_hook_step(tmp_path):
-    dummy = BuildStepTclHook(Path("dummy.tcl"), "STEPS.SYNTH_DESIGN.TCL.PRE")
-    files = BuildStepTclHook(Path("files.tcl"), "STEPS.SYNTH_DESIGN.TCL.PRE")
-    tcl = VivadoTcl(name="").create(
-        project_folder=tmp_path / "dummy_project_folder",
-        modules=[],
-        part="part",
-        top="",
-        run_index=1,
-        build_step_hooks=[dummy, files],
-    )
-
-    hook_file = tmp_path / "dummy_project_folder" / "hook_STEPS_SYNTH_DESIGN_TCL_PRE.tcl"
-
-    assert file_contains_string(hook_file, f"source {{{to_tcl_path(dummy.tcl_file)}}}")
-    assert file_contains_string(hook_file, f"source {{{to_tcl_path(files.tcl_file)}}}")
-
-    assert (
-        f'\n  set_property "STEPS.SYNTH_DESIGN.TCL.PRE" {{{to_tcl_path(hook_file)}}} ${{run}}\n'
-        in tcl
-    )
 
 
 def test_ip_cache_location(tmp_path):

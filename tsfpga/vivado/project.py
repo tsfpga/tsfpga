@@ -22,11 +22,11 @@ from tsfpga.hdl_file import HdlFile
 from tsfpga.system_utils import create_file, read_file
 
 from .build_result import BuildResult
-from .common import run_vivado_gui, run_vivado_tcl
+from .common import run_vivado_gui, run_vivado_tcl, to_tcl_path
 from .hierarchical_utilization_parser import HierarchicalUtilizationParser
 from .logic_level_distribution_parser import LogicLevelDistributionParser
 from .tcl import VivadoTcl
-from .timing_parser import TimingParser
+from .timing_parser import FoundNoSlackError, TimingParser
 
 if TYPE_CHECKING:
     from tsfpga.module_list import ModuleList
@@ -156,7 +156,7 @@ class VivadoProject:
         Return:
             The project file of this project, in the given folder
         """
-        return project_path / (self.name + ".xpr")
+        return project_path / f"{self.name}.xpr"
 
     def _setup_tcl_sources(self) -> None:
         tsfpga_tcl_sources = [
@@ -172,15 +172,26 @@ class VivadoProject:
         # settings. Conversely, tsfpga should not modify something that the user has set up.
         self.tcl_sources = tsfpga_tcl_sources + self.tcl_sources
 
-    def _setup_build_step_hooks(self) -> None:
+    def _setup_and_create_build_step_hooks(
+        self, project_path: Path
+    ) -> dict[str, tuple[Path, list[BuildStepTclHook]]]:
+        """
+        Add all necessary tsfpga build step hooks to the list of hooks supplied by the user.
+        Create the TCL files for these hooks in the project folder.
+        """
+        # Shallow copy so that we do not append the state of this object.
+        # If this method is called twice, once at create-time and once at build-time, we do not
+        # want duplicates.
+        build_step_hooks = self.build_step_hooks.copy()
+
         # Check that no ERROR messages have been sent by Vivado. After synthesis as well as
         # after implementation.
-        self.build_step_hooks.append(
+        build_step_hooks.append(
             BuildStepTclHook(
                 TSFPGA_TCL / "check_no_error_messages.tcl", "STEPS.SYNTH_DESIGN.TCL.POST"
             )
         )
-        self.build_step_hooks.append(
+        build_step_hooks.append(
             BuildStepTclHook(
                 TSFPGA_TCL / "check_no_error_messages.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE"
             )
@@ -191,13 +202,13 @@ class VivadoProject:
         # This is due to Vivado limitations related to post-synthesis hooks.
         # Specifically, the report_utilization figures do not include IP cores when it is run in
         # a post-synthesis hook.
-        self.build_step_hooks.append(
+        build_step_hooks.append(
             BuildStepTclHook(TSFPGA_TCL / "report_utilization.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE")
         )
-        self.build_step_hooks.append(
+        build_step_hooks.append(
             BuildStepTclHook(TSFPGA_TCL / "check_timing.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE")
         )
-        self.build_step_hooks.append(
+        build_step_hooks.append(
             BuildStepTclHook(TSFPGA_TCL / "check_cdc.tcl", "STEPS.WRITE_BITSTREAM.TCL.PRE")
         )
 
@@ -206,10 +217,11 @@ class VivadoProject:
             # is never opened (to save execution time).
             # So in order to get access to some design metrics, we need to add hooks instead.
 
-            # This mode is exclusively used by netlist builds, which very rarely include IP cores,
-            # so it is acceptable that the utilization report might be erroneous with regards to
-            # IP cores.
-            self.build_step_hooks.append(
+            # Note that this report is does not report numbers from IP cores within the design,
+            # when the report is generated via a hook.
+            # But since this mode is used exclusively by netlist builds, which very rarely include
+            # IP cores, this is deemed acceptable on order to save time.
+            build_step_hooks.append(
                 BuildStepTclHook(
                     TSFPGA_TCL / "report_utilization.tcl", "STEPS.SYNTH_DESIGN.TCL.POST"
                 )
@@ -219,22 +231,75 @@ class VivadoProject:
             # list each clock domain separately.
             # If done like this with a hook, all paths will be on one line, no matter which clock
             # domain they belong to.
-            self.build_step_hooks.append(
+            build_step_hooks.append(
                 BuildStepTclHook(
                     TSFPGA_TCL / "report_logic_level_distribution.tcl",
                     "STEPS.SYNTH_DESIGN.TCL.POST",
                 )
             )
 
+        organized_build_step_hooks = self._organize_build_step_hooks(
+            build_step_hooks=build_step_hooks, project_folder=project_path
+        )
+        self._create_build_step_hook_files(build_step_hooks=organized_build_step_hooks)
+
+        return organized_build_step_hooks
+
+    @staticmethod
+    def _organize_build_step_hooks(
+        build_step_hooks: list[BuildStepTclHook], project_folder: Path
+    ) -> dict[str, tuple[Path, list[BuildStepTclHook]]]:
+        """
+        Since there can be many hooks for the same step, reorganize them into a dict:
+        {step name: (script file in project, [list of hooks for that step])}
+
+        Vivado will only accept one TCL script as hook for each step.
+        So if we want to add more we have to create a new TCL file, that sources the other files,
+        and add that as the hook to Vivado.
+        """
+        result = {}
+        for build_step_hook in build_step_hooks:
+            if build_step_hook.hook_step in result:
+                result[build_step_hook.hook_step][1].append(build_step_hook)
+            else:
+                tcl_file = project_folder / (
+                    "hook_" + build_step_hook.hook_step.replace(".", "_") + ".tcl"
+                )
+                result[build_step_hook.hook_step] = (tcl_file, [build_step_hook])
+
+        return result
+
+    def _create_build_step_hook_files(
+        self, build_step_hooks: dict[str, tuple[Path, list[BuildStepTclHook]]]
+    ) -> None:
+        for step_name, (tcl_file, hooks) in build_step_hooks.items():
+            source_hooks_tcl = "\n".join(
+                [f"source {{{to_tcl_path(hook.tcl_file)}}}" for hook in hooks]
+            )
+            create_file(
+                tcl_file,
+                f"""\
+# ------------------------------------------------------------------------------
+# Hook script for the "{step_name}" build step.
+# This file is auto-generated by tsfpga. Do not edit manually.
+{source_hooks_tcl}
+""",
+            )
+
     def _create_tcl(
-        self, project_path: Path, ip_cache_path: Path | None, all_arguments: dict[str, Any]
+        self,
+        project_path: Path,
+        ip_cache_path: Path | None,
+        build_step_hooks: dict[str, tuple[Path, list[BuildStepTclHook]]],
+        all_arguments: dict[str, Any],
     ) -> Path:
         """
         Make a TCL file that creates a Vivado project
         """
-        if project_path.exists():
-            raise ValueError(f"Folder already exists: {project_path}")
-        project_path.mkdir(parents=True)
+        project_file = self.project_file(project_path=project_path)
+        if project_file.exists():
+            raise ValueError(f'Project "{self.name}" already exists: {project_file}')
+        project_path.mkdir(parents=True, exist_ok=True)
 
         create_vivado_project_tcl = project_path / "create_vivado_project.tcl"
         tcl = self.tcl.create(
@@ -246,7 +311,7 @@ class VivadoProject:
             generics=self.static_generics,
             constraints=self.constraints,
             tcl_sources=self.tcl_sources,
-            build_step_hooks=self.build_step_hooks,
+            build_step_hooks=build_step_hooks,
             ip_cache_path=ip_cache_path,
             disable_io_buffers=self.is_netlist_build,
             ip_cores_only=self.ip_cores_only,
@@ -290,7 +355,7 @@ class VivadoProject:
         """
         print(f"Creating Vivado project in {project_path}")
         self._setup_tcl_sources()
-        self._setup_build_step_hooks()
+        build_step_hooks = self._setup_and_create_build_step_hooks(project_path=project_path)
 
         # The pre-create hook might have side effects. E.g. change some register constants.
         # So we make a deep copy of the module list before the hook is called.
@@ -312,7 +377,10 @@ class VivadoProject:
             return False
 
         create_vivado_project_tcl = self._create_tcl(
-            project_path=project_path, ip_cache_path=ip_cache_path, all_arguments=all_arguments
+            project_path=project_path,
+            ip_cache_path=ip_cache_path,
+            build_step_hooks=build_step_hooks,
+            all_arguments=all_arguments,
         )
         return run_vivado_tcl(self._vivado_path, create_vivado_project_tcl)
 
@@ -355,10 +423,10 @@ class VivadoProject:
         """
         Make a TCL file that builds a Vivado project
         """
-        project_file = self.project_file(project_path)
+        project_file = self.project_file(project_path=project_path)
         if not project_file.exists():
             raise ValueError(
-                f"Project file does not exist in the specified location: {project_file}"
+                f'Project "{self.name}" does not exist in the specified location: {project_file}'
             )
 
         build_vivado_project_tcl = project_path / "build_vivado_project.tcl"
@@ -585,30 +653,14 @@ class VivadoProject:
         """
         return run_vivado_gui(self._vivado_path, self.project_file(project_path))
 
-    def _get_size(self, project_path: Path, run_name: str) -> dict[str, int] | None:
+    def _get_size(self, project_path: Path, run_name: str) -> dict[str, int]:
         """
         Read the hierarchical utilization report and return the top level size
         for the specified run.
-
-        Will return ``None`` if the report does not exists.
-        Note that this should happen in only one corner case scenario:
-        When a netlist build project is created with the ``open_and_analyze_synthesized_design``
-        flag set to ``True``, but then being built with the flag off.
-        In this case, the post-synthesis hook that would normally generate the report when
-        the design is not to be opened, is never added to the project.
-        Adding the hook always adds a +20% time penalty to netlist builds where the synthesized
-        design is opened, so that is unacceptable.
-
-        There is definitely a nicer way of solving this.
-        But for now, the user will not get a build summary report printed in this case.
         """
-        try:
-            report_as_string = read_file(
-                project_path / f"{self.name}.runs" / run_name / "hierarchical_utilization.rpt"
-            )
-        except FileNotFoundError:
-            return None
-
+        report_as_string = read_file(
+            project_path / f"{self.name}.runs" / run_name / "hierarchical_utilization.rpt"
+        )
         return HierarchicalUtilizationParser.get_size(report_as_string)
 
     def __str__(self) -> str:
@@ -705,6 +757,11 @@ class VivadoNetlistProject(VivadoProject):
             project_path: A path containing a Vivado project.
             kwargs: All other arguments as accepted by :meth:`.VivadoProject.build`.
         """
+        # Update hook script files, since the user might turn on and off the
+        # 'analyze_synthesis_timing' flag, which affects what scripts are added to the
+        # post-synthesis hook step.
+        self._setup_and_create_build_step_hooks(project_path=project_path)
+
         if self.open_and_analyze_synthesized_design:
             # Update, since the HDL (and details about clocks) might have changed since last time.
             self._set_auto_clock_constraint(
@@ -722,23 +779,23 @@ class VivadoNetlistProject(VivadoProject):
         run_path = project_path / f"{self.name}.runs" / result.synthesis_run_name
 
         if self.open_and_analyze_synthesized_design:
-            with contextlib.suppress(FileNotFoundError):
+            # Report might not exist or might not contain any slack information,
+            # if we could not auto detect any clocks.
+            # Could happen if the top-level file is Verilog, or if there are no clocks at all,
+            # or if our auto-detect failed.
+            with contextlib.suppress(FileNotFoundError, FoundNoSlackError):
                 slack_ns = TimingParser.get_slack_ns(read_file(run_path / "timing.rpt"))
                 # Positive slack = margin, meaning we can use a lower period,
                 # meaning higher frequency.
                 # Hence the subtraction.
                 result.maximum_synthesis_frequency_hz = 1e9 / (self._clock_period_ns - slack_ns)
 
-        # See comment in _get_size() for why the try-except is needed.
-        with contextlib.suppress(FileNotFoundError):
-            result.logic_level_distribution = LogicLevelDistributionParser.get_table(
-                read_file(run_path / "logic_level_distribution.rpt")
-            )
+        result.logic_level_distribution = self._get_logic_level_distribution(run_path=run_path)
 
         return result
 
     def _get_auto_clock_constraint_path(self, project_path: Path) -> Path:
-        return project_path.parent / f"auto_create_{self.top}_clocks.tcl"
+        return project_path / f"auto_create_{self.top}_clocks.tcl"
 
     def _set_auto_clock_constraint(self, tcl_path: Path) -> None:
         # Try to auto-detect clocks in the top-level file, and create them automatically.
@@ -834,6 +891,12 @@ class VivadoNetlistProject(VivadoProject):
             success = success and checker_result
 
         return success
+
+    @staticmethod
+    def _get_logic_level_distribution(run_path: Path) -> str:
+        return LogicLevelDistributionParser.get_table(
+            read_file(run_path / "logic_level_distribution.rpt")
+        )
 
 
 class VivadoIpCoreProject(VivadoProject):
