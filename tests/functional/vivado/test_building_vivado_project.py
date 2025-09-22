@@ -405,6 +405,54 @@ def test_build_with_async_reg_driven_by_lut_should_fail(basic_project_test):
     assert (basic_project_test.runs_folder / "synth_2" / "cdc.rpt").exists()
 
 
+def test_build_with_async_reg_driven_by_lut_should_warn_when_abort_disabled(basic_project_test):
+    # Same design as failing test above, but with abort disabled we should get a warning and
+    # successful build result.
+    bad_resync = """
+    resync_block : block
+        signal input_bit : std_ulogic := '0';
+    begin
+
+        input_bit <= input_p1 or input_p2;
+
+        resync_level_inst : entity resync.resync_level
+            generic map (
+                enable_input_register => false
+            )
+            port map (
+                data_in => input_bit,
+                --
+                clk_out => clk_out,
+                data_out => output
+            );
+
+    end block;
+    """
+    basic_project_test.create_top_file(code_block=bad_resync)
+    # Re-create project object with abort_on_cdc_violation disabled
+    basic_project_test.proj = VivadoProject(
+        name="test_proj",
+        modules=basic_project_test.modules,
+        part="xc7z020clg400-1",
+        constraints=[Constraint(basic_project_test.constraint_file)],
+        default_run_index=2,
+    )
+    basic_project_test.create_vivado_project()
+    build_result = basic_project_test.proj.build(
+        basic_project_test.project_folder,
+        basic_project_test.project_folder,
+        abort_on_cdc_violation=False,
+    )
+
+    # Should succeed even though cdc.rpt contains violations
+    assert build_result.success
+    assert file_contains_string(
+        basic_project_test.log_file,
+        "\nWARNING: Critical CDC rule violation in synth_2 run (abort_on_cdc_violation=0).",
+    )
+    assert (basic_project_test.runs_folder / "synth_2" / "cdc.rpt").exists()
+
+
 def test_build_with_bad_pulse_width_timing_should_fail(basic_project_test):
     # Overwrite the default constraint file
     constraint_clocks = """

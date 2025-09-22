@@ -20,9 +20,12 @@
 # and '-to' flags (recommended).
 set cdc_report [report_cdc -return_string -no_header -details -severity "Critical"]
 if {[string first "Critical" ${cdc_report}] != -1} {
-  puts "ERROR: Critical CDC rule violation after implementation run. See 'cdc.rpt' report."
-
   report_cdc -details -file "cdc.rpt"
-
-  exit 1
+  if {![info exists abort_on_cdc_violation]} { set abort_on_cdc_violation 1 }
+  if {${abort_on_cdc_violation} == 1} {
+    puts "ERROR: Critical CDC rule violation after implementation run. See 'cdc.rpt' report."
+    exit 1
+  } else {
+    puts "WARNING: Critical CDC rule violation after implementation run. See 'cdc.rpt' report."
+  }
 }

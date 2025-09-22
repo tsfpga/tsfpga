@@ -419,6 +419,7 @@ class VivadoProject:
         synth_only: bool,
         from_impl: bool,
         impl_explore: bool,
+        abort_on_cdc_violation: bool,
     ) -> Path:
         """
         Make a TCL file that builds a Vivado project
@@ -440,6 +441,7 @@ class VivadoProject:
             from_impl=from_impl,
             open_and_analyze_synthesized_design=self.open_and_analyze_synthesized_design,
             impl_explore=impl_explore,
+            abort_on_cdc_violation=abort_on_cdc_violation,
         )
         create_file(build_vivado_project_tcl, tcl)
 
@@ -560,6 +562,9 @@ class VivadoProject:
             num_threads=num_threads,
         )
 
+        # Determine CDC behavior. Default True for backwards compatibility.
+        abort_on_cdc_violation = all_parameters.get("abort_on_cdc_violation", True)
+
         # The pre-build hooks (either project pre-build hook or any of the module's pre-build hooks)
         # might have side effects. E.g. change some register constants. So we make a deep copy of
         # the module list before any of these hooks are called. Note that the modules are copied
@@ -599,6 +604,7 @@ class VivadoProject:
             synth_only=synth_only,
             from_impl=from_impl,
             impl_explore=self.impl_explore,
+            abort_on_cdc_violation=abort_on_cdc_violation,
         )
 
         if not run_vivado_tcl(self._vivado_path, build_vivado_project_tcl):

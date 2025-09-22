@@ -153,6 +153,28 @@ def test_build_with_from_impl():
     assert "synth_" in tcl
     assert "impl_" in tcl
 
+
+def test_build_with_abort_on_cdc_violation_flag():
+    # Default (True) should set variable to 1
+    tcl = VivadoTcl(name="").build(
+        project_file=Path(),
+        output_path=Path(),
+        num_threads=0,
+        run_index=0,
+        abort_on_cdc_violation=True,
+    )
+    assert "set abort_on_cdc_violation 1" in tcl
+
+    # Disabled should set variable to 0
+    tcl = VivadoTcl(name="").build(
+        project_file=Path(),
+        output_path=Path(),
+        num_threads=0,
+        run_index=0,
+        abort_on_cdc_violation=False,
+    )
+    assert "set abort_on_cdc_violation 0" in tcl
+
     tcl = VivadoTcl(name="").build(
         project_file=Path(), output_path=Path(), num_threads=0, run_index=0, from_impl=True
     )

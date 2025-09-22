@@ -330,6 +330,7 @@ set_property "generic" {{{generics_string}}} [current_fileset]
         from_impl: bool = False,
         impl_explore: bool = False,
         open_and_analyze_synthesized_design: bool = True,
+        abort_on_cdc_violation: bool = True,
     ) -> str:
         if impl_explore:
             # For implementation explore, threads are divided to one each per job.
@@ -347,9 +348,11 @@ set_property "generic" {{{generics_string}}} [current_fileset]
         tcl += f'set_param "synth.maxThreads" {num_threads_synth}\n\n'
         tcl += self._add_generics(generics=generics)
 
+        # Export user preference early so both synthesis analysis and implementation hooks see it.
+        tcl += f"set abort_on_cdc_violation {'1' if abort_on_cdc_violation else '0'}\n\n"
+
         if not from_impl:
             synth_run = f"synth_{run_index}"
-
             tcl += self._synthesis(
                 run=synth_run,
                 num_threads=num_threads,
@@ -388,8 +391,9 @@ exit
         # Timing checks such as setup/hold/pulse width violations, are not reliable after synthesis,
         # and should not abort the build.
         # These need to be checked after implementation.
-        # Checks likes CDC or unhandled clock crossings, however, are reliable after synthesis,
-        # and hence we abort the build below if such issues are found.
+        # Checks likes CDC or unhandled clock crossings, however, are reliable after synthesis.
+        # Whether to abort the build on such issues is controlled by the 'abort_on_cdc_violation'
+        # variable which might be set by the caller (defaults to 1 for backward compatibility).
         tcl += """
 # ------------------------------------------------------------------------------
 open_run ${run}
@@ -417,19 +421,23 @@ if {${part_supports_ssn} != ""} {
 # ------------------------------------------------------------------------------
 # This code is duplicated in 'check_timing.tcl' for implementation.
 set clock_interaction_report [
-  report_clock_interaction -delay_type "min_max" -no_header -return_string
+    report_clock_interaction -delay_type "min_max" -no_header -return_string
 ]
 if {[string first "(unsafe)" ${clock_interaction_report}] != -1} {
-  puts "ERROR: Unhandled clock crossing in ${run} run. See 'clock_interaction.rpt' and \
+    set output_file [file join ${run_directory} "clock_interaction.rpt"]
+    report_clock_interaction -delay_type min_max -file ${output_file}
+
+    set output_file [file join ${run_directory} "timing_summary.rpt"]
+    report_timing_summary -file ${output_file}
+
+    if {![info exists abort_on_cdc_violation]} { set abort_on_cdc_violation 1 }
+    if {${abort_on_cdc_violation} == 1} {
+        puts "ERROR: Unhandled clock crossing in ${run} run. See 'clock_interaction.rpt' and \
 'timing_summary.rpt' in ${run_directory}."
-
-  set output_file [file join ${run_directory} "clock_interaction.rpt"]
-  report_clock_interaction -delay_type min_max -file ${output_file}
-
-  set output_file [file join ${run_directory} "timing_summary.rpt"]
-  report_timing_summary -file ${output_file}
-
-  set should_exit 1
+        set should_exit 1
+    } else {
+        puts "WARNING: Unhandled clock crossing in ${run} run (abort_on_cdc_violation=0). See 'clock_interaction.rpt' and 'timing_summary.rpt' in ${run_directory}."
+    }
 }
 
 
@@ -443,12 +451,15 @@ if {[string first "(unsafe)" ${clock_interaction_report}] != -1} {
 # and '-to' flags (recommended).
 set cdc_report [report_cdc -return_string -no_header -details -severity "Critical"]
 if {[string first "Critical" ${cdc_report}] != -1} {
-  set output_file [file join ${run_directory} "cdc.rpt"]
-  puts "ERROR: Critical CDC rule violation in ${run} run. See ${output_file}."
-
-  report_cdc -details -file ${output_file}
-
-  set should_exit 1
+    set output_file [file join ${run_directory} "cdc.rpt"]
+    report_cdc -details -file ${output_file}
+    if {![info exists abort_on_cdc_violation]} { set abort_on_cdc_violation 1 }
+    if {${abort_on_cdc_violation} == 1} {
+        puts "ERROR: Critical CDC rule violation in ${run} run. See ${output_file}."
+        set should_exit 1
+    } else {
+        puts "WARNING: Critical CDC rule violation in ${run} run (abort_on_cdc_violation=0). See ${output_file}."
+    }
 }
 
 
