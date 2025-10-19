@@ -13,7 +13,7 @@ import time
 from abc import ABC, abstractmethod
 from pathlib import Path
 from threading import Lock
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from vunit.color_printer import COLOR_PRINTER, NO_COLOR_PRINTER, ColorPrinter
 from vunit.test.list import TestList
@@ -23,7 +23,7 @@ from vunit.test.runner import TestRunner
 from tsfpga.system_utils import create_directory, read_last_lines_of_file
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
 
     from .module_list import ModuleList
     from .vivado import build_result
