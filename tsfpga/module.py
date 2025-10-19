@@ -9,7 +9,7 @@
 from __future__ import annotations
 
 import random
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from hdl_registers.generator.vhdl.axi_lite.wrapper import VhdlAxiLiteWrapperGenerator
 from hdl_registers.generator.vhdl.record_package import VhdlRecordPackageGenerator
@@ -32,7 +32,7 @@ from tsfpga.module_list import ModuleList
 from tsfpga.system_utils import load_python_module
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Callable, Iterable
     from pathlib import Path
 
     from hdl_registers.register import Register

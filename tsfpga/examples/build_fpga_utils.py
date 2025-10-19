@@ -11,7 +11,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 from shutil import copy2, make_archive
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 from hdl_registers.generator.c.header import CHeaderGenerator
 from hdl_registers.generator.cpp.header import CppHeaderGenerator
@@ -24,6 +24,8 @@ from hdl_registers.generator.python.pickle import PythonPickleGenerator
 from tsfpga.system_utils import create_directory, delete
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from tsfpga.build_project_list import BuildProjectList
     from tsfpga.module_list import ModuleList
     from tsfpga.vivado.project import VivadoProject

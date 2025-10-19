@@ -41,6 +41,6 @@ class HierarchicalUtilizationParser:
                 # Convert numbers from string to integers
                 numbers_int = [int(number) for number in numbers]
 
-                return OrderedDict(zip(headers, numbers_int))
+                return OrderedDict(zip(headers, numbers_int, strict=True))
 
         return {}

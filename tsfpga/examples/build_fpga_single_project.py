@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 # Do PYTHONPATH insert() instead of append() to prefer any local repo checkout over any pip install.
 REPO_ROOT = Path(__file__).parent.parent.parent.resolve()
@@ -35,6 +35,7 @@ from tsfpga.examples.example_env import TSFPGA_EXAMPLES_TEMP_DIR, get_tsfpga_exa
 
 if TYPE_CHECKING:
     import argparse
+    from collections.abc import Callable
 
     from tsfpga.module_list import ModuleList
     from tsfpga.vivado.project import VivadoProject
