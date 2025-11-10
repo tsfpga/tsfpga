@@ -7,7 +7,7 @@ build_id.description = "Random build ID that can be used to distinguish between 
 [resync]
 
 type = "register_array"
-array_length = 30
+array_length = 34
 
 
 # ------------------------------------------------------------------------------
