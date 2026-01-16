@@ -614,7 +614,7 @@ class BuildResult(TestResult):
 
 
 def get_build_projects(
-    modules: ModuleList, project_filters: list[str], include_netlist_not_full_builds: bool
+    modules: ModuleList, project_filters: list[str], include_netlist_not_full_builds: bool = False
 ) -> list[VivadoProject]:
     """
     Get build projects from the given modules that match the given filters.

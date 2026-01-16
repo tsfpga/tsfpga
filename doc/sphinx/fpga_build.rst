@@ -32,16 +32,18 @@ like this:
     :caption: Minimal ``build_fpga.py`` file.
 
     from pathlib import Path
-    from tsfpga.build_project_list import BuildProjectList
+    from tsfpga.build_project_list import BuildProjectList, get_build_projects
     from tsfpga.module import get_modules
 
     modules = get_modules(modules_folder=Path("path/to/my/modules"))
 
     build_path = Path("generated/my_build_projects")
 
-    projects = BuildProjectList(modules=modules, project_filters="*")
-    projects.create_unless_exists(project_paths=build_path, num_parallel_builds=4)
-    projects.build(project_path=build_path, num_parallel_builds=4, num_threads_per_build=6)
+    project_list = BuildProjectList(
+      projects=get_build_projects(modules=modules, project_filters="*")
+    )
+    project_list.create_unless_exists(project_paths=build_path, num_parallel_builds=4)
+    project_list.build(project_path=build_path, num_parallel_builds=4, num_threads_per_build=6)
 
 Of course this is incredibly simplified and hard coded, but it does show the interface to the
 tsfpga classes.
