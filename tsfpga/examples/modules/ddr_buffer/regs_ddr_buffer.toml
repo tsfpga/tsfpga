@@ -1,6 +1,8 @@
 ################################################################################
 [status]
 
+mode = "r"
+
 idle.type = "bit"
 idle.description = """
 '1' when the module is inactive and a new run can be launched.
@@ -14,6 +16,8 @@ counter.max_value = 255
 
 ################################################################################
 [command]
+
+mode = "wpulse"
 
 start.type = "bit"
 start.description = "Start a read and write cycle."
