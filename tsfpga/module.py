@@ -613,7 +613,7 @@ class BaseModule:
         Return:
             For example ``MyBaseName.GenericA_ValueA.GenericB_ValueB``.
         """
-        test_case_name = name if name else ""
+        test_case_name = name or ""
 
         if generics:
             generics_string = ".".join([f"{key}_{value}" for key, value in generics.items()])
