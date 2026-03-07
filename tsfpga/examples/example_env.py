@@ -64,11 +64,8 @@ def get_tsfpga_example_modules(
     names_include: set[str] | None = None, names_avoid: set[str] | None = None
 ) -> ModuleList:
     """
-    Wrapper of the regular :func:`.get_modules`. call with correct settings for tsfpga
+    Wrapper of the regular :func:`.get_modules` call with correct settings for tsfpga
     example modules.
-    This will include the example tsfpga modules, but not the "real" modules.
-
-    Arguments will be passed on to :func:`.get_modules`.
     """
     return get_modules(
         modules_folder=tsfpga.TSFPGA_EXAMPLE_MODULES,
