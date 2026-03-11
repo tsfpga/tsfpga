@@ -9,15 +9,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
 
 from tsfpga.constraint import Constraint
 from tsfpga.examples.example_env import get_hdl_modules, get_tsfpga_example_modules
 from tsfpga.examples.vivado.project import TsfpgaExampleVivadoProject
 from tsfpga.module import BaseModule
-
-if TYPE_CHECKING:
-    from tsfpga.hdl_file import HdlFile
 
 THIS_FILE = Path(__file__)
 
@@ -80,25 +76,3 @@ class Module(BaseModule):
         )
 
         return projects
-
-    def get_simulation_files(
-        self,
-        files_avoid: bool | None = None,
-        include_unisim: bool = True,
-        **kwargs: Any,  # noqa: ANN401
-    ) -> list[HdlFile]:
-        """
-        Exclude files that depend on IP cores and/or unisim.
-
-        Note that this must be after the 'get_build_projects' method, since this file up until that
-        point is included in documentation.
-        """
-        files_to_avoid = {
-            self.path / "src" / "artyz7_top.vhd",
-            self.path / "test" / "tb_artyz7_top.vhd",
-        }
-
-        if not include_unisim:
-            files_avoid = files_to_avoid if files_avoid is None else files_avoid | files_to_avoid
-
-        return super().get_simulation_files(files_avoid=files_avoid, **kwargs)
