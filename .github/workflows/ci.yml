@@ -39,7 +39,7 @@ jobs:
     strategy:
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
-        py: ['3.10', '3.11', '3.12', '3.13']
+        py: ['3.10', '3.11', '3.12', '3.13', '3.14']
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -64,14 +64,14 @@ jobs:
     # Run only the UNIT tests on most Python versions in the matrix.
     # This is very fast (2-3 s).
     - name: Run unit tests
-      if: matrix.os != 'ubuntu-latest' || matrix.py != '3.13'
+      if: matrix.os != 'ubuntu-latest' || matrix.py != '3.14'
       run: |
         python3 -m pytest --verbose tsfpga
 
     # On one Python version however, we run ALL the Python-based tests, which requires a few more
     # dependencies, and then we collect coverage from this run.
     - name: Install further Python packages
-      if: matrix.os == 'ubuntu-latest' && matrix.py == '3.13'
+      if: matrix.os == 'ubuntu-latest' && matrix.py == '3.14'
       run: |
         python3 -m pip install \
           pybadges \
@@ -82,7 +82,7 @@ jobs:
     # Run ALL tests, including unit, lint and functional ones.
     # The execution time goes from 1:13 -> 0:50 when two threads are used.
     - name: Run all tests
-      if: matrix.os == 'ubuntu-latest' && matrix.py == '3.13'
+      if: matrix.os == 'ubuntu-latest' && matrix.py == '3.14'
       run: |
         python3 -m pytest \
           --verbose \
@@ -96,7 +96,7 @@ jobs:
           tests
 
     - name: Upload coverage artifacts
-      if: matrix.os == 'ubuntu-latest' && matrix.py == '3.13'
+      if: matrix.os == 'ubuntu-latest' && matrix.py == '3.14'
       uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       with:
         name: coverage
@@ -207,7 +207,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
       with:
-        python-version: '3.13'
+        python-version: '3.14'
         cache: pip
         cache-dependency-path: tsfpga/requirements_develop.txt
 
@@ -260,7 +260,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
-          python-version: '3.13'
+          python-version: '3.14'
           cache: pip
           cache-dependency-path: tsfpga/requirements_develop.txt
 
@@ -291,7 +291,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        py: ['3.10', '3.11', '3.12', '3.13']
+        py: ['3.10', '3.11', '3.12', '3.13', '3.14']
     steps:
 
       - name: Checkout
