@@ -118,7 +118,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
       with:
-        python-version: '3.11'
+        python-version: '3.14'
         cache: pip
         cache-dependency-path: tsfpga/requirements_develop.txt
 
@@ -127,11 +127,11 @@ jobs:
         python3 -m pip install \
           black \
           GitPython \
-          pybadges \
+          git+https://github.com/ProsePal/py-badge@6e137cf13d8453ff085aab90cf1535fb58a1785a \
           PyYAML \
           rtoml \
           setuptools \
-          sphinx \
+          "sphinx<9" \
           sphinx_sitemap \
           sphinx-rtd-theme \
           sphinx-toolbox \
