@@ -87,6 +87,10 @@ class TsfpgaExampleVivadoProject(VivadoProject):
         top_module = self.modules.get(module_name=self.top.split("_top")[0])
         registers: RegisterList = top_module.registers
 
+        if registers is None:
+            # 'io_constraints_top' example build has no registers.
+            return
+
         hook_note = """
 
 Note that this constant is added by a Python build hook.
