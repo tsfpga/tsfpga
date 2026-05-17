@@ -2,3 +2,4 @@ GitPython
 hdl-registers>=8.1.0
 rtoml
 vunit_hdl
+vunit-vivado
