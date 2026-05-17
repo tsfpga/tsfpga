@@ -14,8 +14,8 @@ from typing import TYPE_CHECKING, Any
 
 import hdl_registers
 from vunit.ui import VUnit
-from vunit.vivado.vivado import add_from_compile_order_file, create_compile_order_file
 from vunit.vunit_cli import VUnitCLI
+from vunit_vivado.vivado import add_from_compile_order_file, create_compile_order_file
 
 import tsfpga
 import tsfpga.create_vhdl_ls_config
