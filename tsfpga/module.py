@@ -520,7 +520,7 @@ class BaseModule:
         """
         return True
 
-    def add_vunit_config(  # noqa: PLR0913
+    def add_vunit_config(  # noqa: PLR0913, PLR0917
         self,
         test: Test | TestBench,
         name: str | None = None,

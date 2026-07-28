@@ -27,8 +27,10 @@ def test_copyright_header_of_all_checked_in_files():
     test_ok = True
     for file in files_to_check_for_copyright_header():
         copyright_lines = [
-            "This file is part of the tsfpga project, a project platform for modern "
-            "FPGA development.",
+            (
+                "This file is part of the tsfpga project, a project platform for modern "
+                "FPGA development."
+            ),
             WEBSITE_URL,
             REPOSITORY_URL,
         ]
