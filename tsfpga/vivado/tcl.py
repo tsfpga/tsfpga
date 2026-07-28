@@ -39,7 +39,7 @@ class VivadoTcl:
     ) -> None:
         self.name = name
 
-    def create(  # noqa: PLR0913
+    def create(  # noqa: PLR0913, PLR0917
         self,
         project_folder: Path,
         modules: ModuleList,
@@ -318,7 +318,7 @@ set_property "generic" {{{generics_string}}} [current_fileset]
 
         return f"{tcl}\n"
 
-    def build(  # noqa: PLR0913
+    def build(  # noqa: PLR0913, PLR0917
         self,
         project_file: Path,
         output_path: Path | None,

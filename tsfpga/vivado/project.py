@@ -40,7 +40,7 @@ class VivadoProject:
     Used for handling a Xilinx Vivado HDL project
     """
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913, PLR0917
         self,
         name: str,
         modules: ModuleList,
@@ -409,7 +409,7 @@ class VivadoProject:
         """
         return True
 
-    def _build_tcl(  # noqa: PLR0913
+    def _build_tcl(  # noqa: PLR0913, PLR0917
         self,
         project_path: Path,
         output_path: Path | None,
@@ -488,7 +488,7 @@ class VivadoProject:
         """
         return True
 
-    def build(  # noqa: C901, PLR0912, PLR0913
+    def build(  # noqa: C901, PLR0912, PLR0913, PLR0917
         self,
         project_path: Path,
         output_path: Path | None = None,

@@ -218,7 +218,7 @@ def run_command(
     if not isinstance(cmd, list):
         raise TypeError("Must be called with a list, not a string")
 
-    return subprocess.run(
+    return subprocess.run(  # noqa: S603
         args=cmd,
         cwd=cwd,
         env=env,

@@ -105,7 +105,7 @@ class BuildResult:
         return result
 
     @property
-    def maximum_logic_level(self) -> None | int:
+    def maximum_logic_level(self) -> int | None:
         """
         The maximum level in the the :attr:`.BuildResult.logic_level_distribution`.
         Will be ``None`` for non-netlist builds.
