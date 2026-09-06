@@ -16,3 +16,10 @@ Added
   returned from :meth:`.BaseModule.get_build_projects` and handled by
   :class:`.BuildProjectList`, so a project's standard build script (e.g. ``build_fpga.py``) can
   drive Yosys netlist builds the same way it drives Vivado builds.
+
+Fixed
+
+* Fix a race in ``run_ghdl``/``run_yosys`` where a failing GHDL/Yosys process could raise
+  ``ValueError: I/O operation on closed file`` instead of surfacing its real error message, when
+  the build was driven through VUnit's own test-runner machinery (e.g.
+  :func:`.setup_and_run`), which temporarily redirects stdout per test.

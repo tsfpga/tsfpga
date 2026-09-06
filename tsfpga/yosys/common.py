@@ -11,10 +11,34 @@ from __future__ import annotations
 import os
 import re
 import subprocess
+import sys
 from pathlib import Path
 from shutil import which
 
 from vunit.ostools import Process
+
+
+def _print_output_line(line: str) -> None:
+    """
+    Default output callback for :func:`run_ghdl`/:func:`run_yosys`'s ``Process.consume_output()``.
+
+    Plain ``print`` is not safe here: when a netlist build is driven through VUnit's own
+    test-runner machinery (as e.g. ``tsfpga.examples.build_fpga_utils.setup_and_run`` does,
+    wrapping each build as a pseudo VUnit test case so the runner's parallelism/reporting can be
+    reused -- see :class:`.BuildProjectList`), the runner temporarily redirects stdout to a
+    per-test output file. If the underlying GHDL/Yosys process fails and exits quickly, this
+    background reader thread can race the runner's teardown of that redirection and try to write
+    to an already-closed file, raising ``ValueError: I/O operation on closed file`` from inside
+    ``consume_output()``. Left unhandled, that exception propagates out of :func:`run_ghdl`/
+    :func:`run_yosys` and replaces the real GHDL/Yosys error text (which is still visible in the
+    on-disk log) with a confusing, unrelated Python traceback -- purely cosmetic, but it hides the
+    actual failure reason from whoever is reading the console output. Fall back to stderr (never
+    redirected/closed by the test runner) so the real message always reaches the console too.
+    """
+    try:
+        print(line)
+    except ValueError:
+        print(line, file=sys.stderr)
 
 
 def run_ghdl(ghdl_path: Path | None, arguments: list[str], cwd: Path) -> bool:
@@ -38,7 +62,7 @@ def run_ghdl(ghdl_path: Path | None, arguments: list[str], cwd: Path) -> bool:
     cmd = [str(get_ghdl_path(ghdl_path)), *arguments]
 
     try:
-        Process(args=cmd, cwd=cwd).consume_output()
+        Process(args=cmd, cwd=cwd).consume_output(callback=_print_output_line)
     except Process.NonZeroExitCode:
         return False
     return True
@@ -98,7 +122,7 @@ def run_yosys(
         env["GHDL_PREFIX"] = str(resolved_ghdl_prefix.resolve())
 
     try:
-        Process(args=cmd, cwd=cwd, env=env).consume_output()
+        Process(args=cmd, cwd=cwd, env=env).consume_output(callback=_print_output_line)
     except Process.NonZeroExitCode:
         return False
     return True
