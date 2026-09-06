@@ -488,6 +488,52 @@ class BuildRunner(TestRunner):
         """
         create_directory(Path(output_path), empty=False)
 
+    def _add_results(
+        self,
+        test_suite: Any,  # noqa: ANN401
+        results: Any,  # noqa: ANN401
+        start_time: float,
+        num_tests: int,
+        output_file_name: str,
+    ) -> None:
+        """
+        Overloaded from super class.
+
+        Identical to the base ``TestRunner`` implementation, except the trailing ``print()`` is
+        replaced by a safe version.
+
+        This method is called from a background VUnit test-runner thread for each build as soon
+        as it finishes, while other builds may still be running. If the main thread's per-run
+        stdout redirection is torn down concurrently (e.g. this run is itself one build among
+        several, or the process is shutting down), the base class's bare ``print()`` can race it
+        and raise ``ValueError: I/O operation on closed file`` -- purely cosmetic (the build's
+        pass/fail result, printed just above via ``self._report.print_latest_status()``, is
+        already recorded and already went out safely via ``_safe_printer_write``), but it spams a
+        confusing traceback. Fall back to stderr (never redirected/closed the same way) instead of
+        letting it propagate.
+        """
+        runtime = time.time() - start_time
+        time_per_test = runtime / len(results)
+        seed = test_suite.get_seed()
+
+        for test_name in test_suite.test_names:
+            status = results[test_name]
+            self._report.add_result(
+                test_name,
+                status,
+                time_per_test,
+                output_file_name,
+                test_suite_name=test_suite.name,
+                start_time=start_time,
+                seed=seed,
+            )
+            self._report.print_latest_status(total_tests=num_tests)
+
+        try:
+            print()
+        except ValueError:
+            print(file=sys.stderr)
+
 
 class ThreadSafeCollectArtifacts:
     """

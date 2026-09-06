@@ -11,7 +11,12 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from tsfpga.build_project_list import BuildProjectList, _safe_printer_write, get_build_projects
+from tsfpga.build_project_list import (
+    BuildProjectList,
+    BuildRunner,
+    _safe_printer_write,
+    get_build_projects,
+)
 from tsfpga.module import BaseModule
 from tsfpga.system_utils import create_directory
 from tsfpga.vivado.project import BuildResult, VivadoProject
@@ -271,3 +276,52 @@ def test_safe_printer_write_writes_normally():
     _safe_printer_write(printer, "pass", fg="gi")
 
     printer.write.assert_called_once_with("pass", fg="gi", bg=None)
+
+
+def test_add_results_falls_back_to_stderr_when_stdout_is_closed(monkeypatch):
+    report = MagicMock()
+    runner = BuildRunner(report=report, output_path="output_path")
+
+    test_suite = MagicMock()
+    test_suite.test_names = ["test"]
+    test_suite.get_seed.return_value = None
+
+    calls = []
+
+    def fake_print(*args, **kwargs):
+        calls.append(kwargs)
+        if len(calls) == 1:
+            raise ValueError("I/O operation on closed file.")
+
+    monkeypatch.setattr("builtins.print", fake_print)
+
+    runner._add_results(
+        test_suite=test_suite,
+        results={"test": "passed"},
+        start_time=0.0,
+        num_tests=1,
+        output_file_name="output_file_name",
+    )
+
+    assert len(calls) == 2
+    assert calls[1]["file"] is sys.stderr
+
+
+def test_add_results_prints_normally():
+    report = MagicMock()
+    runner = BuildRunner(report=report, output_path="output_path")
+
+    test_suite = MagicMock()
+    test_suite.test_names = ["test"]
+    test_suite.get_seed.return_value = None
+
+    runner._add_results(
+        test_suite=test_suite,
+        results={"test": "passed"},
+        start_time=0.0,
+        num_tests=1,
+        output_file_name="output_file_name",
+    )
+
+    report.add_result.assert_called_once()
+    report.print_latest_status.assert_called_once_with(total_tests=1)
