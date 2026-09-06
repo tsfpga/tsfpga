@@ -23,3 +23,7 @@ Fixed
   ``ValueError: I/O operation on closed file`` instead of surfacing its real error message, when
   the build was driven through VUnit's own test-runner machinery (e.g.
   :func:`.setup_and_run`), which temporarily redirects stdout per test.
+* Fix the same closed-stdout race in :meth:`.BuildReport.print_latest_status`, which could raise
+  the same ``ValueError`` (instead of printing the build's pass/fail status) when called from a
+  background VUnit test-runner thread while another build's stdout redirection was being torn
+  down.

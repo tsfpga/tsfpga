@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import fnmatch
+import sys
 import time
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -508,6 +509,29 @@ class ThreadSafeCollectArtifacts:
             return self._collect_artifacts(project=project, output_path=output_path)
 
 
+def _safe_printer_write(
+    printer: ColorPrinter, text: str, fg: str | None = None, bg: str | None = None
+) -> None:
+    """
+    Wrapper around :meth:`ColorPrinter.write` that falls back to stderr if the default output
+    file (stdout) has already been closed.
+
+    :meth:`.BuildReport.print_latest_status` is called from a background VUnit test-runner
+    thread for each build as soon as it finishes, while other builds may still be running. If the
+    main thread's per-run stdout redirection is torn down (e.g. this run is itself one build
+    among several, or the process is shutting down) while one of these background threads is
+    mid-write, ``output_file.write(text)`` inside :meth:`ColorPrinter.write` can raise
+    ``ValueError: I/O operation on closed file`` -- purely cosmetic (the build's pass/fail result
+    is already recorded), but it spams a confusing traceback instead of the intended one-line
+    status. Retry once on stderr (never redirected/closed the same way) so the status is not
+    lost.
+    """
+    try:
+        printer.write(text, fg=fg, bg=bg)
+    except ValueError:
+        printer.write(text, output_file=sys.stderr, fg=fg, bg=bg)
+
+
 class BuildReport(TestReport):
     def add_result(
         self,
@@ -548,14 +572,16 @@ class BuildReport(TestReport):
         passed, failed, _ = self._split()
 
         if result.passed:
-            self._printer.write("pass", fg="gi")
+            _safe_printer_write(self._printer, "pass", fg="gi")
         elif result.failed:
-            self._printer.write("fail", fg="ri")
+            _safe_printer_write(self._printer, "fail", fg="ri")
         else:
             raise AssertionError
 
         count_summary = f"pass={len(passed)} fail={len(failed)} total={total_tests}"
-        self._printer.write(f" ({count_summary}) {result.name} ({result.time:.1f} seconds)\n")
+        _safe_printer_write(
+            self._printer, f" ({count_summary}) {result.name} ({result.time:.1f} seconds)\n"
+        )
 
 
 class BuildResult(TestResult):

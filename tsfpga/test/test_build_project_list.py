@@ -6,11 +6,12 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+import sys
 from unittest.mock import MagicMock
 
 import pytest
 
-from tsfpga.build_project_list import BuildProjectList, get_build_projects
+from tsfpga.build_project_list import BuildProjectList, _safe_printer_write, get_build_projects
 from tsfpga.module import BaseModule
 from tsfpga.system_utils import create_directory
 from tsfpga.vivado.project import BuildResult, VivadoProject
@@ -250,3 +251,23 @@ def test_open(build_project_list_test, tmp_path):
     )
     build_project_list_test.project_one.open.assert_not_called()
     build_project_list_test.project_two.open.assert_not_called()
+
+
+def test_safe_printer_write_falls_back_to_stderr_when_stdout_is_closed():
+    printer = MagicMock()
+    printer.write.side_effect = [ValueError("I/O operation on closed file."), None]
+
+    _safe_printer_write(printer, "pass", fg="gi")
+
+    assert printer.write.call_count == 2
+    printer.write.assert_any_call("pass", fg="gi", bg=None)
+    _, kwargs = printer.write.call_args
+    assert kwargs["output_file"] is sys.stderr
+
+
+def test_safe_printer_write_writes_normally():
+    printer = MagicMock()
+
+    _safe_printer_write(printer, "pass", fg="gi")
+
+    printer.write.assert_called_once_with("pass", fg="gi", bg=None)
