@@ -31,3 +31,8 @@ Fixed
   VUnit's base ``TestRunner`` implementation verbatim and so still had a bare ``print()`` that
   could raise the same ``ValueError`` instead of printing the trailing blank line after a build's
   status.
+* Fix the internal VUnit project used to resolve compile order for
+  :ref:`netlist builds <yosys_netlist_build>` compiling VUnit's own simulation builtins (on
+  VUnit's released API, ``compile_builtins`` defaults to ``True``) in addition to the design's own
+  sources, running GHDL over dozens of unnecessary VUnit-internal VHDL files on every netlist
+  build.

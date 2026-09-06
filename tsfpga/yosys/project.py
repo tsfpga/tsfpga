@@ -222,8 +222,10 @@ class YosysNetlistBuild:
         if self._vunit_proj is None:
             # VUnit is only used to resolve the compile order of the VHDL source files, not to
             # run any simulations. Hence the output is placed in a throwaway temporary
-            # directory. Simulation builtins are not compiled, since VUnit does not do so
-            # unless 'add_vhdl_builtins' is called explicitly (which is not done here).
+            # directory. Simulation builtins must not be compiled -- 'compile_builtins=False'
+            # is required for that on VUnit's released API ('from_argv' defaults it to True,
+            # which would run GHDL over dozens of VUnit-internal VHDL files in addition to this
+            # design's own sources).
             # Going via 'from_argv' with real command line argument strings (rather than
             # constructing an 'argparse.Namespace' object by hand) means VUnit's own argument
             # parser fills in every attribute it needs, so this does not break when VUnit adds
@@ -232,7 +234,7 @@ class YosysNetlistBuild:
             argv = ["--output-path", output_path, "--log-level", "error", "--no-color"]
 
             with _suppress_stdout():
-                self._vunit_proj = VUnit.from_argv(argv=argv)
+                self._vunit_proj = VUnit.from_argv(argv=argv, compile_builtins=False)
 
             for module in self.modules:
                 vunit_library = self._vunit_proj.add_library(
