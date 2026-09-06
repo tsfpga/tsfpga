@@ -284,7 +284,6 @@ def test_add_results_falls_back_to_stderr_when_stdout_is_closed(monkeypatch):
 
     test_suite = MagicMock()
     test_suite.test_names = ["test"]
-    test_suite.get_seed.return_value = None
 
     calls = []
 
@@ -313,7 +312,6 @@ def test_add_results_prints_normally():
 
     test_suite = MagicMock()
     test_suite.test_names = ["test"]
-    test_suite.get_seed.return_value = None
 
     runner._add_results(
         test_suite=test_suite,
@@ -324,4 +322,8 @@ def test_add_results_prints_normally():
     )
 
     report.add_result.assert_called_once()
+    args, _ = report.add_result.call_args
+    assert args[0] == "test"
+    assert args[1] == "passed"
+    assert args[3] == "output_file_name"
     report.print_latest_status.assert_called_once_with(total_tests=1)
