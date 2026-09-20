@@ -287,14 +287,14 @@ def test_add_results_falls_back_to_stderr_when_stdout_is_closed(monkeypatch):
 
     calls = []
 
-    def fake_print(*args, **kwargs):
+    def fake_print(*_args, **kwargs):
         calls.append(kwargs)
         if len(calls) == 1:
             raise ValueError("I/O operation on closed file.")
 
     monkeypatch.setattr("builtins.print", fake_print)
 
-    runner._add_results(
+    runner._add_results(  # noqa: SLF001
         test_suite=test_suite,
         results={"test": "passed"},
         start_time=0.0,
@@ -313,7 +313,7 @@ def test_add_results_prints_normally():
     test_suite = MagicMock()
     test_suite.test_names = ["test"]
 
-    runner._add_results(
+    runner._add_results(  # noqa: SLF001
         test_suite=test_suite,
         results={"test": "passed"},
         start_time=0.0,

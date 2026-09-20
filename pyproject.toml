@@ -107,14 +107,6 @@ per-file-ignores."**/test/**/*.py" = [
 ]
 
 
-[tool.ruff.lint.flake8-copyright]
-
-# Our copyright notice convention does not include a year, which is what the default
-# "notice-rgx" requires. Match our actual convention instead.
-# https://docs.astral.sh/ruff/settings/#lint_flake8-copyright_notice-rgx
-notice-rgx = "Copyright \\(c\\) Lukas Vik\\. All rights reserved\\."
-
-
 [tool.ruff.lint.isort]
 
 sections."example_pythonpath" = ["tsfpga.examples.example_pythonpath"]

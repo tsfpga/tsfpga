@@ -22,5 +22,6 @@ tsfpga/examples/modules/*/regs_sim/
 tsfpga/examples/modules/*/regs_src/
 
 # Local build/lock artifacts, not part of the tracked project
+build/
 tsfpga.egg-info/
 uv.lock
