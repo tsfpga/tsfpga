@@ -19,7 +19,12 @@ from typing import TYPE_CHECKING, Any, NoReturn
 from vunit.ui import VUnit
 
 from tsfpga.build_result import BuildResult
-from tsfpga.generics import BitVectorGenericValue, StringGenericValue
+from tsfpga.generics import (
+    BitVectorGenericValue,
+    GenericValue,
+    GenericValues,
+    StringGenericValue,
+)
 from tsfpga.hdl_file import HdlFile
 from tsfpga.system_utils import copy_and_combine_dicts, create_directory, read_file
 
@@ -90,8 +95,7 @@ class YosysNetlistBuild:
         modules: ModuleList,
         top: str | None = None,
         vhdl_entities: list[str] | None = None,
-        generics: dict[str, bool | float | StringGenericValue | BitVectorGenericValue]
-        | None = None,
+        generics: GenericValues | None = None,
         build_result_checkers: list[SizeChecker] | None = None,
         synth_command: str = "synth",
         vhdl_standard: str = "08",
@@ -461,7 +465,7 @@ class YosysNetlistBuild:
     def _get_ghdl_commands(
         self,
         workdir: Path,
-        all_generics: dict[str, bool | float | StringGenericValue | BitVectorGenericValue],
+        all_generics: GenericValues,
     ) -> list[str]:
         """
         Return: A list of Yosys ``ghdl`` commands that elaborate the VHDL entities of this
@@ -516,7 +520,7 @@ class YosysNetlistBuild:
     def _get_yosys_script(
         self,
         workdir: Path,
-        all_generics: dict[str, bool | float | StringGenericValue | BitVectorGenericValue],
+        all_generics: GenericValues,
         utilization_report_file: Path,
     ) -> str:
         commands = []
@@ -540,8 +544,7 @@ class YosysNetlistBuild:
         self,
         project_path: Path,
         output_path: Path | None = None,
-        generics: dict[str, bool | float | StringGenericValue | BitVectorGenericValue]
-        | None = None,
+        generics: GenericValues | None = None,
         **pre_and_post_build_parameters: Any,  # noqa: ANN401
     ) -> BuildResult:
         """
@@ -845,7 +848,7 @@ class YosysMicrochipNetlistBuild(YosysNetlistBuild):
 
 
 def _get_ghdl_generic_value(
-    value: bool | float | StringGenericValue | BitVectorGenericValue,
+    value: GenericValue,
 ) -> str:
     """
     Convert a generic value of a native Python type (or one of the tsfpga generic value

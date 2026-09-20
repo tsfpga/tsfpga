@@ -29,8 +29,8 @@ from .tcl import VivadoTcl
 from .timing_parser import FoundNoSlackError, TimingParser
 
 if TYPE_CHECKING:
+    from tsfpga.generics import GenericValues
     from tsfpga.module_list import ModuleList
-    from tsfpga.vivado.generics import BitVectorGenericValue, StringGenericValue
 
     from .build_result_checker import MaximumLogicLevel, SizeChecker
 
@@ -46,8 +46,7 @@ class VivadoProject:
         modules: ModuleList,
         part: str,
         top: str | None = None,
-        generics: dict[str, bool | float | StringGenericValue | BitVectorGenericValue]
-        | None = None,
+        generics: GenericValues | None = None,
         constraints: list[Constraint] | None = None,
         tcl_sources: list[Path] | None = None,
         build_step_hooks: list[BuildStepTclHook] | None = None,
@@ -415,7 +414,7 @@ class VivadoProject:
         output_path: Path | None,
         num_threads: int,
         run_index: int,
-        all_generics: dict[str, bool | float | StringGenericValue | BitVectorGenericValue],
+        all_generics: GenericValues,
         synth_only: bool,
         from_impl: bool,
         impl_explore: bool,
@@ -493,8 +492,7 @@ class VivadoProject:
         project_path: Path,
         output_path: Path | None = None,
         run_index: int | None = None,
-        generics: dict[str, bool | float | StringGenericValue | BitVectorGenericValue]
-        | None = None,
+        generics: GenericValues | None = None,
         synth_only: bool = False,
         from_impl: bool = False,
         num_threads: int = 12,

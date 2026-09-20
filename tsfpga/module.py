@@ -41,8 +41,7 @@ if TYPE_CHECKING:
     from vunit.ui.test import Test
     from vunit.ui.testbench import TestBench
 
-    from .vivado.project import VivadoProject
-    from .yosys.project import YosysNetlistBuild
+    from .build_project_list import BuildProject
 
 
 class BaseModule:
@@ -178,7 +177,7 @@ class BaseModule:
                 This could be, e.g., data dimensions, location of test files, etc.
         """
 
-    def get_build_projects(self) -> list[VivadoProject | YosysNetlistBuild]:
+    def get_build_projects(self) -> list[BuildProject]:
         """
         Get FPGA build projects defined by this module.
 
@@ -497,7 +496,7 @@ class BaseModule:
 
     def pre_build(
         self,
-        project: VivadoProject | YosysNetlistBuild,  # noqa: ARG002
+        project: BuildProject,  # noqa: ARG002
         **kwargs: Any,  # noqa: ANN401, ARG002
     ) -> bool:
         """

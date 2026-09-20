@@ -70,3 +70,10 @@ class BitVectorGenericValue:
 
     def __str__(self) -> str:
         return self.value
+
+
+#: A generic value of a native Python type, or one of the tsfpga wrapper classes above.
+GenericValue = bool | float | StringGenericValue | BitVectorGenericValue
+
+#: A mapping of generic name to :data:`.GenericValue`, as accepted by the build project classes.
+GenericValues = dict[str, GenericValue]

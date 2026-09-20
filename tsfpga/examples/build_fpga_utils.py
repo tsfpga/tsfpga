@@ -26,10 +26,9 @@ from tsfpga.system_utils import create_directory, delete
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from tsfpga.build_project_list import BuildProjectList
+    from tsfpga.build_project_list import BuildProject, BuildProjectList
     from tsfpga.module_list import ModuleList
     from tsfpga.vivado.project import VivadoProject
-    from tsfpga.yosys.project import YosysNetlistBuild
 
 
 def arguments(default_temp_dir: Path) -> argparse.Namespace:
@@ -138,7 +137,7 @@ def setup_and_run(  # noqa: C901, PLR0911
     modules: ModuleList,
     project_list: BuildProjectList,
     args: argparse.Namespace,
-    collect_artifacts_function: Callable[[VivadoProject | YosysNetlistBuild, Path], bool] | None,
+    collect_artifacts_function: Callable[[BuildProject, Path], bool] | None,
 ) -> int:
     """
     Example of a function to setup and execute build projects.

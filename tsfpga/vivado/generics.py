@@ -11,11 +11,11 @@ from __future__ import annotations
 # 'StringGenericValue' and 'BitVectorGenericValue' are generic, backend-agnostic types (used by
 # e.g. 'tsfpga.yosys.project' as well) that historically lived in this module. They are now
 # defined in 'tsfpga.generics', and re-exported here for backward compatibility.
-from tsfpga.generics import BitVectorGenericValue, StringGenericValue
+from tsfpga.generics import BitVectorGenericValue, GenericValue, StringGenericValue
 
 
 def get_vivado_tcl_generic_value(
-    value: bool | float | StringGenericValue | BitVectorGenericValue,
+    value: GenericValue,
 ) -> str:
     """
     Convert generic values of different types to the format recognized by Vivado TCL:
