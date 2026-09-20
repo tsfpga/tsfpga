@@ -8,6 +8,7 @@
 
 import subprocess
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -21,6 +22,7 @@ from tsfpga.system_utils import (
     read_file,
     read_last_lines_of_file,
     run_command,
+    safe_print,
     system_is_windows,
 )
 
@@ -209,3 +211,19 @@ def test_run_command_should_capture_output_as_strings():
     # Show that it is regular text with regular newlines.
     assert "\ntest_system_utils.py\n" in result.stdout
     assert "\ntest_ip_core_file.py\n" in result.stdout
+
+
+def test_safe_print_falls_back_to_stderr_when_stdout_is_closed(capsys):
+    real_print = print
+
+    def fake_print(*args, **kwargs):
+        if "file" not in kwargs:
+            raise ValueError("I/O operation on closed file.")
+        real_print(*args, **kwargs)
+
+    with patch("builtins.print", side_effect=fake_print):
+        safe_print("some output")
+
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "some output" in captured.err

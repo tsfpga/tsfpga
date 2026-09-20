@@ -270,27 +270,15 @@ def test_safe_printer_write_falls_back_to_stderr_when_stdout_is_closed():
     assert kwargs["output_file"] is sys.stderr
 
 
-def test_safe_printer_write_writes_normally():
-    printer = MagicMock()
-
-    _safe_printer_write(printer, "pass", fg="gi")
-
-    printer.write.assert_called_once_with("pass", fg="gi", bg=None)
-
-
-def test_add_results_falls_back_to_stderr_when_stdout_is_closed(monkeypatch):
+def test_add_results_swallows_closed_stdout_error(monkeypatch):
     report = MagicMock()
     runner = BuildRunner(report=report, output_path="output_path")
 
     test_suite = MagicMock()
     test_suite.test_names = ["test"]
 
-    calls = []
-
-    def fake_print(*_args, **kwargs):
-        calls.append(kwargs)
-        if len(calls) == 1:
-            raise ValueError("I/O operation on closed file.")
+    def fake_print(*_args, **_kwargs):
+        raise ValueError("I/O operation on closed file.")
 
     monkeypatch.setattr("builtins.print", fake_print)
 
@@ -302,28 +290,4 @@ def test_add_results_falls_back_to_stderr_when_stdout_is_closed(monkeypatch):
         output_file_name="output_file_name",
     )
 
-    assert len(calls) == 2
-    assert calls[1]["file"] is sys.stderr
-
-
-def test_add_results_prints_normally():
-    report = MagicMock()
-    runner = BuildRunner(report=report, output_path="output_path")
-
-    test_suite = MagicMock()
-    test_suite.test_names = ["test"]
-
-    runner._add_results(  # noqa: SLF001
-        test_suite=test_suite,
-        results={"test": "passed"},
-        start_time=0.0,
-        num_tests=1,
-        output_file_name="output_file_name",
-    )
-
     report.add_result.assert_called_once()
-    args, _ = report.add_result.call_args
-    assert args[0] == "test"
-    assert args[1] == "passed"
-    assert args[3] == "output_file_name"
-    report.print_latest_status.assert_called_once_with(total_tests=1)

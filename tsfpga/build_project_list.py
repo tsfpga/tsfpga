@@ -12,6 +12,7 @@ import fnmatch
 import sys
 import time
 from abc import ABC, abstractmethod
+from contextlib import suppress
 from pathlib import Path
 from threading import Lock
 from typing import TYPE_CHECKING, Any
@@ -490,40 +491,17 @@ class BuildRunner(TestRunner):
 
     def _add_results(
         self,
-        test_suite: Any,  # noqa: ANN401
-        results: Any,  # noqa: ANN401
-        start_time: float,
-        num_tests: int,
-        output_file_name: str,
+        *args: Any,  # noqa: ANN401
+        **kwargs: Any,  # noqa: ANN401
     ) -> None:
         """
-        Overloaded from super class.
-
-        Identical to the base ``TestRunner`` implementation, except the trailing ``print()`` is
-        replaced by a safe version.
-
-        This method is called from a background VUnit test-runner thread for each build as soon
-        as it finishes, while other builds may still be running. If the main thread's per-run
-        stdout redirection is torn down concurrently (e.g. this run is itself one build among
-        several, or the process is shutting down), the base class's bare ``print()`` can race it
-        and raise ``ValueError: I/O operation on closed file`` -- purely cosmetic (the build's
-        pass/fail result, printed just above via ``self._report.print_latest_status()``, is
-        already recorded and already went out safely via ``_safe_printer_write``), but it spams a
-        confusing traceback. Fall back to stderr (never redirected/closed the same way) instead of
-        letting it propagate.
+        Overloaded from super class, which ends with a bare ``print()`` of a blank line.
+        That print can race the test runner's stdout teardown and raise
+        ``ValueError: I/O operation on closed file``. The result itself is already recorded and
+        already printed safely at that point, so swallow it.
         """
-        runtime = time.time() - start_time
-        time_per_test = runtime / len(results)
-
-        for test_name in test_suite.test_names:
-            status = results[test_name]
-            self._report.add_result(test_name, status, time_per_test, output_file_name)
-            self._report.print_latest_status(total_tests=num_tests)
-
-        try:
-            print()
-        except ValueError:
-            print(file=sys.stderr)
+        with suppress(ValueError):
+            super()._add_results(*args, **kwargs)
 
 
 class ThreadSafeCollectArtifacts:
@@ -550,18 +528,8 @@ def _safe_printer_write(
     printer: ColorPrinter, text: str, fg: str | None = None, bg: str | None = None
 ) -> None:
     """
-    Wrapper around :meth:`ColorPrinter.write` that falls back to stderr if the default output
-    file (stdout) has already been closed.
-
-    :meth:`.BuildReport.print_latest_status` is called from a background VUnit test-runner
-    thread for each build as soon as it finishes, while other builds may still be running. If the
-    main thread's per-run stdout redirection is torn down (e.g. this run is itself one build
-    among several, or the process is shutting down) while one of these background threads is
-    mid-write, ``output_file.write(text)`` inside :meth:`ColorPrinter.write` can raise
-    ``ValueError: I/O operation on closed file`` -- purely cosmetic (the build's pass/fail result
-    is already recorded), but it spams a confusing traceback instead of the intended one-line
-    status. Retry once on stderr (never redirected/closed the same way) so the status is not
-    lost.
+    Same as :meth:`ColorPrinter.write`, but falls back to stderr if stdout has already been
+    closed. See :func:`.safe_print` for why that happens.
     """
     try:
         printer.write(text, fg=fg, bg=bg)

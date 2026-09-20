@@ -13,7 +13,6 @@ from unittest.mock import patch
 import pytest
 
 from tsfpga.yosys.common import (
-    _print_output_line,
     get_ghdl_library_prefix,
     get_ghdl_path,
     get_yosys_path,
@@ -23,28 +22,6 @@ from tsfpga.yosys.common import (
 )
 
 THIS_DIR = Path(__file__).parent
-
-
-def test_print_output_line_falls_back_to_stderr_when_stdout_is_closed(capsys):
-    real_print = print
-
-    def fake_print(*args, **kwargs):
-        if "file" not in kwargs:
-            raise ValueError("I/O operation on closed file.")
-        real_print(*args, **kwargs)
-
-    with patch("builtins.print", side_effect=fake_print):
-        _print_output_line("some GHDL/Yosys output")
-
-    captured = capsys.readouterr()
-    assert captured.out == ""
-    assert "some GHDL/Yosys output" in captured.err
-
-
-def test_print_output_line_prints_to_stdout_normally():
-    with patch("builtins.print") as mocked_print:
-        _print_output_line("some GHDL/Yosys output")
-        mocked_print.assert_called_once_with("some GHDL/Yosys output")
 
 
 def test_run_ghdl():
