@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 from hdl_registers.generator.html.page import HtmlPageGenerator
 
 from tsfpga.vivado.build_result_checker import (
+    BlockRams,
     DspBlocks,
     Ffs,
     LogicLuts,
@@ -415,20 +416,26 @@ generic configuration.
 
             # Sort so that we always get a consistent order in the table, no matter what order
             # the user has added the checkers.
-            sort_keys = {
-                TotalLuts.name: 0,
-                LogicLuts.name: 1,
-                LutRams.name: 2,
-                Srls.name: 3,
-                Ffs.name: 4,
-                Ramb36.name: 5,
-                Ramb18.name: 6,
-                Ramb.name: 7,
-                Uram.name: 8,
-                DspBlocks.name: 9,
-                MaximumLogicLevel.name: 10,
-            }
-            sorted_checker_names = sorted(all_checker_names, key=lambda name: sort_keys[name])
+            sort_order = (
+                TotalLuts.name,
+                LogicLuts.name,
+                LutRams.name,
+                Srls.name,
+                Ffs.name,
+                Ramb36.name,
+                Ramb18.name,
+                Ramb.name,
+                BlockRams.name,
+                Uram.name,
+                DspBlocks.name,
+                MaximumLogicLevel.name,
+            )
+            # Any checker that is not listed above, e.g. a user-defined one, is sorted last
+            # rather than raising an exception.
+            sorted_checker_names = sorted(
+                all_checker_names,
+                key=lambda name: sort_order.index(name) if name in sort_order else len(sort_order),
+            )
 
             # Fill in the header row
             rst += "  * - Generics\n"

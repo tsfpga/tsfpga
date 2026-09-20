@@ -6,6 +6,9 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+import sys
+import threading
+import time
 from pathlib import Path
 from unittest.mock import patch
 
@@ -21,6 +24,7 @@ from tsfpga.yosys.project import (
     YosysNetlistBuild,
     YosysXilinxNetlistBuild,
     _get_ghdl_generic_value,
+    _suppress_stdout,
 )
 
 # ruff: noqa: ARG002
@@ -194,8 +198,9 @@ def test_get_read_verilog_command_with_verilog_and_systemverilog_files(tmp_path)
 
     assert command is not None
     assert command.startswith("read_verilog -sv ")
-    # Paths are quoted, to handle paths containing spaces.
-    assert f'-I"{src_path.resolve().as_posix()}"' in command
+    # Include directories must NOT be quoted, Yosys would treat the quotes as part of the path.
+    assert f"-I{src_path.resolve().as_posix()} " in command
+    assert '-I"' not in command
     assert (src_path / "counter.v").resolve().as_posix() in command
     assert (src_path / "adder.sv").resolve().as_posix() in command
     # Header files are 'include'd by the source files, not passed as source arguments themselves.
@@ -492,3 +497,39 @@ def test_non_vhdl_top_with_generics_should_raise_exception(yosys_project_test):
 
     with pytest.raises(ValueError, match="Generics are only supported"):
         yosys_project_test.build(project)
+
+
+def test_suppress_stdout_is_serialized():
+    """
+    Netlist builds are created from VUnit test-runner worker threads. Two threads inside the
+    global 'sys.stdout' swap at the same time interleave their save/restore, and the last one
+    out installs an already-closed file as 'sys.stdout'. So it must be mutually exclusive.
+    """
+    original_stdout = sys.stdout
+    num_inside = 0
+    max_num_inside = 0
+    counter_lock = threading.Lock()
+
+    def worker():
+        nonlocal num_inside, max_num_inside
+        for _ in range(20):
+            with _suppress_stdout():
+                with counter_lock:
+                    num_inside += 1
+                    max_num_inside = max(max_num_inside, num_inside)
+
+                # Widen the window, so that a missing lock is detected reliably.
+                time.sleep(0.001)
+
+                with counter_lock:
+                    num_inside -= 1
+
+    threads = [threading.Thread(target=worker) for _ in range(4)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert max_num_inside == 1, "Global 'sys.stdout' swap was not serialized"
+    assert sys.stdout is original_stdout
+    assert not sys.stdout.closed

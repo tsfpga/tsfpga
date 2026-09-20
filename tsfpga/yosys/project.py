@@ -14,6 +14,7 @@ import tempfile
 from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
+from threading import Lock
 from typing import TYPE_CHECKING, Any, NoReturn
 
 from vunit.ui import VUnit
@@ -344,11 +345,15 @@ class YosysNetlistBuild:
         if not verilog_files:
             return None
 
-        # Paths are quoted, since Yosys splits unquoted command arguments on whitespace, which
-        # would otherwise break for paths containing spaces (e.g. common on Windows).
+        # Note the asymmetry: file paths below are quoted, since Yosys splits unquoted command
+        # arguments on whitespace, which would otherwise break for paths containing spaces
+        # (e.g. common on Windows).
+        # Include directories can NOT be quoted, however. Yosys' 'read_verilog' takes the
+        # directory as everything after the "-I" in the token, so a quoted path ends up
+        # containing the quote characters and never matches a real directory.
+        # This means that include directories containing spaces are not supported by Yosys.
         include_flags = " ".join(
-            f'-I"{to_yosys_path(directory)}"'
-            for directory in self._get_verilog_include_directories()
+            f"-I{to_yosys_path(directory)}" for directory in self._get_verilog_include_directories()
         )
         file_arguments = " ".join(f'"{to_yosys_path(file_path)}"' for file_path in verilog_files)
 
@@ -881,12 +886,24 @@ def _get_ghdl_generic_value(
     raise TypeError(message)
 
 
+#: Guards the global ``sys.stdout`` swap in :func:`._suppress_stdout`.
+#: Netlist builds are created from VUnit test-runner worker threads (see
+#: :class:`.BuildProjectList`), which installs its own object as the global ``sys.stdout``.
+#: Without this lock, two threads entering the swap concurrently interleave their
+#: save/restore, and the last one out installs an already-closed file as ``sys.stdout``,
+#: breaking every subsequent print in the process.
+_SUPPRESS_STDOUT_LOCK = Lock()
+
+
 @contextmanager
 def _suppress_stdout() -> Iterator[None]:
     """
     Suppress the (very chatty) printouts made by VUnit when creating a project.
+
+    Note that this swaps the process-global ``sys.stdout``, so it is serialized with a lock and
+    the critical section is kept as small as possible.
     """
-    with Path(os.devnull).open("w") as devnull:
+    with _SUPPRESS_STDOUT_LOCK, Path(os.devnull).open("w") as devnull:
         old_stdout = sys.stdout
         sys.stdout = devnull
         try:
