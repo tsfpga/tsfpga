@@ -226,13 +226,20 @@ def yosys_project_test(tmp_path):
                 self.mocked_run_ghdl.return_value = True
                 return project.create(project_path=self.project_path, **other_arguments)
 
-        def build(self, project, **other_arguments):
+        def build(self, project, ghdl_side_effect=None, **other_arguments):
+            # Note that 'build' analyzes the sources as well, so that any changes made by the
+            # pre-build hooks are picked up. Hence GHDL is mocked here too.
             with (
+                patch("tsfpga.yosys.project.run_ghdl", autospec=True) as self.mocked_run_ghdl,
                 patch("tsfpga.yosys.project.run_yosys", autospec=True) as self.mocked_run_yosys,
                 patch(
                     "tsfpga.yosys.project.YosysNetlistBuild._get_size", autospec=True
                 ) as mocked_get_size,
             ):
+                if ghdl_side_effect is None:
+                    self.mocked_run_ghdl.return_value = True
+                else:
+                    self.mocked_run_ghdl.side_effect = ghdl_side_effect
                 self.mocked_run_yosys.return_value = True
                 mocked_get_size.return_value = {"Total LUTs": 0, "FFs": 0}
 
@@ -389,17 +396,19 @@ def test_build_result_checkers_are_run_and_can_fail_build(yosys_project_test):
     )
     yosys_project_test.create(project)
 
-    with patch(
-        "tsfpga.yosys.project.YosysNetlistBuild._get_size", autospec=True
-    ) as mocked_get_size:
+    with (
+        patch("tsfpga.yosys.project.YosysNetlistBuild._get_size", autospec=True) as mocked_get_size,
+        patch("tsfpga.yosys.project.run_ghdl", autospec=True) as mocked_run_ghdl,
+        patch("tsfpga.yosys.project.run_yosys", autospec=True) as mocked_run_yosys,
+    ):
         mocked_get_size.return_value = {"Total LUTs": 3}
-        with patch("tsfpga.yosys.project.run_yosys", autospec=True) as mocked_run_yosys:
-            mocked_run_yosys.return_value = True
-            (yosys_project_test.project_path / "ghdl").mkdir(parents=True, exist_ok=True)
-            build_result = project.build(
-                project_path=yosys_project_test.project_path,
-                output_path=yosys_project_test.output_path,
-            )
+        mocked_run_ghdl.return_value = True
+        mocked_run_yosys.return_value = True
+        (yosys_project_test.project_path / "ghdl").mkdir(parents=True, exist_ok=True)
+        build_result = project.build(
+            project_path=yosys_project_test.project_path,
+            output_path=yosys_project_test.output_path,
+        )
 
     assert not build_result.success
     assert build_result.synthesis_size == {"Total LUTs": 3}
@@ -596,9 +605,8 @@ class Module(BaseModule):
 
     for width in [8, 16]:
         analyzed_contents.clear()
-        with patch("tsfpga.yosys.project.run_ghdl", side_effect=record_analyzed):
-            yosys_project_test.build_time_generics = {"width": width}
-            yosys_project_test.build(project)
+        yosys_project_test.build_time_generics = {"width": width}
+        yosys_project_test.build(project, ghdl_side_effect=record_analyzed)
 
         # The file that the hook just rewrote is what got analyzed.
         assert any(f"width is {width}" in contents for contents in analyzed_contents), (
