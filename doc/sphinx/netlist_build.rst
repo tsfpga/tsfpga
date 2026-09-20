@@ -167,8 +167,8 @@ a Yosys synthesis result.
 
 The ``ghdl-yosys-plugin`` module, running inside Yosys, is not able to locate GHDL's standard
 libraries (``std``, ``ieee``, ...) on its own.
-This is handled automatically: :meth:`.YosysNetlistBuild.__init__` calls
-``ghdl --disp-config`` to find the "library prefix" and forwards it to the plugin.
+This is handled automatically: each build runs ``ghdl --disp-config`` to find the
+"library prefix" and forwards it to the plugin.
 If this auto-detection fails, or finds the wrong GHDL installation, set the ``ghdl_prefix``
 argument explicitly to override it.
 Likewise, if the ``ghdl-yosys-plugin`` is not installed in a location where Yosys finds it

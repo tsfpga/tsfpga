@@ -27,7 +27,12 @@ from tsfpga.generics import (
     StringGenericValue,
 )
 from tsfpga.hdl_file import HdlFile
-from tsfpga.system_utils import copy_and_combine_dicts, create_directory, read_file
+from tsfpga.system_utils import (
+    copy_and_combine_dicts,
+    create_directory,
+    create_file,
+    read_file,
+)
 
 from .common import run_ghdl, run_yosys, to_yosys_path
 from .utilization_parser import YosysUtilizationParser
@@ -209,6 +214,7 @@ class YosysNetlistBuild:
 
         # Lazily created/cached. See '_get_vunit_project'.
         self._vunit_proj: VUnit | None = None
+        self._vunit_output_directory: tempfile.TemporaryDirectory[str] | None = None
 
     def project_file(self, project_path: Path) -> Path:
         """
@@ -235,8 +241,16 @@ class YosysNetlistBuild:
             # constructing an 'argparse.Namespace' object by hand) means VUnit's own argument
             # parser fills in every attribute it needs, so this does not break when VUnit adds
             # more arguments/attributes in a future release.
-            output_path = tempfile.mkdtemp(prefix="tsfpga_yosys_vunit_")
-            argv = ["--output-path", output_path, "--log-level", "error", "--no-color"]
+            # Note that the 'TemporaryDirectory' object must be kept alive for as long as the
+            # VUnit project is used. It removes the directory from disk when garbage collected.
+            self._vunit_output_directory = tempfile.TemporaryDirectory(prefix="tsfpga_yosys_vunit_")
+            argv = [
+                "--output-path",
+                self._vunit_output_directory.name,
+                "--log-level",
+                "error",
+                "--no-color",
+            ]
 
             with _suppress_stdout():
                 self._vunit_proj = VUnit.from_argv(argv=argv, compile_builtins=False)
@@ -625,7 +639,7 @@ class YosysNetlistBuild:
         )
 
         script_file = self.project_file(project_path=output_path)
-        script_file.write_text(script)
+        create_file(script_file, script)
 
         if not run_yosys(
             yosys_path=self._yosys_path,

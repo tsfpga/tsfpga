@@ -12,7 +12,6 @@ import fnmatch
 import sys
 import time
 from abc import ABC, abstractmethod
-from contextlib import suppress
 from pathlib import Path
 from threading import Lock
 from typing import TYPE_CHECKING, Any
@@ -22,7 +21,11 @@ from vunit.test.list import TestList
 from vunit.test.report import TestReport, TestResult
 from vunit.test.runner import TestRunner
 
-from tsfpga.system_utils import create_directory, read_last_lines_of_file
+from tsfpga.system_utils import (
+    CLOSED_FILE_ERROR_TEXT,
+    create_directory,
+    read_last_lines_of_file,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
@@ -498,10 +501,17 @@ class BuildRunner(TestRunner):
         Overloaded from super class, which ends with a bare ``print()`` of a blank line.
         That print can race the test runner's stdout teardown and raise
         ``ValueError: I/O operation on closed file``. The result itself is already recorded and
-        already printed safely at that point, so swallow it.
+        already printed safely at that point, so swallow that specific error.
+
+        Any other ``ValueError``, e.g. from the result bookkeeping that runs before the print,
+        is re-raised. Silently dropping one of those would make a build whose outcome was never
+        recorded look successful.
         """
-        with suppress(ValueError):
+        try:
             super()._add_results(*args, **kwargs)
+        except ValueError as exception:
+            if CLOSED_FILE_ERROR_TEXT not in str(exception):
+                raise
 
 
 class ThreadSafeCollectArtifacts:

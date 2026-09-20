@@ -291,3 +291,21 @@ def test_add_results_swallows_closed_stdout_error(monkeypatch):
     )
 
     report.add_result.assert_called_once()
+
+
+def test_add_results_reraises_unrelated_value_error():
+    report = MagicMock()
+    report.add_result.side_effect = ValueError("something actually went wrong")
+    runner = BuildRunner(report=report, output_path="output_path")
+
+    test_suite = MagicMock()
+    test_suite.test_names = ["test"]
+
+    with pytest.raises(ValueError, match="something actually went wrong"):
+        runner._add_results(  # noqa: SLF001
+            test_suite=test_suite,
+            results={"test": "passed"},
+            start_time=0.0,
+            num_tests=1,
+            output_file_name="output_file_name",
+        )

@@ -27,10 +27,9 @@ Fixed
   the same ``ValueError`` (instead of printing the build's pass/fail status) when called from a
   background VUnit test-runner thread while another build's stdout redirection was being torn
   down.
-* Fix the same closed-stdout race in :class:`.BuildRunner`'s ``_add_results``, which reused
-  VUnit's base ``TestRunner`` implementation verbatim and so still had a bare ``print()`` that
-  could raise the same ``ValueError`` instead of printing the trailing blank line after a build's
-  status.
+* Fix the same closed-stdout race in :class:`.BuildRunner`'s ``_add_results``, where the bare
+  ``print()`` of the trailing blank line after a build's status could raise the same
+  ``ValueError``.
 * Fix the internal VUnit project used to resolve compile order for
   :ref:`netlist builds <yosys_netlist_build>` compiling VUnit's own simulation builtins (on
   VUnit's released API, ``compile_builtins`` defaults to ``True``) in addition to the design's own

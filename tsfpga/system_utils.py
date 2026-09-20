@@ -278,6 +278,11 @@ def copy_and_combine_dicts(
     return result
 
 
+#: Text present in the ``ValueError`` raised when writing to a stream that has been closed,
+#: e.g. by the VUnit test runner tearing down its per-test stdout redirection.
+CLOSED_FILE_ERROR_TEXT = "closed file"
+
+
 def safe_print(
     *args: Any,  # noqa: ANN401
     **kwargs: Any,  # noqa: ANN401
