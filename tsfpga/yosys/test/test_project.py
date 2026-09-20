@@ -531,6 +531,81 @@ def test_vhdl_top_with_generics_does_not_set_verilog_parameters(yosys_project_te
     assert "-gwidth=16" in script_content
 
 
+def test_non_vhdl_top_with_generics_and_vhdl_entities(yosys_project_test):
+    """
+    Project generics target the project top level. When that is a Verilog module they are applied
+    as parameters there, and must not be passed to the VHDL entities listed in 'vhdl_entities',
+    which generally do not declare them.
+    """
+    _create_module(yosys_project_test.modules_path, module_name="apa", top_name="sub_a")
+    modules = _create_module(yosys_project_test.modules_path, module_name="apa", top_name="sub_b")
+
+    project = YosysNetlistBuild(
+        name="apa",
+        modules=modules,
+        top="verilog_top",
+        vhdl_entities=["sub_a", "sub_b"],
+        generics={"width": 16},
+    )
+
+    yosys_project_test.create(project)
+
+    yosys_project_test.build_time_generics = {}
+    assert yosys_project_test.build(project).success
+
+    _, kwargs = yosys_project_test.mocked_run_yosys.call_args
+    script_content = kwargs["script_file"].read_text()
+
+    assert "-chparam width 16" in script_content
+    # The GHDL commands for the listed entities must carry no generic arguments.
+    assert "-gwidth" not in script_content
+
+
+def test_pre_build_changes_to_source_are_analyzed(yosys_project_test):
+    """
+    A 'pre_build' hook may rewrite synthesis sources based on the build-time generics, which is
+    an explicitly supported use case. Those changes must be analyzed before synthesis, not left
+    behind in the work library that 'create' produced.
+    """
+    modules_path = yosys_project_test.modules_path
+    modules = _create_module(modules_path)
+
+    create_file(
+        modules_path / "apa" / "module_apa.py",
+        """\
+from tsfpga.module import BaseModule
+
+
+class Module(BaseModule):
+    def pre_build(self, **kwargs):
+        width = kwargs["generics"]["width"]
+        (self.path / "src" / "apa_top.vhd").write_text(f"-- width is {width}\\n")
+        return True
+""",
+    )
+    modules = get_modules(modules_folder=modules_path)
+
+    project = YosysNetlistBuild(name="apa", modules=modules, top="apa_top")
+    yosys_project_test.create(project)
+
+    analyzed_contents = []
+
+    def record_analyzed(ghdl_path, arguments, cwd):  # noqa: ARG001
+        analyzed_contents.append(Path(arguments[-1]).read_text())
+        return True
+
+    for width in [8, 16]:
+        analyzed_contents.clear()
+        with patch("tsfpga.yosys.project.run_ghdl", side_effect=record_analyzed):
+            yosys_project_test.build_time_generics = {"width": width}
+            yosys_project_test.build(project)
+
+        # The file that the hook just rewrote is what got analyzed.
+        assert any(f"width is {width}" in contents for contents in analyzed_contents), (
+            f"Stale source analyzed for width={width}: {analyzed_contents}"
+        )
+
+
 def test_suppress_stdout_is_serialized():
     """
     Netlist builds are created from VUnit test-runner worker threads. Two threads inside the

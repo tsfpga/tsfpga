@@ -73,7 +73,7 @@ class BitVectorGenericValue:
 
 
 #: A generic value of a native Python type, or one of the tsfpga wrapper classes above.
-GenericValue = bool | float | StringGenericValue | BitVectorGenericValue
+GenericValue = bool | int | float | StringGenericValue | BitVectorGenericValue
 
 #: A mapping of generic name to :data:`.GenericValue`, as accepted by the build project classes.
 GenericValues = dict[str, GenericValue]

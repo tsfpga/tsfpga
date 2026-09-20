@@ -391,7 +391,20 @@ class YosysNetlistBuild:
             print("ERROR: Project pre-create hook returned False. Failing the build.")
             return False
 
-        workdir = self._get_ghdl_workdir(project_path=project_path)
+        return self._analyze_vhdl(workdir=self._get_ghdl_workdir(project_path=project_path))
+
+    def _analyze_vhdl(self, workdir: Path) -> bool:
+        """
+        Analyze all the VHDL source files into a GHDL work library, so that the design can be
+        elaborated by the ``ghdl-yosys-plugin``.
+
+        Arguments:
+            workdir: The GHDL work library location. Will be emptied first, so that the result
+                reflects the source files as they are right now.
+
+        Return:
+            True if everything went well.
+        """
         create_directory(workdir, empty=True)
 
         for file_path, library_name in self._get_synthesis_files_in_compile_order():
@@ -476,6 +489,11 @@ class YosysNetlistBuild:
             # instantiations.
             top_level_module, _ = top_level_match
             entities = [(self.top, top_level_module)]
+
+            # Project generics target the project top level, which is this VHDL entity.
+            generic_arguments = " ".join(
+                f"-g{name}={_get_ghdl_generic_value(value)}" for name, value in all_generics.items()
+            )
         else:
             # The 'top' is a Verilog/SystemVerilog module (or the design has no VHDL at all).
             # Elaborate each of the explicitly listed 'vhdl_entities' individually, so that they
@@ -493,9 +511,11 @@ class YosysNetlistBuild:
                 module, _ = match
                 entities.append((entity_name, module))
 
-        generic_arguments = " ".join(
-            f"-g{name}={_get_ghdl_generic_value(value)}" for name, value in all_generics.items()
-        )
+            # The project generics target the Verilog/SystemVerilog top level, where they are
+            # applied as parameters by '_get_hierarchy_command'. They must not be passed to the
+            # entities listed in 'vhdl_entities', which are submodules that generally do not
+            # declare them. Per-entity generics are not supported.
+            generic_arguments = ""
 
         return [
             self._get_ghdl_elaborate_command(
@@ -620,6 +640,20 @@ class YosysNetlistBuild:
 
         if not self.pre_build(**all_parameters):
             print("ERROR: Project pre-build hook returned False. Failing the build.")
+            result.success = False
+            return result
+
+        # The hooks above, and the register generation, may have changed the VHDL source files.
+        # A typical example is a 'pre_build' hook that updates register constants based on the
+        # build-time generics.
+        # Hence the design must be analyzed again here, rather than relying on what 'create'
+        # analyzed, which would elaborate stale sources.
+        # The cached VUnit project is dropped as well, since the set of source files, and their
+        # compile order, may have changed along with them.
+        self._vunit_proj = None
+        self._vunit_output_dir = None
+
+        if not self._analyze_vhdl(workdir=workdir):
             result.success = False
             return result
 

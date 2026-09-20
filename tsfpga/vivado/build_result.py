@@ -8,14 +8,13 @@
 
 from __future__ import annotations
 
-# 'BuildResult' is a generic, backend-agnostic type that historically lived in this module.
-# It is now defined in 'tsfpga.build_result', and re-exported here for backward compatibility.
-from tsfpga.build_result import BuildResult, _to_engineering_string
+from tsfpga.build_result import BuildResult as BaseBuildResult
+from tsfpga.build_result import _to_engineering_string
 
 from .logic_level_distribution_parser import LogicLevelDistributionParser
 
 
-class VivadoBuildResult(BuildResult):
+class VivadoBuildResult(BaseBuildResult):
     """
     The result of a Vivado build.
 
@@ -93,3 +92,9 @@ class VivadoBuildResult(BuildResult):
         return LogicLevelDistributionParser.get_maximum_logic_level(
             table=self.logic_level_distribution
         )
+
+
+#: The class that used to live in this module, under this name.
+#: Kept so that existing code that imports and instantiates it keeps working.
+#: Code that wants the backend-agnostic type shall use :class:`tsfpga.build_result.BuildResult`.
+BuildResult = VivadoBuildResult

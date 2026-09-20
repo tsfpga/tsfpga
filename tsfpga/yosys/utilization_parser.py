@@ -119,7 +119,9 @@ class YosysIntelUtilizationParser(YosysUtilizationParser):
         "Total LUTs": r".*_lcell_comb$",
         "FFs": r"dffeas$",
         "Block RAMs": r"altsyncram$",
-        "DSP Blocks": r".*_mac_(mult|out)$",
+        # Note that one mapped multiplier yields both a "*_mac_mult" and a "*_mac_out"
+        # cell. Count only the multiplier, so that one DSP is reported as one.
+        "DSP Blocks": r".*_mac_mult$",
     }
 
 

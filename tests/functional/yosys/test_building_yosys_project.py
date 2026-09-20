@@ -17,7 +17,14 @@ from tsfpga.examples.example_env import get_tsfpga_example_modules
 from tsfpga.module import get_modules
 from tsfpga.system_utils import create_file
 from tsfpga.test.test_utils import file_contains_string
-from tsfpga.vivado.build_result_checker import EqualTo, Ffs, GreaterThan, LessThan, TotalLuts
+from tsfpga.vivado.build_result_checker import (
+    DspBlocks,
+    EqualTo,
+    Ffs,
+    GreaterThan,
+    LessThan,
+    TotalLuts,
+)
 from tsfpga.yosys.common import get_ghdl_library_prefix, get_ghdl_path, get_yosys_path
 from tsfpga.yosys.project import (
     YosysIntelNetlistBuild,
@@ -334,6 +341,32 @@ def test_building_verilog_top_with_parameters(tmp_path):
 
     # The counter register is 'WIDTH' bits wide, so a wider parameter must give more flip flops.
     assert build_with_width(24).synthesis_size["FFs"] > build_with_width(8).synthesis_size["FFs"]
+
+
+def test_intel_dsp_count_of_a_single_multiplier(tmp_path):
+    """
+    One mapped multiplier yields both a "*_mac_mult" and a "*_mac_out" cell in the Yosys report,
+    but is one DSP block. Verified against real Yosys output rather than a handwritten report.
+    """
+    modules_folder = copy_modules("multiplier", tmp_path)
+    modules = get_modules(modules_folder=modules_folder)
+
+    project = YosysIntelNetlistBuild(
+        family="max10",
+        name="test_proj",
+        modules=modules,
+        build_result_checkers=[DspBlocks(EqualTo(1))],
+        ghdl_plugin_path=GHDL_PLUGIN_PATH,
+        ghdl_prefix=GHDL_PREFIX,
+    )
+
+    project_path = tmp_path / "yosys"
+    assert project.create(project_path)
+
+    build_result = project.build(project_path)
+    # The checker above fails the build if the count is not exactly one.
+    assert build_result.success
+    assert build_result.synthesis_size["DSP Blocks"] == 1
 
 
 def test_building_resource_counter_example_module_netlist_projects(tmp_path):

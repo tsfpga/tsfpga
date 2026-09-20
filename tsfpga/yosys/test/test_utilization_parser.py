@@ -107,7 +107,8 @@ def test_get_size_aggregates_intel_resource_counts():
     assert result["Total LUTs"] == 10
     assert result["FFs"] == 8
     assert result["Block RAMs"] == 1
-    assert result["DSP Blocks"] == 2
+    # One mapped multiplier yields both a "_mac_mult" and a "_mac_out" cell, but is one DSP.
+    assert result["DSP Blocks"] == 1
 
 
 def test_get_size_aggregates_microchip_resource_counts():
