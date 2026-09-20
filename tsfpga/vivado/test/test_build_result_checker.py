@@ -11,7 +11,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from tsfpga.vivado.build_result import BuildResult
+from tsfpga.vivado.build_result import VivadoBuildResult
 from tsfpga.vivado.build_result_checker import (
     BlockRams,
     DspBlocks,
@@ -27,7 +27,7 @@ from tsfpga.vivado.build_result_checker import (
 
 @patch("sys.stdout", new_callable=io.StringIO)
 def test_size_checker_less_than_pass(mock_stdout):
-    build_result = BuildResult(name="", synthesis_run_name="")
+    build_result = VivadoBuildResult(name="", synthesis_run_name="")
     build_result.synthesis_size = {"Total LUTs": 5}
 
     assert TotalLuts(LessThan(10)).check(build_result)
@@ -36,7 +36,7 @@ def test_size_checker_less_than_pass(mock_stdout):
 
 @patch("sys.stdout", new_callable=io.StringIO)
 def test_size_checker_less_than_fail(mock_stdout):
-    build_result = BuildResult(name="", synthesis_run_name="")
+    build_result = VivadoBuildResult(name="", synthesis_run_name="")
     build_result.synthesis_size = {"Total LUTs": 5}
 
     assert not TotalLuts(LessThan(5)).check(build_result)
@@ -45,7 +45,7 @@ def test_size_checker_less_than_fail(mock_stdout):
 
 @patch("sys.stdout", new_callable=io.StringIO)
 def test_size_checker_greater_than_pass(mock_stdout):
-    build_result = BuildResult(name="", synthesis_run_name="")
+    build_result = VivadoBuildResult(name="", synthesis_run_name="")
     build_result.synthesis_size = {"Total LUTs": 5}
 
     assert TotalLuts(GreaterThan(2)).check(build_result)
@@ -54,7 +54,7 @@ def test_size_checker_greater_than_pass(mock_stdout):
 
 @patch("sys.stdout", new_callable=io.StringIO)
 def test_size_checker_greater_than_fail(mock_stdout):
-    build_result = BuildResult(name="", synthesis_run_name="")
+    build_result = VivadoBuildResult(name="", synthesis_run_name="")
     build_result.synthesis_size = {"Total LUTs": 5}
 
     assert not TotalLuts(GreaterThan(5)).check(build_result)
@@ -63,7 +63,7 @@ def test_size_checker_greater_than_fail(mock_stdout):
 
 @patch("sys.stdout", new_callable=io.StringIO)
 def test_size_checker_equal_to_pass(mock_stdout):
-    build_result = BuildResult(name="", synthesis_run_name="")
+    build_result = VivadoBuildResult(name="", synthesis_run_name="")
     build_result.synthesis_size = {"RAMB36": 0, "Total LUTs": 5}
 
     assert Ramb36(EqualTo(0)).check(build_result)
@@ -76,7 +76,7 @@ def test_size_checker_equal_to_pass(mock_stdout):
 
 @patch("sys.stdout", new_callable=io.StringIO)
 def test_size_checker_equal_to_fail(mock_stdout):
-    build_result = BuildResult(name="", synthesis_run_name="")
+    build_result = VivadoBuildResult(name="", synthesis_run_name="")
     build_result.synthesis_size = {"Total LUTs": 5}
 
     assert not TotalLuts(EqualTo(50)).check(build_result)
@@ -84,7 +84,7 @@ def test_size_checker_equal_to_fail(mock_stdout):
 
 
 def test_size_checker_block_rams_is_architecture_agnostic():
-    build_result = BuildResult(name="", synthesis_run_name="")
+    build_result = VivadoBuildResult(name="", synthesis_run_name="")
 
     build_result.synthesis_size = {"Block RAMs": 3}
     assert BlockRams(EqualTo(3)).check(build_result)
@@ -92,7 +92,7 @@ def test_size_checker_block_rams_is_architecture_agnostic():
 
 
 def test_size_checker_dsp_blocks_has_two_names():
-    build_result = BuildResult(name="", synthesis_run_name="")
+    build_result = VivadoBuildResult(name="", synthesis_run_name="")
 
     build_result.synthesis_size = {"DSP Blocks": 5}
     assert DspBlocks(EqualTo(5)).check(build_result)
@@ -104,7 +104,7 @@ def test_size_checker_dsp_blocks_has_two_names():
 
 
 def test_size_checker_aggregated_ramb():
-    build_result = BuildResult(name="", synthesis_run_name="")
+    build_result = VivadoBuildResult(name="", synthesis_run_name="")
 
     build_result.synthesis_size = {"RAMB18": 5, "RAMB36": 20}
     assert Ramb(EqualTo(22.5)).check(build_result)
@@ -118,7 +118,7 @@ def test_size_checker_aggregated_ramb():
 
 
 def test_size_checker_raises_exception_if_synthesis_size_is_not_set():
-    build_result = BuildResult(name="", synthesis_run_name="")
+    build_result = VivadoBuildResult(name="", synthesis_run_name="")
     build_result.synthesis_size = None
 
     with pytest.raises(ValueError) as exception_info:
@@ -127,7 +127,7 @@ def test_size_checker_raises_exception_if_synthesis_size_is_not_set():
 
 
 def test_size_checker_raises_exception_if_synthesis_size_does_not_have_requested_resource():
-    build_result = BuildResult(name="", synthesis_run_name="")
+    build_result = VivadoBuildResult(name="", synthesis_run_name="")
     build_result.synthesis_size = {"Total LUTs": 5}
 
     with pytest.raises(ValueError) as exception_info:
@@ -140,7 +140,7 @@ def test_size_checker_raises_exception_if_synthesis_size_does_not_have_requested
 
 @patch("sys.stdout", new_callable=io.StringIO)
 def test_logic_level_checker_equal_to_pass(mock_stdout):
-    build_result = Mock(spec=BuildResult)
+    build_result = Mock(spec=VivadoBuildResult)
     build_result.maximum_logic_level = 5
 
     assert MaximumLogicLevel(EqualTo(5)).check(build_result)
@@ -149,7 +149,7 @@ def test_logic_level_checker_equal_to_pass(mock_stdout):
 
 @patch("sys.stdout", new_callable=io.StringIO)
 def test_logic_level_checker_less_than_fail(mock_stdout):
-    build_result = Mock(spec=BuildResult)
+    build_result = Mock(spec=VivadoBuildResult)
     build_result.maximum_logic_level = 11
     assert not MaximumLogicLevel(LessThan(7)).check(build_result)
     assert (
@@ -159,7 +159,7 @@ def test_logic_level_checker_less_than_fail(mock_stdout):
 
 
 def test_logic_level_checker_raises_exception_if_logic_level_is_not_set():
-    build_result = BuildResult(name="", synthesis_run_name="")
+    build_result = VivadoBuildResult(name="", synthesis_run_name="")
 
     with pytest.raises(ValueError) as exception_info:
         MaximumLogicLevel(LessThan(7)).check(build_result)

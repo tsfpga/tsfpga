@@ -11,44 +11,38 @@ from __future__ import annotations
 
 class BuildResult:
     """
+    The result of a build, in a backend-agnostic form.
+    Each build backend has its own subclass, which is what is actually returned by the build
+    methods: :class:`.VivadoBuildResult` and :class:`.YosysBuildResult`.
+
     Attributes:
         name (`str`): The name of the build.
         success (`bool`): True if the build and all pre- and post hooks succeeded.
-        synthesis_run_name (`str`): The name of the synthesis run that produced this result
-            (e.g. ``synth_2``).
-        implementation_run_name (`str`): The name of the Vivado implementation run that produced
-            this result (e.g. ``impl_2``). Will be ``None`` for netlist (synthesis-only) builds,
-            since those have no implementation step.
         synthesis_size (`dict`): A dictionary with the utilization of primitives for the
             synthesized design.
             Will be ``None`` if synthesis failed or did not run.
-        implementation_size (`dict`): A dictionary with the utilization of primitives for
-            the implemented design.
-            Will be ``None`` if implementation failed or did not run.
-        logic_level_distribution (str): A table with logic level distribution as reported by
-            Vivado. Will be ``None`` for non-Vivado builds, and for non-netlist builds.
-            Will be ``None`` if synthesis failed or did not run.
     """
 
-    def __init__(self, name: str, synthesis_run_name: str) -> None:
+    def __init__(self, name: str) -> None:
         """
         Arguments:
             name: The name of the build.
-            synthesis_run_name: The name of the run that produced this result
-                (e.g. ``synth_2``).
         """
         self.name = name
         self.success: bool = True
 
-        self.synthesis_run_name = synthesis_run_name
-        self.implementation_run_name: str | None = None
-
         self.synthesis_size: dict[str, int] | None = None
-        self.implementation_size: dict[str, int] | None = None
 
-        self.logic_level_distribution: str | None = None
+    def _get_size_to_report(self) -> tuple[str, dict[str, int]] | None:
+        """
+        Return:
+            The name of the build step, and the size that shall be reported for it.
+            ``None`` if no size is set.
+        """
+        if self.synthesis_size:
+            return "synthesis", self.synthesis_size
 
-        self.maximum_synthesis_frequency_hz: float | None = None
+        return None
 
     def size_summary(self) -> str | None:
         """
@@ -58,19 +52,11 @@ class BuildResult:
             A human-readable message of the latest size.
             ``None`` if no size is set.
         """
-        build_step = None
-        size = None
-
-        if self.implementation_size:
-            build_step = "implementation"
-            size = self.implementation_size
-
-        elif self.synthesis_size:
-            build_step = "synthesis"
-            size = self.synthesis_size
-
-        else:
+        size_to_report = self._get_size_to_report()
+        if size_to_report is None:
             return None
+
+        build_step, size = size_to_report
 
         values = [(key, _to_thousands_separated_string(value)) for key, value in size.items()]
         max_key_length = max(len(key) for key, _ in values)
@@ -88,44 +74,7 @@ class BuildResult:
         Return a report of the build result. Includes all metrics and information that has been
         extracted from the build tool's reports.
         """
-        result = self.size_summary()
-        if result is None:
-            return None
-
-        if self.maximum_synthesis_frequency_hz:
-            result += (
-                f"\nMaximum synthesis frequency estimate: "
-                f"{_to_engineering_string(value=self.maximum_synthesis_frequency_hz)}Hz"
-            )
-
-        if self.logic_level_distribution:
-            result += f"\nLogic level distribution:\n{self.logic_level_distribution}"
-
-        return result
-
-    @property
-    def maximum_logic_level(self) -> int | None:
-        """
-        The maximum level in the the :attr:`.BuildResult.logic_level_distribution`.
-        Will be ``None`` for non-netlist builds.
-        Will be ``None`` if synthesis failed or did not run.
-
-        Return:
-            The maximum logic level.
-        """
-        if not self.logic_level_distribution:
-            return None
-
-        # Deferred import since this is a Vivado-specific report format, and this class is used
-        # by other (non-Vivado) build backends as well, which never set
-        # 'logic_level_distribution' and hence never reach this far.
-        from tsfpga.vivado.logic_level_distribution_parser import (  # noqa: PLC0415
-            LogicLevelDistributionParser,
-        )
-
-        return LogicLevelDistributionParser.get_maximum_logic_level(
-            table=self.logic_level_distribution
-        )
+        return self.size_summary()
 
 
 def _to_engineering_string(value: float) -> str:

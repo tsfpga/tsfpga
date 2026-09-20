@@ -19,7 +19,6 @@ from typing import TYPE_CHECKING, Any, NoReturn
 
 from vunit.ui import VUnit
 
-from tsfpga.build_result import BuildResult
 from tsfpga.generics import (
     BitVectorGenericValue,
     GenericValue,
@@ -34,8 +33,14 @@ from tsfpga.system_utils import (
     read_file,
 )
 
+from .build_result import YosysBuildResult
 from .common import run_ghdl, run_yosys, to_yosys_path
-from .utilization_parser import YosysUtilizationParser
+from .utilization_parser import (
+    YosysIntelUtilizationParser,
+    YosysMicrochipUtilizationParser,
+    YosysUtilizationParser,
+    YosysXilinxUtilizationParser,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -71,15 +76,12 @@ class YosysNetlistBuild:
     #: Will always be ``True`` for this class, since it is a netlist build.
     is_netlist_build = True
 
-    #: The regular expression patterns used to compute aggregated resource counts (e.g.
-    #: ``"Total LUTs"``) from the raw Yosys cell counts. See
-    #: :meth:`.YosysUtilizationParser.get_size`.
-    #: Is ``None`` in this base class, since the plain ``synth`` command does not target any
-    #: specific architecture, meaning there is no consistent set of primitive cell names that can
-    #: be aggregated. Only the raw cell counts will be available in the synthesis result.
+    #: The parser used to interpret the Yosys utilization report.
+    #: The base class uses the one that reports only raw cell counts, since the plain ``synth``
+    #: command does not target any specific architecture.
     #: Overridden by the architecture-specific subclasses (:class:`.YosysXilinxNetlistBuild`,
     #: :class:`.YosysIntelNetlistBuild`, :class:`.YosysMicrochipNetlistBuild`).
-    _resource_name_patterns: dict[str, str] | None = None
+    _utilization_parser: type[YosysUtilizationParser] = YosysUtilizationParser
 
     #: Whether the ``synth_command`` needs an explicit ``-flatten`` flag appended to it in order
     #: to flatten the design before synthesis (see :meth:`._get_synth_command`).
@@ -537,7 +539,7 @@ class YosysNetlistBuild:
         output_path: Path | None = None,
         generics: GenericValues | None = None,
         **pre_and_post_build_parameters: Any,  # noqa: ANN401
-    ) -> BuildResult:
+    ) -> YosysBuildResult:
         """
         Synthesize the design with Yosys.
 
@@ -585,7 +587,7 @@ class YosysNetlistBuild:
         # See 'create' for the rationale of doing this copy here as well.
         self.modules = deepcopy(self.modules)
 
-        result = BuildResult(name=self.name, synthesis_run_name="synth")
+        result = YosysBuildResult(name=self.name)
 
         for module in self.modules:
             if not module.pre_build(project=self, **all_parameters):
@@ -676,12 +678,9 @@ class YosysNetlistBuild:
         return True
 
     def _get_size(self, utilization_report_file: Path) -> dict[str, int]:
-        return YosysUtilizationParser.get_size(
-            report=read_file(utilization_report_file),
-            resource_name_patterns=self._resource_name_patterns,
-        )
+        return self._utilization_parser.get_size(report=read_file(utilization_report_file))
 
-    def _check_size(self, build_result: BuildResult) -> bool:
+    def _check_size(self, build_result: YosysBuildResult) -> bool:
         success = True
         for build_result_checker in self.build_result_checkers:
             checker_result = build_result_checker.check(build_result)
@@ -738,7 +737,7 @@ class YosysXilinxNetlistBuild(YosysNetlistBuild):
     directly to check e.g. the LUT or RAMB count of the design.
     """
 
-    _resource_name_patterns = YosysUtilizationParser.XILINX_RESOURCE_NAME_PATTERNS
+    _utilization_parser = YosysXilinxUtilizationParser
 
     def __init__(
         self,
@@ -773,7 +772,7 @@ class YosysIntelNetlistBuild(YosysNetlistBuild):
     :mod:`.vivado.build_result_checker` can be used directly.
     """
 
-    _resource_name_patterns = YosysUtilizationParser.INTEL_RESOURCE_NAME_PATTERNS
+    _utilization_parser = YosysIntelUtilizationParser
     _needs_explicit_flatten_flag = False
 
     def __init__(
@@ -807,7 +806,7 @@ class YosysMicrochipNetlistBuild(YosysNetlistBuild):
     :mod:`.vivado.build_result_checker` can be used directly.
     """
 
-    _resource_name_patterns = YosysUtilizationParser.MICROCHIP_RESOURCE_NAME_PATTERNS
+    _utilization_parser = YosysMicrochipUtilizationParser
     _needs_explicit_flatten_flag = False
 
     def __init__(

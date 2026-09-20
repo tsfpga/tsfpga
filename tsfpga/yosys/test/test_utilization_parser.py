@@ -6,7 +6,12 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-from tsfpga.yosys.utilization_parser import YosysUtilizationParser
+from tsfpga.yosys.utilization_parser import (
+    YosysIntelUtilizationParser,
+    YosysMicrochipUtilizationParser,
+    YosysUtilizationParser,
+    YosysXilinxUtilizationParser,
+)
 
 # A cut-down version of a real report produced by the Yosys "stat" command.
 REPORT = """
@@ -63,9 +68,7 @@ def test_get_size_aggregates_lut_count():
         1   LUT6
         4   FDRE
 """
-    result = YosysUtilizationParser.get_size(
-        report=report, resource_name_patterns=YosysUtilizationParser.XILINX_RESOURCE_NAME_PATTERNS
-    )
+    result = YosysXilinxUtilizationParser.get_size(report=report)
 
     assert result["Total LUTs"] == 6
     assert result["FFs"] == 4
@@ -78,9 +81,7 @@ def test_get_size_aggregates_ramb_and_dsp_counts():
         1   RAMB36E2
         2   DSP48E2
 """
-    result = YosysUtilizationParser.get_size(
-        report=report, resource_name_patterns=YosysUtilizationParser.XILINX_RESOURCE_NAME_PATTERNS
-    )
+    result = YosysXilinxUtilizationParser.get_size(report=report)
 
     assert result["RAMB18"] == 1
     assert result["RAMB36"] == 1
@@ -101,9 +102,7 @@ def test_get_size_aggregates_intel_resource_counts():
         1   fiftyfivenm_mac_mult
         1   fiftyfivenm_mac_out
 """
-    result = YosysUtilizationParser.get_size(
-        report=report, resource_name_patterns=YosysUtilizationParser.INTEL_RESOURCE_NAME_PATTERNS
-    )
+    result = YosysIntelUtilizationParser.get_size(report=report)
 
     assert result["Total LUTs"] == 10
     assert result["FFs"] == 8
@@ -121,10 +120,7 @@ def test_get_size_aggregates_microchip_resource_counts():
         1   RAM1K20
         1   MACC_PA
 """
-    result = YosysUtilizationParser.get_size(
-        report=report,
-        resource_name_patterns=YosysUtilizationParser.MICROCHIP_RESOURCE_NAME_PATTERNS,
-    )
+    result = YosysMicrochipUtilizationParser.get_size(report=report)
 
     assert result["Total LUTs"] == 5
     assert result["FFs"] == 8
@@ -148,9 +144,7 @@ def test_get_size_with_no_cells_present():
     report = """
         0 cells
 """
-    result = YosysUtilizationParser.get_size(
-        report=report, resource_name_patterns=YosysUtilizationParser.XILINX_RESOURCE_NAME_PATTERNS
-    )
+    result = YosysXilinxUtilizationParser.get_size(report=report)
 
     assert result["Total LUTs"] == 0
     assert result["FFs"] == 0
