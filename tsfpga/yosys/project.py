@@ -204,6 +204,9 @@ class YosysNetlistBuild:
 
         # Lazily created/cached. See '_get_vunit_project'.
         self._vunit_proj: VUnit | None = None
+        # Owns the VUnit project's throwaway output directory: holding it
+        # here ties that directory's lifetime to this object's.
+        self._vunit_output_dir: tempfile.TemporaryDirectory[str] | None = None
 
     def project_file(self, project_path: Path) -> Path:
         """
@@ -230,8 +233,23 @@ class YosysNetlistBuild:
             # constructing an 'argparse.Namespace' object by hand) means VUnit's own argument
             # parser fills in every attribute it needs, so this does not break when VUnit adds
             # more arguments/attributes in a future release.
-            output_path = tempfile.mkdtemp(prefix="tsfpga_yosys_vunit_")
-            argv = ["--output-path", output_path, "--log-level", "error", "--no-color"]
+            # Kept on the instance rather than created with 'mkdtemp': a
+            # 'TemporaryDirectory' removes its tree when this object is
+            # collected (or at interpreter exit), whereas 'mkdtemp' never
+            # removes anything, so every netlist build used to leave its
+            # throwaway VUnit output behind in the system temp directory
+            # forever. Cleanup errors are ignored because this is scratch
+            # space: failing to delete it must not fail a build.
+            self._vunit_output_dir = tempfile.TemporaryDirectory(
+                prefix="tsfpga_yosys_vunit_", ignore_cleanup_errors=True
+            )
+            argv = [
+                "--output-path",
+                self._vunit_output_dir.name,
+                "--log-level",
+                "error",
+                "--no-color",
+            ]
 
             with _suppress_stdout():
                 self._vunit_proj = VUnit.from_argv(argv=argv, compile_builtins=False)
