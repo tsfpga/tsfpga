@@ -24,6 +24,7 @@ from tsfpga.yosys.project import (
     YosysNetlistBuild,
     YosysXilinxNetlistBuild,
     _get_ghdl_generic_value,
+    _get_verilog_parameter_value,
     _suppress_stdout,
 )
 
@@ -489,14 +490,44 @@ def test_non_vhdl_top_with_vhdl_entity_not_found_should_raise_exception(yosys_pr
         yosys_project_test.build(project)
 
 
-def test_non_vhdl_top_with_generics_should_raise_exception(yosys_project_test):
+def test_non_vhdl_top_with_generics_sets_verilog_parameters(yosys_project_test):
     modules = _create_module(yosys_project_test.modules_path)
-    project = YosysNetlistBuild(name="apa", modules=modules, top="verilog_top")
+    project = YosysNetlistBuild(
+        name="apa", modules=modules, top="verilog_top", generics={"width": 16}
+    )
 
     yosys_project_test.create(project)
 
-    with pytest.raises(ValueError, match="Generics are only supported"):
-        yosys_project_test.build(project)
+    yosys_project_test.build_time_generics = {"enable": True}
+    build_result = yosys_project_test.build(project)
+    assert build_result.success
+
+    _, kwargs = yosys_project_test.mocked_run_yosys.call_args
+    script_content = kwargs["script_file"].read_text()
+
+    # Static and build-time generics both end up as Verilog parameters on the top level.
+    assert "hierarchy -top verilog_top " in script_content
+    assert "-chparam width 16" in script_content
+    assert "-chparam enable 1" in script_content
+    # The parameters must be set before synthesis.
+    assert script_content.index("hierarchy -top") < script_content.index(
+        "-top verilog_top -flatten"
+    )
+
+
+def test_vhdl_top_with_generics_does_not_set_verilog_parameters(yosys_project_test):
+    modules = _create_module(yosys_project_test.modules_path)
+    project = YosysNetlistBuild(name="apa", modules=modules, generics={"width": 16})
+
+    yosys_project_test.create(project)
+    yosys_project_test.build(project)
+
+    _, kwargs = yosys_project_test.mocked_run_yosys.call_args
+    script_content = kwargs["script_file"].read_text()
+
+    # Generics go to GHDL for a VHDL top level, not to a Yosys 'hierarchy' command.
+    assert "hierarchy" not in script_content
+    assert "-gwidth=16" in script_content
 
 
 def test_suppress_stdout_is_serialized():
@@ -533,3 +564,15 @@ def test_suppress_stdout_is_serialized():
     assert max_num_inside == 1, "Global 'sys.stdout' swap was not serialized"
     assert sys.stdout is original_stdout
     assert not sys.stdout.closed
+
+
+def test_get_verilog_parameter_value():
+    assert _get_verilog_parameter_value(True) == "1"
+    assert _get_verilog_parameter_value(False) == "0"
+    assert _get_verilog_parameter_value(3) == "3"
+    assert _get_verilog_parameter_value(3.5) == "3.5"
+    assert _get_verilog_parameter_value(BitVectorGenericValue("1010")) == "4'b1010"
+
+    # Yosys can not set string parameters.
+    with pytest.raises(TypeError, match="can not set string parameters"):
+        _get_verilog_parameter_value(StringGenericValue("hest"))

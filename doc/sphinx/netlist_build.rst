@@ -124,7 +124,9 @@ In that case there is no single VHDL top level to automatically resolve dependen
 names of the VHDL entities that shall be made available for instantiation from the non-VHDL top
 level (or from other VHDL entities) must be listed explicitly using the ``vhdl_entities`` argument
 to :meth:`.YosysNetlistBuild.__init__`.
-Note that build-time and static generics are only supported when ``top`` is a VHDL entity.
+Generics are supported for both cases: they are passed to GHDL when ``top`` is a VHDL entity,
+and applied as Verilog parameters when ``top`` is a Verilog/SystemVerilog module.
+Note that Yosys can not set string parameters of a Verilog/SystemVerilog top level.
 
 This is done using the :class:`.YosysNetlistBuild` class, or one of the architecture-specific
 subclasses that target a certain vendor's primitives via a specific Yosys ``synth_*`` command:

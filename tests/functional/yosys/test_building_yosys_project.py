@@ -18,6 +18,7 @@ from tsfpga.module import get_modules
 from tsfpga.system_utils import create_file
 from tsfpga.test.test_utils import file_contains_string
 from tsfpga.vivado.build_result_checker import EqualTo, Ffs, GreaterThan, LessThan, TotalLuts
+from tsfpga.yosys.common import get_ghdl_library_prefix, get_ghdl_path, get_yosys_path
 from tsfpga.yosys.project import (
     YosysIntelNetlistBuild,
     YosysMicrochipNetlistBuild,
@@ -39,22 +40,62 @@ GHDL_PREFIX = Path(os.environ["TSFPGA_GHDL_PREFIX"]) if "TSFPGA_GHDL_PREFIX" in 
 
 # This whole test suite requires GHDL and Yosys, with the 'ghdl-yosys-plugin', to be installed
 # on the machine that runs the tests.
+THIS_DIR = Path(__file__).parent
+
+
+def copy_modules(name: str, tmp_path: Path) -> Path:
+    """
+    Copy the module sources used by a test to a writable location.
+
+    Arguments:
+        name: Name of a folder in the "modules" directory next to this file.
+        tmp_path: The test's temporary directory.
+
+    Return:
+        The modules folder, as accepted by 'get_modules'.
+    """
+    modules_folder = tmp_path / "modules"
+    shutil.copytree(THIS_DIR / "modules" / name, modules_folder)
+    return modules_folder
+
+
 pytestmark = pytest.mark.skipif(
     shutil.which("ghdl") is None or shutil.which("yosys") is None,
     reason="GHDL and/or Yosys is not available on the PATH",
 )
 
 
+def test_tools_are_found_on_the_path():
+    """
+    On a properly installed system, nothing needs to be configured: GHDL and Yosys are found on
+    the PATH, and GHDL's library prefix is derived from the GHDL installation itself.
+    """
+    ghdl_path = get_ghdl_path()
+    assert ghdl_path.exists(), ghdl_path
+    assert ghdl_path.is_absolute(), ghdl_path
+
+    yosys_path = get_yosys_path()
+    assert yosys_path.exists(), yosys_path
+    assert yosys_path.is_absolute(), yosys_path
+
+    # Needed by the 'ghdl-yosys-plugin', which can not work it out on its own since it runs
+    # inside the Yosys process. Must be found without the user supplying anything.
+    library_prefix = get_ghdl_library_prefix()
+    assert library_prefix is not None
+    assert library_prefix.exists(), library_prefix
+
+
 @pytest.fixture
 def basic_project_test(tmp_path):
     class BasicProjectTest:
         def __init__(self):
-            self.module_folder = tmp_path / "modules" / "apa"
+            self.modules_folder = copy_modules("basic", tmp_path)
+            self.module_folder = self.modules_folder / "apa"
             self.project_folder = tmp_path / "yosys"
 
-            self.top_file = self.create_top_file()
+            self.top_file = self.module_folder / "src" / "test_proj_top.vhd"
 
-            self.modules = get_modules(modules_folder=self.module_folder.parent)
+            self.modules = get_modules(modules_folder=self.modules_folder)
             # Target Xilinx primitives, so that the utilization report contains the LUT/FF
             # counts that the 'tsfpga.vivado.build_result_checker' checkers expect.
             self.proj = YosysXilinxNetlistBuild(
@@ -79,51 +120,6 @@ def basic_project_test(tmp_path):
             The Yosys utilization report that should exist after a build.
             """
             return self.project_folder / f"{self.proj.name}_utilization.txt"
-
-        def create_top_file(self, width: int = 8):
-            top = f"""
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-
-
-entity test_proj_top is
-  generic (
-    width : positive := {width}
-  );
-  port (
-    clk : in std_ulogic;
-    increment : in std_ulogic;
-    count : out unsigned(width - 1 downto 0);
-    flag : out std_ulogic
-  );
-end entity;
-
-architecture a of test_proj_top is
-  signal count_int : unsigned(width - 1 downto 0) := (others => '0');
-begin
-
-  count <= count_int;
-
-  -- Some combinational logic that will always require LUTs to implement, regardless of how
-  -- the counter's carry chain above is optimized.
-  flag <=
-    (count_int(0) and count_int(1))
-    or (count_int(2) and not increment)
-    or (count_int(3) xor count_int(0));
-
-  main : process
-  begin
-    wait until rising_edge(clk);
-
-    if increment = '1' then
-      count_int <= count_int + 1;
-    end if;
-  end process;
-
-end architecture;
-"""
-            return create_file(self.module_folder / "src" / "test_proj_top.vhd", top)
 
         def create_yosys_project(self):
             assert self.proj.create(self.project_folder)
@@ -265,65 +261,9 @@ def test_building_mixed_vhdl_and_verilog_netlist_project(tmp_path):
     directly via a 'read_verilog' command, and bound to the unbound VHDL component instantiation
     by name.
     """
-    module_folder = tmp_path / "modules" / "apa"
+    modules_folder = copy_modules("mixed", tmp_path)
 
-    create_file(
-        module_folder / "src" / "counter.v",
-        """\
-module counter (
-    input  wire clk,
-    input  wire increment,
-    output reg [7:0] count
-);
-
-  always @(posedge clk) begin
-    if (increment) begin
-      count <= count + 1;
-    end
-  end
-
-endmodule
-""",
-    )
-
-    create_file(
-        module_folder / "src" / "test_proj_top.vhd",
-        """
-library ieee;
-use ieee.std_logic_1164.all;
-
-entity test_proj_top is
-  port (
-    clk : in std_ulogic;
-    increment : in std_ulogic;
-    count : out std_ulogic_vector(7 downto 0)
-  );
-end entity;
-
-architecture a of test_proj_top is
-
-  component counter is
-    port (
-      clk : in std_ulogic;
-      increment : in std_ulogic;
-      count : out std_ulogic_vector(7 downto 0)
-    );
-  end component;
-
-begin
-
-  counter_inst : counter
-    port map (
-      clk => clk,
-      increment => increment,
-      count => count
-    );
-
-end architecture;
-""",
-    )
-
-    modules = get_modules(modules_folder=module_folder.parent)
+    modules = get_modules(modules_folder=modules_folder)
     project = YosysNetlistBuild(
         name="test_proj",
         modules=modules,
@@ -346,76 +286,9 @@ def test_building_verilog_top_with_vhdl_entities(tmp_path):
     entities are listed explicitly via the 'vhdl_entities' argument. Verifies that they are
     elaborated by GHDL and bound to the unbound Verilog module instantiations by name.
     """
-    module_folder = tmp_path / "modules" / "apa"
+    modules_folder = copy_modules("verilog_top", tmp_path)
 
-    create_file(
-        module_folder / "src" / "test_proj_top.v",
-        """\
-module test_proj_top (
-    input  wire clk,
-    input  wire increment,
-    output wire [7:0] count,
-    output wire flag
-);
-
-  wire [7:0] count_a;
-  wire [7:0] count_b;
-
-  counter_a counter_a_inst (
-    .clk(clk),
-    .increment(increment),
-    .count(count_a)
-  );
-
-  counter_b counter_b_inst (
-    .clk(clk),
-    .increment(increment),
-    .count(count_b)
-  );
-
-  assign count = count_a;
-  assign flag = count_b[7];
-
-endmodule
-""",
-    )
-
-    for entity_name in ["counter_a", "counter_b"]:
-        create_file(
-            module_folder / "src" / f"{entity_name}.vhd",
-            f"""
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-
-entity {entity_name} is
-  port (
-    clk : in std_ulogic;
-    increment : in std_ulogic;
-    count : out std_ulogic_vector(7 downto 0)
-  );
-end entity;
-
-architecture a of {entity_name} is
-  signal count_int : unsigned(7 downto 0) := (others => '0');
-begin
-
-  count <= std_logic_vector(count_int);
-
-  main : process
-  begin
-    wait until rising_edge(clk);
-
-    if increment = '1' then
-      count_int <= count_int + 1;
-    end if;
-  end process;
-
-end architecture;
-""",
-        )
-
-    modules = get_modules(modules_folder=module_folder.parent)
+    modules = get_modules(modules_folder=modules_folder)
     project = YosysNetlistBuild(
         name="test_proj",
         modules=modules,
@@ -431,6 +304,36 @@ end architecture;
     build_result = project.build(project_path)
     assert build_result.success
     assert sum(build_result.synthesis_size.values()) > 0
+
+
+def test_building_verilog_top_with_parameters(tmp_path):
+    """
+    Build a Yosys netlist project where the top level is a Verilog module with a parameter.
+    Verifies that generics are applied as Verilog parameters, via a Yosys 'hierarchy -chparam'
+    command, when the top level is not a VHDL entity.
+    """
+    modules_folder = copy_modules("verilog_parameters", tmp_path)
+    modules = get_modules(modules_folder=modules_folder)
+
+    def build_with_width(width):
+        project = YosysXilinxNetlistBuild(
+            family="xc7",
+            name=f"test_proj_{width}",
+            modules=modules,
+            top="test_proj_top",
+            generics={"WIDTH": width},
+            ghdl_plugin_path=GHDL_PLUGIN_PATH,
+            ghdl_prefix=GHDL_PREFIX,
+        )
+        project_path = tmp_path / f"yosys_{width}"
+        assert project.create(project_path)
+
+        build_result = project.build(project_path)
+        assert build_result.success
+        return build_result
+
+    # The counter register is 'WIDTH' bits wide, so a wider parameter must give more flip flops.
+    assert build_with_width(24).synthesis_size["FFs"] > build_with_width(8).synthesis_size["FFs"]
 
 
 def test_building_resource_counter_example_module_netlist_projects(tmp_path):

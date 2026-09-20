@@ -473,13 +473,6 @@ class YosysNetlistBuild:
             top_level_module, _ = top_level_match
             entities = [(self.top, top_level_module)]
         else:
-            if all_generics:
-                raise ValueError(
-                    "Generics are only supported when 'top' is a VHDL entity. "
-                    f'"{self.top}" is not a VHDL entity in the given modules. '
-                    "Did you mean to use the 'vhdl_entities' argument instead?"
-                )
-
             # The 'top' is a Verilog/SystemVerilog module (or the design has no VHDL at all).
             # Elaborate each of the explicitly listed 'vhdl_entities' individually, so that they
             # become available (under their own entity name) for Yosys's 'hierarchy' pass to
@@ -510,6 +503,23 @@ class YosysNetlistBuild:
             for entity_name, module in entities
         ]
 
+    def _get_hierarchy_command(self, all_generics: GenericValues) -> str | None:
+        """
+        Return: A Yosys ``hierarchy`` command that sets the top level parameters, when ``top`` is
+            a Verilog/SystemVerilog module. ``None`` when there is nothing to set, or when
+            ``top`` is a VHDL entity (where generics are instead passed to GHDL).
+        """
+        if not all_generics or self._find_vhdl_source_file(self.top) is not None:
+            return None
+
+        # Note that the 'synth' command runs 'hierarchy' itself, but the parameter values set
+        # here are preserved by that later run.
+        parameters = " ".join(
+            f"-chparam {name} {_get_verilog_parameter_value(value)}"
+            for name, value in all_generics.items()
+        )
+        return f"hierarchy -top {self.top} {parameters}"
+
     def _get_yosys_script(
         self,
         workdir: Path,
@@ -525,6 +535,10 @@ class YosysNetlistBuild:
             commands.append(read_verilog_command)
 
         commands += self._get_ghdl_commands(workdir=workdir, all_generics=all_generics)
+
+        hierarchy_command = self._get_hierarchy_command(all_generics=all_generics)
+        if hierarchy_command is not None:
+            commands.append(hierarchy_command)
 
         commands += [
             self._get_synth_command(),
@@ -895,3 +909,26 @@ def _suppress_stdout() -> Iterator[None]:
             yield
         finally:
             sys.stdout = old_stdout
+
+
+def _get_verilog_parameter_value(value: GenericValue) -> str:
+    """
+    Convert a generic value of a native Python type (or one of the tsfpga generic value
+    wrapper classes) to a string suitable for the ``-chparam`` argument of the Yosys
+    ``hierarchy`` command.
+    """
+    if isinstance(value, bool):
+        # Note that this must be before the 'int' check below, since 'bool' is a subclass of it.
+        return "1" if value else "0"
+
+    if isinstance(value, BitVectorGenericValue):
+        return f"{value.length}'b{value.value}"
+
+    if isinstance(value, (int, float)):
+        return str(value)
+
+    message = (
+        "Yosys can not set string parameters of a Verilog/SystemVerilog top level. "
+        f'Got type="{type(value)}", value="{value}".'
+    )
+    raise TypeError(message)
