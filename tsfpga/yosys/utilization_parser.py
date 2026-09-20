@@ -113,6 +113,13 @@ class YosysIntelUtilizationParser(YosysUtilizationParser):
     """
     Utilization parser for a design synthesized with the Yosys ``synth_intel`` command, i.e.
     targeting the MAX10, Cyclone IV, Cyclone IV E or Cyclone 10 LP families.
+
+    .. Note::
+        The ``"DSP Blocks"`` count is only meaningful for the MAX10 family.
+        Of the families supported by ``synth_intel``, only that one maps multiplications to DSP
+        cells. The others implement them in soft logic, so their reports contain no DSP cells at
+        all and the count is always zero.
+        Observed with Yosys 0.68, on a design with a single 18x18 multiplication.
     """
 
     resource_name_patterns: ClassVar[dict[str, str]] = {
