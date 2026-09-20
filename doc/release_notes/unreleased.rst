@@ -19,5 +19,3 @@ Fixed
 
 * Fix ``ValueError: I/O operation on closed file`` being raised instead of the real GHDL/Yosys
   error message when a build is driven through VUnit's test runner.
-* Fix the internal VUnit project used to resolve compile order for netlist builds compiling
-  VUnit's simulation builtins.
