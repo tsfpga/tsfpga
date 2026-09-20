@@ -55,12 +55,6 @@ class YosysNetlistBuild:
     This is a great tool for getting quick feedback on the resource utilization of a design, or
     a sub-component of a design, during development.
 
-    Verilog and SystemVerilog source files found among the modules' synthesis files are read
-    directly by Yosys (bypassing GHDL) and may be instantiated from VHDL as unbound components,
-    as long as the component name matches the Verilog/SystemVerilog module name.
-    This is useful for e.g. vendor IP delivered as Verilog, instantiated from an otherwise
-    VHDL design.
-
     The ``top`` is typically a VHDL entity, in which case all of its VHDL dependencies are found
     automatically via the compile order.
     It can also be a Verilog/SystemVerilog module (or the design can have no VHDL at all), in
@@ -139,24 +133,12 @@ class YosysNetlistBuild:
 
                 Compare to the build-time generic argument in :meth:`build`.
 
-                The generic value shall be of type
-
-                * :class:`bool` (suitable for VHDL type ``boolean`` and ``std_logic``),
-                * :class:`int` (suitable for VHDL type ``integer``, ``natural``, etc.),
-                * :class:`float` (suitable for VHDL type ``real``),
-                * :class:`.BitVectorGenericValue` (suitable for VHDL type ``std_logic_vector``,
-                  ``unsigned``, etc.), or
-                * :class:`.StringGenericValue` (suitable for VHDL type ``string``).
+                The generic value shall be of type :data:`.GenericValue`.
             build_result_checkers:
                 Checkers that will be executed after a successful build. Is used to automatically
                 check that e.g. resource utilization is not greater than expected.
-                Since the utilization report produced by this build uses the same resource
-                naming convention as the Vivado utilization report, the checkers in
-                :mod:`.vivado.build_result_checker` can be used directly.
             synth_command: The Yosys ``synth*`` command that shall be used to synthesize the
                 design (e.g. ``"synth"`` or ``"synth_xilinx"``).
-                See :class:`.YosysXilinxNetlistBuild` for a convenient subclass that targets
-                Xilinx primitives.
             vhdl_standard: The VHDL standard that shall be used by GHDL when analyzing the
                 source files (e.g. ``"93"`` or ``"08"``).
             ghdl_path: Path to the GHDL executable.
@@ -231,16 +213,7 @@ class YosysNetlistBuild:
 
     def _get_vunit_project(self) -> VUnit:
         if self._vunit_proj is None:
-            # VUnit is only used to resolve the compile order of the VHDL source files, not to
-            # run any simulations. Hence the output is placed in a throwaway temporary
-            # directory. Simulation builtins must not be compiled -- 'compile_builtins=False'
-            # is required for that on VUnit's released API ('from_argv' defaults it to True,
-            # which would run GHDL over dozens of VUnit-internal VHDL files in addition to this
-            # design's own sources).
-            # Going via 'from_argv' with real command line argument strings (rather than
-            # constructing an 'argparse.Namespace' object by hand) means VUnit's own argument
-            # parser fills in every attribute it needs, so this does not break when VUnit adds
-            # more arguments/attributes in a future release.
+            # VUnit is used only to calculate the compile order of the VHDL source files.
             # Note that the 'TemporaryDirectory' object must be kept alive for as long as the
             # VUnit project is used. It removes the directory from disk when garbage collected.
             self._vunit_output_directory = tempfile.TemporaryDirectory(prefix="tsfpga_yosys_vunit_")
@@ -253,6 +226,8 @@ class YosysNetlistBuild:
             ]
 
             with _suppress_stdout():
+                # Builtins must not be compiled, they would add dozens of VUnit-internal
+                # VHDL files to the compile order.
                 self._vunit_proj = VUnit.from_argv(argv=argv, compile_builtins=False)
 
             for module in self.modules:
@@ -379,7 +354,6 @@ class YosysNetlistBuild:
     def create(
         self,
         project_path: Path,
-        ip_cache_path: Path | None = None,  # noqa: ARG002
         **other_arguments: Any,  # noqa: ANN401
     ) -> bool:
         """
@@ -388,8 +362,6 @@ class YosysNetlistBuild:
 
         Arguments:
             project_path: Path where the GHDL analysis result shall be placed.
-            ip_cache_path: Not used. Present for interface compatibility with
-                :meth:`.VivadoProject.create`.
             other_arguments: Optional further arguments. Will not be used by tsfpga, but will
                 instead be sent to
 

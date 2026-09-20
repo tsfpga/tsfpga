@@ -97,11 +97,18 @@ listed and built separately.
 Yosys netlist builds
 ---------------------
 
-As an open-source, and typically much faster, alternative to the Vivado-based netlist builds
-above, tsfpga also supports running netlist synthesis using `Yosys <https://yosyshq.net/yosys/>`__
+As an open-source alternative to the Vivado-based netlist builds above, tsfpga also supports
+running netlist synthesis using `Yosys <https://yosyshq.net/yosys/>`__
 via the `ghdl-yosys-plugin <https://github.com/ghdl/ghdl-yosys-plugin>`__.
 `GHDL <https://ghdl.github.io/ghdl/>`__ is used as the VHDL front end, so the whole flow is
 Vivado-free.
+
+.. Note::
+  Yosys is not suitable for large builds.
+  It takes a very long time and may consume a lot of memory.
+  It is recommended for smaller modules, where the intention is a quick verification rather than
+  a full fledged build.
+  For larger builds, such as top level builds, it is recommended to use the vendor tools.
 
 The ``top`` level is typically a VHDL entity, in which case all of its VHDL dependencies are
 found automatically by resolving the compile order.
@@ -117,9 +124,6 @@ In that case there is no single VHDL top level to automatically resolve dependen
 names of the VHDL entities that shall be made available for instantiation from the non-VHDL top
 level (or from other VHDL entities) must be listed explicitly using the ``vhdl_entities`` argument
 to :meth:`.YosysNetlistBuild.__init__`.
-Each listed entity is elaborated individually by GHDL, and bound by name to the corresponding
-component/module instantiation by Yosys, just like the Verilog/SystemVerilog submodules described
-above.
 Note that build-time and static generics are only supported when ``top`` is a VHDL entity.
 
 This is done using the :class:`.YosysNetlistBuild` class, or one of the architecture-specific
@@ -164,6 +168,9 @@ vendor-agnostic resource count of a design, but note that no aggregated resource
 
 Note that the ``MaximumLogicLevel`` checker is not supported, since that concept does not apply to
 a Yosys synthesis result.
+
+Troubleshooting
+_______________
 
 The ``ghdl-yosys-plugin`` module, running inside Yosys, is not able to locate GHDL's standard
 libraries (``std``, ``ieee``, ...) on its own.
