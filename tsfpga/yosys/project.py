@@ -198,7 +198,9 @@ class YosysNetlistBuild:
 
         # Lazily created/cached. See '_get_vunit_project'.
         self._vunit_proj: VUnit | None = None
-        self._vunit_output_directory: tempfile.TemporaryDirectory[str] | None = None
+        # Owns the VUnit project's throwaway output directory: holding it here ties that
+        # directory's lifetime to this object's.
+        self._vunit_output_dir: tempfile.TemporaryDirectory[str] | None = None
 
     def project_file(self, project_path: Path) -> Path:
         """
@@ -216,12 +218,14 @@ class YosysNetlistBuild:
     def _get_vunit_project(self) -> VUnit:
         if self._vunit_proj is None:
             # VUnit is used only to calculate the compile order of the VHDL source files.
-            # Note that the 'TemporaryDirectory' object must be kept alive for as long as the
-            # VUnit project is used. It removes the directory from disk when garbage collected.
-            self._vunit_output_directory = tempfile.TemporaryDirectory(prefix="tsfpga_yosys_vunit_")
+            # Cleanup errors are ignored because this is scratch space: failing to delete it
+            # must not fail a build.
+            self._vunit_output_dir = tempfile.TemporaryDirectory(
+                prefix="tsfpga_yosys_vunit_", ignore_cleanup_errors=True
+            )
             argv = [
                 "--output-path",
-                self._vunit_output_directory.name,
+                self._vunit_output_dir.name,
                 "--log-level",
                 "error",
                 "--no-color",

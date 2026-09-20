@@ -6,6 +6,7 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
+import gc
 import sys
 import threading
 import time
@@ -576,3 +577,23 @@ def test_get_verilog_parameter_value():
     # Yosys can not set string parameters.
     with pytest.raises(TypeError, match="can not set string parameters"):
         _get_verilog_parameter_value(StringGenericValue("hest"))
+
+
+def test_vunit_output_directory_is_removed_with_the_project(yosys_project_test):
+    """
+    The VUnit project is only used to resolve compile order, and its output is throwaway. It
+    used to be created with 'mkdtemp', which never removes anything, so every netlist build
+    left a directory behind in the system temp directory forever.
+    """
+    project = YosysNetlistBuild(name="apa", modules=_create_module(yosys_project_test.modules_path))
+
+    project._get_vunit_project()  # noqa: SLF001
+    output_directory = Path(project._vunit_output_dir.name)  # noqa: SLF001
+    assert output_directory.exists()
+
+    # Dropping the last reference must take the directory with it. 'gc.collect()' rather than
+    # relying on refcounting alone, since the VUnit object graph can contain cycles.
+    del project
+    gc.collect()
+
+    assert not output_directory.exists()
