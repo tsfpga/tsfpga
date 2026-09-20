@@ -128,20 +128,13 @@ jobs:
     - name: Checkout
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+    # Note that 'requirements.txt' brings in 'hdl-registers', so no repo checkout of it is
+    # needed here, unlike in the jobs that run the example simulation flow.
     - name: Install Python packages
       run: |
         python3 -m pip install --break-system-packages \
-          GitPython \
-          PyYAML \
-          pytest \
-          rtoml \
-          tomli_w \
-          vunit-hdl==4.7.1
-
-    - name: Clone dependency repos
-      run: |
-        git clone --depth 1 --single-branch --branch main \
-          https://github.com/hdl-registers/hdl-registers.git ../../hdl-registers/hdl-registers
+          -r tsfpga/requirements.txt \
+          pytest
 
     - name: Locate the ghdl-yosys-plugin
       run: |
