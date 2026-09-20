@@ -13,7 +13,6 @@ import sys
 import tempfile
 from contextlib import contextmanager
 from copy import deepcopy
-from inspect import signature
 from pathlib import Path
 from threading import Lock
 from typing import TYPE_CHECKING, Any, NoReturn
@@ -232,19 +231,10 @@ class YosysNetlistBuild:
                 "--no-color",
             ]
 
-            # VUnit's simulation builtins must not be compiled, they would add dozens of
-            # VUnit-internal VHDL files to the compile order.
-            # On the latest VUnit release they are compiled unless 'compile_builtins' is set to
-            # False. That argument does not exist in newer VUnit versions, which instead do not
-            # compile them unless 'add_vhdl_builtins' is called explicitly.
-            builtins_arguments = (
-                {"compile_builtins": False}
-                if "compile_builtins" in signature(VUnit.from_argv).parameters
-                else {}
-            )
-
             with _suppress_stdout():
-                self._vunit_proj = VUnit.from_argv(argv=argv, **builtins_arguments)
+                # Builtins must not be compiled, they would add dozens of VUnit-internal VHDL
+                # files to the compile order.
+                self._vunit_proj = VUnit.from_argv(argv=argv, compile_builtins=False)
 
             for module in self.modules:
                 vunit_library = self._vunit_proj.add_library(

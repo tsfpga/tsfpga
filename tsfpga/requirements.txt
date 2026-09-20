@@ -1,5 +1,5 @@
 GitPython
 hdl-registers>=8.1.0
 rtoml
-vunit_hdl
+vunit_hdl==4.7.1
 vunit-vivado
