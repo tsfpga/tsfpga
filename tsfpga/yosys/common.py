@@ -47,10 +47,10 @@ def run_ghdl(ghdl_path: Path | None, arguments: list[str], cwd: Path) -> bool:
 
 
 def run_yosys(
-    yosys_path: Path | None,
-    ghdl_plugin_path: Path | None,
     script_file: Path,
     cwd: Path,
+    yosys_path: Path | None = None,
+    ghdl_plugin_path: Path | None = None,
     ghdl_path: Path | None = None,
     ghdl_prefix: Path | None = None,
 ) -> bool:
@@ -61,13 +61,13 @@ def run_yosys(
     well-known location.
 
     Arguments:
+        script_file: Path to a file containing the Yosys commands that shall be executed.
+        cwd: The Yosys process will be executed with this as the working directory.
         yosys_path: Path to the Yosys executable. Can be set to ``None``
             to use whatever version is in ``PATH``.
         ghdl_plugin_path: Path to the ``ghdl-yosys-plugin`` module (typically named ``ghdl.so``).
             Can be set to ``None`` if the plugin is already available to Yosys without explicitly
             loading it (e.g. if it has been installed in the Yosys plugin directory).
-        script_file: Path to a file containing the Yosys commands that shall be executed.
-        cwd: The Yosys process will be executed with this as the working directory.
         ghdl_path: Path to the GHDL executable, used only to auto-detect 'ghdl_prefix' below
             when it is not given explicitly. Can be set to ``None`` to use whatever version is
             in ``PATH``.
