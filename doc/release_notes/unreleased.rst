@@ -12,8 +12,6 @@ Added
   ``ghdl-yosys-plugin``, as an open-source alternative to :class:`.VivadoNetlistProject`.
 * Allow :class:`.YosysNetlistBuild` projects to be returned from
   :meth:`.BaseModule.get_build_projects` and handled by :class:`.BuildProjectList`.
-* Add support for generics when the :class:`.YosysNetlistBuild` top level is a
-  Verilog/SystemVerilog module, where they are applied as parameters.
 
 Fixed
 
