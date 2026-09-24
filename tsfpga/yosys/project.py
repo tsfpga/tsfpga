@@ -290,8 +290,8 @@ class YosysNetlistBuild:
             # reconstructing a file name pattern, since the VHDL file ending can be either
             # '.vhd', '.vhdl' or '.vho' (see 'HdlFile.file_endings_mapping').
             _, top_hdl_file = top_level_match
-            top_source_file = vunit_proj.get_source_file(str(top_hdl_file.path.resolve()))
-            compile_order = vunit_proj.get_implementation_subset([top_source_file])
+            top_source_file = vunit_proj.get_source_file(file_name=top_hdl_file.path.resolve())
+            compile_order = vunit_proj.get_implementation_subset(source_files=[top_source_file])
 
         return [
             (Path(source_file.name).resolve().as_posix(), source_file.library.name)
