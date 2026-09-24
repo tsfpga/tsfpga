@@ -4,4 +4,4 @@ Breaking changes
 * Move project filtering from :class:`.BuildProjectList` constructor
   to :func:`.get_build_project_list`.
 
-Requires VUnit version 5.0.0.dev6 or later.
+Requires VUnit version 5.0.0.dev11 or later.
