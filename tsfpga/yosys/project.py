@@ -277,7 +277,7 @@ class YosysNetlistBuild:
             analyzed by GHDL.
         """
         vunit_proj = self._get_vunit_project()
-        top_level_match = self._find_vhdl_source_file(self.top)
+        top_level_match = self._find_vhdl_source_file(entity_name=self.top)
 
         if top_level_match is None:
             # The 'top' is not a VHDL entity (e.g. it is a Verilog/SystemVerilog module, or the
@@ -482,7 +482,7 @@ class YosysNetlistBuild:
         Return: A list of Yosys ``ghdl`` commands that elaborate the VHDL entities of this
             build, making them available to Yosys.
         """
-        top_level_match = self._find_vhdl_source_file(self.top)
+        top_level_match = self._find_vhdl_source_file(entity_name=self.top)
         if top_level_match is not None:
             # The 'top' is a VHDL entity: elaborate it directly. GHDL will pull in everything it
             # depends on, including any Verilog/SystemVerilog modules read by
@@ -503,7 +503,7 @@ class YosysNetlistBuild:
             # VHDL entities). Any entity that ends up unused is pruned by Yosys.
             entities = []
             for entity_name in self.vhdl_entities:
-                match = self._find_vhdl_source_file(entity_name)
+                match = self._find_vhdl_source_file(entity_name=entity_name)
                 if match is None:
                     raise ValueError(
                         f'Could not find a VHDL source file for entity "{entity_name}" '
@@ -534,7 +534,7 @@ class YosysNetlistBuild:
             a Verilog/SystemVerilog module. ``None`` when there is nothing to set, or when
             ``top`` is a VHDL entity (where generics are instead passed to GHDL).
         """
-        if not all_generics or self._find_vhdl_source_file(self.top) is not None:
+        if not all_generics or self._find_vhdl_source_file(entity_name=self.top) is not None:
             return None
 
         # Note that the 'synth' command runs 'hierarchy' itself, but the parameter values set
