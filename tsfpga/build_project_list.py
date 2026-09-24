@@ -280,6 +280,7 @@ class BuildProjectList:
             output_path=projects_path,
             verbosity=verbosity,
             num_threads=num_parallel_builds,
+            run_script_path=None,
         )
         test_runner.run(test_list)
 
@@ -349,9 +350,10 @@ class BuildProjectCreateWrapper(BuildProjectWrapper):
         self,
         output_path: Path,
         read_output: Any,  # noqa: ANN401, ARG002
+        run_script_path: Any,  # noqa: ANN401, ARG002
     ) -> bool:
         """
-        Argument 'read_output' sent by VUnit test runner is unused by us.
+        Arguments 'read_output' and 'run_script_path' sent by VUnit test runner are unused by us.
         """
         this_project_path = Path(output_path) / "project"
         return self._project.create(project_path=this_project_path, **self._create_arguments)
@@ -379,9 +381,10 @@ class BuildProjectBuildWrapper(BuildProjectWrapper):
         self,
         output_path: Path,
         read_output: Any,  # noqa: ANN401, ARG002
+        run_script_path: Any,  # noqa: ANN401, ARG002
     ) -> bool:
         """
-        Argument 'read_output' sent by VUnit test runner is unused by us.
+        Arguments 'read_output' and 'run_script_path' sent by VUnit test runner are unused by us.
         """
         this_project_path = Path(output_path) / "project"
         build_result = self._project.build(project_path=this_project_path, **self._build_arguments)
@@ -430,9 +433,10 @@ class BuildProjectOpenWrapper(BuildProjectWrapper):
         self,
         output_path: Path,
         read_output: Any,  # noqa: ANN401, ARG002
+        run_script_path: Any,  # noqa: ANN401, ARG002
     ) -> bool:
         """
-        Argument 'read_output' sent by VUnit test runner is unused by us.
+        Arguments 'read_output' and 'run_script_path' sent by VUnit test runner are unused by us.
         """
         this_project_path = Path(output_path) / "project"
         return self._project.open(project_path=this_project_path)
