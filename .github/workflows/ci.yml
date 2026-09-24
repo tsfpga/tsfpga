@@ -106,6 +106,58 @@ jobs:
   # ------------------------------------------------------------------------------
   # Build HTML documentation for website.
 
+  pytest_yosys:
+    name: Run Yosys netlist build tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # This image ships GHDL, Yosys and the 'ghdl-yosys-plugin', built against each other, which
+    # is what the netlist build tests need. The plugin has no release artifacts and must be built
+    # against the exact GHDL and Yosys it is used with, hence a container rather than actions.
+    # Pinned for reproducibility, bump deliberately.
+    container:
+      image: ru551n/hdl-docker:1.2.0
+      # The image's default user can not install packages.
+      options: --user root
+    steps:
+
+    - name: Install prerequisites
+      run: |
+        apt-get update
+        apt-get install -y --no-install-recommends git python3 python3-pip
+
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    # Note that 'requirements.txt' brings in 'hdl-registers', so no repo checkout of it is
+    # needed here, unlike in the jobs that run the example simulation flow.
+    # VUnit is installed from git, like in the other test jobs, since tsfpga depends on features
+    # that are not in a VUnit release yet.
+    - name: Install Python packages
+      run: |
+        python3 -m pip install --break-system-packages \
+          -r tsfpga/requirements.txt \
+          vunit-hdl@git+https://github.com/VUnit/vunit.git \
+          pytest
+
+    - name: Locate the ghdl-yosys-plugin
+      run: |
+        echo "TSFPGA_GHDL_PLUGIN_PATH=$(yosys-config --datdir)/plugins/ghdl.so" >> "${GITHUB_ENV}"
+
+    # The test suite skips itself when the tools are missing, which would make this job pass
+    # while testing nothing. The whole point of it is a real GHDL + Yosys + plugin run, so check
+    # that the tools are actually there before running.
+    - name: Check that the tools are available
+      run: |
+        set -e
+        command -v ghdl
+        command -v yosys
+        test -f "${TSFPGA_GHDL_PLUGIN_PATH}"
+        yosys -m "${TSFPGA_GHDL_PLUGIN_PATH}" -p 'help ghdl' > /dev/null
+
+    - name: Run Yosys netlist build tests
+      run: |
+        python3 -m pytest --verbose tests/functional/yosys
+
   build_doc:
     name: Build HTML documentation
     needs: pytest
@@ -178,7 +230,7 @@ jobs:
     name: Deploy website to pages
     if: github.ref == 'refs/heads/main'
     # Only do deployment if everything else has passed.
-    needs: [pytest, build_doc, simulate]
+    needs: [pytest, pytest_yosys, build_doc, simulate]
     permissions:
       pages: write
       id-token: write
@@ -251,7 +303,7 @@ jobs:
     # Deploy new version when a version tag is pushed.
     if: github.ref_type == 'tag' && contains(github.ref_name, 'v')
     # Only do deployment if everything else has passed.
-    needs: [pytest, build_doc, simulate]
+    needs: [pytest, pytest_yosys, build_doc, simulate]
     runs-on: ubuntu-latest
     steps:
 

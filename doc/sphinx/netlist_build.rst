@@ -89,3 +89,97 @@ The python class for netlist builds, :class:`.VivadoNetlistProject`, is a subcla
 :class:`.VivadoProject`, with marginal differences in settings.
 By separating these builds into separate classes, top level FPGA builds and netlist builds can be
 listed and built separately.
+
+
+
+.. _yosys_netlist_build:
+
+Yosys netlist builds
+---------------------
+
+As an open-source alternative to the Vivado-based netlist builds above, tsfpga also supports
+running netlist synthesis using `Yosys <https://yosyshq.net/yosys/>`__
+via the `ghdl-yosys-plugin <https://github.com/ghdl/ghdl-yosys-plugin>`__.
+`GHDL <https://ghdl.github.io/ghdl/>`__ is used as the VHDL front end, so the whole flow is
+Vivado-free.
+
+.. Note::
+  Yosys is not suitable for large builds.
+  It takes a very long time and may consume a lot of memory.
+  It is recommended for smaller modules, where the intention is a quick verification rather than
+  a full fledged build.
+  For larger builds, such as top level builds, it is recommended to use the vendor tools.
+
+The ``top`` level is typically a VHDL entity, in which case all of its VHDL dependencies are
+found automatically by resolving the compile order.
+Any Verilog and SystemVerilog source files found among the modules are read directly by Yosys
+(bypassing GHDL), and may be instantiated from the VHDL design as unbound components, as long as
+the component name matches the Verilog/SystemVerilog module name.
+This is useful for e.g. vendor IP delivered as Verilog, instantiated from an otherwise VHDL
+design.
+
+The ``top`` level can also be a Verilog/SystemVerilog module (or the design can have no VHDL top
+level at all).
+In that case there is no single VHDL top level to automatically resolve dependencies from, so the
+names of the VHDL entities that shall be made available for instantiation from the non-VHDL top
+level (or from other VHDL entities) must be listed explicitly using the ``vhdl_entities`` argument
+to :meth:`.YosysNetlistBuild.__init__`.
+Generics are supported for both cases: they are passed to GHDL when ``top`` is a VHDL entity,
+and applied as Verilog parameters when ``top`` is a Verilog/SystemVerilog module.
+Note that Yosys can not set string parameters of a Verilog/SystemVerilog top level.
+
+This is done using the :class:`.YosysNetlistBuild` class, or one of the architecture-specific
+subclasses that target a certain vendor's primitives via a specific Yosys ``synth_*`` command:
+
+* :class:`.YosysXilinxNetlistBuild` targets Xilinx primitives (LUTs, FDs, RAMBs, DSP48s, ...) via
+  the Yosys ``synth_xilinx`` command.
+* :class:`.YosysIntelNetlistBuild` targets Intel (Altera) primitives (LEs, ``dffeas``,
+  ``altsyncram``, ...) via the Yosys ``synth_intel`` command.
+* :class:`.YosysMicrochipNetlistBuild` targets Microchip primitives (``CFG*``, ``SLE``,
+  ``RAM1K20``, ...) via the Yosys ``synth_microchip`` command.
+
+.. code-block:: python
+    :caption: Yosys netlist build example.
+
+    YosysXilinxNetlistBuild(
+        name="result_checker_example",
+        modules=modules,
+        top="example_top_level",
+        family="xc7",
+        build_result_checkers=[
+            TotalLuts(LessThan(50)),
+            Ramb36(EqualTo(0)),
+            Ramb18(EqualTo(1)),
+        ]
+    )
+
+All the architecture-specific subclasses produce a utilization report that uses (at least a
+subset of) the same resource naming convention as the Vivado utilization report (e.g.
+``"Total LUTs"``, ``"FFs"``, ``"DSP Blocks"``), so the checkers in
+:mod:`.vivado.build_result_checker` can be used directly, just like for the Vivado-based netlist
+builds.
+Since the exact block RAM architecture (e.g. "RAMB36"/"RAMB18") differs between vendors, the
+generic :class:`.BlockRams` checker shall be used instead of :class:`.Ramb`/:class:`.Ramb36`/
+:class:`.Ramb18` (which are Xilinx-specific) when targeting Intel or Microchip.
+
+The base :class:`.YosysNetlistBuild` class uses the generic Yosys ``synth`` command by default,
+which does not target any specific architecture. This is useful for getting a quick, tool- and
+vendor-agnostic resource count of a design, but note that no aggregated resource counts (e.g.
+``"Total LUTs"``) are available in this case -- only the raw Yosys primitive cell counts (e.g.
+``"$_DFF_P_"``).
+
+Note that the ``MaximumLogicLevel`` checker is not supported, since that concept does not apply to
+a Yosys synthesis result.
+
+Troubleshooting
+_______________
+
+The ``ghdl-yosys-plugin`` module, running inside Yosys, is not able to locate GHDL's standard
+libraries (``std``, ``ieee``, ...) on its own.
+This is handled automatically: each build runs ``ghdl --disp-config`` to find the
+"library prefix" and forwards it to the plugin.
+If this auto-detection fails, or finds the wrong GHDL installation, set the ``ghdl_prefix``
+argument explicitly to override it.
+Likewise, if the ``ghdl-yosys-plugin`` is not installed in a location where Yosys finds it
+automatically, set the ``ghdl_plugin_path`` argument to point at the plugin module
+(typically named ``ghdl.so``).

@@ -19,9 +19,9 @@ from tsfpga import TSFPGA_TCL
 from tsfpga.build_step_tcl_hook import BuildStepTclHook
 from tsfpga.constraint import Constraint
 from tsfpga.hdl_file import HdlFile
-from tsfpga.system_utils import create_file, read_file
+from tsfpga.system_utils import copy_and_combine_dicts, create_file, read_file
 
-from .build_result import BuildResult
+from .build_result import VivadoBuildResult
 from .common import run_vivado_gui, run_vivado_tcl, to_tcl_path
 from .hierarchical_utilization_parser import HierarchicalUtilizationParser
 from .logic_level_distribution_parser import LogicLevelDistributionParser
@@ -29,8 +29,8 @@ from .tcl import VivadoTcl
 from .timing_parser import FoundNoSlackError, TimingParser
 
 if TYPE_CHECKING:
+    from tsfpga.generics import GenericValues
     from tsfpga.module_list import ModuleList
-    from tsfpga.vivado.generics import BitVectorGenericValue, StringGenericValue
 
     from .build_result_checker import MaximumLogicLevel, SizeChecker
 
@@ -46,8 +46,7 @@ class VivadoProject:
         modules: ModuleList,
         part: str,
         top: str | None = None,
-        generics: dict[str, bool | float | StringGenericValue | BitVectorGenericValue]
-        | None = None,
+        generics: GenericValues | None = None,
         constraints: list[Constraint] | None = None,
         tcl_sources: list[Path] | None = None,
         build_step_hooks: list[BuildStepTclHook] | None = None,
@@ -415,7 +414,7 @@ class VivadoProject:
         output_path: Path | None,
         num_threads: int,
         run_index: int,
-        all_generics: dict[str, bool | float | StringGenericValue | BitVectorGenericValue],
+        all_generics: GenericValues,
         synth_only: bool,
         from_impl: bool,
         impl_explore: bool,
@@ -493,13 +492,12 @@ class VivadoProject:
         project_path: Path,
         output_path: Path | None = None,
         run_index: int | None = None,
-        generics: dict[str, bool | float | StringGenericValue | BitVectorGenericValue]
-        | None = None,
+        generics: GenericValues | None = None,
         synth_only: bool = False,
         from_impl: bool = False,
         num_threads: int = 12,
         **pre_and_post_build_parameters: Any,  # noqa: ANN401
-    ) -> BuildResult:
+    ) -> VivadoBuildResult:
         """
         Build a Vivado project
 
@@ -568,7 +566,7 @@ class VivadoProject:
         # is not an issue.
         self.modules = deepcopy(self.modules)
 
-        result = BuildResult(name=self.name, synthesis_run_name=f"synth_{run_index}")
+        result = VivadoBuildResult(name=self.name, synthesis_run_name=f"synth_{run_index}")
 
         for module in self.modules:
             if not module.pre_build(project=self, **all_parameters):
@@ -749,7 +747,7 @@ class VivadoNetlistProject(VivadoProject):
         self,
         project_path: Path,
         **kwargs: Any,  # noqa: ANN401
-    ) -> BuildResult:
+    ) -> VivadoBuildResult:
         """
         Build the project.
 
@@ -884,7 +882,7 @@ class VivadoNetlistProject(VivadoProject):
 
         return [f"{prefix}{clock}{suffix}" for prefix, clock, suffix in clock_matches]
 
-    def _check_size(self, build_result: BuildResult) -> bool:
+    def _check_size(self, build_result: VivadoBuildResult) -> bool:
         success = True
         for build_result_checker in self.build_result_checkers:
             checker_result = build_result_checker.check(build_result)
@@ -924,25 +922,3 @@ class VivadoIpCoreProject(VivadoProject):
         Not implemented.
         """
         raise NotImplementedError("IP core project can not be built")
-
-
-def copy_and_combine_dicts(
-    dict_first: dict[str, Any] | None, dict_second: dict[str, Any] | None
-) -> dict[str, Any]:
-    """
-    Will prefer values in the second dict, in case the same key occurs in both.
-    Will return an empty dictionary if both are ``None``.
-    """
-    if dict_first is None:
-        if dict_second is None:
-            return {}
-
-        return dict_second.copy()
-
-    if dict_second is None:
-        return dict_first.copy()
-
-    result = dict_first.copy()
-    result.update(dict_second)
-
-    return result

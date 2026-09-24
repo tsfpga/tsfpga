@@ -28,3 +28,4 @@
     api_reference/tsfpga.examples
     api_reference/tsfpga.tools
     api_reference/tsfpga.vivado
+    api_reference/tsfpga.yosys

@@ -10,10 +10,14 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from tsfpga.build_project_list import BuildProjectList, get_build_projects
+from tsfpga.build_project_list import (
+    BuildProjectList,
+    get_build_projects,
+)
 from tsfpga.module import BaseModule
 from tsfpga.system_utils import create_directory
-from tsfpga.vivado.project import BuildResult, VivadoProject
+from tsfpga.vivado.build_result import VivadoBuildResult
+from tsfpga.vivado.project import VivadoProject
 
 
 @pytest.fixture
@@ -27,7 +31,7 @@ def build_project_list_test():
             project.is_netlist_build = is_netlist_build
 
             # Note that his has 'success' set to True by default.
-            project.build.return_value = BuildResult(name=name, synthesis_run_name="")
+            project.build.return_value = VivadoBuildResult(name=name, synthesis_run_name="")
 
             module = MagicMock(spec=BaseModule)
             module.name = name
@@ -162,7 +166,7 @@ def test_build(build_project_list_test, tmp_path):
 
 def test_build_fail_should_return_false(build_project_list_test, tmp_path):
     project_list = BuildProjectList([build_project_list_test.project_one])
-    build_project_list_test.project_one.build.return_value = MagicMock(spec=BuildResult)
+    build_project_list_test.project_one.build.return_value = MagicMock(spec=VivadoBuildResult)
     build_project_list_test.project_one.build.return_value.success = False
 
     assert not project_list.build(

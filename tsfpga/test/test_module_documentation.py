@@ -13,7 +13,10 @@ from hdl_registers.register_list import RegisterList
 
 from tsfpga.module import BaseModule
 from tsfpga.module_documentation import ModuleDocumentation
+from tsfpga.module_list import ModuleList
 from tsfpga.system_utils import create_file
+from tsfpga.vivado.build_result_checker import BlockRams, LessThan, TotalLuts
+from tsfpga.yosys.project import YosysNetlistBuild
 
 
 @pytest.fixture
@@ -141,3 +144,26 @@ def test_include_sim_but_not_test_folder(module_documentation):
     )
     assert "Dummy from bfm.vhd." not in rst
     assert "Dummy from tb.vhd." not in rst
+
+
+def test_resource_utilization_table_with_generic_block_ram_checker(tmp_path):
+    """
+    The 'BlockRams' checker is the recommended one for non-Xilinx netlist builds, so it must be
+    handled by the table sorting just like the Xilinx-specific checkers.
+    """
+    module = BaseModule(path=tmp_path / "apa", library_name="apa")
+    create_file(module.path / "src" / "hest.vhd", contents="-- Dummy.\n")
+
+    netlist_build = YosysNetlistBuild(
+        name="apa.hest",
+        modules=ModuleList(),
+        top="hest",
+        build_result_checkers=[TotalLuts(LessThan(10)), BlockRams(LessThan(4))],
+    )
+    module.get_build_projects = lambda: [netlist_build]
+
+    rst = ModuleDocumentation(module).get_rst_document()
+
+    assert "Resource utilization" in rst
+    # Generic block RAM column is present, and sorted after the LUT column.
+    assert rst.index("Total LUTs") < rst.index("Block RAMs")
