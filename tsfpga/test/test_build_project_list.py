@@ -273,7 +273,7 @@ def test_safe_printer_write_falls_back_to_stderr_when_stdout_is_closed():
 
 def test_add_results_swallows_closed_stdout_error(monkeypatch):
     report = MagicMock()
-    runner = BuildRunner(report=report, output_path="output_path")
+    runner = BuildRunner(report=report, output_path="output_path", run_script_path=None)
 
     test_suite = MagicMock()
     test_suite.test_names = ["test"]
@@ -297,7 +297,7 @@ def test_add_results_swallows_closed_stdout_error(monkeypatch):
 def test_add_results_reraises_unrelated_value_error():
     report = MagicMock()
     report.add_result.side_effect = ValueError("something actually went wrong")
-    runner = BuildRunner(report=report, output_path="output_path")
+    runner = BuildRunner(report=report, output_path="output_path", run_script_path=None)
 
     test_suite = MagicMock()
     test_suite.test_names = ["test"]
