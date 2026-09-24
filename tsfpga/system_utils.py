@@ -11,7 +11,6 @@ from __future__ import annotations
 import importlib.util
 import os
 import subprocess
-import sys
 from os.path import commonpath, relpath
 from pathlib import Path
 from platform import system
@@ -276,26 +275,3 @@ def copy_and_combine_dicts(
     result.update(dict_second)
 
     return result
-
-
-#: Text present in the ``ValueError`` raised when writing to a stream that has been closed,
-#: e.g. by the VUnit test runner tearing down its per-test stdout redirection.
-CLOSED_FILE_ERROR_TEXT = "closed file"
-
-
-def safe_print(
-    *args: Any,  # noqa: ANN401
-    **kwargs: Any,  # noqa: ANN401
-) -> None:
-    """
-    Same as the built-in ``print``, but falls back to stderr if stdout has already been closed.
-
-    Builds are run as pseudo VUnit test cases (see :class:`.BuildProjectList`), and VUnit's test
-    runner redirects stdout per test. A background thread printing while that redirection is torn
-    down raises ``ValueError: I/O operation on closed file``, which would hide the real message.
-    Stderr is never redirected that way.
-    """
-    try:
-        print(*args, **kwargs)
-    except ValueError:
-        print(*args, **{**kwargs, "file": sys.stderr})

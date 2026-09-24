@@ -6,15 +6,12 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-import sys
 from unittest.mock import MagicMock
 
 import pytest
 
 from tsfpga.build_project_list import (
     BuildProjectList,
-    BuildRunner,
-    _safe_printer_write,
     get_build_projects,
 )
 from tsfpga.module import BaseModule
@@ -257,56 +254,3 @@ def test_open(build_project_list_test, tmp_path):
     )
     build_project_list_test.project_one.open.assert_not_called()
     build_project_list_test.project_two.open.assert_not_called()
-
-
-def test_safe_printer_write_falls_back_to_stderr_when_stdout_is_closed():
-    printer = MagicMock()
-    printer.write.side_effect = [ValueError("I/O operation on closed file."), None]
-
-    _safe_printer_write(printer, "pass", fg="gi")
-
-    assert printer.write.call_count == 2
-    printer.write.assert_any_call("pass", fg="gi", bg=None)
-    _, kwargs = printer.write.call_args
-    assert kwargs["output_file"] is sys.stderr
-
-
-def test_add_results_swallows_closed_stdout_error(monkeypatch):
-    report = MagicMock()
-    runner = BuildRunner(report=report, output_path="output_path", run_script_path=None)
-
-    test_suite = MagicMock()
-    test_suite.test_names = ["test"]
-
-    def fake_print(*_args, **_kwargs):
-        raise ValueError("I/O operation on closed file.")
-
-    monkeypatch.setattr("builtins.print", fake_print)
-
-    runner._add_results(  # noqa: SLF001
-        test_suite=test_suite,
-        results={"test": "passed"},
-        start_time=0.0,
-        num_tests=1,
-        output_file_name="output_file_name",
-    )
-
-    report.add_result.assert_called_once()
-
-
-def test_add_results_reraises_unrelated_value_error():
-    report = MagicMock()
-    report.add_result.side_effect = ValueError("something actually went wrong")
-    runner = BuildRunner(report=report, output_path="output_path", run_script_path=None)
-
-    test_suite = MagicMock()
-    test_suite.test_names = ["test"]
-
-    with pytest.raises(ValueError, match="something actually went wrong"):
-        runner._add_results(  # noqa: SLF001
-            test_suite=test_suite,
-            results={"test": "passed"},
-            start_time=0.0,
-            num_tests=1,
-            output_file_name="output_file_name",
-        )

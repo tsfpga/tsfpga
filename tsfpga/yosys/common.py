@@ -16,8 +16,6 @@ from shutil import which
 
 from vunit.ostools import Process
 
-from tsfpga.system_utils import safe_print
-
 
 def run_ghdl(ghdl_path: Path | None, arguments: list[str], cwd: Path) -> bool:
     """
@@ -40,7 +38,7 @@ def run_ghdl(ghdl_path: Path | None, arguments: list[str], cwd: Path) -> bool:
     cmd = [str(get_ghdl_path(ghdl_path)), *arguments]
 
     try:
-        Process(args=cmd, cwd=cwd).consume_output(callback=safe_print)
+        Process(args=cmd, cwd=cwd).consume_output()
     except Process.NonZeroExitCode:
         return False
     return True
@@ -100,7 +98,7 @@ def run_yosys(
         env["GHDL_PREFIX"] = str(resolved_ghdl_prefix.resolve())
 
     try:
-        Process(args=cmd, cwd=cwd, env=env).consume_output(callback=safe_print)
+        Process(args=cmd, cwd=cwd, env=env).consume_output()
     except Process.NonZeroExitCode:
         return False
     return True

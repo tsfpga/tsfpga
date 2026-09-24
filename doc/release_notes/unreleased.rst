@@ -12,8 +12,3 @@ Added
   ``ghdl-yosys-plugin``, as an open-source alternative to :class:`.VivadoNetlistProject`.
 * Allow :class:`.YosysNetlistBuild` projects to be returned from
   :meth:`.BaseModule.get_build_projects` and handled by :class:`.BuildProjectList`.
-
-Fixed
-
-* Fix ``ValueError: I/O operation on closed file`` being raised instead of the real GHDL/Yosys
-  error message when a build is driven through VUnit's test runner.

@@ -9,7 +9,6 @@
 from __future__ import annotations
 
 import fnmatch
-import sys
 import time
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -21,11 +20,7 @@ from vunit.test.list import TestList
 from vunit.test.report import TestReport, TestResult
 from vunit.test.runner import TestRunner
 
-from tsfpga.system_utils import (
-    CLOSED_FILE_ERROR_TEXT,
-    create_directory,
-    read_last_lines_of_file,
-)
+from tsfpga.system_utils import create_directory, read_last_lines_of_file
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
@@ -496,27 +491,6 @@ class BuildRunner(TestRunner):
         """
         create_directory(Path(output_path), empty=False)
 
-    def _add_results(
-        self,
-        *args: Any,  # noqa: ANN401
-        **kwargs: Any,  # noqa: ANN401
-    ) -> None:
-        """
-        Overloaded from super class, which ends with a bare ``print()`` of a blank line.
-        That print can race the test runner's stdout teardown and raise
-        ``ValueError: I/O operation on closed file``. The result itself is already recorded and
-        already printed safely at that point, so swallow that specific error.
-
-        Any other ``ValueError``, e.g. from the result bookkeeping that runs before the print,
-        is re-raised. Silently dropping one of those would make a build whose outcome was never
-        recorded look successful.
-        """
-        try:
-            super()._add_results(*args, **kwargs)
-        except ValueError as exception:
-            if CLOSED_FILE_ERROR_TEXT not in str(exception):
-                raise
-
 
 class ThreadSafeCollectArtifacts:
     """
@@ -536,19 +510,6 @@ class ThreadSafeCollectArtifacts:
     def collect_artifacts(self, project: BuildProject, output_path: Path) -> bool:
         with self._lock:
             return self._collect_artifacts(project=project, output_path=output_path)
-
-
-def _safe_printer_write(
-    printer: ColorPrinter, text: str, fg: str | None = None, bg: str | None = None
-) -> None:
-    """
-    Same as :meth:`ColorPrinter.write`, but falls back to stderr if stdout has already been
-    closed. See :func:`.safe_print` for why that happens.
-    """
-    try:
-        printer.write(text, fg=fg, bg=bg)
-    except ValueError:
-        printer.write(text, output_file=sys.stderr, fg=fg, bg=bg)
 
 
 class BuildReport(TestReport):
@@ -591,16 +552,14 @@ class BuildReport(TestReport):
         passed, failed, _ = self._split()
 
         if result.passed:
-            _safe_printer_write(self._printer, "pass", fg="gi")
+            self._printer.write("pass", fg="gi")
         elif result.failed:
-            _safe_printer_write(self._printer, "fail", fg="ri")
+            self._printer.write("fail", fg="ri")
         else:
             raise AssertionError
 
         count_summary = f"pass={len(passed)} fail={len(failed)} total={total_tests}"
-        _safe_printer_write(
-            self._printer, f" ({count_summary}) {result.name} ({result.time:.1f} seconds)\n"
-        )
+        self._printer.write(f" ({count_summary}) {result.name} ({result.time:.1f} seconds)\n")
 
 
 class BuildResult(TestResult):
