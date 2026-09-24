@@ -30,8 +30,8 @@ from tsfpga.system_utils import (
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
+    from . import build_result
     from .module_list import ModuleList
-    from .vivado import build_result
     from .vivado.project import VivadoProject
     from .yosys.project import YosysNetlistBuild
 

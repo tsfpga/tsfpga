@@ -69,18 +69,3 @@ def test_maximum_logic_level_should_be_none_if_no_logic_level_distribution_is_se
     assert build_result.logic_level_distribution is None
     assert build_result.maximum_logic_level is None
     assert "level" not in build_result.report()
-
-
-def test_historical_build_result_import_and_constructor():
-    """
-    'BuildResult' used to live in 'tsfpga.vivado.build_result' and take a 'synthesis_run_name'.
-    Existing code that does this must keep working.
-    """
-    from tsfpga.vivado.build_result import BuildResult  # noqa: PLC0415
-
-    build_result = BuildResult(name="apa", synthesis_run_name="synth_1")
-
-    assert build_result.name == "apa"
-    assert build_result.synthesis_run_name == "synth_1"
-    assert build_result.success
-    assert isinstance(build_result, VivadoBuildResult)

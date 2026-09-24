@@ -8,7 +8,7 @@
 
 from abc import ABC, abstractmethod
 
-from .build_result import BuildResult
+from tsfpga.build_result import BuildResult
 
 
 class Limit(ABC):
