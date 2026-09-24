@@ -232,9 +232,10 @@ class YosysNetlistBuild:
             ]
 
             with _suppress_stdout():
-                # Builtins must not be compiled, they would add dozens of VUnit-internal VHDL
+                # Note that VUnit's builtins are not compiled, since that is only done when
+                # 'add_vhdl_builtins' is called. They would add dozens of VUnit-internal VHDL
                 # files to the compile order.
-                self._vunit_proj = VUnit.from_argv(argv=argv, compile_builtins=False)
+                self._vunit_proj = VUnit.from_argv(argv=argv)
 
             for module in self.modules:
                 vunit_library = self._vunit_proj.add_library(

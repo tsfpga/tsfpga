@@ -55,7 +55,7 @@ jobs:
 
     - name: Install Python packages
       run: |
-        python3 -m pip install docutils GitPython PyYAML pytest rtoml tomli_w vunit-hdl==4.7.1
+        python3 -m pip install docutils GitPython PyYAML pytest rtoml tomli_w vunit-hdl@git+https://github.com/VUnit/vunit.git
 
     - name: Clone dependency repos
       run: |
@@ -130,10 +130,13 @@ jobs:
 
     # Note that 'requirements.txt' brings in 'hdl-registers', so no repo checkout of it is
     # needed here, unlike in the jobs that run the example simulation flow.
+    # VUnit is installed from git, like in the other test jobs, since tsfpga depends on features
+    # that are not in a VUnit release yet.
     - name: Install Python packages
       run: |
         python3 -m pip install --break-system-packages \
           -r tsfpga/requirements.txt \
+          vunit-hdl@git+https://github.com/VUnit/vunit.git \
           pytest
 
     - name: Locate the ghdl-yosys-plugin
@@ -187,7 +190,7 @@ jobs:
           sphinxcontrib-googleanalytics \
           sphinxext-opengraph \
           tomli_w \
-          vunit-hdl==4.7.1
+          vunit-hdl
 
     - name: Clone dependency repos
       run: |
@@ -267,7 +270,7 @@ jobs:
           PyYAML \
           rtoml \
           tomli_w \
-          vunit-hdl==4.7.1 \
+          vunit-hdl@git+https://github.com/VUnit/vunit.git \
           vunit-vivado
 
     - name: Setup GHDL
