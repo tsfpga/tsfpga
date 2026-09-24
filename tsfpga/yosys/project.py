@@ -271,7 +271,7 @@ class YosysNetlistBuild:
 
         return matches[0] if matches else None
 
-    def _get_synthesis_files_in_compile_order(self) -> list[tuple[str, str]]:
+    def _get_vhdl_files_in_compile_order(self) -> list[tuple[str, str]]:
         """
         Return: A list of tuples ``(file_path, library_name)`` in the order they need to be
             analyzed by GHDL.
@@ -408,7 +408,7 @@ class YosysNetlistBuild:
         """
         create_directory(workdir, empty=True)
 
-        for file_path, library_name in self._get_synthesis_files_in_compile_order():
+        for file_path, library_name in self._get_vhdl_files_in_compile_order():
             arguments = [
                 "-a",
                 f"--std={self._vhdl_standard}",
