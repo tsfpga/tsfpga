@@ -161,7 +161,7 @@ def to_yosys_path(path: Path) -> str:
     """
     Return a path string in a format suitable to embed in a Yosys command script.
     """
-    return str(path.resolve()).replace("\\", "/")
+    return path.resolve().as_posix()
 
 
 def get_yosys_path(yosys_path: Path | None = None) -> Path:

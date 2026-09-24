@@ -204,5 +204,5 @@ def test_get_ghdl_path_with_explicit_path_does_not_check_path_env_variable():
 
 
 def test_to_yosys_path():
-    expected = str((THIS_DIR / "apa.vhd").resolve()).replace("\\", "/")
+    expected = (THIS_DIR / "apa.vhd").resolve().as_posix()
     assert to_yosys_path(THIS_DIR / "apa.vhd") == expected
