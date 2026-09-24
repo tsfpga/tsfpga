@@ -83,7 +83,20 @@ class YosysNetlistBuild:
     #: :class:`.YosysIntelNetlistBuild`, :class:`.YosysMicrochipNetlistBuild`).
     _utilization_parser: type[YosysUtilizationParser] = YosysUtilizationParser
 
-    #: Whether the ``synth_command`` needs an explicit ``-flatten`` flag appended to it in order
+    #: The Yosys ``synth*`` command used to synthesize the design.
+    #: The base class uses the generic ``synth`` command, which does not target any specific
+    #: architecture.
+    #: Overridden by the architecture-specific subclasses. Can also be set when subclassing, e.g.
+    #: to ``"synth_intel_alm"`` to target an architecture that has no subclass of its own.
+    _synth_command: str = "synth"
+
+    #: Further arguments to the ``synth*`` command, placed before its ``-top`` argument.
+    #: Can be set when subclassing, e.g. to pass an option that this class has no argument for.
+    #: Note that this is a tuple, so that it is never modified in place and shared between
+    #: objects. A subclass that adds arguments in its constructor assigns a new tuple instead.
+    _synth_arguments: tuple[str, ...] = ()
+
+    #: Whether the ``_synth_command`` needs an explicit ``-flatten`` flag appended to it in order
     #: to flatten the design before synthesis (see :meth:`._get_synth_command`).
     #: This is the case for e.g. the ``synth`` and ``synth_xilinx`` commands.
     #: Some ``synth_*`` commands (e.g. ``synth_intel`` and ``synth_microchip``) instead flatten
@@ -99,7 +112,6 @@ class YosysNetlistBuild:
         vhdl_entities: list[str] | None = None,
         generics: GenericValues | None = None,
         build_result_checkers: list[SizeChecker] | None = None,
-        synth_command: str = "synth",
         vhdl_standard: str = "08",
         ghdl_path: Path | None = None,
         yosys_path: Path | None = None,
@@ -139,8 +151,6 @@ class YosysNetlistBuild:
             build_result_checkers:
                 Checkers that will be executed after a successful build. Is used to automatically
                 check that e.g. resource utilization is not greater than expected.
-            synth_command: The Yosys ``synth*`` command that shall be used to synthesize the
-                design (e.g. ``"synth"`` or ``"synth_xilinx"``).
             vhdl_standard: The VHDL standard that shall be used by GHDL when analyzing the
                 source files (e.g. ``"93"`` or ``"08"``).
             ghdl_path: Path to the GHDL executable.
@@ -186,7 +196,6 @@ class YosysNetlistBuild:
         self.build_result_checkers = (
             [] if build_result_checkers is None else build_result_checkers.copy()
         )
-        self.synth_command = synth_command
         self.defined_at = defined_at
         self.other_arguments = None if other_arguments is None else other_arguments.copy()
 
@@ -463,7 +472,8 @@ class YosysNetlistBuild:
         # The design is flattened so that the produced utilization report contains the
         # primitive counts for the whole design, and not just the top level.
         flatten_flag = " -flatten" if self._needs_explicit_flatten_flag else ""
-        return f"{self.synth_command} -top {self.top}{flatten_flag}"
+        arguments = "".join(f" {argument}" for argument in self._synth_arguments)
+        return f"{self._synth_command}{arguments} -top {self.top}{flatten_flag}"
 
     def _get_ghdl_elaborate_command(
         self, workdir: Path, entity_name: str, library_name: str, generic_arguments: str
@@ -786,14 +796,6 @@ class YosysNetlistBuild:
         return ", ".join([f"{name}={value}" for name, value in data.items()])
 
 
-def _get_synth_command_with_family(synth_command: str, family: str | None) -> str:
-    """
-    Shared helper used by the architecture-specific subclasses below to append an optional
-    ``-family <family>`` flag to their ``synth_*`` command.
-    """
-    return synth_command if family is None else f"{synth_command} -family {family}"
-
-
 class YosysXilinxNetlistBuild(YosysNetlistBuild):
     """
     Used for handling a Yosys netlist build that targets Xilinx primitives (LUTs, FDs,
@@ -805,6 +807,7 @@ class YosysXilinxNetlistBuild(YosysNetlistBuild):
     """
 
     _utilization_parser = YosysXilinxUtilizationParser
+    _synth_command = "synth_xilinx"
 
     def __init__(
         self,
@@ -816,10 +819,11 @@ class YosysXilinxNetlistBuild(YosysNetlistBuild):
             family: Optionally target a specific Xilinx device family (e.g. ``"xc7"``).
                 See the Yosys ``synth_xilinx`` command documentation for valid values.
             kwargs: Further arguments accepted by :meth:`.YosysNetlistBuild.__init__`.
-                Note that ``synth_command`` may not be set, since it is set by this class.
         """
-        synth_command = _get_synth_command_with_family(synth_command="synth_xilinx", family=family)
-        super().__init__(synth_command=synth_command, **kwargs)
+        super().__init__(**kwargs)
+
+        if family is not None:
+            self._synth_arguments = (*self._synth_arguments, "-family", family)
 
 
 class YosysIntelNetlistBuild(YosysNetlistBuild):
@@ -830,9 +834,9 @@ class YosysIntelNetlistBuild(YosysNetlistBuild):
     .. note::
         Targets the MAX10, Cyclone IV, Cyclone IV E and Cyclone 10 LP families.
         For ALM-based Intel devices (Cyclone V, Cyclone 10 GX) the ``synth_intel_alm`` command
-        shall be used instead, which is not covered by this class. Use the base
-        :class:`.YosysNetlistBuild` with ``synth_command="synth_intel_alm"`` for that, though note
-        that no aggregated resource counts will be available in that case.
+        shall be used instead, which is not covered by this class. Subclass
+        :class:`.YosysNetlistBuild` and set its ``_synth_command`` to ``"synth_intel_alm"`` for
+        that, though note that no aggregated resource counts will be available in that case.
 
     Since the produced utilization report uses the resource names ``"Total LUTs"``, ``"FFs"``,
     ``"Block RAMs"`` and ``"DSP Blocks"``, the corresponding checkers in
@@ -840,6 +844,7 @@ class YosysIntelNetlistBuild(YosysNetlistBuild):
     """
 
     _utilization_parser = YosysIntelUtilizationParser
+    _synth_command = "synth_intel"
     _needs_explicit_flatten_flag = False
 
     def __init__(
@@ -852,10 +857,11 @@ class YosysIntelNetlistBuild(YosysNetlistBuild):
             family: Optionally target a specific Intel device family (e.g. ``"cycloneiv"``).
                 See the Yosys ``synth_intel`` command documentation for valid values.
             kwargs: Further arguments accepted by :meth:`.YosysNetlistBuild.__init__`.
-                Note that ``synth_command`` may not be set, since it is set by this class.
         """
-        synth_command = _get_synth_command_with_family(synth_command="synth_intel", family=family)
-        super().__init__(synth_command=synth_command, **kwargs)
+        super().__init__(**kwargs)
+
+        if family is not None:
+            self._synth_arguments = (*self._synth_arguments, "-family", family)
 
 
 class YosysMicrochipNetlistBuild(YosysNetlistBuild):
@@ -874,6 +880,7 @@ class YosysMicrochipNetlistBuild(YosysNetlistBuild):
     """
 
     _utilization_parser = YosysMicrochipUtilizationParser
+    _synth_command = "synth_microchip"
     _needs_explicit_flatten_flag = False
 
     def __init__(
@@ -893,15 +900,14 @@ class YosysMicrochipNetlistBuild(YosysNetlistBuild):
                 Set this to ``True`` to instead discard the initial value and let synthesis
                 proceed. Corresponds to the Yosys ``-discard-ffinit`` flag.
             kwargs: Further arguments accepted by :meth:`.YosysNetlistBuild.__init__`.
-                Note that ``synth_command`` may not be set, since it is set by this class.
         """
-        synth_command = _get_synth_command_with_family(
-            synth_command="synth_microchip", family=family
-        )
-        if discard_ffinit:
-            synth_command += " -discard-ffinit"
+        super().__init__(**kwargs)
 
-        super().__init__(synth_command=synth_command, **kwargs)
+        if family is not None:
+            self._synth_arguments = (*self._synth_arguments, "-family", family)
+
+        if discard_ffinit:
+            self._synth_arguments = (*self._synth_arguments, "-discard-ffinit")
 
 
 def _get_ghdl_generic_value(

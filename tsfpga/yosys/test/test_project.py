@@ -137,35 +137,76 @@ def test_project_file_name_is_same_as_project_name():
     assert project.project_file(Path("/hest")) == Path("/hest/apa.ys")
 
 
-def test_xilinx_netlist_build_sets_synth_command():
+def test_xilinx_netlist_build_synth_command():
     project = YosysXilinxNetlistBuild(name="apa", modules=[])
-    assert project.synth_command == "synth_xilinx"
     assert project._get_synth_command() == "synth_xilinx -top apa_top -flatten"  # noqa: SLF001
 
     project = YosysXilinxNetlistBuild(name="apa", modules=[], family="xc7")
-    assert project.synth_command == "synth_xilinx -family xc7"
+    assert (
+        project._get_synth_command()  # noqa: SLF001
+        == "synth_xilinx -family xc7 -top apa_top -flatten"
+    )
 
 
-def test_intel_netlist_build_sets_synth_command():
+def test_intel_netlist_build_synth_command():
     project = YosysIntelNetlistBuild(name="apa", modules=[])
-    assert project.synth_command == "synth_intel"
     # 'synth_intel' does not accept a '-flatten' flag, unlike 'synth_xilinx'.
     assert project._get_synth_command() == "synth_intel -top apa_top"  # noqa: SLF001
 
     project = YosysIntelNetlistBuild(name="apa", modules=[], family="cycloneiv")
-    assert project.synth_command == "synth_intel -family cycloneiv"
+    assert (
+        project._get_synth_command()  # noqa: SLF001
+        == "synth_intel -family cycloneiv -top apa_top"
+    )
 
 
-def test_microchip_netlist_build_sets_synth_command():
+def test_microchip_netlist_build_synth_command():
     project = YosysMicrochipNetlistBuild(name="apa", modules=[])
-    assert project.synth_command == "synth_microchip"
     assert project._get_synth_command() == "synth_microchip -top apa_top"  # noqa: SLF001
 
     project = YosysMicrochipNetlistBuild(name="apa", modules=[], family="polarfire")
-    assert project.synth_command == "synth_microchip -family polarfire"
+    assert (
+        project._get_synth_command()  # noqa: SLF001
+        == "synth_microchip -family polarfire -top apa_top"
+    )
 
     project = YosysMicrochipNetlistBuild(name="apa", modules=[], discard_ffinit=True)
-    assert project.synth_command == "synth_microchip -discard-ffinit"
+    assert (
+        project._get_synth_command()  # noqa: SLF001
+        == "synth_microchip -discard-ffinit -top apa_top"
+    )
+
+
+def test_synth_command_and_arguments_can_be_set_when_subclassing():
+    class YosysIntelAlmNetlistBuild(YosysNetlistBuild):
+        _synth_command = "synth_intel_alm"
+        _synth_arguments = ("-noiopad",)
+
+    project = YosysIntelAlmNetlistBuild(name="apa", modules=[])
+    assert (
+        project._get_synth_command()  # noqa: SLF001
+        == "synth_intel_alm -noiopad -top apa_top -flatten"
+    )
+
+    # Arguments set by a subclass are kept when the parent class adds its own.
+    class YosysXilinxNoBramNetlistBuild(YosysXilinxNetlistBuild):
+        _synth_arguments = ("-nobram",)
+
+    project = YosysXilinxNoBramNetlistBuild(name="apa", modules=[], family="xc7")
+    assert (
+        project._get_synth_command()  # noqa: SLF001
+        == "synth_xilinx -nobram -family xc7 -top apa_top -flatten"
+    )
+
+
+def test_synth_arguments_are_not_shared_between_objects():
+    YosysXilinxNetlistBuild(name="apa", modules=[], family="xc7")
+
+    # Adding the family argument to the first object must not affect the class, or any
+    # object created after it.
+    assert YosysXilinxNetlistBuild._synth_arguments == ()  # noqa: SLF001
+    project = YosysXilinxNetlistBuild(name="hest", modules=[])
+    assert project._get_synth_command() == "synth_xilinx -top hest_top -flatten"  # noqa: SLF001
 
 
 def test_get_ghdl_generic_value():
