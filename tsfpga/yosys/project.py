@@ -271,13 +271,27 @@ class YosysNetlistBuild:
 
         return matches[0] if matches else None
 
+    def _find_top_vhdl_source_file(self) -> tuple[BaseModule, HdlFile] | None:
+        """
+        Return: The module and source file of the ``top``, if it is a VHDL entity.
+            ``None`` otherwise, e.g. if it is a Verilog/SystemVerilog module.
+        """
+        return self._find_vhdl_source_file(entity_name=self.top)
+
+    @property
+    def _top_is_vhdl(self) -> bool:
+        """
+        Whether the ``top`` is a VHDL entity, as opposed to e.g. a Verilog/SystemVerilog module.
+        """
+        return self._find_top_vhdl_source_file() is not None
+
     def _get_vhdl_files_in_compile_order(self) -> list[tuple[str, str]]:
         """
         Return: A list of tuples ``(file_path, library_name)`` in the order they need to be
             analyzed by GHDL.
         """
         vunit_proj = self._get_vunit_project()
-        top_level_match = self._find_vhdl_source_file(entity_name=self.top)
+        top_level_match = self._find_top_vhdl_source_file()
 
         if top_level_match is None:
             # The 'top' is not a VHDL entity (e.g. it is a Verilog/SystemVerilog module, or the
@@ -482,7 +496,7 @@ class YosysNetlistBuild:
         Return: A list of Yosys ``ghdl`` commands that elaborate the VHDL entities of this
             build, making them available to Yosys.
         """
-        top_level_match = self._find_vhdl_source_file(entity_name=self.top)
+        top_level_match = self._find_top_vhdl_source_file()
         if top_level_match is not None:
             # The 'top' is a VHDL entity: elaborate it directly. GHDL will pull in everything it
             # depends on, including any Verilog/SystemVerilog modules read by
@@ -534,7 +548,7 @@ class YosysNetlistBuild:
             a Verilog/SystemVerilog module. ``None`` when there is nothing to set, or when
             ``top`` is a VHDL entity (where generics are instead passed to GHDL).
         """
-        if not all_generics or self._find_vhdl_source_file(entity_name=self.top) is not None:
+        if not all_generics or self._top_is_vhdl:
             return None
 
         # Note that the 'synth' command runs 'hierarchy' itself, but the parameter values set
