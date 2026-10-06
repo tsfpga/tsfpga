@@ -25,9 +25,16 @@ from tsfpga.system_utils import create_directory, read_last_lines_of_file
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
+    from . import build_result
     from .module_list import ModuleList
-    from .vivado import build_result
     from .vivado.project import VivadoProject
+    from .yosys.project import YosysNetlistBuild
+
+    #: A build project managed by :class:`.BuildProjectList`. Either a full, place-and-route
+    #: capable :class:`.VivadoProject`, or a synthesis-only :class:`.YosysNetlistBuild`.
+    #: The two share a duck-typed interface (``create``/``build``/``open``, ``name``,
+    #: ``is_netlist_build``) so they can be mixed freely in the same list.
+    BuildProject = VivadoProject | YosysNetlistBuild
 
 
 class BuildProjectList:
@@ -36,7 +43,7 @@ class BuildProjectList:
     Enables building many projects in parallel.
     """
 
-    def __init__(self, projects: Sequence[VivadoProject], no_color: bool = False) -> None:
+    def __init__(self, projects: Sequence[BuildProject], no_color: bool = False) -> None:
         """
         Arguments:
             projects: The FPGA build projects that will be executed.
@@ -151,7 +158,7 @@ class BuildProjectList:
         num_parallel_builds: int,
         num_threads_per_build: int,
         output_path: Path | None = None,
-        collect_artifacts: Callable[[VivadoProject, Path], bool] | None = None,
+        collect_artifacts: Callable[[BuildProject, Path], bool] | None = None,
         **kwargs: Any,  # noqa: ANN401
     ) -> bool:
         """
@@ -214,7 +221,7 @@ class BuildProjectList:
         )
 
     @staticmethod
-    def get_build_project_path(project: VivadoProject, projects_path: Path) -> Path:
+    def get_build_project_path(project: BuildProject, projects_path: Path) -> Path:
         """
         Find where the project files for a specific project will be placed.
         Arguments are the same as for :meth:`.create`.
@@ -223,7 +230,7 @@ class BuildProjectList:
 
     @staticmethod
     def get_build_project_output_path(
-        project: VivadoProject, projects_path: Path, output_path: Path | None = None
+        project: BuildProject, projects_path: Path, output_path: Path | None = None
     ) -> Path:
         """
         Find where build artifacts will be placed for a project.
@@ -339,7 +346,7 @@ class BuildProjectCreateWrapper(BuildProjectWrapper):
 
     def __init__(
         self,
-        project: VivadoProject,
+        project: BuildProject,
         **kwargs: Any,  # noqa: ANN401
     ) -> None:
         self.name = project.name
@@ -366,7 +373,7 @@ class BuildProjectBuildWrapper(BuildProjectWrapper):
 
     def __init__(
         self,
-        project: VivadoProject,
+        project: BuildProject,
         collect_artifacts: Callable[..., bool] | None,
         **kwargs: Any,  # noqa: ANN401
     ) -> None:
@@ -425,7 +432,7 @@ class BuildProjectOpenWrapper(BuildProjectWrapper):
     Wrapper to open a build project, for usage in the build runner.
     """
 
-    def __init__(self, project: VivadoProject) -> None:
+    def __init__(self, project: BuildProject) -> None:
         self.name = project.name
         self._project = project
 
@@ -496,11 +503,11 @@ class ThreadSafeCollectArtifacts:
     example projects which are identical and quite fast (roughly three minutes).
     """
 
-    def __init__(self, collect_artifacts: Callable[[VivadoProject, Path], bool]) -> None:
+    def __init__(self, collect_artifacts: Callable[[BuildProject, Path], bool]) -> None:
         self._collect_artifacts = collect_artifacts
         self._lock = Lock()
 
-    def collect_artifacts(self, project: VivadoProject, output_path: Path) -> bool:
+    def collect_artifacts(self, project: BuildProject, output_path: Path) -> bool:
         with self._lock:
             return self._collect_artifacts(project=project, output_path=output_path)
 
@@ -619,10 +626,11 @@ class BuildResult(TestResult):
 
 def get_build_projects(
     modules: ModuleList, project_filters: list[str], include_netlist_not_full_builds: bool = False
-) -> list[VivadoProject]:
+) -> list[BuildProject]:
     """
     Get build projects from the given modules that match the given filters.
-    Note that the result of this function is a list of "raw" :class:`.VivadoProject` objects.
+    Note that the result of this function is a list of "raw" build project objects
+    (:class:`.VivadoProject` or :class:`.YosysNetlistBuild`).
     These are meant to be passed to :class:`.BuildProjectList` for execution.
 
     Arguments:
