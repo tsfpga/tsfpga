@@ -8,7 +8,7 @@
 
 from abc import ABC, abstractmethod
 
-from .build_result import BuildResult
+from tsfpga.build_result import BuildResult
 
 
 class Limit(ABC):
@@ -203,6 +203,20 @@ class Ramb(SizeChecker):
             )
 
         return build_result.synthesis_size[name]
+
+
+class BlockRams(SizeChecker):
+    """
+    Generic block RAM count checker.
+
+    Unlike :class:`.Ramb36`, :class:`.Ramb18` and :class:`.Ramb`, which are specific to the
+    Xilinx block RAM architecture, this checker uses the resource name ``"Block RAMs"``, which is
+    a generic aggregate count available regardless of target architecture.
+    Can hence be used with Yosys netlist builds targeting Xilinx, Intel or Microchip primitives
+    (see :mod:`.yosys.project`) alike.
+    """
+
+    name = "Block RAMs"
 
 
 class Uram(SizeChecker):

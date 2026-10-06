@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     from vunit.ui.test import Test
     from vunit.ui.testbench import TestBench
 
-    from .vivado.project import VivadoProject
+    from .build_project_list import BuildProject
 
 
 class BaseModule:
@@ -177,7 +177,7 @@ class BaseModule:
                 This could be, e.g., data dimensions, location of test files, etc.
         """
 
-    def get_build_projects(self) -> list[VivadoProject]:
+    def get_build_projects(self) -> list[BuildProject]:
         """
         Get FPGA build projects defined by this module.
 
@@ -496,7 +496,7 @@ class BaseModule:
 
     def pre_build(
         self,
-        project: VivadoProject,  # noqa: ARG002
+        project: BuildProject,  # noqa: ARG002
         **kwargs: Any,  # noqa: ANN401, ARG002
     ) -> bool:
         """
@@ -510,10 +510,12 @@ class BaseModule:
             Should be overridden by modules that utilize this mechanism.
 
         Arguments:
-            project: The project that is being built.
+            project: The project that is being built. Either a :class:`.VivadoProject` or a
+                :class:`.YosysNetlistBuild`.
             kwargs: All other parameters to the build flow. Includes arguments to
-                :meth:`.VivadoProject.build` method as well as other arguments set in
-                :meth:`.VivadoProject.__init__`.
+                :meth:`.VivadoProject.build`/:meth:`.YosysNetlistBuild.build` method as well as
+                other arguments set in :meth:`.VivadoProject.__init__`/
+                :meth:`.YosysNetlistBuild.__init__`.
 
         Return:
             True if everything went well.

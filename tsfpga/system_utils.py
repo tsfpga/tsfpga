@@ -16,7 +16,7 @@ from pathlib import Path
 from platform import system
 from shutil import rmtree
 from sys import modules
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from tsfpga import DEFAULT_FILE_ENCODING
 
@@ -253,3 +253,25 @@ def system_is_windows() -> bool:
     Return True if the script is being executed on a computer running the Windows operating system.
     """
     return system() == "Windows"
+
+
+def copy_and_combine_dicts(
+    dict_first: dict[str, Any] | None, dict_second: dict[str, Any] | None
+) -> dict[str, Any]:
+    """
+    Will prefer values in the second dict, in case the same key occurs in both.
+    Will return an empty dictionary if both are ``None``.
+    """
+    if dict_first is None:
+        if dict_second is None:
+            return {}
+
+        return dict_second.copy()
+
+    if dict_second is None:
+        return dict_first.copy()
+
+    result = dict_first.copy()
+    result.update(dict_second)
+
+    return result
