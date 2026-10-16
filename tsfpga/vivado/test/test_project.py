@@ -420,9 +420,7 @@ def test_different_generic_combinations(mocked_vivado_tcl, vivado_project_test):
     vivado_project_test.build_time_generics = None
     build_result = vivado_project_test.build(VivadoProject(name="apa", modules=[], part=""))
     assert build_result.success
-    # Note: In python 3.8 we can use call_args.kwargs straight away
-    _, kwargs = mocked_vivado_tcl.return_value.build.call_args
-    assert kwargs["generics"] == {}
+    assert mocked_vivado_tcl.return_value.build.call_args.kwargs["generics"] == {}
 
     # Only build time generics
     vivado_project_test.build_time_generics = {"runtime": "value"}
