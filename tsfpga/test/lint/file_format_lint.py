@@ -32,7 +32,7 @@ def open_file_with_encoding(file: Path) -> None:
             for character in line:
                 try:
                     character.encode("ascii")
-                except UnicodeEncodeError:  # noqa: PERF203
+                except UnicodeEncodeError:
                     print(f"Character {character} on line {line_idx + 1} is not ASCII")
 
         raise

@@ -6,7 +6,7 @@
 # https://github.com/tsfpga/tsfpga
 # --------------------------------------------------------------------------------------------------
 
-import datetime
+import datetime as dt
 import platform
 import random
 from pathlib import Path
@@ -144,7 +144,7 @@ If there were local changes in the git repository, this will be noted in parenth
             name="build_time",
             # Specific timezone is not needed, it just needs to be consistent.
             value=(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # noqa: DTZ005
+                dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # noqa: DTZ005
             ),
             description="A string describing at what time and date the FPGA was built." + hook_note,
         )
