@@ -103,7 +103,7 @@ def main() -> None:
         ],
         install_requires=read_requirements_file(REQUIREMENTS_TXT),
         extras_require={"develop": read_requirements_file(REQUIREMENTS_DEVELOP_TXT)},
-        python_requires=">=3.10",
+        python_requires=">=3.11",
         project_urls={
             "Homepage": WEBSITE_URL,
             "Documentation": WEBSITE_URL,
