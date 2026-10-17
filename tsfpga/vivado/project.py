@@ -772,9 +772,10 @@ class VivadoNetlistProject(VivadoProject):
             print(f'Can not do post-build check for "{self.name}" since it did not succeed.')
             return result
 
-        result.success = result.success and self._check_size(build_result=result)
-
         run_path = project_path / f"{self.name}.runs" / result.synthesis_run_name
+        result.logic_level_distribution = self._get_logic_level_distribution(run_path=run_path)
+
+        result.success = result.success and self._check_size(build_result=result)
 
         if self.open_and_analyze_synthesized_design:
             # Report might not exist or might not contain any slack information,
@@ -787,8 +788,6 @@ class VivadoNetlistProject(VivadoProject):
                 # meaning higher frequency.
                 # Hence the subtraction.
                 result.maximum_synthesis_frequency_hz = 1e9 / (self._clock_period_ns - slack_ns)
-
-        result.logic_level_distribution = self._get_logic_level_distribution(run_path=run_path)
 
         return result
 
