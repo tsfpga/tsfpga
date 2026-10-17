@@ -17,6 +17,7 @@ from tsfpga.constraint import Constraint
 from tsfpga.module import BaseModule, get_modules
 from tsfpga.system_utils import create_directory, create_file, read_file
 from tsfpga.test.test_utils import file_contains_string
+from tsfpga.vivado.build_result_checker import EqualTo, MaximumLogicLevel
 from tsfpga.vivado.common import to_tcl_path
 from tsfpga.vivado.generics import StringGenericValue
 from tsfpga.vivado.project import VivadoNetlistProject, VivadoProject, copy_and_combine_dicts
@@ -590,8 +591,13 @@ def test_netlist_build_should_set_logic_level_distribution(vivado_project_test):
             patch(
                 "tsfpga.vivado.project.LogicLevelDistributionParser.get_table", autospec=True
             ) as mocked_get_table,
+            patch(
+                "tsfpga.vivado.project.LogicLevelDistributionParser.get_maximum_logic_level",
+                autospec=True,
+            ) as mocked_get_maximum_logic_level,
         ):
             mocked_get_table.return_value = "logic_table"
+            mocked_get_maximum_logic_level.return_value = 3
 
             build_result = project.build(
                 project_path=vivado_project_test.project_path,
@@ -607,13 +613,17 @@ def test_netlist_build_should_set_logic_level_distribution(vivado_project_test):
                 assert build_result.logic_level_distribution is None
                 assert build_result.maximum_logic_level is None
 
+            assert build_result.success
+
     create_file(vivado_project_test.project_path / "apa.xpr")
     create_file(
         vivado_project_test.project_path / "apa.runs" / "synth_3" / "logic_level_distribution.rpt",
         contents="logic_file",
     )
 
-    project = VivadoNetlistProject(name="apa", modules=[], part="")
+    project = VivadoNetlistProject(
+        name="apa", modules=[], part="", build_result_checkers=[MaximumLogicLevel(EqualTo(3))]
+    )
     _build_with_logic_level_distribution(project=project)
 
     project = VivadoProject(name="apa", modules=[], part="")
